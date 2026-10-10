@@ -100,7 +100,8 @@ Today a developer writes the templates in a code editor while fields and content
 
 - Edits apply to the file at once; there is no separate publish step for templates.
 - Each save states which version of the file it was made against. If the file changed on disk since (someone saved it in a code editor), the save is refused and the editor reloads the file.
-- Before writing, the result must open as a tree again (or, from the code panel, compile) and pass Sunrice's Blade syntax check. Otherwise nothing is written and the error is shown.
+- Before writing, the result must open as a tree again (or, from the code panel, compile) and pass the Blade syntax check: compiled with the site's Blade compiler and read by PHP's parser, as Sunrice checks templates written by AI agents. Otherwise nothing is written and the error is shown.
+- An edit is sent as an operation: what to do, to which node, with what. Several can be sent together and are applied all or none.
 - The previous version is kept in `storage/app/sunrice/template-backups/`, as for templates written by AI agents.
 - Undo and redo cover the editing session, per file.
 - After a save the frame reloads the page and keeps the selection.

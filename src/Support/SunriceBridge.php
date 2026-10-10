@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Support;
 
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
@@ -15,7 +14,6 @@ use Sunrice\Models\Fieldset;
 use Sunrice\Models\GlobalSet;
 use Sunrice\Models\Menu;
 use Sunrice\Models\Taxonomy;
-use Throwable;
 
 /**
  * Everything the editor needs from Sunrice that Sunrice does not publish as
@@ -75,23 +73,6 @@ final class SunriceBridge
         }
 
         return $uses;
-    }
-
-    /**
-     * Compiles Blade and checks the PHP it produces; null when fine. The
-     * same check Sunrice runs before an AI agent's template is saved.
-     */
-    public static function syntaxError(string $blade): ?string
-    {
-        try {
-            // Throws a ParseError on invalid PHP.
-            $tokens = token_get_all(Blade::compileString($blade), TOKEN_PARSE);
-            unset($tokens);
-        } catch (Throwable $e) {
-            return $e->getMessage().' (line '.$e->getLine().' of the compiled template)';
-        }
-
-        return null;
     }
 
     /**

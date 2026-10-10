@@ -82,7 +82,8 @@ final class Content
         $isArm ? Seams::repair($directive, [0]) : Seams::repair($directive->parent ?? $directive, [$directive->index() + 1]);
     }
 
-    public static function setCode(Node $node, string $code): void
+    /** @return list<Node> the nodes now in its place */
+    public static function setCode(Node $node, string $code): array
     {
         if (! Rules::movable($node) || $node->parent === null) {
             throw new EditRejected('This can\'t be rewritten on its own.');
@@ -98,6 +99,8 @@ final class Content
         $node->parent = null;
 
         Seams::repair($parent, [$index, $index + count($nodes)]);
+
+        return $nodes;
     }
 
     /**

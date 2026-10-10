@@ -27,6 +27,7 @@ if (is_file($autoload = dirname(__DIR__).'/vendor/autoload.php')) {
         ],
         'Illuminate\\Contracts\\' => $deps.'/framework/src/Illuminate/Contracts/',
         'Illuminate\\' => $deps.'/framework/src/Illuminate/',
+        'Psr\\Container\\' => $deps.'/container/src/',
         'Sunrice\\VisualEditor\\Tests\\' => dirname(__DIR__).'/tests/',
         'Sunrice\\VisualEditor\\' => dirname(__DIR__).'/src/',
     ];

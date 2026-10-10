@@ -133,8 +133,9 @@ final class Structure
      * Moves a node before or after another, or inside one as its last child.
      *
      * @param  string  $position  before, after or inside
+     * @return Node the node where it is now; between parents it is read again, so not the same object
      */
-    public static function move(Node $node, Node $target, string $position): void
+    public static function move(Node $node, Node $target, string $position): Node
     {
         self::mustMove($node);
         for ($up = $target; $up !== null; $up = $up->parent) {
@@ -156,18 +157,20 @@ final class Structure
         if ($position !== 'inside' && $target->parent === $node->parent) {
             self::reorder($node, $target, $position);
 
-            return;
+            return $node;
         }
 
         $blade = $node->print();
         $from = Layout::indent($node) ?? '';
         self::remove($node);
 
-        match ($position) {
+        $moved = match ($position) {
             'before' => self::insertBefore($target, $blade, $from),
             'after' => self::insertAfter($target, $blade, $from),
             'inside' => self::append($target, $blade, $from),
         };
+
+        return $moved[0] ?? $node;
     }
 
     /**
@@ -182,10 +185,13 @@ final class Structure
         $parsed = Fragment::parse($wrapper, $node->parent);
         $outer = $parsed[0] ?? null;
         $holder = $outer?->type === 'block' && count($outer->children) === 1 ? $outer->children[0] : $outer;
-        if (count($parsed) !== 1 || $holder === null || $holder->children !== [] || Rules::isSwitchHead($holder)
+        // Empty, or holding only the space that @auth @endauth can't be written without.
+        $empty = $holder !== null && array_filter($holder->children, fn (Node $child) => ! Layout::isSpace($child)) === [];
+        if (count($parsed) !== 1 || $holder === null || ! $empty || Rules::isSwitchHead($holder)
             || ! ($holder->type === 'branch' || ($holder->type === 'element' && $holder->close !== '' && ! in_array($holder->name, HtmlLexer::RAW_TEXT, true)))) {
             throw new EditRejected('The wrapper has to be one empty element or block, such as <div class="card"></div>.');
         }
+        $holder->children = [];
 
         if ($node->type === 'text') {
             $node = self::wordsOf($node);
@@ -220,8 +226,12 @@ final class Structure
         return $outer;
     }
 
-    /** Removes an element's tags, or a block's directives, and keeps what was inside. */
-    public static function unwrap(Node $node): void
+    /**
+     * Removes an element's tags, or a block's directives, and keeps what was inside.
+     *
+     * @return list<Node> what was inside, where it is now
+     */
+    public static function unwrap(Node $node): array
     {
         self::mustMove($node);
         $holder = match (true) {
@@ -240,7 +250,7 @@ final class Structure
         if ($inside === []) {
             self::remove($node);
 
-            return;
+            return [];
         }
 
         $blade = implode('', array_map(fn (Node $child) => $child->print(), $inside));
@@ -255,7 +265,8 @@ final class Structure
         $nodes = Fragment::parse($blade, $parent);
         $node->parent = null;
         array_splice($parent->children, $index, 1);
-        self::splice($parent, $index, $nodes, $nodes);
+
+        return self::splice($parent, $index, $nodes, $nodes);
     }
 
     /**

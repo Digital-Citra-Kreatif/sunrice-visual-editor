@@ -7,6 +7,9 @@ namespace Sunrice\VisualEditor\Blade;
 /**
  * The edits a visual editor makes, applied to the tree. Each one changes the
  * text of the nodes involved and nothing else.
+ *
+ * Every method here is an operation of the same name (see Operation): the
+ * editor sends operations, and Operations applies and checks them.
  */
 final class Edit
 {
@@ -77,10 +80,14 @@ final class Edit
         Content::setArguments($directive, $arguments);
     }
 
-    /** Replaces a node with Blade written by hand; an empty string removes it. */
-    public static function setCode(Node $node, string $code): void
+    /**
+     * Replaces a node with Blade written by hand; an empty string removes it.
+     *
+     * @return list<Node> the nodes now in its place
+     */
+    public static function setCode(Node $node, string $code): array
     {
-        Content::setCode($node, $code);
+        return Content::setCode($node, $code);
     }
 
     /**
@@ -128,21 +135,26 @@ final class Edit
      * Moves a node before or after another, or inside one as its last child.
      *
      * @param  string  $position  before, after or inside
+     * @return Node the node where it is now
      */
-    public static function move(Node $node, Node $target, string $position): void
+    public static function move(Node $node, Node $target, string $position): Node
     {
-        Structure::move($node, $target, $position);
+        return Structure::move($node, $target, $position);
     }
 
-    /** Wraps a node in an element or block written empty: `<div class="card"></div>`, `@if ($show)@endif`. */
+    /** Wraps a node in an element or block written empty: `<div class="card"></div>`, `@if ($show)@endif`, `@auth @endauth`. */
     public static function wrap(Node $node, string $wrapper): Node
     {
         return Structure::wrap($node, $wrapper);
     }
 
-    /** Removes an element's tags or a block's directives and keeps what was inside. */
-    public static function unwrap(Node $node): void
+    /**
+     * Removes an element's tags or a block's directives and keeps what was inside.
+     *
+     * @return list<Node> what was inside, where it is now
+     */
+    public static function unwrap(Node $node): array
     {
-        Structure::unwrap($node);
+        return Structure::unwrap($node);
     }
 }
