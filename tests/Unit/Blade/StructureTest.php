@@ -109,7 +109,10 @@ it('deletes a node with the line it had to itself', function () {
     expect(restructured(CARDS, fn (array $el) => Edit::remove($el[1])))->toBe("<ul class=\"cards\">\n    <li>\n        <b>Two</b>\n    </li>\n</ul>\n")
         ->and(restructured(CARDS, fn (array $el) => Edit::remove($el[2])))->toBe("<ul class=\"cards\">\n    <li>One</li>\n</ul>\n")
         ->and(restructured(CARDS, fn (array $el) => Edit::remove($el[3])))->toBe("<ul class=\"cards\">\n    <li>One</li>\n    <li>\n    </li>\n</ul>\n")
-        ->and(restructured("{{-- note --}}\n<p>x</p>\n", fn (array $el, Template $t) => Edit::remove($t->selectable()[0])))->toBe("{{-- note --}}\n")
+        ->and(restructured("{{-- note --}}\n<p>x</p>\n", fn (array $el) => Edit::remove($el[0])))->toBe("{{-- note --}}\n")
+        // A comment goes like anything else, Blade's or HTML's.
+        ->and(restructured("{{-- note --}}\n<p>x</p>\n", fn (array $el, Template $t) => Edit::remove($t->selectable()[0])))->toBe("<p>x</p>\n")
+        ->and(restructured("<div>\n    <!-- note -->\n    <p>x</p>\n</div>\n", fn (array $el, Template $t) => Edit::remove($t->selectable()[1])))->toBe("<div>\n    <p>x</p>\n</div>\n")
         ->and(restructured("@csrf\n<p>x</p>\n", fn (array $el, Template $t) => Edit::remove($t->selectable()[0])))->toBe("<p>x</p>\n")
         ->and(restructured("<p>\r\n    <b>x</b>\r\n    <i>y</i>\r\n</p>", fn (array $el) => Edit::remove($el[1])))->toBe("<p>\r\n    <i>y</i>\r\n</p>");
 });

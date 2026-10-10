@@ -42,20 +42,20 @@ Of 379 nodes: 85.5% fully visual, 5% expressions, 4.2% elements with a directive
 | switch escaping | 80 | 80 | 0 |
 | change arguments | 127 | 127 | 0 |
 | rewrite code | 20 | 20 | 0 |
-| delete | 361 | 361 | 0 |
-| duplicate | 361 | 361 | 0 |
-| insert after | 361 | 361 | 0 |
-| insert before | 361 | 361 | 0 |
-| wrap | 361 | 361 | 0 |
-| unwrap | 202 | 202 | 159 |
-| reorder | 109 | 109 | 252 |
-| move inside | 30 | 30 | 331 |
+| delete | 398 | 398 | 0 |
+| duplicate | 398 | 398 | 0 |
+| insert after | 398 | 398 | 0 |
+| insert before | 398 | 398 | 0 |
+| wrap | 398 | 398 | 0 |
+| unwrap | 202 | 202 | 196 |
+| reorder | 146 | 146 | 252 |
+| move inside | 38 | 38 | 360 |
 | insert inside | 235 | 235 | 0 |
 | change text | 11 | 11 | 0 |
 | type awkward text | 11 | 11 | 0 |
-| **Total** | 3695 | 3695 | |
+| **Total** | 3925 | 3925 | |
 
-Opening a file: median 2.76 ms, slowest 43.79 ms.
+Opening a file: median 3.2 ms, slowest 24.46 ms.
 
 ## Package views (defaults, components, error pages)
 
@@ -80,14 +80,14 @@ Of 199 nodes: 93% fully visual, 3.5% expressions, 3% elements with a directive i
 | --- | ---: | ---: | ---: |
 | change expression | 37 | 37 | 0 |
 | switch escaping | 37 | 37 | 0 |
-| delete | 196 | 196 | 0 |
-| duplicate | 196 | 196 | 0 |
-| insert after | 196 | 196 | 0 |
-| insert before | 196 | 196 | 0 |
-| wrap | 196 | 196 | 0 |
-| unwrap | 95 | 95 | 101 |
-| reorder | 86 | 86 | 110 |
-| move inside | 29 | 29 | 167 |
+| delete | 203 | 203 | 0 |
+| duplicate | 203 | 203 | 0 |
+| insert after | 203 | 203 | 0 |
+| insert before | 203 | 203 | 0 |
+| wrap | 203 | 203 | 0 |
+| unwrap | 95 | 95 | 108 |
+| reorder | 93 | 93 | 110 |
+| move inside | 34 | 34 | 169 |
 | add class | 106 | 106 | 0 |
 | remove class | 125 | 125 | 0 |
 | add attribute | 106 | 106 | 0 |
@@ -100,9 +100,9 @@ Of 199 nodes: 93% fully visual, 3.5% expressions, 3% elements with a directive i
 | change text | 3 | 3 | 0 |
 | type awkward text | 3 | 3 | 0 |
 | rewrite code | 1 | 1 | 0 |
-| **Total** | 2031 | 2031 | |
+| **Total** | 2078 | 2078 | |
 
-Opening a file: median 1.58 ms, slowest 3.31 ms.
+Opening a file: median 1.63 ms, slowest 3.65 ms.
 
 ## Edge cases written for this test
 
@@ -143,19 +143,19 @@ Opening a file: median 1.58 ms, slowest 3.31 ms.
 | change expression | 25 | 25 | 0 |
 | switch escaping | 25 | 25 | 0 |
 | change arguments | 21 | 21 | 0 |
-| delete | 98 | 98 | 0 |
-| duplicate | 98 | 98 | 0 |
-| insert after | 98 | 98 | 0 |
-| insert before | 98 | 98 | 0 |
-| wrap | 98 | 98 | 0 |
-| unwrap | 52 | 52 | 46 |
-| reorder | 29 | 29 | 69 |
-| move inside | 11 | 11 | 87 |
+| delete | 104 | 104 | 0 |
+| duplicate | 104 | 104 | 0 |
+| insert after | 104 | 104 | 0 |
+| insert before | 104 | 104 | 0 |
+| wrap | 104 | 104 | 0 |
+| unwrap | 52 | 52 | 52 |
+| reorder | 34 | 34 | 70 |
+| move inside | 15 | 15 | 89 |
 | insert inside | 73 | 73 | 0 |
 | rewrite code | 3 | 3 | 0 |
-| **Total** | 1132 | 1132 | |
+| **Total** | 1171 | 1171 | |
 
-Opening a file: median 0.74 ms, slowest 1.5 ms.
+Opening a file: median 0.85 ms, slowest 1.45 ms.
 
 ## Laravel framework's own Blade views (not written for this editor)
 
@@ -167,14 +167,14 @@ Opening a file: median 0.74 ms, slowest 1.5 ms.
 | Edit | Tried | Passed | Not applicable |
 | --- | ---: | ---: | ---: |
 | change arguments | 189 | 189 | 0 |
-| delete | 944 | 944 | 0 |
-| duplicate | 944 | 944 | 0 |
-| insert after | 944 | 944 | 0 |
-| insert before | 944 | 944 | 0 |
-| wrap | 944 | 944 | 0 |
-| unwrap | 474 | 474 | 470 |
-| reorder | 304 | 304 | 640 |
-| move inside | 100 | 100 | 844 |
+| delete | 1007 | 1007 | 0 |
+| duplicate | 1007 | 1007 | 0 |
+| insert after | 1007 | 1007 | 0 |
+| insert before | 1007 | 1007 | 0 |
+| wrap | 1007 | 1007 | 0 |
+| unwrap | 474 | 474 | 533 |
+| reorder | 367 | 367 | 640 |
+| move inside | 104 | 104 | 903 |
 | add class | 454 | 454 | 2 |
 | remove class | 1645 | 1645 | 0 |
 | add attribute | 456 | 456 | 0 |
@@ -188,6 +188,6 @@ Opening a file: median 0.74 ms, slowest 1.5 ms.
 | rewrite code | 61 | 61 | 0 |
 | change text | 127 | 127 | 0 |
 | type awkward text | 127 | 127 | 0 |
-| **Total** | 11733 | 11733 | |
+| **Total** | 12115 | 12115 | |
 
-Opening a file: median 0.52 ms, slowest 19.37 ms.
+Opening a file: median 0.56 ms, slowest 17.92 ms.

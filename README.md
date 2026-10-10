@@ -34,11 +34,11 @@ The first milestone of three: **see a page's templates, click through them, edit
 Under way, the second milestone: changing a template without touching code.
 The **Layers** panel (the open template as a tree, selected from either the
 tree or the page), the **Settings** panel (tag, id, classes, attributes, text,
-what an echo prints, a condition, a loop, an include) and **Insert** (elements,
-Blade structures, Sunrice's components, the site's partials, pasted HTML) are
-in. Moving, duplicating and deleting from the screen, undo, and a page that
-keeps its place after a change are not yet. The field picker is the third
-milestone.
+what an echo prints, a condition, a loop, an include), **Insert** (elements,
+Blade structures, Sunrice's components, the site's partials, pasted HTML) and
+moving, duplicating, wrapping and deleting (by dragging a layer, by button or
+by key) are in. Undo, and a page that keeps its place after a change, are not
+yet. The field picker is the third milestone.
 
 ## Using it
 

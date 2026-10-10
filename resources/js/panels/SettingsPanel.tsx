@@ -1,5 +1,6 @@
 import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { Operation, TemplateData, TreeNode } from '../lib/api';
+import { WRAPPERS, type Action } from '../lib/move';
 import { argumentsOf, attribute, attributesOf, classesOf, headOf, joinInclude, joinLoop, sourceOf, splitInclude, splitLoop } from '../lib/settings';
 import { kindOf } from '../lib/tree';
 import { nodeTitle } from './LayersPanel';
@@ -14,9 +15,20 @@ type Props = {
     locked: string | null;
     /** Goes up when a change is refused: the controls then show the file again, not what was typed. */
     refusals: number;
+    /** What can be done to the node as a whole. */
+    can: Record<Action | 'wrap', boolean>;
     onApply(operations: Operation[]): void;
+    onAct(action: Action): void;
     onDeselect(): void;
 };
+
+const ACTIONS: { action: Action; label: string; title: string }[] = [
+    { action: 'up', label: '↑', title: 'Move up, before what is above it (Alt+↑ in the layers)' },
+    { action: 'down', label: '↓', title: 'Move down, after what is below it (Alt+↓ in the layers)' },
+    { action: 'duplicate', label: 'Duplicate', title: 'Put a copy after it (Ctrl+D in the layers)' },
+    { action: 'unwrap', label: 'Unwrap', title: 'Take it away and keep what is inside it' },
+    { action: 'delete', label: 'Delete', title: 'Take it out of the template (Delete in the layers)' },
+];
 
 /** What each kind of node is called. */
 const KINDS: Record<ReturnType<typeof kindOf>, string> = {
@@ -42,7 +54,7 @@ const KINDS: Record<ReturnType<typeof kindOf>, string> = {
  * operation when it is left or Enter is pressed; the file is saved, the
  * page drawn again, and the node stays selected.
  */
-export function SettingsPanel({ template, node, busy, locked, refusals, onApply, onDeselect }: Props) {
+export function SettingsPanel({ template, node, busy, locked, refusals, can, onApply, onAct, onDeselect }: Props) {
     const kind = kindOf(node);
     const off = busy || locked !== null || !template.editable;
     const send: Send = (operation, to = node) => onApply([{ ...operation, node: to.id } as Operation]);
@@ -58,6 +70,29 @@ export function SettingsPanel({ template, node, busy, locked, refusals, onApply,
             <strong className="sve-selection__title">{nodeTitle(node)}</strong>
             {typeof node.stray === 'string' && <p className="sve-note__reason">{node.stray}</p>}
             {locked !== null && <p className="sve-note sve-settings__locked">{locked}</p>}
+
+            <div className="sve-actions" role="group" aria-label="Move, copy or delete it">
+                {ACTIONS.map(({ action, label, title }) => (
+                    <button key={action} type="button" className={`sve-action sve-action--${action}`} disabled={off || !can[action]} onClick={() => onAct(action)} title={title} aria-label={action === 'up' ? 'Move up' : action === 'down' ? 'Move down' : undefined}>
+                        {label}
+                    </button>
+                ))}
+                <select
+                    className="sve-action sve-action--wrap"
+                    value=""
+                    disabled={off || !can.wrap}
+                    onChange={(event) => event.target.value !== '' && send({ type: 'wrap', wrapper: event.target.value })}
+                    aria-label="Wrap in"
+                    title="Put it inside something new"
+                >
+                    <option value="">Wrap in…</option>
+                    {WRAPPERS.map((each) => (
+                        <option key={each.title} value={each.wrapper}>
+                            {each.title}
+                        </option>
+                    ))}
+                </select>
+            </div>
 
             {/* A new node, a new version of this one, or a change that was refused starts every control afresh. */}
             <div className="sve-settings" key={`${template.version}:${node.id}:${refusals}`}>

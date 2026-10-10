@@ -10,10 +10,14 @@ namespace Sunrice\VisualEditor\Blade;
  */
 final class Rules
 {
-    /** Nodes a person can select: elements, Blade blocks, and Blade constructs other than comments. */
+    /**
+     * Nodes that are things of their own to pick up: elements, Blade blocks,
+     * Blade constructs and comments. Not text, which is edited where it is,
+     * nor the doctype.
+     */
     public static function selectable(Node $node): bool
     {
-        return in_array($node->type, ['element', 'block'], true) || ($node->type === 'atom' && $node->kind !== 'comment');
+        return in_array($node->type, ['element', 'block', 'atom', 'comment'], true);
     }
 
     /**

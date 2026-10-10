@@ -315,6 +315,67 @@ await step('put the hero back', async () => {
     await page.getByRole('region', { name: 'Templates on this page' }).waitFor();
 });
 
+// --- Move, copy, delete --------------------------------------------------------------
+
+const action = (name) => settings.getByRole('button', { name, exact: true });
+const layerRow = (label, nth = 0) => page.locator('.sve-layer').filter({ has: page.locator('.sve-layer__label', { hasText: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) }) }).nth(nth);
+const heroIs = async (source) => {
+    await idle();
+    const now = (await (await page.request.get(heroApi)).json()).template.source;
+    if (now !== source) {
+        throw new Error(`The hero is not as expected:\n${now}`);
+    }
+};
+
+await step('move the heading down and up again with the buttons', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    await action('Move down').click();
+    await layerIs('h1');
+    await frame.locator('.hero p.muted + h1').waitFor();
+    await action('Move up').click();
+    await frame.locator('.hero h1 + p.muted').waitFor();
+    await heroIs(hero.source);
+});
+
+await step('duplicate it, and delete the copy with the Delete key in the layers', async () => {
+    await layerIs('h1');
+    await action('Duplicate').click();
+    await page.waitForFunction(() => document.querySelector('iframe.sve-frame')?.contentDocument?.querySelectorAll('.hero h1').length === 2);
+    await layerIs('h1');
+    await idle();
+    await layerRow('h1', 1).locator('.sve-layer__pick').press('Delete');
+    await page.waitForFunction(() => document.querySelector('iframe.sve-frame')?.contentDocument?.querySelectorAll('.hero h1').length === 1);
+    await heroIs(hero.source);
+});
+
+await step('drag a layer onto another, and see it move on the page', async () => {
+    const target = layerRow('a.button');
+    const box = await target.boundingBox();
+    // The top of a row is before it: the heading goes to stand before the button.
+    await layerRow('h1').dragTo(target, { targetPosition: { x: box.width / 2, y: 2 } });
+    await frame.locator('.hero h1 + a.button').waitFor();
+    await layerIs('h1');
+});
+
+await step('wrap it, unwrap it, and put the hero back', async () => {
+    await idle();
+    await settings.getByLabel('Wrap in').selectOption({ label: 'Container' });
+    await layerIs('div');
+    await frame.locator('.hero div > h1').waitFor();
+    await idle();
+    await action('Unwrap').click();
+    await frame.locator('.hero h1 + a.button').waitFor();
+    const token = decodeURIComponent((await page.context().cookies()).find((cookie) => cookie.name === 'XSRF-TOKEN')?.value ?? '');
+    const now = (await (await page.request.get(heroApi)).json()).template;
+    const put = await page.request.put(`${heroApi}/source`, { data: { version: now.version, source: hero.source }, headers: { Accept: 'application/json', 'X-XSRF-TOKEN': token } });
+    if (put.status() !== 200) {
+        throw new Error(`Putting the hero back answered ${put.status()}`);
+    }
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');

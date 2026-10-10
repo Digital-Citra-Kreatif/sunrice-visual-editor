@@ -405,6 +405,45 @@
     outline-offset: -2px;
 }
 
+/* A layer being dragged, and where it would go */
+
+.sve-layer[draggable='true'] {
+    cursor: grab;
+}
+
+.sve-layer--dragged {
+    opacity: 0.45;
+}
+
+.sve-layer--drop-before,
+.sve-layer--drop-after {
+    position: relative;
+}
+
+/* A line where it would land, starting at the depth it would have. */
+.sve-layer--drop-before::before,
+.sve-layer--drop-after::after {
+    content: '';
+    position: absolute;
+    inset-inline: var(--sve-drop-indent, 0) 0;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--primary);
+    pointer-events: none;
+}
+
+.sve-layer--drop-before::before {
+    inset-block-start: -1px;
+}
+
+.sve-layer--drop-after::after {
+    inset-block-end: -1px;
+}
+
+.sve-layer--drop-inside {
+    box-shadow: inset 0 0 0 2px var(--primary);
+}
+
 /* The selected node */
 
 .sve-selection {
@@ -458,6 +497,52 @@
     background: var(--muted);
     font: 0.6875rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     white-space: pre;
+}
+
+/* What can be done to the selected node as a whole */
+
+.sve-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-block-start: 0.625rem;
+}
+
+.sve-action {
+    height: 1.5rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--input);
+    border-radius: calc(var(--radius) - 4px);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.sve-action:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.sve-action:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.sve-action--delete:hover:not(:disabled) {
+    border-color: var(--destructive);
+    background: transparent;
+    color: var(--destructive);
+}
+
+.sve-action--wrap {
+    max-width: 6.5rem;
+}
+
+.sve-action:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
 }
 
 /* Settings: a control for each thing about the selected node */
