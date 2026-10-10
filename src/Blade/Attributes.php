@@ -141,6 +141,9 @@ final class Attributes
             throw new EditRejected("\"{$tag}\" is not a tag name.");
         }
         $tag = strtolower($tag);
+        if ($element->type !== 'element') {
+            throw new EditRejected($element->stray !== null ? 'This tag\'s other half is somewhere else: rename both in the code.' : 'Only elements have a tag to rename.');
+        }
         if ($tag === $element->name) {
             return;
         }
@@ -247,7 +250,7 @@ final class Attributes
      */
     private static function existing(Node $element, string $name): ?array
     {
-        if ($element->type !== 'element') {
+        if (! Rules::hasAttributes($element)) {
             throw new EditRejected('Only elements have attributes.');
         }
         $found = array_values(array_filter($element->attrs, fn (array $attr) => $attr['kind'] === 'attr' && $attr['name'] === $name));
@@ -275,7 +278,7 @@ final class Attributes
 
     private static function refuseClassDirective(Node $element): void
     {
-        if ($element->type !== 'element') {
+        if (! Rules::hasAttributes($element)) {
             throw new EditRejected('Only elements have classes.');
         }
         foreach ($element->attrs as $attr) {

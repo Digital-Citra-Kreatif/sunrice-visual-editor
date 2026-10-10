@@ -55,7 +55,7 @@ Of 379 nodes: 85.5% fully visual, 5% expressions, 4.2% elements with a directive
 | type awkward text | 11 | 11 | 0 |
 | **Total** | 3695 | 3695 | |
 
-Opening a file: median 3.07 ms, slowest 29.03 ms.
+Opening a file: median 2.76 ms, slowest 43.79 ms.
 
 ## Package views (defaults, components, error pages)
 
@@ -102,17 +102,14 @@ Of 199 nodes: 93% fully visual, 3.5% expressions, 3% elements with a directive i
 | rewrite code | 1 | 1 | 0 |
 | **Total** | 2031 | 2031 | |
 
-Opening a file: median 1.62 ms, slowest 3.39 ms.
+Opening a file: median 1.58 ms, slowest 3.31 ms.
 
 ## Edge cases written for this test
 
-| File | Expected | Result | Reason given |
+| File | Expected | Result | Kept as written, or the reason given |
 | --- | --- | --- | --- |
-| `locked-conditional-wrapper.blade.php` | refused | refused | @endif arrives while <a> is still open |
-| `locked-element-across-else.blade.php` | refused | refused | @else arrives while <div> is still open |
-| `locked-omitted-end-tag.blade.php` | refused | refused | </ul> does not close <li> |
-| `locked-stray-close-tag.blade.php` | refused | refused | </div> does not close the template root |
-| `locked-unclosed-element.blade.php` | refused | refused | <section> is never closed |
+| `locked-block-closed-in-tag.blade.php` | refused | refused | `@if is never closed` |
+| `locked-unclosed-php-tag.blade.php` | refused | refused | `Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2` |
 | `ok-at-sign-after-letter.blade.php` | opens, identical | opens, identical |  |
 | `ok-components-and-slots.blade.php` | opens, identical | opens, identical |  |
 | `ok-directives-in-tag.blade.php` | opens, identical | opens, identical |  |
@@ -121,34 +118,44 @@ Opening a file: median 1.62 ms, slowest 3.39 ms.
 | `ok-php-and-verbatim.blade.php` | opens, identical | opens, identical |  |
 | `ok-script-style.blade.php` | opens, identical | opens, identical |  |
 | `ok-svg.blade.php` | opens, identical | opens, identical |  |
+| `stray-card-link.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `<a> is not closed here; <div> is not closed here; </a> closes nothing here; </div> closes nothing here` |
+| `stray-conditional-wrapper.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `<a> is not closed here; </a> closes nothing here` |
+| `stray-directive-out-of-tag.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `@endif has nothing here to close` |
+| `stray-element-across-else.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `<div> is not closed here; </div> closes nothing here` |
+| `stray-extra-end-tag.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `</div> closes nothing here` |
+| `stray-layout-footer.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `</main> closes nothing here; </body> closes nothing here; </html> closes nothing here` |
+| `stray-layout-header.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `<html> is not closed here; <body> is not closed here; <main> is not closed here` |
+| `stray-omitted-end-tag.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `<li> is not closed here` |
+| `stray-table-rows.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `<tr> is not closed here; <th> is not closed here; <td> is not closed here` |
+| `stray-unclosed-element.blade.php` | opens, identical, stray tags kept | opens, identical, stray tags kept | `<section> is not closed here` |
 
 | Edit | Tried | Passed | Not applicable |
 | --- | ---: | ---: | ---: |
-| add class | 35 | 35 | 1 |
-| remove class | 44 | 44 | 0 |
-| add attribute | 36 | 36 | 0 |
-| change attribute | 27 | 27 | 0 |
-| remove attribute | 27 | 27 | 0 |
-| rename | 27 | 27 | 9 |
-| add field | 28 | 28 | 8 |
-| change text | 13 | 13 | 0 |
-| type awkward text | 13 | 13 | 0 |
-| change expression | 13 | 13 | 0 |
-| switch escaping | 13 | 13 | 0 |
-| change arguments | 11 | 11 | 0 |
-| delete | 63 | 63 | 0 |
-| duplicate | 63 | 63 | 0 |
-| insert after | 63 | 63 | 0 |
-| insert before | 63 | 63 | 0 |
-| wrap | 63 | 63 | 0 |
-| unwrap | 33 | 33 | 30 |
-| reorder | 20 | 20 | 43 |
-| move inside | 7 | 7 | 56 |
-| insert inside | 41 | 41 | 0 |
+| add class | 57 | 57 | 2 |
+| remove class | 74 | 74 | 0 |
+| add attribute | 59 | 59 | 0 |
+| change attribute | 37 | 37 | 0 |
+| remove attribute | 37 | 37 | 0 |
+| rename | 48 | 48 | 11 |
+| add field | 49 | 49 | 10 |
+| change text | 21 | 21 | 0 |
+| type awkward text | 21 | 21 | 0 |
+| change expression | 25 | 25 | 0 |
+| switch escaping | 25 | 25 | 0 |
+| change arguments | 21 | 21 | 0 |
+| delete | 98 | 98 | 0 |
+| duplicate | 98 | 98 | 0 |
+| insert after | 98 | 98 | 0 |
+| insert before | 98 | 98 | 0 |
+| wrap | 98 | 98 | 0 |
+| unwrap | 52 | 52 | 46 |
+| reorder | 29 | 29 | 69 |
+| move inside | 11 | 11 | 87 |
+| insert inside | 73 | 73 | 0 |
 | rewrite code | 3 | 3 | 0 |
-| **Total** | 706 | 706 | |
+| **Total** | 1132 | 1132 | |
 
-Opening a file: median 0.66 ms, slowest 1.48 ms.
+Opening a file: median 0.74 ms, slowest 1.5 ms.
 
 ## Laravel framework's own Blade views (not written for this editor)
 
@@ -183,4 +190,4 @@ Opening a file: median 0.66 ms, slowest 1.48 ms.
 | type awkward text | 127 | 127 | 0 |
 | **Total** | 11733 | 11733 | |
 
-Opening a file: median 0.55 ms, slowest 9.14 ms.
+Opening a file: median 0.52 ms, slowest 19.37 ms.

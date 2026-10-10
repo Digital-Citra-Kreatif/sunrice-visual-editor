@@ -13,8 +13,9 @@ declare(strict_types=1);
  *   2. each kind of edit a visual editor makes (add a class, change text,
  *      delete, reorder, wrap, add a field) changes exactly the bytes it
  *      should, and the result still opens as a tree and compiles to valid PHP.
- * The edge fixtures also check that templates the tree can't hold are
- * refused (file name "locked-…") instead of being damaged.
+ * The edge fixtures also check that tags which don't nest are kept as
+ * written (file name "stray-…"), and that templates the tree can't hold
+ * at all are refused (file name "locked-…") instead of being damaged.
  */
 
 use Sunrice\VisualEditor\Blade\Classifier;
@@ -45,12 +46,14 @@ foreach ($corpora as $key => [$title, $directory]) {
         $source = (string) file_get_contents($path);
         $row = ['file' => $name, 'bytes' => strlen($source), 'opens' => false, 'reason' => null, 'identical' => false, 'compiles' => RoundTrip::phpError($source) === null];
         $expectLocked = $key === 'edge' && str_starts_with(basename($name), 'locked-');
+        $expectStray = $key === 'edge' && str_starts_with(basename($name), 'stray-');
 
         $started = hrtime(true);
         try {
             $template = Template::open($source);
             $row['opens'] = true;
             $row['identical'] = $template->print() === $source;
+            $row['strays'] = array_map(fn ($node) => $node->stray, $template->strays());
         } catch (Unsupported $e) {
             $row['reason'] = $e->getMessage();
         }
@@ -88,7 +91,8 @@ foreach ($corpora as $key => [$title, $directory]) {
             }
         }
 
-        $row['asExpected'] = $key === 'edge' ? ($expectLocked ? ! $row['opens'] : $row['opens'] && $row['identical']) : null;
+        // A stray- fixture has stray tags and the others have none.
+        $row['asExpected'] = $key === 'edge' ? ($expectLocked ? ! $row['opens'] : $row['opens'] && $row['identical'] && $expectStray === (($row['strays'] ?? []) !== [])) : null;
         $failed = $failed || match ($key) {
             'edge' => ! $row['asExpected'],
             // Other people's templates may be refused; they must never open and print back differently.
@@ -136,11 +140,18 @@ foreach ($corpora as $key => [$title]) {
     $md[] = "## {$title}\n";
 
     if ($key === 'edge') {
-        $md[] = "| File | Expected | Result | Reason given |\n| --- | --- | --- | --- |";
+        $md[] = "| File | Expected | Result | Kept as written, or the reason given |\n| --- | --- | --- | --- |";
         foreach ($rows as $row) {
-            $expected = str_starts_with(basename($row['file']), 'locked-') ? 'refused' : 'opens, identical';
-            $result = $row['opens'] ? ($row['identical'] ? 'opens, identical' : 'opens, NOT identical') : 'refused';
-            $md[] = "| `{$row['file']}` | {$expected} | ".($row['asExpected'] ? '' : '**WRONG:** ').$result.' | '.($row['reason'] ?? '').' |';
+            $expected = match (true) {
+                str_starts_with(basename($row['file']), 'locked-') => 'refused',
+                str_starts_with(basename($row['file']), 'stray-') => 'opens, identical, stray tags kept',
+                default => 'opens, identical',
+            };
+            $strays = $row['strays'] ?? [];
+            $result = $row['opens'] ? ($row['identical'] ? 'opens, identical' : 'opens, NOT identical').($strays === [] ? '' : ', stray tags kept') : 'refused';
+            $note = $row['reason'] ?? implode('; ', array_unique($strays));
+            // As code: the notes name tags, which Markdown would otherwise take as HTML.
+            $md[] = "| `{$row['file']}` | {$expected} | ".($row['asExpected'] ? '' : '**WRONG:** ').$result.' | '.($note === '' ? '' : '`'.str_replace('|', '\\|', $note).'`').' |';
         }
         $md[] = '';
     } elseif ($key === 'laravel') {

@@ -77,6 +77,7 @@ final class Operations
             }
         }
         $orphans = count(self::orphans($template->root));
+        $strays = count($template->strays());
 
         $focus = null;
         foreach ($steps as $index => [$operation, $node, $target]) {
@@ -96,19 +97,25 @@ final class Operations
             return new Applied($out, $focus === null ? null : self::idIn($template->root, $focus));
         }
 
-        return new Applied($out, self::check($template, $out, $orphans, $focus));
+        return new Applied($out, self::check($template, $out, $orphans, $strays, $focus));
     }
 
     /**
      * Refuses a result that can't be saved, and returns the id of the node
      * to select in it.
      */
-    private static function check(Template $template, string $out, int $orphans, ?Node $focus): ?string
+    private static function check(Template $template, string $out, int $orphans, int $strays, ?Node $focus): ?string
     {
         try {
             $result = Template::open($out);
         } catch (Unsupported $e) {
             throw new ResultRejected('That would leave a template the editor can\'t open: '.lcfirst($e->getMessage()).'.');
+        }
+
+        // An edit never leaves a tag without its other half that wasn't one before.
+        $left = $result->strays();
+        if (count($left) > $strays) {
+            throw new ResultRejected('That would leave tags that don\'t match up: '.lcfirst((string) $left[0]->stray).'.');
         }
 
         // PHP's parser lets a stray "break" through; running the page would not.

@@ -23,7 +23,7 @@ The approach holds. Full numbers are in [spike/RESULTS.md](spike/RESULTS.md).
 | Sunrice starter templates (`stubs/templates`) | 19 | 19 | 0 | 3,695 of 3,695 |
 | Sunrice package views (defaults, components, error pages) | 11 | 11 | 0 | 2,031 of 2,031 |
 | Laravel framework's own Blade views | 129 | 127 | 2 | 11,733 of 11,733 |
-| Edge cases written for this test | 13 | 8 | 5, as intended | 706 of 706 |
+| Edge cases written for this test | 20 | 18 | 2, as intended | 1,132 of 1,132 |
 
 The two Laravel files refused are test fixtures that are malformed on purpose.
 
@@ -53,8 +53,10 @@ For every template:
    whose new lines depend on the file's indentation, the content must match
    exactly and the layout is covered by unit tests.) Typed text must also
    read back as typed and add nothing for PHP to run.
-3. **Templates the tree can't hold are refused, not damaged** (the `locked-…`
-   edge fixtures).
+3. **What the tree can't hold is kept or refused, not damaged.** Tags that
+   don't nest stay in the file as written, with the rest still editable (the
+   `stray-…` edge fixtures); a file whose Blade can't be read is refused
+   (`locked-…`).
 
 ## What it showed
 
@@ -70,10 +72,17 @@ For every template:
   reads as two directives, so the file stops compiling. This turned up in
   `partials/card.blade.php` and two package views. `Seams` now detects it and
   puts one space at the join.
-- **What gets refused.** A tag opened inside one `@if` and closed in another,
-  an element left open across `@else`, and end tags left out (`<li>` without
-  `</li>`). None of the 30 Sunrice templates do this. The file as a whole is
-  refused; locking only the affected region would be a later refinement.
+- **Tags that don't nest are kept, not refused.** A tag opened inside one
+  `@if` and closed in another, an element left open across `@else`, end tags
+  left out (`<li>` without `</li>`), a layout split over a header and a
+  footer file. None of the 30 Sunrice templates do this, but hand-written
+  Blade often does. The tree keeps each such tag as it is written, marked
+  stray: it is shown as code and stays where it is, and everything around it
+  is edited as usual (the `stray-…` fixtures). An edit is refused if it would
+  leave more of them than there were.
+- **What is still refused.** A file whose Blade can't be read into the tree:
+  a syntax error, or an `@if` whose `@endif` sits inside a tag (the
+  `locked-…` fixtures). Such a file is edited as code.
 
 ## Not covered
 

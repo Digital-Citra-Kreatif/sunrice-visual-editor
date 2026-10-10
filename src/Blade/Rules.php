@@ -45,10 +45,35 @@ final class Rules
         return false;
     }
 
+    /**
+     * Has an opening tag whose attributes can be edited: an element, or an
+     * opening tag left without its end tag.
+     */
+    public static function hasAttributes(Node $node): bool
+    {
+        return $node->type === 'element' || ($node->type === 'atom' && $node->kind === 'tag' && ! str_starts_with($node->open, '</'));
+    }
+
+    /**
+     * Holds a stray tag or directive somewhere inside. Its other half is
+     * elsewhere in the file, so the node can't leave, be copied or go.
+     */
+    public static function holdsStray(Node $node): bool
+    {
+        foreach ($node->children as $child) {
+            if ($child->stray !== null || self::holdsStray($child)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** Can be moved, duplicated, wrapped or deleted as one piece. */
     public static function movable(Node $node): bool
     {
-        return $node->parent !== null && self::selectable($node) && ! self::isArmBreak($node) && ! self::insideCode($node);
+        return $node->parent !== null && self::selectable($node) && $node->stray === null
+            && ! self::isArmBreak($node) && ! self::insideCode($node) && ! self::holdsStray($node);
     }
 
     /** Can be wrapped in an element or a block: anything movable, and text. */

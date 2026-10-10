@@ -8,8 +8,10 @@ namespace Sunrice\VisualEditor\Blade;
  * A Blade template opened for visual editing.
  *
  * Template::open() is the gate: it returns a tree only when the file can be
- * read into one and printed back unchanged. Otherwise it throws Unsupported
- * and the caller falls back to editing the file as code.
+ * read into one and printed back unchanged. Tags that don't nest are kept
+ * in the tree as written (see strays()). When Blade's own blocks don't pair
+ * up, or Blade can't be read at all, it throws Unsupported and the caller
+ * falls back to editing the file as code.
  */
 final class Template
 {
@@ -73,6 +75,17 @@ final class Template
     public function selectable(): array
     {
         return array_values(array_filter(iterator_to_array($this->root->walk(), false), Rules::selectable(...)));
+    }
+
+    /**
+     * Tags and directives kept as written because their other half isn't
+     * in the same place. Empty for a template that nests cleanly.
+     *
+     * @return list<Node>
+     */
+    public function strays(): array
+    {
+        return array_values(array_filter(iterator_to_array($this->root->walk(), false), fn (Node $node) => $node->stray !== null));
     }
 
     /** @return list<Node> */

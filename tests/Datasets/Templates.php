@@ -23,7 +23,9 @@ function templateDataset(string $directory, ?string $prefix = null): array
 }
 
 dataset('sunrice templates', fn () => templateDataset('sunrice-starter') + templateDataset('sunrice-package'));
-dataset('templates that open', fn () => templateDataset('sunrice-starter') + templateDataset('sunrice-package') + templateDataset('edge', 'ok-'));
+dataset('templates that open', fn () => templateDataset('sunrice-starter') + templateDataset('sunrice-package') + templateDataset('edge', 'ok-') + templateDataset('edge', 'stray-'));
+dataset('templates that nest cleanly', fn () => templateDataset('sunrice-starter') + templateDataset('sunrice-package') + templateDataset('edge', 'ok-'));
+dataset('templates with stray tags', fn () => templateDataset('edge', 'stray-'));
 dataset('templates that are refused', fn () => templateDataset('edge', 'locked-'));
 
 // Whatever starter templates the installed Sunrice ships: the fixtures are a
