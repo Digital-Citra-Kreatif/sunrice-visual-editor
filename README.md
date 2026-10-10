@@ -20,10 +20,10 @@ The approach holds. Full numbers are in [spike/RESULTS.md](spike/RESULTS.md).
 
 | Templates | Files | Open and print back byte for byte | Refused | Edits passed |
 | --- | ---: | ---: | ---: | ---: |
-| Sunrice starter templates (`stubs/templates`) | 19 | 19 | 0 | 2,023 of 2,023 |
-| Sunrice package views (defaults, components, error pages) | 11 | 11 | 0 | 1,216 of 1,216 |
-| Laravel framework's own Blade views | 129 | 127 | 2 | 7,742 of 7,742 |
-| Edge cases written for this test | 13 | 8 | 5, as intended | 424 of 424 |
+| Sunrice starter templates (`stubs/templates`) | 19 | 19 | 0 | 3,198 of 3,198 |
+| Sunrice package views (defaults, components, error pages) | 11 | 11 | 0 | 1,928 of 1,928 |
+| Laravel framework's own Blade views | 129 | 127 | 2 | 11,148 of 11,148 |
+| Edge cases written for this test | 13 | 8 | 5, as intended | 638 of 638 |
 
 The two Laravel files refused are test fixtures that are malformed on purpose.
 
@@ -43,11 +43,14 @@ For every template:
 2. **Every kind of edit, on every node it applies to**, each on a fresh tree:
    add and remove a class, add, change and remove an attribute, rename the
    element, retype text, change an echo's expression and escaping, change a
-   directive's arguments, rewrite a code node, delete, reorder with the next
-   sibling, wrap in a `<div>`, and add a field as last child.
+   directive's arguments, rewrite a code node, insert before and after,
+   append, delete, duplicate, reorder, move into another element, wrap and
+   unwrap.
    An edit passes when the output is exactly the expected bytes, computed
    from the original file and the node's offsets, opens as a tree again, and
-   compiles with Laravel's Blade compiler to valid PHP. Typed text must also
+   compiles with Laravel's Blade compiler to valid PHP. (For the few edits
+   whose new lines depend on the file's indentation, the content must match
+   exactly and the layout is covered by unit tests.) Typed text must also
    read back as typed and add nothing for PHP to run.
 3. **Templates the tree can't hold are refused, not damaged** (the `locked-…`
    edge fixtures).
@@ -132,6 +135,8 @@ src/
     Edit.php           every edit, in one place
     Attributes.php     edits to an opening tag: attributes, classes, the tag name
     Content.php        edits to text, echoes, directive arguments; a node rewritten as code
+    Structure.php      insert, move, duplicate, delete, wrap, unwrap
+    Layout.php         the indentation around a node, so new lines match the file
     Fragment.php       a snippet read into nodes
     Inert.php          typed text as text Blade won't run
     Seams.php          keeps directives readable where an edit joins two pieces

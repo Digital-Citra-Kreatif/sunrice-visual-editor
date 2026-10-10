@@ -197,10 +197,13 @@ The spike left `src/Blade/` with: `BladeScanner`, `HtmlLexer`, `TreeBuilder`, `N
 
 ### V1.4 Structure edits
 **Depends on:** V1.2, V1.3
-- `Edit::insert(Node $parent, int $index, Fragment)`, `move(Node, Node $parent, int $index)`, `duplicate`, `remove` (exists), `wrap` (exists; take a fragment), `unwrap`.
-- Indentation: an inserted or moved node takes the indentation of its new siblings; nothing else is reindented.
-- Seam rule: extend `Seams` to an argument-less directive followed by `(`, which a space does not fix; refuse that edit with a message.
-- Guards: arms of a block and the block's closer are not movable; a node cannot move into itself; nothing moves into a code node.
+- `src/Blade/Structure.php`, reached through `Edit::insertBefore`, `insertAfter`, `append`, `prepend`, `remove`, `duplicate`, `move(node, target, before|after|inside)`, `wrap(node, wrapper)` and `unwrap`. A wrapper is written as one empty element or block: `<div class="card"></div>`, `@if ($show)@endif`.
+- `src/Blade/Layout.php` — how the file is laid out around a node: the indentation of its line (or that it sits inline) and the size of one step here. A node on a line of its own stays that way: what is inserted beside it gets a line and the same indentation, deleting it takes its line with it, wrapping moves it in one step, and an empty element with a line to itself opens up over three lines. Inline nodes are joined and parted without added whitespace. Nothing else is reindented.
+- Reordering within one parent moves the nodes and leaves the whitespace between them where it is.
+- A snippet is read for where it goes: inside `<svg>`, `<path />` closes itself.
+- Text can be wrapped where it stands (`<strong>`, `<a>`), though not moved.
+- Seam rule: an argument-less directive followed by `(` after an edit, which a space does not fix, has the bracket written as `&#40;`.
+- Guards: arms of a block are not movable; a node cannot move into itself; nothing goes into a void element, a `<script>`, or a code block.
 **Done when:** datasets pass, including move between parents and into and out of Blade blocks.
 
 ### V1.5 Code regions instead of refused files
@@ -210,7 +213,7 @@ When nesting fails, find the smallest run of sibling nodes that contains the fai
 
 ### V1.6 `@switch` as a visual block
 **Depends on:** V1.4
-Treat `@switch` like `@if`, with `@case` and `@default` as arms and `@break` kept at the end of each arm. This turns the two largest code regions in the starter templates (the form block and the filter form) visual.
+Treat `@switch` like `@if`, with `@case` and `@default` as arms and `@break` kept at the end of each arm. This turns the two largest code regions in the starter templates (the form block and the filter form) visual. Make `@empty` an arm of `@forelse` the same way, so the loop's part and the empty part are each something to insert into.
 **Done when:** `blocks/form.blade.php` and `partials/entry-filter.blade.php` have no code node from `@switch`, and edits inside the arms pass.
 
 ### V1.7 Operations

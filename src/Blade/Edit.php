@@ -69,10 +69,8 @@ final class Edit
     }
 
     /**
-     * Changes what is between a directive's brackets: the condition of an
-     *
-     * @if, the loop of a @foreach, the view and data of an @include. Null
-     * removes the brackets.
+     * Changes what is between a directive's brackets: a condition, a loop,
+     * the view and data of an include. Null removes the brackets.
      */
     public static function setArguments(Node $directive, ?string $arguments): void
     {
@@ -85,48 +83,66 @@ final class Edit
         Content::setCode($node, $code);
     }
 
+    /**
+     * Inserts Blade beside a node or inside one. Beside a node that has a
+     * line to itself the new one gets a line and the same indentation.
+     *
+     * @return list<Node> the inserted nodes
+     */
+    public static function insertBefore(Node $reference, string $blade): array
+    {
+        return Structure::insertBefore($reference, $blade);
+    }
+
+    /** @return list<Node> the inserted nodes */
+    public static function insertAfter(Node $reference, string $blade): array
+    {
+        return Structure::insertAfter($reference, $blade);
+    }
+
+    /** @return list<Node> the inserted nodes */
+    public static function append(Node $parent, string $blade): array
+    {
+        return Structure::append($parent, $blade);
+    }
+
+    /** @return list<Node> the inserted nodes */
+    public static function prepend(Node $parent, string $blade): array
+    {
+        return Structure::prepend($parent, $blade);
+    }
+
+    /** Deletes a node; one that had a line to itself takes the line with it. */
     public static function remove(Node $node): void
     {
-        $parent = $node->parent;
-        $index = $node->index();
-        array_splice($parent->children, $index, 1);
-        $node->parent = null;
-        Seams::repair($parent, [$index]);
+        Structure::remove($node);
     }
 
-    public static function swap(Node $a, Node $b): void
+    /** Puts a copy of the node right after it. */
+    public static function duplicate(Node $node): Node
     {
-        $parent = $a->parent;
-        [$i, $j] = [$a->index(), $b->index()];
-        [$parent->children[$i], $parent->children[$j]] = [$b, $a];
-        Seams::repair($parent, [$i, $i + 1, $j, $j + 1]);
+        return Structure::duplicate($node);
     }
 
-    public static function wrap(Node $node, string $tag, string $class): Node
+    /**
+     * Moves a node before or after another, or inside one as its last child.
+     *
+     * @param  string  $position  before, after or inside
+     */
+    public static function move(Node $node, Node $target, string $position): void
     {
-        $wrapper = new Node('element');
-        $wrapper->name = $tag;
-        $wrapper->open = '<'.$tag.' class="'.$class.'">';
-        $wrapper->close = '</'.$tag.'>';
-        $wrapper->parent = $node->parent;
-        $node->parent->children[$node->index()] = $wrapper;
-        $wrapper->append($node);
-
-        return $wrapper;
+        Structure::move($node, $target, $position);
     }
 
-    /** Appends a new element showing a field, e.g. <p>{{ $entry->get('intro') }}</p>. */
-    public static function appendField(Node $element, string $tag, string $expression): Node
+    /** Wraps a node in an element or block written empty: `<div class="card"></div>`, `@if ($show)@endif`. */
+    public static function wrap(Node $node, string $wrapper): Node
     {
-        $child = $element->append(new Node('element'));
-        $child->name = $tag;
-        $child->open = '<'.$tag.'>';
-        $child->close = '</'.$tag.'>';
-        $echo = $child->append(new Node('atom'));
-        $echo->kind = 'echo';
-        $echo->args = $expression;
-        $echo->open = '{{ '.$expression.' }}';
+        return Structure::wrap($node, $wrapper);
+    }
 
-        return $child;
+    /** Removes an element's tags or a block's directives and keeps what was inside. */
+    public static function unwrap(Node $node): void
+    {
+        Structure::unwrap($node);
     }
 }

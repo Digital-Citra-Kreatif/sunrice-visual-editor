@@ -35,7 +35,7 @@ Of 333 nodes: 87.4% fully visual, 4.8% expressions, 1.8% elements with a directi
 | remove class | 213 | 213 | 0 |
 | add attribute | 153 | 153 | 0 |
 | rename | 132 | 132 | 21 |
-| add field | 132 | 132 | 21 |
+| add field | 121 | 121 | 32 |
 | change attribute | 101 | 101 | 0 |
 | remove attribute | 102 | 102 | 0 |
 | change expression | 70 | 70 | 0 |
@@ -43,13 +43,18 @@ Of 333 nodes: 87.4% fully visual, 4.8% expressions, 1.8% elements with a directi
 | change arguments | 109 | 109 | 0 |
 | rewrite code | 20 | 20 | 0 |
 | delete | 324 | 324 | 0 |
+| duplicate | 324 | 324 | 0 |
+| insert after | 324 | 324 | 0 |
+| insert before | 324 | 324 | 0 |
 | wrap | 324 | 324 | 0 |
+| unwrap | 186 | 186 | 138 |
 | reorder | 99 | 99 | 225 |
+| move inside | 28 | 28 | 296 |
 | change text | 11 | 11 | 0 |
 | type awkward text | 11 | 11 | 0 |
-| **Total** | 2023 | 2023 | |
+| **Total** | 3198 | 3198 | |
 
-Opening a file: median 2.84 ms, slowest 21.25 ms.
+Opening a file: median 3.24 ms, slowest 27.67 ms.
 
 ## Package views (defaults, components, error pages)
 
@@ -75,8 +80,13 @@ Of 199 nodes: 93% fully visual, 3.5% expressions, 3% elements with a directive i
 | change expression | 37 | 37 | 0 |
 | switch escaping | 37 | 37 | 0 |
 | delete | 196 | 196 | 0 |
+| duplicate | 196 | 196 | 0 |
+| insert after | 196 | 196 | 0 |
+| insert before | 196 | 196 | 0 |
 | wrap | 196 | 196 | 0 |
+| unwrap | 95 | 95 | 101 |
 | reorder | 86 | 86 | 110 |
+| move inside | 29 | 29 | 167 |
 | add class | 106 | 106 | 0 |
 | remove class | 125 | 125 | 0 |
 | add attribute | 106 | 106 | 0 |
@@ -88,9 +98,9 @@ Of 199 nodes: 93% fully visual, 3.5% expressions, 3% elements with a directive i
 | change text | 3 | 3 | 0 |
 | type awkward text | 3 | 3 | 0 |
 | rewrite code | 1 | 1 | 0 |
-| **Total** | 1216 | 1216 | |
+| **Total** | 1928 | 1928 | |
 
-Opening a file: median 1.83 ms, slowest 17.59 ms.
+Opening a file: median 1.59 ms, slowest 5.11 ms.
 
 ## Edge cases written for this test
 
@@ -118,19 +128,24 @@ Opening a file: median 1.83 ms, slowest 17.59 ms.
 | change attribute | 27 | 27 | 0 |
 | remove attribute | 27 | 27 | 0 |
 | rename | 27 | 27 | 9 |
-| add field | 28 | 28 | 8 |
+| add field | 26 | 26 | 10 |
 | change text | 13 | 13 | 0 |
 | type awkward text | 13 | 13 | 0 |
 | change expression | 11 | 11 | 0 |
 | switch escaping | 11 | 11 | 0 |
 | change arguments | 9 | 9 | 0 |
 | delete | 59 | 59 | 0 |
+| duplicate | 59 | 59 | 0 |
+| insert after | 59 | 59 | 0 |
+| insert before | 59 | 59 | 0 |
 | wrap | 59 | 59 | 0 |
+| unwrap | 31 | 31 | 28 |
 | reorder | 21 | 21 | 38 |
+| move inside | 8 | 8 | 51 |
 | rewrite code | 4 | 4 | 0 |
-| **Total** | 424 | 424 | |
+| **Total** | 638 | 638 | |
 
-Opening a file: median 0.75 ms, slowest 1.44 ms.
+Opening a file: median 0.65 ms, slowest 1.99 ms.
 
 ## Laravel framework's own Blade views (not written for this editor)
 
@@ -143,8 +158,13 @@ Opening a file: median 0.75 ms, slowest 1.44 ms.
 | --- | ---: | ---: | ---: |
 | change arguments | 189 | 189 | 0 |
 | delete | 944 | 944 | 0 |
+| duplicate | 944 | 944 | 0 |
+| insert after | 944 | 944 | 0 |
+| insert before | 944 | 944 | 0 |
 | wrap | 944 | 944 | 0 |
+| unwrap | 474 | 474 | 470 |
 | reorder | 306 | 306 | 638 |
+| move inside | 100 | 100 | 844 |
 | add class | 454 | 454 | 2 |
 | remove class | 1645 | 1645 | 0 |
 | add attribute | 456 | 456 | 0 |
@@ -157,6 +177,6 @@ Opening a file: median 0.75 ms, slowest 1.44 ms.
 | rewrite code | 61 | 61 | 0 |
 | change text | 127 | 127 | 0 |
 | type awkward text | 127 | 127 | 0 |
-| **Total** | 7742 | 7742 | |
+| **Total** | 11148 | 11148 | |
 
-Opening a file: median 0.57 ms, slowest 21.19 ms.
+Opening a file: median 0.56 ms, slowest 10.24 ms.

@@ -19,8 +19,14 @@ final class TreeBuilder
     /** @var array<string, true>|null */
     private ?array $directives = null;
 
-    public function build(string $source): Node
+    private bool $foreign = false;
+
+    /**
+     * @param  bool  $foreign  the source belongs inside <svg> or <math>, where a tag may close itself (<path />)
+     */
+    public function build(string $source, bool $foreign = false): Node
     {
+        $this->foreign = $foreign;
         $atoms = (new BladeScanner)->scan($source);
         $tokens = (new HtmlLexer)->lex($source, $atoms);
 
@@ -253,6 +259,9 @@ final class TreeBuilder
     /** <path />, <circle /> and friends self-close inside <svg> and <math> only. */
     private function inForeignContent(Node $element): bool
     {
+        if ($this->foreign) {
+            return true;
+        }
         for ($node = $element; $node !== null; $node = $node->parent) {
             if ($node->type === 'element' && in_array($node->name, ['svg', 'math'], true)) {
                 return true;
