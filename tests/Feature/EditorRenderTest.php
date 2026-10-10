@@ -280,7 +280,7 @@ describe('the middleware on its own', function () {
 
         expect($json->getContent())->toBe('{"a":1}')
             ->and($text->getContent())->toBe('<body>plain</body>')
-            ->and($bare->getContent())->toStartWith('<p>No body tag</p><script type="application/json" id="sve-manifest">{"files":[]}</script><script src="')
+            ->and($bare->getContent())->toStartWith('<p>No body tag</p><script type="application/json" id="sve-manifest">{"files":[],"status":200}</script><script src="')
             ->and($bare->getContent())->toEndWith('" defer></script>')
             ->and($json->headers->get('Cache-Control'))->toContain('no-store');
     });

@@ -445,7 +445,26 @@ await step('say so when a change breaks the page where it is drawn, and undo it 
     await inserting.getByLabel('Find something to insert').fill('partials/menu');
     await insertable('partials/menu').click();
     const broken = page.locator('.sve-notice--problem', { hasText: 'could not be drawn after that change' });
-    await broken.waitFor();
+    await broken.waitFor({ timeout: 15000 }).catch(async (error) => {
+        // What the editor and the page have to say for themselves, for whoever reads this log.
+        console.log('     editor:', JSON.stringify(await page.evaluate(() => ({
+            notice: document.querySelector('.sve-notice')?.textContent ?? null,
+            busy: document.querySelector('.sve-shell')?.getAttribute('aria-busy'),
+            templates: document.querySelector('.sve-side--left .sve-panel__body')?.textContent?.slice(0, 160) ?? null,
+        }))));
+        console.log('     page:', JSON.stringify(await page.evaluate(() => {
+            const inFrame = document.querySelector('iframe.sve-frame')?.contentDocument;
+
+            return {
+                address: inFrame?.location.href ?? null,
+                title: inFrame?.title ?? null,
+                manifest: inFrame?.getElementById('sve-manifest')?.textContent?.slice(0, 120) ?? null,
+                scripts: [...(inFrame?.scripts ?? [])].map((script) => script.src).filter((src) => src.includes('bridge')),
+                text: inFrame?.body?.innerText.slice(0, 300) ?? null,
+            };
+        })));
+        throw error;
+    });
     await broken.getByRole('button', { name: 'Undo' }).click();
     await frame.locator('.hero h1').waitFor();
     if ((await heroNow()) !== hero.source) {
