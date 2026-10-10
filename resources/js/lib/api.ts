@@ -33,6 +33,23 @@ export type TemplateData = TemplateInfo & {
     tree: TreeNode | null;
 };
 
+/** One edit, as the server reads it (Operation in PHP): what to do, to which node, with what. */
+export type Operation =
+    | { type: 'setAttribute'; node: string; name: string; value: string | null; blade?: boolean }
+    | { type: 'removeAttribute'; node: string; name: string }
+    | { type: 'addClass' | 'removeClass'; node: string; class: string }
+    | { type: 'setId'; node: string; id: string }
+    | { type: 'setTag'; node: string; tag: string }
+    | { type: 'setText'; node: string; text: string }
+    | { type: 'setExpression'; node: string; expression: string }
+    | { type: 'setEchoRaw'; node: string; raw: boolean }
+    | { type: 'setArguments'; node: string; arguments: string | null }
+    | { type: 'setCode'; node: string; code: string }
+    | { type: 'insertBefore' | 'insertAfter' | 'append' | 'prepend'; node: string; blade: string }
+    | { type: 'remove' | 'duplicate' | 'unwrap'; node: string }
+    | { type: 'move'; node: string; target: string; position: 'before' | 'after' | 'inside' }
+    | { type: 'wrap'; node: string; wrapper: string };
+
 export type Refusal = 'forbidden' | 'not_found' | 'conflict' | 'rejected' | 'syntax' | 'invalid' | 'failed';
 
 export class ApiError extends Error {
@@ -124,4 +141,13 @@ export function copyToSite(path: string): Promise<TemplateData> {
 /** Saves a template's source as written in the code panel: the template as it is then. */
 export function saveSource(path: string, version: string, source: string): Promise<TemplateData> {
     return request<{ template: TemplateData }>('PUT', `templates/${pathInAddress(path)}/source`, { version, source }).then((answer) => answer.template);
+}
+
+/**
+ * Applies operations to a template and saves it. Answers with the template
+ * as it is then, and the id in it of the node to select: what the last
+ * operation made or changed.
+ */
+export function applyOperations(path: string, version: string, operations: Operation[]): Promise<{ template: TemplateData; focus: string | null }> {
+    return request<{ template: TemplateData; focus: string | null }>('POST', `templates/${pathInAddress(path)}/operations`, { version, operations });
 }

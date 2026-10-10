@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { editorAddress, isEditorAddress, markValue, type ManifestFile, type Mark, type Measured, type Mode } from './bridge/protocol';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, copyToSite, listTemplates, readTemplate, type TemplateData, type TemplateInfo } from './lib/api';
+import { ApiError, applyOperations, copyToSite, listTemplates, readTemplate, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
 import { pageOf, rememberPage } from './lib/memory';
 import { isAdminPath, sitePath } from './lib/path';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
-import { boxesOf, findNode } from './lib/tree';
+import { boxesOf, findNode, rowFor } from './lib/tree';
 import { CodePanel } from './panels/CodePanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Side } from './panels/Panel';
+import { SettingsPanel } from './panels/SettingsPanel';
 import { TemplatePanel, type Loaded } from './panels/TemplatePanel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
 
@@ -67,6 +68,12 @@ export function Editor({ startPath }: Props) {
     const unsaved = draft !== null;
     const [all, setAll] = useState<TemplateInfo[] | null>(null);
     const [copying, setCopying] = useState(false);
+    /** A change from the Settings panel is on its way to the server. */
+    const [applying, setApplying] = useState(false);
+    /** How many changes the server has refused. */
+    const [refusals, setRefusals] = useState(0);
+    /** The page in the frame is being drawn again, not left: what is known about it holds until it is back. */
+    const redrawing = useRef(false);
 
     /** The selected node of the open template, by its id in the tree. */
     const [selected, setSelected] = useState<string | null>(null);
@@ -87,6 +94,7 @@ export function Editor({ startPath }: Props) {
         if (said.type === 'ready') {
             const files = said.manifest.files;
             answered.current = true;
+            redrawing.current = false;
             setWaiting(null);
             setPage({ url: said.url, title: said.title, files });
             setAddress(said.url);
@@ -108,6 +116,10 @@ export function Editor({ startPath }: Props) {
         } else if (said.type === 'hover') {
             setHovered(said.target?.mark ?? null);
         } else if (said.type === 'select') {
+            if (applying) {
+                // A change is being saved: what is selected next is for the tree that comes back.
+                return;
+            }
             const { file: key, id } = said.target.mark;
             const file = page?.files.find((candidate) => candidate.key === key);
             if (file === undefined) {
@@ -126,7 +138,9 @@ export function Editor({ startPath }: Props) {
         } else if (said.type === 'measured') {
             setMeasured(said.measured);
         } else if (said.type === 'leaving') {
-            leave();
+            if (!redrawing.current) {
+                leave();
+            }
         }
     });
 
@@ -149,6 +163,24 @@ export function Editor({ startPath }: Props) {
         leave();
         frame.current.src = next;
     }, []);
+
+    /**
+     * Draws the page in the frame again, after a template changed. The
+     * panels keep what they show until the new page says what it is.
+     */
+    const redraw = () => {
+        const inFrame = frame.current?.contentWindow;
+        if (page === null || inFrame === null || inFrame === undefined) {
+            return;
+        }
+        redrawing.current = true;
+        try {
+            inFrame.location.reload();
+        } catch {
+            redrawing.current = false;
+            show(page.url);
+        }
+    };
 
     /** Where the frame is now; null when that is another site, whose address can't be read from here. */
     const addressInFrame = (): string | null => {
@@ -256,6 +288,9 @@ export function Editor({ startPath }: Props) {
 
     /** Selects a layer and brings what shows it on the page into view. */
     const select = (id: string) => {
+        if (applying) {
+            return;
+        }
         setSelected(id);
         const [first] = boxesOf(tree, id).ids;
         if (first !== undefined && openFile !== null) {
@@ -328,9 +363,38 @@ export function Editor({ startPath }: Props) {
         setCollapsed(new Set());
         // Whether it opens as a tree may have changed with it.
         setAll(null);
-        if (page !== null) {
-            show(page.url);
+        redraw();
+    };
+
+    /**
+     * Sends changes from the Settings panel: the file is saved, the page
+     * drawn again, and the node the last change made or touched selected.
+     */
+    const apply = (operations: Operation[]) => {
+        if (open === null || template.state !== 'ready' || applying) {
+            return;
         }
+        setApplying(true);
+        applyOperations(open.path, template.data.version, operations)
+            .then(({ template: changed, focus }) => {
+                setTemplate({ state: 'ready', data: changed });
+                // The ids of the old tree mean nothing in the new one.
+                setSelected(rowFor(changed.tree, focus));
+                setPointedNode(null);
+                setCollapsed(new Set());
+                redraw();
+            })
+            .catch((error: unknown) => {
+                Sunrice.toast.error(message(error));
+                setRefusals((count) => count + 1);
+                if (error instanceof ApiError && error.reason === 'conflict') {
+                    // The file is not what the panels show any more: read it again.
+                    setSelected(null);
+                    setReadings((count) => count + 1);
+                    redraw();
+                }
+            })
+            .finally(() => setApplying(false));
     };
 
     // --- What is shown on the page -------------------------------------------------
@@ -364,6 +428,7 @@ export function Editor({ startPath }: Props) {
         }
     }, [page, watch, tell]);
 
+    const selectedNode = findNode(tree, selected);
     const outlines: Outline[] = [];
     if (page !== null && measured !== null) {
         // An answer to an earlier question may still be on its way: draw only what is asked for now.
@@ -379,7 +444,6 @@ export function Editor({ startPath }: Props) {
                 outlines.push({ id: key, kind: key === litFile ? 'hover' : 'open', label: shortName(file.path), rects: measured.files[index] ?? [] });
             }
         }
-        const selectedNode = findNode(tree, selected);
         if (selectedNode !== null) {
             outlines.push({ id: `selected:${markValue({ file: openFile?.key ?? '', id: selectedNode.id })}`, kind: selectedBoxes.inside ? 'around' : 'selected', label: nodeTitle(selectedNode), rects: rectsOf(selectedBoxes.ids) });
         }
@@ -401,7 +465,7 @@ export function Editor({ startPath }: Props) {
                   : null;
 
     return (
-        <div className="sve-shell">
+        <div className="sve-shell" aria-busy={applying}>
             <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
 
             <header className="sve-bar">
@@ -499,6 +563,17 @@ export function Editor({ startPath }: Props) {
             </main>
 
             <Side side="right">
+                {template.state === 'ready' && selectedNode !== null && (
+                    <SettingsPanel
+                        template={template.data}
+                        node={selectedNode}
+                        busy={applying}
+                        refusals={refusals}
+                        locked={unsaved ? 'The code of this template has changes that are not saved. Save or revert them first.' : null}
+                        onApply={apply}
+                        onDeselect={() => setSelected(null)}
+                    />
+                )}
                 <TemplatePanel
                     open={open}
                     template={template}
@@ -508,8 +583,7 @@ export function Editor({ startPath }: Props) {
                     copying={copying}
                     coding={coding}
                     unsaved={unsaved}
-                    selected={findNode(tree, selected)}
-                    onDeselect={() => setSelected(null)}
+                    grow={selectedNode === null}
                     onCode={() => setCoding((on) => !on)}
                     onOpen={openTemplate}
                     onShowPage={(path) => {

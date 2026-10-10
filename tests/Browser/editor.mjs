@@ -206,6 +206,56 @@ await step('select an element of a section, drawn inside the layout, in the page
     await outlineOver('selected', 'main .hero h1');
 });
 
+// --- Settings ----------------------------------------------------------------------
+
+const settings = page.locator('.sve-side--right');
+const idle = () => page.waitForFunction(() => document.querySelector('.sve-shell')?.getAttribute('aria-busy') !== 'true');
+
+await step('add a class in the Settings panel and see it on the page, the element still selected', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    await settings.getByLabel('Add a class').fill('sve-browser-test');
+    await settings.getByLabel('Add a class').press('Enter');
+    await layerIs('h1.sve-browser-test');
+    await frame.locator('.hero h1.sve-browser-test').waitFor();
+    await outlineIs('selected', 'h1.sve-browser-test');
+});
+
+await step('take the class off again', async () => {
+    await idle();
+    await settings.getByLabel('Remove the class sve-browser-test').click();
+    await layerIs('h1');
+    await frame.locator('.hero h1:not(.sve-browser-test)').waitFor();
+});
+
+await step('change what a field prints, and put it back', async () => {
+    await idle();
+    await page.locator('.sve-layer__pick').filter({ has: page.locator('.sve-layer__label', { hasText: /^\$block->subheading$/ }) }).click();
+    await settings.getByLabel('Prints', { exact: true }).fill('$block->heading');
+    await settings.getByLabel('Prints', { exact: true }).press('Control+Enter');
+    await layerIs('$block->heading');
+    await frame.locator('.hero p.muted', { hasText: 'Templates you can see' }).waitFor();
+    await idle();
+    await settings.getByLabel('Prints', { exact: true }).fill('$block->subheading');
+    await settings.getByLabel('Prints', { exact: true }).press('Control+Enter');
+    await layerIs('$block->subheading');
+    await frame.locator('.hero p.muted', { hasText: 'This page is drawn by a layout' }).waitFor();
+});
+
+await step('refuse a change that doesn\'t compile, say why, and show the file again', async () => {
+    await idle();
+    await settings.getByLabel('Prints', { exact: true }).fill('$block->');
+    await settings.getByLabel('Prints', { exact: true }).press('Control+Enter');
+    await page.getByText(/not a PHP expression|doesn't compile/).first().waitFor();
+    await page.waitForFunction(() => document.querySelector('.sve-side--right textarea')?.value === '$block->subheading');
+    const home = await page.request.get(`${base}/`);
+    if (home.status() !== 200) {
+        throw new Error(`The homepage answered ${home.status()} after a refused change`);
+    }
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');
