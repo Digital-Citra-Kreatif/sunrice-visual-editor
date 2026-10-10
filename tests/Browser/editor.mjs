@@ -198,11 +198,31 @@ await step('put the footer back', async () => {
     await page.getByRole('button', { name: 'Hide the code' }).click();
 });
 
-await step('follow a missing page like any other: the error page is drawn by the site too', async () => {
+await step('keep what is typed in the address field while a page is still arriving', async () => {
+    // The frame is sent off to a page, and before it has arrived something else is typed.
+    await open('/articles');
+    await page.fill('#sve-address', 'about');
+    await frame.getByRole('link', { name: 'Fifth post', exact: true }).waitFor();
+    await page.waitForTimeout(300);
+    if ((await page.inputValue('#sve-address')) !== 'about') {
+        throw new Error(`The field now says "${await page.inputValue('#sve-address')}"`);
+    }
+    await page.click('.sve-address button[type=submit]');
+    await addressIs('/about');
+    await frame.getByText('A page with a rich text body and no blocks.').waitFor();
+});
+
+await step('follow a missing page, or say that it can\'t be followed', async () => {
     await open('no-such-page-anywhere');
     await addressIs('/no-such-page-anywhere');
-    // Its templates, or word that it has none of the site's: either way the panel knows the page.
-    await page.locator('.sve-panel--left .sve-templates, .sve-panel--left .sve-empty:has-text("No template of the site")').first().waitFor();
+    // The site draws its error page with its own layout, so the panel lists that; a site
+    // without one of its own would get word that the page can't be followed. Either way
+    // the list is not the one of the page before, which had the page template in it.
+    await page.waitForFunction(() => {
+        const names = [...document.querySelectorAll('.sve-panel--left .sve-panel__body > .sve-templates .sve-template__name')].map((name) => name.textContent);
+
+        return !names.includes('show') && (names.length > 0 || document.querySelector('.sve-panel--left .sve-panel__body > .sve-empty') !== null);
+    });
 });
 
 await step('say so when what is in the frame is no page of the site', async () => {

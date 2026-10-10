@@ -78,6 +78,8 @@ export type FromPage =
 
 /** From the editor to the page. */
 export type ToPage =
+    /** "Are you a page drawn for the editor?" Answered with `ready`, again. */
+    | { type: 'hello' }
     | { type: 'mode'; mode: Mode }
     | { type: 'watch'; watch: Watch }
     | { type: 'reveal'; mark: Mark };

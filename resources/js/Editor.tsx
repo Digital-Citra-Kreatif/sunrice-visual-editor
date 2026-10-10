@@ -37,14 +37,19 @@ export function Editor({ startPath }: Props) {
     // Set once: the frame is sent on to other pages by show(), not by rendering a new address.
     const [firstAddress] = useState(() => editorAddress(startPath, window.location.href) ?? '/?sve=1');
 
+    /** The address of the page in the frame, and what is being typed in its place, if anything. */
     const [address, setAddress] = useState(startPath);
+    const [typed, setTyped] = useState<string | null>(null);
     const [problem, setProblem] = useState<string | null>(null);
     const [mode, setMode] = useState<Mode>('select');
 
     const [page, setPage] = useState<Page | null>(null);
     /** loading: a page is on its way. unknown: one arrived that the editor can't follow. */
     const [waiting, setWaiting] = useState<'loading' | 'unknown' | null>('loading');
-    const awaited = useRef(true);
+    /** Whether the page in the frame has said it is one drawn for the editor, since it was last asked. */
+    const answered = useRef(false);
+    /** The address of the last page that was in the frame, to know the same page drawn again from another. */
+    const lastPage = useRef<string | null>(null);
     /** A template to open once the page that is on its way has arrived. */
     const wanted = useRef<TemplateName | null>(null);
 
@@ -67,16 +72,18 @@ export function Editor({ startPath }: Props) {
     const tell = useBridge(frame, (said) => {
         if (said.type === 'ready') {
             const files = said.manifest.files;
-            awaited.current = false;
+            answered.current = true;
             setWaiting(null);
             setPage({ url: said.url, title: said.title, files });
             setAddress(said.url);
             setProblem(null);
             rememberPage(files.map((file) => `${file.origin}:${file.path}`), said.url);
 
-            // The template asked for; else the one that was open, if it is here too or has
-            // changes waiting to be saved; else the page's own.
-            const still = open !== null && (unsaved || files.some((file) => sameTemplate(file, open)));
+            // The template asked for. Else the one that was open: on the same page it stays
+            // whatever it is, and on another page it stays if it is there too, or has changes
+            // waiting to be saved. Else the page's own.
+            const still = open !== null && (unsaved || said.url === lastPage.current || files.some((file) => sameTemplate(file, open)));
+            lastPage.current = said.url;
             const own = pageTemplate(files);
             setOpen(wanted.current ?? (still ? open : own === null ? null : { path: own.path, origin: own.origin }));
             wanted.current = null;
@@ -96,11 +103,12 @@ export function Editor({ startPath }: Props) {
 
     /** The page in the frame is going: nothing known about it holds any more. */
     const leave = () => {
-        awaited.current = true;
         setWaiting('loading');
         setPage(null);
         setHovered(null);
         setMeasured(null);
+        // The address field shows where the frame is going, not what was being typed for the page before.
+        setTyped(null);
     };
 
     /** Sends the frame to a page of the site, as an editor render. */
@@ -145,17 +153,23 @@ export function Editor({ startPath }: Props) {
 
             return;
         }
+        // Whatever was said before may have come from the page that was here a moment ago:
+        // ask the one that has loaded. A page drawn for the editor answers at once.
+        answered.current = false;
+        tell({ type: 'hello' });
         window.setTimeout(() => {
-            // Still waiting, and for this same page: it is not going to say anything.
-            if (awaited.current && addressInFrame() === href) {
+            if (!answered.current && addressInFrame() === href) {
                 setWaiting('unknown');
+                setPage(null);
+                setHovered(null);
+                setMeasured(null);
             }
         }, READY_WITHIN);
     };
 
     const go = (event: FormEvent) => {
         event.preventDefault();
-        const next = sitePath(address, window.location.origin);
+        const next = sitePath(typed ?? address, window.location.origin);
         if (next === null) {
             setProblem('The editor only opens pages of this site.');
 
@@ -306,8 +320,14 @@ export function Editor({ startPath }: Props) {
                     <input
                         id="sve-address"
                         className="sve-address__input"
-                        value={address}
-                        onChange={(event) => setAddress(event.target.value)}
+                        value={typed ?? address}
+                        onChange={(event) => setTyped(event.target.value)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Escape') {
+                                setTyped(null);
+                                setProblem(null);
+                            }
+                        }}
                         spellCheck={false}
                         autoComplete="off"
                         aria-invalid={problem !== null}
