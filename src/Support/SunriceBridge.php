@@ -1,0 +1,181 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Sunrice\VisualEditor\Support;
+
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\View;
+use Illuminate\View\FileViewFinder;
+use Sunrice\Fields\BlueprintSchema;
+use Sunrice\Mcp\Templates;
+use Sunrice\Models\Collection;
+use Sunrice\Models\Fieldset;
+use Sunrice\Models\GlobalSet;
+use Sunrice\Models\Menu;
+use Sunrice\Models\Taxonomy;
+use Throwable;
+
+/**
+ * Everything the editor needs from Sunrice that Sunrice does not publish as
+ * API yet. This is the only file allowed to touch Sunrice's internals
+ * (models, Sunrice\Mcp\Templates): when Sunrice gains the public API asked
+ * for in EXECUTION_PLAN.md V0.4 (C1–C3), only this file changes.
+ */
+final class SunriceBridge
+{
+    /** The site's templates: view names "sunrice.…". */
+    public static function templateDirectory(): string
+    {
+        return rtrim((string) (config('sunrice-visual-editor.paths.templates') ?? Templates::appDirectory()), '/');
+    }
+
+    /** Theme files (CSS, JS…), served from /sunrice-theme. */
+    public static function themeDirectory(): string
+    {
+        return rtrim((string) (config('sunrice-visual-editor.paths.theme') ?? Templates::themeDirectory()), '/');
+    }
+
+    /**
+     * Sunrice's own views, shown read-only: the fallback templates
+     * (sunrice::defaults.*) and the views of its Blade components.
+     *
+     * @return list<string>
+     */
+    public static function packageViewDirectories(): array
+    {
+        $finder = View::getFinder();
+        $hints = $finder instanceof FileViewFinder ? $finder->getHints() : [];
+
+        return array_values(array_filter((array) ($hints['sunrice'] ?? []), is_dir(...)));
+    }
+
+    /**
+     * The view each collection and taxonomy uses right now (C1).
+     *
+     * @return list<array{view: string, role: 'entry'|'listing'|'term', subject: 'collection'|'taxonomy', handle: string}>
+     */
+    public static function templateMap(): array
+    {
+        $map = Templates::map();
+        $uses = [];
+
+        foreach ($map['collections'] ?? [] as $handle => $pages) {
+            foreach (['entry_page' => 'entry', 'listing_page' => 'listing'] as $key => $role) {
+                if (isset($pages[$key]['uses'])) {
+                    $uses[] = ['view' => (string) $pages[$key]['uses'], 'role' => $role, 'subject' => 'collection', 'handle' => (string) $handle];
+                }
+            }
+        }
+        foreach ($map['taxonomies'] ?? [] as $handle => $page) {
+            if (isset($page['uses'])) {
+                $uses[] = ['view' => (string) $page['uses'], 'role' => 'term', 'subject' => 'taxonomy', 'handle' => (string) $handle];
+            }
+        }
+
+        return $uses;
+    }
+
+    /**
+     * Compiles Blade and checks the PHP it produces; null when fine. The
+     * same check Sunrice runs before an AI agent's template is saved.
+     */
+    public static function syntaxError(string $blade): ?string
+    {
+        try {
+            token_get_all(Blade::compileString($blade), TOKEN_PARSE);
+        } catch (Throwable $e) {
+            return $e->getMessage().' (line '.$e->getLine().' of the compiled template)';
+        }
+
+        return null;
+    }
+
+    /**
+     * Keeps a copy of a file about to be changed, where Sunrice keeps the
+     * ones for templates written by AI agents. Returns the copy's path.
+     *
+     * @param  string  $file  absolute path of the file
+     * @param  string  $relative  its path inside the template or theme directory
+     * @param  'templates'|'theme'  $kind
+     */
+    public static function backup(string $file, string $relative, string $kind = 'templates'): string
+    {
+        $folder = $kind === 'theme' ? 'sunrice-theme' : 'sunrice';
+        $target = storage_path('app/sunrice/template-backups/'.date('Y-m-d_His').'/'.$folder.'/'.ltrim($relative, '/'));
+        File::ensureDirectoryExists(dirname($target));
+        File::copy($file, $target);
+
+        return $target;
+    }
+
+    /**
+     * Field definitions with fieldset includes expanded (C2).
+     *
+     * @param  string  $kind  collection, listing, fieldset, taxonomy or global; anything else has no fields
+     * @return list<array<string, mixed>> each with handle, type, label and, when set, config
+     */
+    public static function fields(string $kind, string $handle): array
+    {
+        $schema = match ($kind) {
+            'collection' => Collection::query()->where('handle', $handle)->first()?->blueprint?->schema(),
+            'listing' => Collection::query()->where('handle', $handle)->first()?->archiveSchema(),
+            'fieldset' => Fieldset::query()->where('handle', $handle)->first()?->schema(),
+            'taxonomy' => Taxonomy::query()->where('handle', $handle)->first()?->blueprint?->schema(),
+            'global' => GlobalSet::query()->where('handle', $handle)->first()?->blueprint?->schema(),
+            default => null,
+        };
+
+        return $schema instanceof BlueprintSchema ? self::clean($schema->fields()) : [];
+    }
+
+    /** @return list<array{handle: string, title: string}> */
+    public static function collections(): array
+    {
+        return Collection::query()->orderBy('title')->get()
+            ->map(fn (Collection $collection) => ['handle' => (string) $collection->handle, 'title' => (string) $collection->title])
+            ->values()->all();
+    }
+
+    /** @return list<array{handle: string, title: string, group: string}> */
+    public static function globals(): array
+    {
+        return GlobalSet::query()->orderBy('title')->get()
+            ->map(fn (GlobalSet $set) => ['handle' => (string) $set->handle, 'title' => (string) $set->title, 'group' => (string) $set->group])
+            ->values()->all();
+    }
+
+    /** @return list<array{handle: string, title: string}> */
+    public static function menus(): array
+    {
+        return Menu::query()->orderBy('title')->get()
+            ->map(fn (Menu $menu) => ['handle' => (string) $menu->handle, 'title' => (string) $menu->title])
+            ->values()->all();
+    }
+
+    /**
+     * Field definitions without the blueprint builder's own keys.
+     *
+     * @param  array<int, array<string, mixed>>  $fields
+     * @return list<array<string, mixed>>
+     */
+    private static function clean(array $fields): array
+    {
+        $clean = [];
+        foreach ($fields as $field) {
+            $config = (array) ($field['config'] ?? []);
+            if (isset($config['fields']) && is_array($config['fields'])) {
+                $config['fields'] = self::clean($config['fields']);
+            }
+            $clean[] = array_filter([
+                'handle' => (string) ($field['handle'] ?? ''),
+                'type' => (string) ($field['type'] ?? ''),
+                'label' => (string) ($field['label'] ?? $field['handle'] ?? ''),
+                'config' => $config,
+            ], fn ($value) => $value !== []);
+        }
+
+        return $clean;
+    }
+}
