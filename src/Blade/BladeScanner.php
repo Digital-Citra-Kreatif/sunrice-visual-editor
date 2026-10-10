@@ -62,7 +62,7 @@ final class BladeScanner
         // directives; the application's are added by name.
         $parser = new DocumentParser;
         $parser->setDirectiveNames(self::customDirectives());
-        $parser->parse($source);
+        $parser->parse(self::asBladeReadsIt($source));
         $document = $parser->toDocument();
 
         if ($document->getErrors()->count() > 0) {
@@ -115,6 +115,17 @@ final class BladeScanner
         }
 
         return $flat;
+    }
+
+    /**
+     * Blade only takes "@name" as a directive when the character before it
+     * isn't a letter, digit or underscore: "joe@if.org" is an address. The
+     * parser would take it as @if, so those "@" are hidden from it. One
+     * byte for one byte: every position stays where it was.
+     */
+    private static function asBladeReadsIt(string $source): string
+    {
+        return (string) preg_replace('/(?<=[A-Za-z0-9_])@(?=[A-Za-z_])/', '-', $source);
     }
 
     private function role(bool $opened, bool $closed): string

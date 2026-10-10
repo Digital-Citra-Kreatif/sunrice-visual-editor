@@ -14,7 +14,7 @@ use Sunrice\VisualEditor\Tests\Support\RoundTrip;
 it('has the fixtures it expects', function () {
     expect(templateDataset('sunrice-starter'))->toHaveCount(19)
         ->and(templateDataset('sunrice-package'))->toHaveCount(11)
-        ->and(templateDataset('edge', 'ok-'))->toHaveCount(7)
+        ->and(templateDataset('edge', 'ok-'))->toHaveCount(8)
         ->and(templateDataset('edge', 'locked-'))->toHaveCount(5);
 });
 

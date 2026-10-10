@@ -9,8 +9,11 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Sunrice\VisualEditor\Blade\Attributes;
 use Sunrice\VisualEditor\Blade\Edit;
+use Sunrice\VisualEditor\Blade\EditRejected;
 use Sunrice\VisualEditor\Blade\HtmlLexer;
+use Sunrice\VisualEditor\Blade\Inert;
 use Sunrice\VisualEditor\Blade\Node;
 use Sunrice\VisualEditor\Blade\Rules;
 use Sunrice\VisualEditor\Blade\Template;
@@ -28,6 +31,9 @@ use Throwable;
  */
 final class RoundTrip
 {
+    /** Plain text that would be markup, an attribute end and Blade if written as it is. */
+    public const AWKWARD = 'a "q" & <b> {{ $x }} {!! $y !!} @if (1) \'z\' me@site.test {{-- c --}}';
+
     private static ?BladeCompiler $compiler = null;
 
     public static function fixtures(string $directory = ''): string
@@ -111,43 +117,145 @@ final class RoundTrip
         $slice = fn (int $from, int $to): string => substr($source, $from, $to - $from);
         $end = strlen($source);
 
+        $phpBlocks = substr_count((string) self::compiled($source), '<?php');
+        // Plain text is good when it reads back as typed and adds nothing for PHP to run.
+        $inert = fn (string $out): ?string => substr_count((string) self::compiled($out), '<?php') === $phpBlocks ? null : 'typed text became code';
+
         $count = count(Template::open($source)->elements());
         for ($i = 0; $i < $count; $i++) {
-            // Add a class: one insertion, inside this element's opening tag.
-            $element = Template::open($source)->elements()[$i];
+            $fresh = fn (): Node => Template::open($source)->elements()[$i];
+            $element = $fresh();
+            $where = self::where($element);
             $openEnd = $element->start + strlen($element->open);
-            $hadClass = $element->attr('class') !== null;
-            if (Edit::addClass($element, 'sr-added')) {
-                $out = self::root($element)->print();
-                $inserted = null;
-                $expected = '';
-                foreach ([' class="sr-added"', ' sr-added', 'sr-added'] as $candidate) {
-                    for ($p = $element->start; $p <= $openEnd && $inserted === null; $p++) {
+            /** One insertion of one of $candidates somewhere in the opening tag, or null. */
+            $insertion = function (string $out, array $candidates) use ($element, $openEnd, $slice, $end): ?string {
+                foreach ($candidates as $candidate) {
+                    for ($p = $element->start; $p <= $openEnd; $p++) {
                         if ($out === $slice(0, $p).$candidate.$slice($p, $end)) {
-                            $inserted = $candidate;
-                            $expected = $slice(0, $p).$candidate.$slice($p, $end);
+                            return $candidate;
                         }
                     }
                 }
-                $error = $inserted === null ? 'not a single insertion inside the opening tag' : self::verify($out, $expected);
+
+                return null;
+            };
+
+            // Add a class: one insertion, inside this element's opening tag.
+            $hadClass = $element->attr('class') !== null;
+            try {
+                Edit::addClass($element, 'sr-added');
+                $out = self::root($element)->print();
+                $inserted = $insertion($out, [' class="sr-added"', ' sr-added', 'sr-added']);
+                $error = $inserted === null ? 'not a single insertion inside the opening tag' : self::verify($out, $out);
                 if ($error === null) {
                     $after = Template::open($out)->elements()[$i];
-                    $value = $after->attr('class');
-                    $classes = $value === null ? '' : substr($after->open, (int) $value['valueStart'], (int) $value['valueEnd'] - (int) $value['valueStart']);
-                    $error = str_contains($classes, 'sr-added') ? null : 'class not found after reopening';
+                    $error = in_array('sr-added', Attributes::classes($after), true) ? null : 'class not found after reopening';
                     $error ??= $hadClass === ($inserted === ' class="sr-added"') ? 'wrong insertion form' : null;
                 }
-                $record('add class', $error, self::where($element));
-            } else {
+                $record('add class', $error, $where);
+            } catch (EditRejected) {
                 $skip('add class');
             }
 
+            // Remove each plain class: the tag loses that word and nothing else.
+            foreach (Attributes::classes($element) as $class) {
+                $element = $fresh();
+                $before = self::attributeTexts($element);
+                try {
+                    Edit::removeClass($element, $class);
+                    $out = self::root($element)->print();
+                    $error = $slice(0, $element->start) === substr($out, 0, $element->start) && str_ends_with($out, $slice($openEnd, $end))
+                        ? self::verify($out, $out)
+                        : 'bytes outside the opening tag changed';
+                    if ($error === null) {
+                        $after = Template::open($out)->elements()[$i];
+                        $expected = array_values(array_diff(Attributes::classes($fresh()), [$class]));
+                        unset($before['class']);
+                        $rest = self::attributeTexts($after);
+                        unset($rest['class']);
+                        $error = Attributes::classes($after) === $expected ? null : 'the remaining classes are not the others, in order';
+                        $error ??= $rest === $before ? null : 'another attribute changed';
+                    }
+                    $record('remove class', $error, "{$where} .{$class}");
+                } catch (EditRejected) {
+                    $skip('remove class');
+                }
+            }
+
+            // A new attribute holding awkward plain text: one insertion, read back as typed.
+            $element = $fresh();
+            $written = Inert::attribute(self::AWKWARD);
+            try {
+                Edit::setAttribute($element, 'data-sr', self::AWKWARD);
+                $out = self::root($element)->print();
+                $error = $insertion($out, [' data-sr="'.$written.'"']) === null ? 'not a single insertion inside the opening tag' : self::verify($out, $out);
+                $error ??= Inert::decode((string) Template::open($out)->elements()[$i]->attributeValue('data-sr')) === self::AWKWARD ? null : 'the value does not read back as typed';
+                $record('add attribute', $error ?? $inert($out), $where);
+            } catch (EditRejected) {
+                $skip('add attribute');
+            }
+
+            foreach ($fresh()->attrs as $j => $attr) {
+                if ($attr['kind'] !== 'attr' || $attr['dynamic']) {
+                    continue;
+                }
+                $attrStart = $element->start + $attr['start'];
+                $attrEnd = $element->start + $attr['end'];
+
+                // Change the value of a plain attribute: only the value changes.
+                if ($attr['valueStart'] !== null && $attr['valueEnd'] !== null) {
+                    $element = $fresh();
+                    $valueStart = $element->start + $attr['valueStart'];
+                    $valueEnd = $element->start + $attr['valueEnd'];
+                    $quoted = in_array($source[$valueEnd] ?? '', ['"', "'"], true);
+                    try {
+                        Edit::setAttribute($element, $attr['name'], self::AWKWARD);
+                        $out = self::root($element)->print();
+                        $expected = $slice(0, $valueStart).($quoted ? $written : '"'.$written.'"').$slice($valueEnd, $end);
+                        $error = self::verify($out, $expected);
+                        $error ??= Inert::decode((string) Template::open($out)->elements()[$i]->attributeValue($attr['name'])) === self::AWKWARD ? null : 'the value does not read back as typed';
+                        $record('change attribute', $error ?? $inert($out), "{$where} {$attr['name']}");
+                    } catch (EditRejected) {
+                        $skip('change attribute');
+                    }
+                }
+
+                // Remove it: the attribute and the space before it go.
+                $element = $fresh();
+                try {
+                    Edit::removeAttribute($element, $attr['name']);
+                    $from = $attrStart;
+                    while ($from > 0 && ctype_space($source[$from - 1])) {
+                        $from--;
+                    }
+                    $out = self::root($element)->print();
+                    $error = self::verify($out, $slice(0, $from).$slice($attrEnd, $end));
+                    $error ??= Template::open($out)->elements()[$i]->attr($attr['name']) === null ? null : 'the attribute is still there';
+                    $record('remove attribute', $error, "{$where} {$attr['name']}");
+                } catch (EditRejected) {
+                    $skip('remove attribute');
+                }
+            }
+
+            // Rename the element: both tags, nothing else.
+            $element = $fresh();
+            $old = strlen($element->name);
+            $closeStart = $element->end - strlen($element->close);
+            try {
+                Edit::setTag($element, $element->name === 'article' ? 'section' : 'article');
+                $tag = $element->name;
+                $expected = $slice(0, $element->start).'<'.$tag.$slice($element->start + 1 + $old, $closeStart).'</'.$tag.$slice($closeStart + 2 + $old, $end);
+                $record('rename', self::verify(self::root($element)->print(), $expected), $where);
+            } catch (EditRejected) {
+                $skip('rename');
+            }
+
             // Add a field as the last child: one insertion, just before the closing tag.
-            $element = Template::open($source)->elements()[$i];
+            $element = $fresh();
             if ($element->close !== '' && ! in_array($element->name, HtmlLexer::RAW_TEXT, true)) {
                 $closeStart = $element->end - strlen($element->close);
                 Edit::appendField($element, 'p', "\$entry->get('sr_field')");
-                $record('add field', self::verify(self::root($element)->print(), $slice(0, $closeStart)."<p>{{ \$entry->get('sr_field') }}</p>".$slice($closeStart, $end)), self::where($element));
+                $record('add field', self::verify(self::root($element)->print(), $slice(0, $closeStart)."<p>{{ \$entry->get('sr_field') }}</p>".$slice($closeStart, $end)), $where);
             } else {
                 $skip('add field');
             }
@@ -213,6 +321,33 @@ final class RoundTrip
         }
 
         return $failures;
+    }
+
+    /**
+     * @return array<string, string> each attribute's text in the tag, by name
+     */
+    private static function attributeTexts(Node $element): array
+    {
+        $texts = [];
+        foreach ($element->attrs as $attr) {
+            $key = $attr['name'];
+            for ($n = 2; isset($texts[$key]); $n++) {
+                $key = $attr['name'].' #'.$n;
+            }
+            $texts[$key] = substr($element->open, $attr['start'], $attr['end'] - $attr['start']);
+        }
+
+        return $texts;
+    }
+
+    /** The compiled PHP, or null when the template doesn't compile. */
+    private static function compiled(string $blade): ?string
+    {
+        try {
+            return self::compiler()->compileString($blade);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**
