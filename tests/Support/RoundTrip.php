@@ -13,7 +13,6 @@ use Sunrice\VisualEditor\Blade\Attributes;
 use Sunrice\VisualEditor\Blade\Classifier;
 use Sunrice\VisualEditor\Blade\Edit;
 use Sunrice\VisualEditor\Blade\EditRejected;
-use Sunrice\VisualEditor\Blade\HtmlLexer;
 use Sunrice\VisualEditor\Blade\Inert;
 use Sunrice\VisualEditor\Blade\Node;
 use Sunrice\VisualEditor\Blade\Rules;
@@ -252,12 +251,34 @@ final class RoundTrip
                 $skip('rename');
             }
 
-            // Add a field as the last child: one insertion, just before the closing tag.
+            // Add a field as the last child. Where it lands depends on how
+            // the element is laid out; the bytes are known for all but an
+            // empty element on its own line, which opens up over three lines.
             $element = $fresh();
-            if ($element->close !== '' && ! in_array($element->name, HtmlLexer::RAW_TEXT, true)) {
+            if (Rules::holdsChildren($element)) {
+                $field = "<p>{{ \$entry->get('sr_field') }}</p>";
                 $closeStart = $element->end - strlen($element->close);
-                Edit::appendField($element, 'p', "\$entry->get('sr_field')");
-                $record('add field', self::verify(self::root($element)->print(), $slice(0, $closeStart)."<p>{{ \$entry->get('sr_field') }}</p>".$slice($closeStart, $end)), $where);
+                $last = null;
+                foreach (array_reverse($element->children) as $child) {
+                    if (trim($child->print()) !== '') {
+                        $last = $child;
+                        break;
+                    }
+                }
+                $root = self::root($element);
+                Edit::append($element, $field);
+                $out = $root->print();
+                if ($last === null) {
+                    $error = self::squash($out) === self::squash($slice(0, $closeStart).$field.$slice($closeStart, $end)) ? self::verify($out, $out) : 'more than the field changed';
+                } else {
+                    $indent = self::lineIndent($source, $last->start);
+                    $endsLine = preg_match('/^[ \t]*\r?\n/', $slice($last->end, $end)) === 1;
+                    $expected = $indent === null && ! $endsLine
+                        ? self::join($slice(0, $closeStart), $field, $slice($closeStart, $end))
+                        : self::join($slice(0, $last->end).($indent === null ? '' : "\n".$indent), $field, $slice($last->end, $end));
+                    $error = self::verify($out, $expected);
+                }
+                $record('add field', $error, $where);
             } else {
                 $skip('add field');
             }
@@ -340,35 +361,134 @@ final class RoundTrip
             $record('rewrite code', self::verify($root->print(), self::join($slice(0, $node->start), '@php($sr = 1)', $slice($node->end, $end))), self::where($node));
         }
 
+        $snippet = '<i class="sr-new">{{ $sr }}</i>';
         $count = count(self::editable(Template::open($source)));
         for ($i = 0; $i < $count; $i++) {
-            $node = self::editable(Template::open($source))[$i];
+            $fresh = fn (): Node => self::editable(Template::open($source))[$i];
+            $node = $fresh();
+            $where = self::where($node);
+            [$start, $finish] = [$node->start, $node->end];
+            $text = $slice($start, $finish);
+            $indent = self::lineIndent($source, $start);
+            $line = $indent === null ? '' : "\n".$indent;
+            $siblings = $node->parent->children ?? [];
+            $next = $siblings[$node->index() + 1] ?? null;
+
+            // Delete: a node with a line to itself takes the line with it.
+            $ownLine = $indent !== null && ($next === null || ($next->type === 'text' && preg_match('/^[ \t]*(\r?\n|\z)/', $next->open) === 1));
+            if (! $ownLine) {
+                $expected = self::join($slice(0, $start), $slice($finish, $end));
+            } elseif ($node->index() > 0) {
+                $cut = $start - strlen($indent) - 1;
+                $expected = self::join($slice(0, $cut - (($source[$cut - 1] ?? '') === "\r" ? 1 : 0)), $slice($finish, $end));
+            } else {
+                $expected = $slice(0, $start).preg_replace('/^[ \t]*\r?\n/', '', $slice($finish, $end));
+            }
             $root = self::root($node);
             Edit::remove($node);
-            $record('delete', self::verify($root->print(), self::join($slice(0, $node->start), $slice($node->end, $end))), self::where($node));
+            $record('delete', self::verify($root->print(), $expected), $where);
 
-            $node = self::editable(Template::open($source))[$i];
-            Edit::wrap($node, 'div', 'sr-wrap');
-            $record('wrap', self::verify(self::root($node)->print(), $slice(0, $node->start).'<div class="sr-wrap">'.$slice($node->start, $node->end).'</div>'.$slice($node->end, $end)), self::where($node));
+            // Duplicate, and insert before and after: beside a node on its own line, a line of its own.
+            $node = $fresh();
+            $root = self::root($node);
+            Edit::duplicate($node);
+            $record('duplicate', self::verify($root->print(), self::join($slice(0, $finish).$line, $text, $slice($finish, $end))), $where);
 
-            // Reorder: swap with the next editable sibling.
+            $node = $fresh();
+            $root = self::root($node);
+            Edit::insertAfter($node, $snippet);
+            $record('insert after', self::verify($root->print(), self::join($slice(0, $finish).$line, $snippet, $slice($finish, $end))), $where);
+
+            $node = $fresh();
+            $root = self::root($node);
+            Edit::insertBefore($node, $snippet);
+            $record('insert before', self::verify($root->print(), self::join($slice(0, $start), $snippet, $line.$slice($start, $end))), $where);
+
+            // Wrap: inline the bytes are known; on its own line the node moves in a step.
+            $node = $fresh();
+            $root = self::root($node);
+            Edit::wrap($node, '<div class="sr-wrap"></div>');
+            $out = $root->print();
+            $inline = $slice(0, $start).'<div class="sr-wrap">'.$text.'</div>'.$slice($finish, $end);
+            $record('wrap', $indent === null ? self::verify($out, $inline) : (self::squash($out) === self::squash($inline) ? self::verify($out, $out) : 'more than the wrapper changed'), $where);
+
+            // Unwrap: the tags or directives go, what was inside stays.
+            $node = $fresh();
+            $holder = $node->type === 'block' && count($node->children) === 1 ? $node->children[0] : $node;
+            if (($node->type === 'element' && Rules::holdsChildren($node)) || $holder->type === 'branch') {
+                $root = self::root($node);
+                try {
+                    Edit::unwrap($node);
+                    $out = $root->print();
+                    $naive = $slice(0, $start).substr($text, strlen($holder->open), strlen($text) - strlen($holder->open) - strlen($node->close)).$slice($finish, $end);
+                    $record('unwrap', self::squash($out) === self::squash($naive) ? self::verify($out, $out) : 'more than the wrapper went', $where);
+                } catch (EditRejected) {
+                    // What was inside can't stand on its own (the arms of a @switch).
+                    $skip('unwrap');
+                }
+            } else {
+                $skip('unwrap');
+            }
+
+            // Reorder: the node and the next one change places; the whitespace between stays.
             $nodes = self::editable(Template::open($source));
             $node = $nodes[$i];
-            $next = null;
+            $after = null;
             foreach (array_slice($node->parent->children ?? [], $node->index() + 1) as $sibling) {
                 if (in_array($sibling, $nodes, true)) {
-                    $next = $sibling;
+                    $after = $sibling;
                     break;
                 }
             }
-            if ($next === null) {
+            if ($after === null) {
                 $skip('reorder');
+                $skip('move inside');
 
                 continue;
             }
-            Edit::swap($node, $next);
-            $expected = self::join($slice(0, $node->start), $slice($next->start, $next->end), $slice($node->end, $next->start), $slice($node->start, $node->end), $slice($next->end, $end));
-            $record('reorder', self::verify(self::root($node)->print(), $expected), self::where($node));
+            // Everything that isn't whitespace keeps a slot; the node leaves
+            // its slot and takes the one after the other node.
+            // A text's slot is its words: the spaces around them are whitespace like any other.
+            $span = function (Node $child) use ($source): array {
+                $text = substr($source, $child->start, $child->end - $child->start);
+
+                return $child->type === 'text'
+                    ? [$child->start + strlen($text) - strlen(ltrim($text)), $child->end - (strlen($text) - strlen(rtrim($text)))]
+                    : [$child->start, $child->end];
+            };
+            $slots = array_values(array_filter($node->parent->children ?? [], fn (Node $child) => trim($child->print()) !== ''));
+            $order = array_values(array_filter($slots, fn (Node $child) => $child !== $node));
+            array_splice($order, (int) array_search($after, $order, true) + 1, 0, [$node]);
+            $pieces = [$slice(0, $span($slots[0])[0])];
+            foreach ($slots as $k => $slot) {
+                $pieces[] = $slice(...$span($order[$k]));
+                $pieces[] = $slice($span($slot)[1], isset($slots[$k + 1]) ? $span($slots[$k + 1])[0] : $end);
+            }
+            $root = self::root($node);
+            Edit::move($node, $after, 'after');
+            $record('reorder', self::verify($root->print(), self::join(...$pieces)), $where);
+
+            // Move into the next sibling, when that holds children.
+            $nodes = self::editable(Template::open($source));
+            $node = $nodes[$i];
+            $into = null;
+            foreach (array_slice($node->parent->children ?? [], $node->index() + 1) as $sibling) {
+                if (in_array($sibling, $nodes, true)) {
+                    $into = $sibling;
+                    break;
+                }
+            }
+            if ($into === null || $into->type !== 'element' || ! Rules::holdsChildren($into)) {
+                $skip('move inside');
+
+                continue;
+            }
+            $closeStart = $into->end - strlen($into->close);
+            $root = self::root($node);
+            Edit::move($node, $into, 'inside');
+            $out = $root->print();
+            $naive = $slice(0, $start).$slice($finish, $closeStart).$text.$slice($closeStart, $end);
+            $record('move inside', self::squash($out) === self::squash($naive) ? self::verify($out, $out) : 'more than the node moved', $where);
         }
 
         return $results;
@@ -390,6 +510,21 @@ final class RoundTrip
         }
 
         return $failures;
+    }
+
+    /** The indentation of the line an offset is on, when only indentation comes before it there; null otherwise. */
+    private static function lineIndent(string $source, int $offset): ?string
+    {
+        $lineStart = strrpos(substr($source, 0, $offset), "\n");
+        $lead = substr($source, $lineStart === false ? 0 : $lineStart + 1, $offset - ($lineStart === false ? 0 : $lineStart + 1));
+
+        return trim($lead, " \t") === '' ? $lead : null;
+    }
+
+    /** Without whitespace: for edits whose layout isn't spelled out here, the content must still be exactly this. */
+    private static function squash(string $blade): string
+    {
+        return (string) preg_replace('/\s+/', '', $blade);
     }
 
     /**

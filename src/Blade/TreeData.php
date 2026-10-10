@@ -33,6 +33,7 @@ final class TreeData
             'can' => [
                 'move' => Rules::movable($node),
                 'delete' => Rules::movable($node),
+                'wrap' => Rules::wrappable($node),
                 'insert' => Rules::holdsChildren($node),
                 'attributes' => $node->type === 'element',
             ],

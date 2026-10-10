@@ -46,6 +46,17 @@ final class Rules
         return $node->parent !== null && self::selectable($node) && ! self::isSeparator($node) && ! self::insideCode($node);
     }
 
+    /** Can be wrapped in an element or a block: anything movable, and text. */
+    public static function wrappable(Node $node): bool
+    {
+        if ($node->type !== 'text') {
+            return self::movable($node);
+        }
+
+        return $node->parent !== null && trim($node->open) !== '' && ! self::insideCode($node)
+            && ! ($node->parent->type === 'element' && in_array($node->parent->name, HtmlLexer::RAW_TEXT, true));
+    }
+
     /** Can have nodes inserted into it. */
     public static function holdsChildren(Node $node): bool
     {

@@ -81,7 +81,7 @@ final class Content
 
         $parent = $node->parent;
         $index = $node->index();
-        $nodes = Fragment::parse($code);
+        $nodes = Fragment::parse($code, $parent);
         foreach ($nodes as $new) {
             $new->parent = $parent;
         }

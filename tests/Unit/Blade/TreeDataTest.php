@@ -134,8 +134,9 @@ it('says what may be done to a node', function () {
         BLADE)->toArray()['tree'];
     $can = fn (string $label) => collect(flatten($tree))->firstWhere('label', $label)['can'];
 
-    expect($tree['can'])->toBe(['move' => false, 'delete' => false, 'insert' => true, 'attributes' => false])
-        ->and($can('div.list'))->toBe(['move' => true, 'delete' => true, 'insert' => true, 'attributes' => true])
+    expect($tree['can'])->toBe(['move' => false, 'delete' => false, 'wrap' => false, 'insert' => true, 'attributes' => false])
+        ->and($can('div.list'))->toBe(['move' => true, 'delete' => true, 'wrap' => true, 'insert' => true, 'attributes' => true])
+        ->and($can('None'))->toMatchArray(['move' => false, 'wrap' => true])                           // text: wrapped, not moved
         ->and($can('img')['insert'])->toBeFalse()                       // void: holds nothing
         ->and($can('script')['insert'])->toBeFalse()                    // its content isn't markup
         ->and($can('@forelse ($items as $item)'))->toMatchArray(['move' => true, 'insert' => false])   // the block; its arms hold the children
