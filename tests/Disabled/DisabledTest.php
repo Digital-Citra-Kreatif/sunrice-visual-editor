@@ -8,6 +8,7 @@ use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Tests\DisabledTestCase;
 
 use function Pest\Laravel\get;
+use function Pest\Laravel\getJson;
 
 uses(DisabledTestCase::class);
 
@@ -24,6 +25,8 @@ it('lets nobody in when turned off, Super Admins included', function () {
 
     expect(Access::allowed($admin))->toBeFalse();
     get('/cms/visual-editor')->assertNotFound();
+    getJson('/cms/visual-editor/api/templates')->assertNotFound();
+    getJson('/cms/visual-editor/api/templates/partials/footer.blade.php')->assertNotFound();
 });
 
 it('adds nothing to the admin when turned off', function () {
