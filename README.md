@@ -31,10 +31,14 @@ The first milestone of three: **see a page's templates, click through them, edit
   get a copy the site uses and you can edit.
 - Saves appear in the admin's activity log.
 
-Not yet: changing a template without touching code (layers, settings, insert,
-drag) is the second milestone, and the field picker is the third. The template
-tree, the edits and the API they need are built and tested; the screens are
-not.
+Under way, the second milestone: changing a template without touching code.
+The **Layers** panel (the open template as a tree, selected from either the
+tree or the page), the **Settings** panel (tag, id, classes, attributes, text,
+what an echo prints, a condition, a loop, an include) and **Insert** (elements,
+Blade structures, Sunrice's components, the site's partials, pasted HTML) are
+in. Moving, duplicating and deleting from the screen, undo, and a page that
+keeps its place after a change are not yet. The field picker is the third
+milestone.
 
 ## Using it
 
@@ -198,6 +202,7 @@ src/
     Operation.php      an edit as plain data: what the editor's screen and AI agents send
     Operations.php     applies operations; hands back a file only if it opens and compiles
     Syntax.php         whether a template compiles
+    Variables.php      the variables a template needs to be given
     Attributes.php     edits to an opening tag: attributes, classes, the tag name
     Content.php        edits to text, echoes, directive arguments; a node rewritten as code
     Structure.php      insert, move, duplicate, delete, wrap, unwrap
@@ -206,6 +211,7 @@ src/
     Inert.php          typed text as text Blade won't run
     Seams.php          keeps directives readable where an edit joins two pieces
   Templates/           the files the editor works with: the site's templates and Sunrice's views
+  Insert/              Library: what the editor offers to insert, for this site
   Actions/             SaveTemplate: the only place a template is written; CopyPackageView
   Rendering/           a page rendered for the editor: elements marked with their template
   Http/                the editor's screen, and its API for templates (Controllers/Api)

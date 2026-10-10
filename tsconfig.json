@@ -14,6 +14,7 @@
         "skipLibCheck": true,
         "isolatedModules": true,
         "erasableSyntaxOnly": true,
+        "allowImportingTsExtensions": true,
         "types": []
     },
     "include": ["resources/js"]

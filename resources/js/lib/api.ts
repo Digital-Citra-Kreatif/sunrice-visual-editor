@@ -50,6 +50,19 @@ export type Operation =
     | { type: 'move'; node: string; target: string; position: 'before' | 'after' | 'inside' }
     | { type: 'wrap'; node: string; wrapper: string };
 
+/** Something the editor offers to insert (Library on the server): a piece of Blade that stands on its own. */
+export type Insertable = {
+    id: string;
+    /** Elements, Blade, Sunrice or Partials. */
+    group: string;
+    title: string;
+    /** What it writes, in a few characters: "<section>", "@foreach", or what a partial needs. */
+    hint: string;
+    blade: string;
+    /** More words to find it by. */
+    keywords: string;
+};
+
 export type Refusal = 'forbidden' | 'not_found' | 'conflict' | 'rejected' | 'syntax' | 'invalid' | 'failed';
 
 export class ApiError extends Error {
@@ -127,6 +140,11 @@ async function request<T>(method: string, address: string, body?: unknown): Prom
 
 export function listTemplates(): Promise<TemplateInfo[]> {
     return request<{ templates: TemplateInfo[] }>('GET', 'templates').then((answer) => answer.templates);
+}
+
+/** What can be inserted into a template of this site. */
+export function listInserts(): Promise<Insertable[]> {
+    return request<{ inserts: Insertable[] }>('GET', 'inserts').then((answer) => answer.inserts);
 }
 
 export function readTemplate(path: string, origin: 'site' | 'package'): Promise<TemplateData> {

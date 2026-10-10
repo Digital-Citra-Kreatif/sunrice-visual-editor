@@ -64,8 +64,8 @@ it('lists collections, globals and menus', function () {
     $this->setUpStarterSite();
 
     expect(SunriceBridge::collections())->toBe([
-        ['handle' => 'articles', 'title' => 'Articles'],
-        ['handle' => 'pages', 'title' => 'Pages'],
+        ['handle' => 'articles', 'title' => 'Articles', 'single' => true],
+        ['handle' => 'pages', 'title' => 'Pages', 'single' => true],
     ])->and(SunriceBridge::globals())->toBe([
         ['handle' => 'footer', 'title' => 'Footer', 'group' => 'template_part'],
         ['handle' => 'site', 'title' => 'Site', 'group' => 'global'],

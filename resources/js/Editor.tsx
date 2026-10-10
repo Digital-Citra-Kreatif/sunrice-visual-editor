@@ -2,13 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { editorAddress, isEditorAddress, markValue, type ManifestFile, type Mark, type Measured, type Mode } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, copyToSite, listTemplates, readTemplate, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
+import { ApiError, applyOperations, copyToSite, listInserts, listTemplates, readTemplate, type Insertable, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
 import { pageOf, rememberPage } from './lib/memory';
 import { isAdminPath, sitePath } from './lib/path';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { boxesOf, findNode, rowFor } from './lib/tree';
 import { CodePanel } from './panels/CodePanel';
+import { InsertPanel } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Side } from './panels/Panel';
 import { SettingsPanel } from './panels/SettingsPanel';
@@ -78,6 +79,12 @@ export function Editor({ startPath }: Props) {
     const say = (kind: Notice['kind'], text: string) => setNotice({ kind, text, at: Date.now() });
     /** The page in the frame is being drawn again, not left: what is known about it holds until it is back. */
     const redrawing = useRef(false);
+    /** Once the page is back, bring what is selected into view: it may be new, and anywhere. */
+    const revealing = useRef(false);
+
+    /** The left side lists what can be inserted, in place of the page's templates. */
+    const [inserting, setInserting] = useState(false);
+    const [inserts, setInserts] = useState<Loaded<Insertable[]>>({ state: 'idle' });
 
     /** The selected node of the open template, by its id in the tree. */
     const [selected, setSelected] = useState<string | null>(null);
@@ -380,15 +387,17 @@ export function Editor({ startPath }: Props) {
     };
 
     /**
-     * Sends changes from the Settings panel: the file is saved, the page
-     * drawn again, and the node the last change made or touched selected.
+     * Sends changes from the Settings or the Insert panel: the file is
+     * saved, the page drawn again, and the node the last change made or
+     * touched selected. Answers whether the changes were made.
      */
-    const apply = (operations: Operation[]) => {
+    const apply = (operations: Operation[]): Promise<boolean> => {
         if (open === null || template.state !== 'ready' || applying) {
-            return;
+            return Promise.resolve(false);
         }
         setApplying(true);
-        applyOperations(open.path, template.data.version, operations)
+
+        return applyOperations(open.path, template.data.version, operations)
             .then(({ template: changed, focus }) => {
                 setTemplate({ state: 'ready', data: changed });
                 // The page shows that it worked. What was wrong with the change before it no longer is.
@@ -397,7 +406,10 @@ export function Editor({ startPath }: Props) {
                 setSelected(rowFor(changed.tree, focus));
                 setPointedNode(null);
                 setCollapsed(new Set());
+                revealing.current = true;
                 redraw();
+
+                return true;
             })
             .catch((error: unknown) => {
                 say('problem', message(error));
@@ -408,9 +420,27 @@ export function Editor({ startPath }: Props) {
                     setReadings((count) => count + 1);
                     redraw();
                 }
+
+                return false;
             })
             .finally(() => setApplying(false));
     };
+
+    // What can be inserted, asked for each time the list is opened: the site's partials and content change.
+    useEffect(() => {
+        if (!inserting) {
+            return;
+        }
+        let stale = false;
+        setInserts((before) => (before.state === 'ready' ? before : { state: 'loading' }));
+        listInserts()
+            .then((data) => !stale && setInserts({ state: 'ready', data }))
+            .catch((error: unknown) => !stale && setInserts((before) => (before.state === 'ready' ? before : { state: 'failed', error: message(error) })));
+
+        return () => {
+            stale = true;
+        };
+    }, [inserting]);
 
     // --- What is shown on the page -------------------------------------------------
 
@@ -442,6 +472,16 @@ export function Editor({ startPath }: Props) {
             tell({ type: 'watch', watch });
         }
     }, [page, watch, tell]);
+    // The page is back after a change: what the change made may be out of sight.
+    useEffect(() => {
+        const [first] = selectedBoxes.ids;
+        if (page !== null && revealing.current) {
+            revealing.current = false;
+            if (first !== undefined && openFile !== null) {
+                tell({ type: 'reveal', mark: { file: openFile.key, id: first } });
+            }
+        }
+    }, [page]);
 
     const selectedNode = findNode(tree, selected);
     const outlines: Outline[] = [];
@@ -477,6 +517,18 @@ export function Editor({ startPath }: Props) {
                 ? 'The template could not be opened.'
                 : template.data.tree === null
                   ? 'This template can only be edited as code, so it has no layers to show.'
+                  : null;
+
+    const codeUnsaved = 'The code of this template has changes that are not saved. Save or revert them first.';
+    const insertLocked =
+        template.state !== 'ready'
+            ? (layersNote ?? 'No template is open.')
+            : !template.data.editable
+              ? 'This is one of Sunrice’s own views: nothing can be put into it here.'
+              : tree === null
+                ? 'This template can only be edited as code.'
+                : unsaved
+                  ? codeUnsaved
                   : null;
 
     return (
@@ -519,6 +571,10 @@ export function Editor({ startPath }: Props) {
                     )}
                 </form>
 
+                <button type="button" className="sve-button sve-button--quiet" aria-pressed={inserting} onClick={() => setInserting((on) => !on)} title="Add elements, Blade and components to the open template">
+                    <span aria-hidden="true">+</span> Insert
+                </button>
+
                 <div className="sve-modes" role="group" aria-label="What a click on the page does">
                     <button type="button" className="sve-modes__mode" aria-pressed={mode === 'select'} onClick={() => setMode('select')} title="A click on the page picks what was clicked">
                         Select
@@ -534,7 +590,20 @@ export function Editor({ startPath }: Props) {
             </header>
 
             <Side side="left">
-                <TemplatesPanel files={page?.files ?? null} waiting={waiting} all={all} open={open} onOpen={openTemplate} onPoint={setPointedFile} />
+                {inserting ? (
+                    <InsertPanel
+                        inserts={inserts.state === 'ready' ? inserts.data : null}
+                        failed={inserts.state === 'failed' ? inserts.error : null}
+                        tree={tree}
+                        selected={selectedNode?.id ?? null}
+                        locked={insertLocked}
+                        busy={applying}
+                        onInsert={(operation) => apply([operation])}
+                        onClose={() => setInserting(false)}
+                    />
+                ) : (
+                    <TemplatesPanel files={page?.files ?? null} waiting={waiting} all={all} open={open} onOpen={openTemplate} onPoint={setPointedFile} />
+                )}
                 <LayersPanel
                     tree={tree}
                     note={layersNote}
@@ -585,7 +654,7 @@ export function Editor({ startPath }: Props) {
                         node={selectedNode}
                         busy={applying}
                         refusals={refusals}
-                        locked={unsaved ? 'The code of this template has changes that are not saved. Save or revert them first.' : null}
+                        locked={unsaved ? codeUnsaved : null}
                         onApply={apply}
                         onDeselect={() => setSelected(null)}
                     />

@@ -11,6 +11,7 @@ use Sunrice\Fields\BlueprintSchema;
 use Sunrice\Mcp\Templates;
 use Sunrice\Models\Collection;
 use Sunrice\Models\Fieldset;
+use Sunrice\Models\Form;
 use Sunrice\Models\GlobalSet;
 use Sunrice\Models\Menu;
 use Sunrice\Models\Taxonomy;
@@ -119,11 +120,31 @@ final class SunriceBridge
         return $schema instanceof BlueprintSchema ? self::clean($schema->fields()) : [];
     }
 
-    /** @return list<array{handle: string, title: string}> */
+    /**
+     * `single`: whether each entry has a page of its own, and so a URL.
+     *
+     * @return list<array{handle: string, title: string, single: bool}>
+     */
     public static function collections(): array
     {
         return Collection::query()->orderBy('title')->get()
-            ->map(fn (Collection $collection) => ['handle' => (string) $collection->handle, 'title' => (string) $collection->title])
+            ->map(fn (Collection $collection) => ['handle' => (string) $collection->handle, 'title' => (string) $collection->title, 'single' => $collection->hasSinglePages()])
+            ->values()->all();
+    }
+
+    /** @return list<array{handle: string, title: string}> */
+    public static function taxonomies(): array
+    {
+        return Taxonomy::query()->orderBy('title')->get()
+            ->map(fn (Taxonomy $taxonomy) => ['handle' => (string) $taxonomy->handle, 'title' => (string) $taxonomy->title])
+            ->values()->all();
+    }
+
+    /** @return list<array{handle: string, title: string}> */
+    public static function forms(): array
+    {
+        return Form::query()->orderBy('title')->get()
+            ->map(fn (Form $form) => ['handle' => (string) $form->handle, 'title' => (string) $form->title])
             ->values()->all();
     }
 

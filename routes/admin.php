@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Sunrice\VisualEditor\Http\Controllers\Api\InsertController;
 use Sunrice\VisualEditor\Http\Controllers\Api\TemplateController;
 use Sunrice\VisualEditor\Http\Controllers\EditorController;
 use Sunrice\VisualEditor\Http\Middleware\EditorAccess;
@@ -16,6 +17,8 @@ Route::get('visual-editor', [EditorController::class, 'show'])->name('visual-edi
 // slashes and all: …/api/templates/partials/header.blade.php
 Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(EditorAccess::class)->group(function () {
     $path = '.+\.blade\.php';
+
+    Route::get('inserts', InsertController::class)->name('inserts');
 
     Route::get('templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::post('templates/{path}/operations', [TemplateController::class, 'operations'])->where('path', $path)->name('templates.operations');

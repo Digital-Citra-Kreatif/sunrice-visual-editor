@@ -367,8 +367,21 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V4.3 Insert
 **Depends on:** V4.2
-A searchable list: elements, Blade structures, Sunrice components, and **Paste HTML**. Each entry is a fragment (V1.4) inserted inside or after the selection.
-**Done when:** every entry inserts, opens as a tree and compiles.
+- `src/Insert/Library.php` — what there is to insert, for this site, served by `GET {admin}/visual-editor/api/inserts` → `{inserts: [{id, group, title, hint, blade, keywords}]}`. Four groups:
+
+  | Group | Entries |
+  | --- | --- |
+  | Elements | section, container, heading, paragraph, text, link, button, image, lists, the sectioning elements, divider, video, form fields |
+  | Blade | condition (with and without `@else`), loop (`@foreach`, `@forelse`), value, interface text, `@auth`, `@guest`, `@section`, `@yield`, `@push`, `@stack`, `@php` |
+  | Sunrice | `<x-sunrice::entries>` for each collection, `<x-sunrice::terms>` for each taxonomy, `<x-sunrice::form>` for each form, the search box, `<x-sunrice::seo />`, `<x-sunrice::code />` |
+  | Partials | `@include` for each partial of the site, with the variables it needs |
+
+- **Every entry can be drawn where it lands.** A condition starts as `@if (true)`, a loop goes over `[]`, and a component names a collection, taxonomy or form the site has: one that names something missing answers the whole page with "not found". A partial is the exception and says so: its hint is **Needs $entry**, read from the file by `src/Blade/Variables.php` (the variables a template reads without setting them, from its compiled PHP: a first pass at what V5.2 does properly).
+- `resources/js/panels/InsertPanel.tsx` — **+ Insert** in the top bar puts the list in the left side, in place of the page's templates and above the layers. At its top, where the next thing goes by the selected node: **Before**, **Inside** or **After**. It starts at Inside for something still empty and at After otherwise, so a click after a click builds a structure: what is inserted becomes the selection. A block with one arm takes things into that arm; an arm takes them only inside. With nothing selected only an empty template takes something.
+- A field to search titles, hints, keywords and the Blade itself. **Paste HTML or Blade** inserts what is pasted the same way; a refusal (a tag left open) leaves the pasted text in place to be put right.
+- `<x-sunrice::entry-filter>` is not in the list: its filters are an array to write by hand, in the code panel or by pasting. Nor is a comment: the tree does not let one be moved or deleted yet, and nothing is offered here that can't be taken out again.
+- `Layout::reindent()` now holds back only the lines inside a `<pre>` or `<textarea>`, not the whole snippet: the form component's markup has a one-line `<textarea>` and was put in unindented.
+**Done when:** every entry inserts, opens as a tree and compiles (`tests/Unit/Insert/LibraryTest.php`: each entry, six ways in), and is drawn on a page of the workbench site (`tests/Feature/InsertApiTest.php`).
 
 ### V4.4 Move, duplicate, wrap, delete
 **Depends on:** V4.1
@@ -377,7 +390,7 @@ Drag in the Layers panel (dnd-kit) with drop targets limited to what V1.4 allows
 
 ### V4.5 History
 **Depends on:** V4.2
-Undo and redo per file for the session, as a stack of source versions; undo is a save of the earlier source against the current version. Leaving with nothing unsaved is always the case (edits save at once), so there is no dirty state to guard except in the code panel.
+Undo and redo per file for the session, as a stack of source versions; undo is a save of the earlier source against the current version. When the page comes back as an error after a change (a value that doesn't exist where the template is drawn: no check before saving can know that), the editor says so and offers the undo. Leaving with nothing unsaved is always the case (edits save at once), so there is no dirty state to guard except in the code panel.
 **Done when:** ten mixed edits undone return the file byte for byte.
 
 ### V4.6 Refresh without losing place

@@ -312,6 +312,7 @@ it('lets only those who may use the editor in', function (string $method, string
     expect(File::get($this->footer))->toBe($this->original);
 })->with([
     ['GET', SVE_API],
+    ['GET', '/cms/visual-editor/api/inserts'],
     ['GET', SVE_API.'/'.SVE_FOOTER],
     ['POST', SVE_API.'/'.SVE_FOOTER.'/operations'],
     ['PUT', SVE_API.'/'.SVE_FOOTER.'/source'],

@@ -345,5 +345,11 @@ it('reindents the lines of a snippet but not text where spaces matter', function
     expect(Layout::reindent("<a>\n    <b>\n\n    </b>\n</a>", '', '  '))->toBe("<a>\n      <b>\n\n      </b>\n  </a>")
         ->and(Layout::reindent("<a>\n        <b></b>\n    </a>", '    ', ''))->toBe("<a>\n    <b></b>\n</a>")
         ->and(Layout::reindent("<pre>\n  a\n</pre>", '', '    '))->toBe("<pre>\n  a\n</pre>")
-        ->and(Layout::reindent('<a></a>', '', '    '))->toBe('<a></a>');
+        ->and(Layout::reindent('<a></a>', '', '    '))->toBe('<a></a>')
+        // Only the lines that start inside the <pre> or <textarea> are held: the rest moves.
+        ->and(Layout::reindent("<div>\n    <pre>\n  a\n</pre>\n    <p>x</p>\n</div>", '', '  '))->toBe("<div>\n      <pre>\n  a\n</pre>\n      <p>x</p>\n  </div>")
+        ->and(Layout::reindent("<form>\n    <textarea name=\"a\">{{ \$old }}</textarea>\n    <textarea>\n one\n</textarea><b>\n    </b>\n</form>", '', '  '))
+        ->toBe("<form>\n      <textarea name=\"a\">{{ \$old }}</textarea>\n      <textarea>\n one\n</textarea><b>\n      </b>\n  </form>")
+        // A heredoc ends at a line of its own making: the snippet stays as it is.
+        ->and(Layout::reindent("@php\n    \$a = <<<EOT\n    x\n    EOT;\n@endphp", '', '  '))->toBe("@php\n    \$a = <<<EOT\n    x\n    EOT;\n@endphp");
 });
