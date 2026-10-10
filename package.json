@@ -4,7 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "node build.mjs",
-        "typecheck": "tsc --noEmit",
+        "typecheck": "tsc --noEmit && node --check tests/Browser/editor.mjs && node --check tests/Browser/bridge.mjs",
         "test:frontend": "node --experimental-strip-types --test \"tests/Frontend/*.test.mjs\"",
         "test:bridge": "node tests/Browser/bridge.mjs",
         "test:browser": "node tests/Browser/editor.mjs"

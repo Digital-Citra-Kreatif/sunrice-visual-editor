@@ -146,9 +146,6 @@ await step('show one of Sunrice\'s own views as read-only', async () => {
     await page.locator('.sve-note').getByText('one of Sunrice’s own views').waitFor();
 });
 
-<<<<<<< HEAD
-await step('follow a missing page like any other: the error page is drawn by the site too', async () => {
-=======
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');
@@ -201,8 +198,7 @@ await step('put the footer back', async () => {
     await page.getByRole('button', { name: 'Hide the code' }).click();
 });
 
-await step('say so when a page can\'t be followed', async () => {
->>>>>>> d9f9053 ([V3.4] Code panel)
+await step('follow a missing page like any other: the error page is drawn by the site too', async () => {
     await open('no-such-page-anywhere');
     await addressIs('/no-such-page-anywhere');
     // Its templates, or word that it has none of the site's: either way the panel knows the page.
