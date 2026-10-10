@@ -1,0 +1,20 @@
+{
+    "name": "sunrice/visual-editor",
+    "description": "Visual template editor for Sunrice CMS. Currently: the Blade round-trip test.",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "stillat/blade-parser": "^2.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sunrice\\VisualEditor\\": "src/"
+        }
+    },
+    "scripts": {
+        "spike": "php spike/run.php --check"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
