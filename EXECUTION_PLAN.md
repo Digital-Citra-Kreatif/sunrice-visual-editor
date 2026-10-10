@@ -245,7 +245,10 @@ Treat `@switch` like `@if`, with `@case` and `@default` as arms. This turns the 
 
 ### V2.1 Template repository
 **Depends on:** V0.4, V1.1
-`src/Templates/TemplateRepository.php` — `all()`: site templates and package views with `path`, `view` name, `origin` (site | package), `role` (layout, partial, block, entry, listing, term, error, other; from the path and the template map), `usedBy` (collections and taxonomies), `opens` and the refusal reason. `read(string $path)`: source, version, tree.
+- `src/Templates/TemplateRepository.php` — `all()`: the site's templates, then Sunrice's own views, each with `path` (inside its directory), `origin` (site | package), `view` name, `role`, `usedBy` (the collections and taxonomies whose pages it draws now), `editable`, `copyTo`, and whether it opens: `opens`, the refusal `reason`, and the number of `strays`. `read(path, origin)` adds `source`, `version` and `tree`. `find()` returns the `TemplateFile` or throws `TemplateNotFound`.
+- A template is named by its path and its origin. Only files found by listing the directories are read, so no path leads outside them.
+- `role`: `layout`, `partial`, `block`, `error`, `component` from the folder; otherwise `entry`, `listing` or `term` from the pages that use it; otherwise from the name Sunrice looks for (`show`, `index`, `taxonomies/…`, `search`); otherwise `other`.
+- Of Sunrice's own views only `defaults/`, `components/` and `errors/` are listed: the rest are the admin's page and mail. `copyTo` is the site path Sunrice looks at first (`defaults/term` → `taxonomies/show`); views it looks for nowhere in the site have none.
 **Done when:** the workbench lists the 19 starter templates with correct roles and `usedBy`.
 
 ### V2.2 Saving
