@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Editor stand-in</title>
+    <style>
+        body { margin: 0; }
+        iframe { display: block; width: 900px; height: 500px; border: 0; }
+    </style>
+</head>
+<body>
+    <iframe id="frame" src="/page?sve=1"></iframe>
+    <script>
+        // What the bridge in the frame said, in order, and a way to talk back.
+        window.messages = [];
+        window.addEventListener('message', (event) => {
+            if (event.origin === location.origin && event.data && event.data.sve === 1) {
+                window.messages.push(event.data.message);
+            }
+        });
+        window.tell = (message) => document.getElementById('frame').contentWindow.postMessage({ sve: 1, message }, location.origin);
+    </script>
+</body>
+</html>

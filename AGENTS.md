@@ -34,7 +34,8 @@ composer serve     # build and serve the demo site, admin at /cms
 ```bash
 npm run typecheck
 npm run test:frontend   # node --test over tests/Frontend
-npm run build           # dist/visual-editor.js and .css
+npm run build           # dist/visual-editor.js and .css, dist/bridge.js
+npm run test:bridge     # the built bridge script in Chrome, against tests/Browser/fixtures
 BASE_URL=http://127.0.0.1:8000 npm run test:browser   # needs `composer serve` running and Chrome
 ```
 

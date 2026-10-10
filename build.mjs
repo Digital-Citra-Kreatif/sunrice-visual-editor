@@ -1,4 +1,4 @@
-// Builds the editor's admin script and stylesheet into dist/.
+// Builds the editor's admin script and stylesheet, and the frame's bridge script, into dist/.
 //
 // The script runs inside the Sunrice admin and must use the admin's own
 // React (a second copy breaks hooks). JSX compiles to
@@ -65,6 +65,19 @@ await build({
     jsxFactory: 'Sunrice.React.createElement',
     jsxFragment: 'Sunrice.React.Fragment',
     plugins: [adminReact],
+    logLevel: 'info',
+});
+
+// The script loaded in a page rendered for the editor's frame. It runs in
+// the site's own pages, not in the admin: no React, nothing global.
+await build({
+    entryPoints: ['resources/js/bridge/index.ts'],
+    outfile: 'dist/bridge.js',
+    bundle: true,
+    format: 'iife',
+    target: 'es2020',
+    minify: true,
+    legalComments: 'none',
     logLevel: 'info',
 });
 

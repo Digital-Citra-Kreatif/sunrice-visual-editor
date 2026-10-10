@@ -61,7 +61,7 @@ class VisualEditorServiceProvider extends ServiceProvider
      * Public path of a built file, with the build's fingerprint so browsers
      * fetch the new one after an upgrade.
      */
-    protected static function asset(string $file): string
+    public static function asset(string $file): string
     {
         $built = __DIR__.'/../dist/'.$file;
 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html data-sve="aaaaaaaaaa:16">
+<head>
+    <meta charset="utf-8">
+    <title>A page of the site</title>
+    <style>
+        body { margin: 0; font: 16px/1.5 sans-serif; }
+        header, main, footer { padding: 20px; }
+        ul { margin: 0; padding: 0; list-style: none; }
+        li { height: 40px; }
+        .tall { height: 1400px; }
+    </style>
+</head>
+<body data-sve="aaaaaaaaaa:80">
+    <header data-sve="bbbbbbbbbb:0" class="site-header">
+        <a data-sve="bbbbbbbbbb:30" id="home" href="/other">Other page</a>
+        <a data-sve="bbbbbbbbbb:60" id="away" href="https://example.com/">Elsewhere</a>
+        <form data-sve="bbbbbbbbbb:90" id="search" action="/other" method="get">
+            <input data-sve="bbbbbbbbbb:120" name="q" value="tea">
+            <button data-sve="bbbbbbbbbb:150" type="submit">Search</button>
+        </form>
+    </header>
+    <main data-sve="aaaaaaaaaa:125">
+        <h1 data-sve="cccccccccc:44" id="title">Hello <em data-sve="cccccccccc:60" id="word">world</em></h1>
+        <p id="unmarked">Text of an element with no mark of its own.</p>
+        <ul data-sve="cccccccccc:70" id="list">
+            <li data-sve="dddddddddd:0">One</li>
+            <li data-sve="dddddddddd:0">Two</li>
+            <li data-sve="dddddddddd:0">Three</li>
+        </ul>
+        <div data-sve="cccccccccc:200" class="tall"></div>
+        <p data-sve="cccccccccc:300" id="far">Far down the page</p>
+    </main>
+    <footer data-sve="eeeeeeeeee:0">Footer</footer>
+    <script type="application/json" id="sve-manifest">{"files":[{"key":"cccccccccc","path":"show.blade.php","origin":"site","view":"sunrice.show","role":"entry","usedBy":[],"editable":true,"copyTo":null,"opens":true},{"key":"dddddddddd","path":"partials/item.blade.php","origin":"site","view":"sunrice.partials.item","role":"partial","usedBy":[],"editable":true,"copyTo":null,"opens":true},{"key":"aaaaaaaaaa","path":"layouts/app.blade.php","origin":"site","view":"sunrice.layouts.app","role":"layout","usedBy":[],"editable":true,"copyTo":null,"opens":true}]}</script>
+    <script src="/bridge.js" defer></script>
+</body>
+</html>
