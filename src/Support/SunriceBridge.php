@@ -86,7 +86,13 @@ final class SunriceBridge
     public static function backup(string $file, string $relative, string $kind = 'templates'): string
     {
         $folder = $kind === 'theme' ? 'sunrice-theme' : 'sunrice';
-        $target = storage_path('app/sunrice/template-backups/'.date('Y-m-d_His').'/'.$folder.'/'.ltrim($relative, '/'));
+        $now = date('Y-m-d_His');
+        $place = fn (string $stamp): string => storage_path('app/sunrice/template-backups/'.$stamp.'/'.$folder.'/'.ltrim($relative, '/'));
+        // A second save of the same file within the second gets a place of its own.
+        $target = $place($now);
+        for ($n = 2; is_file($target); $n++) {
+            $target = $place($now.'-'.$n);
+        }
         File::ensureDirectoryExists(dirname($target));
         File::copy($file, $target);
 

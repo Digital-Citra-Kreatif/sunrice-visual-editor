@@ -39,6 +39,24 @@ final class Syntax
         return null;
     }
 
+    /**
+     * What is wrong with a new version of a template that was not wrong
+     * with the old one; null when the new one may be saved.
+     *
+     * A template that didn't compile before, because it names a component
+     * this application doesn't have, is not held to that: its PHP still
+     * has to be sound.
+     */
+    public static function brokenBy(string $before, string $after): ?string
+    {
+        $error = self::error($after);
+        if ($error === null || self::error($before) === null) {
+            return $error;
+        }
+
+        return self::error($after, components: false);
+    }
+
     private static function compile(string $blade, bool $components): string
     {
         $container = Container::getInstance();
