@@ -12,6 +12,7 @@ use Sunrice\VisualEditor\Rendering\EditorEngine;
 use Sunrice\VisualEditor\Rendering\Manifest;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
+use Sunrice\VisualEditor\VisualEditorServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -90,7 +91,9 @@ final class EditorRender
         // "<" and "&" written as escapes: nothing in a template's name can end the script.
         $script = '<script type="application/json" id="'.self::MANIFEST_ID.'">'
             .json_encode($manifest->toArray(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
-            .'</script>';
+            .'</script>'
+            // The bridge: tells the editor what the pointer is over and what was clicked.
+            .'<script src="'.e(asset(VisualEditorServiceProvider::asset('bridge.js'))).'" defer></script>';
         $end = strripos($content, '</body>');
         $response->setContent($end === false ? $content.$script : substr($content, 0, $end).$script."\n".substr($content, $end));
 

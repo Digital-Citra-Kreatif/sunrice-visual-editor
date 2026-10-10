@@ -163,6 +163,7 @@ src/
 config/              sunrice-visual-editor.php
 routes/admin.php     routes inside the Sunrice admin
 resources/js, css/   the editor UI (React from the Sunrice admin), built into dist/
+resources/js/bridge/ the script in a page shown in the editor's frame, built into dist/bridge.js
 spike/               the round-trip report and its results
 tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fixtures/ holds
                      sunrice-starter and sunrice-package (copied from sunrice-cms at 8c9794e) and edge

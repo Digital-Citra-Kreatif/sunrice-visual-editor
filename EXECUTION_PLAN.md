@@ -298,8 +298,12 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V3.2 Bridge script
 **Depends on:** V3.1
-`resources/js/bridge/` → `dist/bridge.js`, loaded only in editor renders. It reports hover and click on the closest `[data-sve]` to the parent window (`postMessage`, same origin) with file, offset and bounding boxes; draws nothing itself; reports page size and scroll; in Select mode cancels link clicks and form submits, in Browse mode lets them through with `sve=1` kept on same-site links.
-**Done when:** `tests/Frontend` covers the message protocol with a DOM fixture.
+`resources/js/bridge/` → `dist/bridge.js`, loaded only in editor renders (`EditorRender` adds its script tag after the manifest). It draws nothing and changes nothing on the page.
+- `protocol.ts` — the messages, shared with the editor's own script, and the helpers without a DOM. Every message is `{sve: 1, message}` by `postMessage`, same origin only; the bridge listens to its parent window and nobody else.
+- From the page: `ready` (the address as a visitor has it, the title, the manifest); `hover` and `select` with a target: the nearest marked element, its tag, its box, and the marked elements around it, innermost first; `measured`: the boxes of what the editor watches and what that was (an answer may cross a new question), with the scroll position and page size, sent again whenever the page scrolls, resizes or changes size, once per frame at most; `leaving`.
+- To the page: `mode` (`select` | `browse`); `watch`: elements (every copy of each: a partial in a loop is drawn many times) and templates (the outermost elements each one drew, which is its region); `reveal`: scroll an element into view.
+- In Select mode a click picks an element and nothing else happens: links, buttons and forms are stopped. In Browse mode they work, and a link or a GET form to another page of the site leads to its editor render (`sve=1` kept); other sites are left alone.
+**Done when:** `tests/Frontend` covers the helpers, and `tests/Browser/bridge.mjs` runs the built script in a real browser against a fixture page in a frame and checks each message both ways.
 
 ### V3.3 Editor shell and Templates panel
 **Depends on:** V3.2, V0.3

@@ -114,19 +114,19 @@ it('is the same page as the one visitors get, marks aside', function () {
     $normal = (string) get('/about')->assertOk()->getContent();
     $editor = (string) get('/about?sve=1')->assertOk()->getContent();
 
-    $stripped = preg_replace(['/ data-sve="[^"]*"/', '#<script type="application/json" id="sve-manifest">.*?</script>\n#s'], '', $editor);
+    $stripped = preg_replace(['/ data-sve="[^"]*"/', '#<script type="application/json" id="sve-manifest">.*?</script><script src="[^"]*bridge\.js[^"]*" defer></script>\n#s'], '', $editor);
 
     expect($normal)->not->toContain('data-sve', 'sve-manifest')
         ->and($editor)->toContain('data-sve="', 'id="sve-manifest"')
         ->and($stripped)->toBe($normal);
 });
 
-it('puts the manifest at the end of the body and keeps the page out of caches and search engines', function () {
+it('puts the manifest and the bridge script at the end of the body and keeps the page out of caches and search engines', function () {
     actingAsSuperAdmin();
 
     $response = get('/?sve=1')->assertOk();
 
-    expect((string) $response->getContent())->toMatch('#<script type="application/json" id="sve-manifest">\{.*\}</script>\s*</body>#s')
+    expect((string) $response->getContent())->toMatch('#<script type="application/json" id="sve-manifest">\{.*\}</script><script src="http://localhost/vendor/sunrice-visual-editor/bridge\.js(\?v=[0-9a-f]+)?" defer></script>\s*</body>#s')
         ->and($response->headers->get('Cache-Control'))->toContain('no-store')
         ->and($response->headers->get('X-Robots-Tag'))->toContain('noindex')
         ->and($response->headers->get('X-Frame-Options'))->toBe('SAMEORIGIN');
@@ -277,7 +277,8 @@ describe('the middleware on its own', function () {
 
         expect($json->getContent())->toBe('{"a":1}')
             ->and($text->getContent())->toBe('<body>plain</body>')
-            ->and($bare->getContent())->toBe('<p>No body tag</p><script type="application/json" id="sve-manifest">{"files":[]}</script>')
+            ->and($bare->getContent())->toStartWith('<p>No body tag</p><script type="application/json" id="sve-manifest">{"files":[]}</script><script src="')
+            ->and($bare->getContent())->toEndWith('" defer></script>')
             ->and($json->headers->get('Cache-Control'))->toContain('no-store');
     });
 });

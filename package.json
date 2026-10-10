@@ -6,6 +6,7 @@
         "build": "node build.mjs",
         "typecheck": "tsc --noEmit",
         "test:frontend": "node --experimental-strip-types --test \"tests/Frontend/*.test.mjs\"",
+        "test:bridge": "node tests/Browser/bridge.mjs",
         "test:browser": "node tests/Browser/editor.mjs"
     },
     "devDependencies": {
