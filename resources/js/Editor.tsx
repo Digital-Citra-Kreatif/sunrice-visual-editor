@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { editorAddress, isEditorAddress, markValue, type ManifestFile, type Mark, type Measured, type Mode } from './bridge/protocol';
+import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
 import { ApiError, applyOperations, copyToSite, listTemplates, readTemplate, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
@@ -72,6 +73,9 @@ export function Editor({ startPath }: Props) {
     const [applying, setApplying] = useState(false);
     /** How many changes the server has refused. */
     const [refusals, setRefusals] = useState(0);
+    /** What there is to tell: the last refusal, or the last thing done out of sight. */
+    const [notice, setNotice] = useState<Notice | null>(null);
+    const say = (kind: Notice['kind'], text: string) => setNotice({ kind, text, at: Date.now() });
     /** The page in the frame is being drawn again, not left: what is known about it holds until it is back. */
     const redrawing = useRef(false);
 
@@ -272,7 +276,7 @@ export function Editor({ startPath }: Props) {
         setCopying(true);
         copyToSite(path)
             .then((made) => {
-                Sunrice.toast.success(`Copied to ${made.path}.`);
+                say('done', `Copied to ${made.path}.`);
                 // The site uses the copy from now on: draw the page again and open it.
                 wanted.current = { path: made.path, origin: 'site' };
                 setAll(null);
@@ -282,7 +286,7 @@ export function Editor({ startPath }: Props) {
                     setOpen(wanted.current);
                 }
             })
-            .catch((error: unknown) => Sunrice.toast.error(message(error)))
+            .catch((error: unknown) => say('problem', message(error)))
             .finally(() => setCopying(false));
     };
 
@@ -357,6 +361,7 @@ export function Editor({ startPath }: Props) {
     /** The code panel wrote the file: show it as it is now, in the panels and on the page. */
     const saved = (data: TemplateData) => {
         setTemplate({ state: 'ready', data });
+        say('done', `Saved ${data.path}.`);
         setDraft(null);
         // The ids of the old tree mean nothing in the new one.
         setSelected(null);
@@ -378,6 +383,8 @@ export function Editor({ startPath }: Props) {
         applyOperations(open.path, template.data.version, operations)
             .then(({ template: changed, focus }) => {
                 setTemplate({ state: 'ready', data: changed });
+                // The page shows that it worked. What was wrong with the change before it no longer is.
+                setNotice(null);
                 // The ids of the old tree mean nothing in the new one.
                 setSelected(rowFor(changed.tree, focus));
                 setPointedNode(null);
@@ -385,7 +392,7 @@ export function Editor({ startPath }: Props) {
                 redraw();
             })
             .catch((error: unknown) => {
-                Sunrice.toast.error(message(error));
+                say('problem', message(error));
                 setRefusals((count) => count + 1);
                 if (error instanceof ApiError && error.reason === 'conflict') {
                     // The file is not what the panels show any more: read it again.
@@ -545,6 +552,7 @@ export function Editor({ startPath }: Props) {
                 <div className="sve-stage">
                     <iframe ref={frame} className="sve-frame" src={firstAddress} title="Page being edited" onLoad={loaded} />
                     <Outlines outlines={outlines} />
+                    <NoticeBar notice={notice} onDismiss={() => setNotice(null)} />
                 </div>
                 {coding && template.state === 'ready' && (
                     <CodePanel

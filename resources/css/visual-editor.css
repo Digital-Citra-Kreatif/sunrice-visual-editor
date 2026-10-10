@@ -786,6 +786,61 @@ textarea.sve-input {
     pointer-events: none;
 }
 
+/* What the editor has to say, over the top of the page */
+
+.sve-notice {
+    position: absolute;
+    inset-block-start: 0.75rem;
+    inset-inline: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    width: fit-content;
+    max-width: min(40rem, calc(100% - 1.5rem));
+    margin-inline: auto;
+    padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-inline-start: 0.25rem solid var(--primary);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--card);
+    color: var(--card-foreground, var(--foreground));
+    box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 0.2);
+}
+
+.sve-notice--problem {
+    border-inline-start-color: var(--destructive);
+}
+
+.sve-notice__text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.sve-notice__dismiss {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--radius) - 4px);
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.sve-notice__dismiss:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.sve-notice__dismiss:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+}
+
 /*
  * One colour for every site: the page under it can be any colour, so the
  * line is doubled with white to show on dark and light alike.

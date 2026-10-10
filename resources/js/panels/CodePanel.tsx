@@ -53,10 +53,7 @@ export function CodePanel({ template, draft, onDraft, onSaved, onReload, onClose
         setSaving(true);
         setTrouble(null);
         saveSource(template.path, template.version, text)
-            .then((saved) => {
-                onSaved(saved);
-                Sunrice.toast.success(`Saved ${template.path}.`);
-            })
+            .then(onSaved)
             .catch((error: unknown) => {
                 const kind = error instanceof ApiError && (error.reason === 'syntax' || error.reason === 'conflict') ? error.reason : 'other';
                 setTrouble({ kind, message: error instanceof Error ? error.message : 'The template could not be saved.' });

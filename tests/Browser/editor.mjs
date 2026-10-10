@@ -249,7 +249,7 @@ await step('refuse a change that doesn\'t compile, say why, and show the file ag
     await idle();
     await settings.getByLabel('Prints', { exact: true }).fill('$block->');
     await settings.getByLabel('Prints', { exact: true }).press('Control+Enter');
-    await page.getByText(/not a PHP expression|doesn't compile/).first().waitFor();
+    await page.locator('.sve-notice--problem', { hasText: /not a PHP expression|doesn't compile/ }).waitFor();
     await page.waitForFunction(() => document.querySelector('.sve-side--right textarea')?.value === '$block->subheading');
     const home = await page.request.get(`${base}/`);
     if (home.status() !== 200) {
@@ -286,6 +286,7 @@ await step('save a change to the footer and see it on the page', async () => {
     await code.press('Control+s');
     await frame.getByText('Edited in the code panel.').waitFor();
     await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+    await page.locator('.sve-notice--done', { hasText: 'Saved partials/footer.blade.php.' }).waitFor();
 });
 
 await step('refuse code that doesn\'t compile, say why, and leave the site as it was', async () => {
