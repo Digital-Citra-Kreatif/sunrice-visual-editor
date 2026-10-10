@@ -30,6 +30,12 @@ class DemoSeeder extends Seeder
 
     public function run(): void
     {
+        // Safe to run again: Testbench seeds once for `seeders:` in
+        // testbench.yaml and once for `migrate-fresh --seeder`.
+        if (Fieldset::query()->where('handle', 'hero')->exists()) {
+            return;
+        }
+
         Fieldset::create(['handle' => 'hero', 'title' => 'Hero', 'fields' => [
             ['handle' => 'heading', 'type' => 'text', 'label' => 'Heading'],
             ['handle' => 'subheading', 'type' => 'textarea', 'label' => 'Subheading'],
