@@ -33,8 +33,16 @@ final class Node
     /** Tag name, directive name or component name. */
     public string $name = '';
 
-    /** For atoms: echo | raw_echo | comment | directive | php | verbatim | component. */
+    /** For atoms: echo | raw_echo | comment | directive | php | verbatim | component | tag. */
     public string $kind = '';
+
+    /**
+     * For a leaf that is half of something whose other half isn't in the
+     * same place (a tag opened in one @if and closed in another, an end tag
+     * left out, an @endif the parser didn't pair): why. Such a leaf is kept
+     * as written, shown as code, and stays where it is.
+     */
+    public ?string $stray = null;
 
     /** Directive arguments or echo expression. */
     public ?string $args = null;

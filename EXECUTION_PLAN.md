@@ -206,10 +206,16 @@ The spike left `src/Blade/` with: `BladeScanner`, `HtmlLexer`, `TreeBuilder`, `N
 - Guards: arms of a block are not movable; a node cannot move into itself; nothing goes into a void element, a `<script>`, or a code block.
 **Done when:** datasets pass, including move between parents and into and out of Blade blocks.
 
-### V1.5 Code regions instead of refused files
-**Depends on:** V1.4
-When nesting fails, find the smallest run of sibling nodes that contains the failure and nests cleanly as a whole, and represent it as one `code` node; refuse the file only when that run is the whole file.
-**Done when:** the `locked-…` fixtures open with one code node around the offending part, still print back identical, and their other nodes pass the edit datasets. Add fixtures from real client templates.
+### V1.5 Stray tags instead of refused files
+**Depends on:** V1.4, V1.7
+The first plan was to wrap the smallest run of nodes around a nesting failure in one code node. That loses too much: with a link opened in one `@if` and closed in another, everything between the two would be code, and the header half of a split layout would be code from top to bottom. Instead the tag without its other half is the code, and nothing else is.
+- `src/Blade/TreeBuilder.php` — reading a file, an end tag that closes nothing in its arm, and an opening tag still open when its arm, its parent's end tag or the file ends, become leaves marked `stray` with the reason; what an unclosed element held follows its tag as siblings. A directive the parser left unpaired, a `@case` inside another block, and an `@endif` whose `@if` is inside a tag are kept the same way. A block whose end the tree can't find is still `Unsupported`. Continuing and closing directives are matched to their own block, not to whichever is open.
+- Reading a snippet (`Fragment`) stays strict: nothing stray is put into a template.
+- `src/Blade/Node.php` — `stray`: why, or null. `Template::strays()` lists them.
+- `src/Blade/Rules.php` — a stray node, and any node that holds one, is not moved, copied, deleted, wrapped, unwrapped or rewritten. An opening tag left without its end keeps its attribute edits (`<body class="…">` in a header file); renaming it is refused.
+- `src/Blade/Operations.php` — refuses a result with more stray nodes than the source had.
+- Fixtures: the five `locked-…` nesting cases become `stray-…`, joined by a split layout (header and footer), a card with a conditional link, a table without end tags, and a condition closed outside its tag. Two `locked-…` fixtures remain: a block closed inside a tag, and Blade the parser can't read. Fixtures from real client templates are still wanted; these are written from the patterns such templates use.
+**Done when:** the `stray-…` fixtures open with only the unmatched tags as code, print back identical, compile as before, and their other nodes pass the edit datasets.
 
 ### V1.6 `@switch` as a visual block
 **Depends on:** V1.4

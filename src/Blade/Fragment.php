@@ -19,7 +19,7 @@ final class Fragment
     public static function parse(string $blade, ?Node $into = null): array
     {
         try {
-            $root = (new TreeBuilder)->build($blade, self::foreign($into));
+            $root = (new TreeBuilder)->build($blade, self::foreign($into), strict: true);
         } catch (Unsupported $e) {
             throw new EditRejected('That can\'t be used here: '.$e->getMessage().'.');
         }

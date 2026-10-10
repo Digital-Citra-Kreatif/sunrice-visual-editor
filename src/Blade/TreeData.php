@@ -35,7 +35,7 @@ final class TreeData
                 'delete' => Rules::movable($node),
                 'wrap' => Rules::wrappable($node),
                 'insert' => Rules::holdsChildren($node),
-                'attributes' => $node->type === 'element',
+                'attributes' => Rules::hasAttributes($node),
             ],
         ];
 
@@ -49,6 +49,13 @@ final class TreeData
             case 'atom':
                 $data['atom'] = $node->kind;
                 $data['source'] = $node->open;
+                if ($node->stray !== null) {
+                    // Half of something: why it is kept as code and stays where it is.
+                    $data['stray'] = $node->stray;
+                }
+                if (Rules::hasAttributes($node)) {
+                    $data['attributes'] = $this->attributes($node);
+                }
                 if (in_array($node->kind, ['echo', 'raw_echo'], true)) {
                     $data['expression'] = (string) $node->args;
                 } elseif ($node->kind === 'directive') {

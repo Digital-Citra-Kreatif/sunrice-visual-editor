@@ -178,7 +178,8 @@ it('leaves a stray @break that was there before to whoever wrote it', function (
 });
 
 it('refuses to work on a template that only opens as code', function () {
-    $e = rejection(fn () => Operations::apply('<div>@if ($a)</div>@endif', [['type' => 'remove', 'node' => '0']]));
+    // The @if is closed inside a tag, where the tree doesn't look for it.
+    $e = rejection(fn () => Operations::apply('@if ($a) <div class="a" @endif>x</div>', [['type' => 'remove', 'node' => '0']]));
 
     expect($e)->toBeInstanceOf(EditRejected::class)
         ->and($e->getMessage())->toStartWith('This template can only be edited as code: ');

@@ -18,7 +18,8 @@ it('has the fixtures it expects', function () {
     expect(templateDataset('sunrice-starter'))->toHaveCount(19)
         ->and(templateDataset('sunrice-package'))->toHaveCount(11)
         ->and(templateDataset('edge', 'ok-'))->toHaveCount(8)
-        ->and(templateDataset('edge', 'locked-'))->toHaveCount(5);
+        ->and(templateDataset('edge', 'stray-'))->toHaveCount(10)
+        ->and(templateDataset('edge', 'locked-'))->toHaveCount(2);
 });
 
 it('opens a template and prints it back byte for byte', function (string $path) {
@@ -34,6 +35,19 @@ it('compiles every Sunrice fixture before any edit', function (string $path) {
 it('refuses a template the tree cannot hold', function (string $path) {
     Template::open((string) file_get_contents($path));
 })->with('templates that are refused')->throws(Unsupported::class);
+
+it('keeps tags that don\'t nest as they are written, and compiles as before', function (string $path) {
+    $source = (string) file_get_contents($path);
+    $template = Template::open($source);
+
+    expect($template->strays())->not->toBeEmpty()
+        ->and($template->print())->toBe($source)
+        ->and(RoundTrip::phpError($source))->toBeNull();
+})->with('templates with stray tags');
+
+it('finds nothing stray in a template that nests cleanly', function (string $path) {
+    expect(Template::open((string) file_get_contents($path))->strays())->toBe([]);
+})->with('templates that nest cleanly');
 
 it('changes only the bytes an edit names', function (string $path) {
     $results = RoundTrip::edits((string) file_get_contents($path));

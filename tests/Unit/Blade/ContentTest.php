@@ -7,7 +7,6 @@ use Sunrice\VisualEditor\Blade\EditRejected;
 use Sunrice\VisualEditor\Blade\Fragment;
 use Sunrice\VisualEditor\Blade\Node;
 use Sunrice\VisualEditor\Blade\Template;
-use Sunrice\VisualEditor\Blade\Unsupported;
 
 /** The first node of a kind in a snippet: "text", "echo", "directive", "arm" (of a block) or "code". */
 function firstNode(Template $template, string $what): Node
@@ -199,12 +198,18 @@ it('refuses code the tree could not hold, and changes nothing', function (string
     'a loop never closed' => ['@foreach ($a as $b) x'],
 ]);
 
-it('refuses a file with half a block in it', function (string $blade, string $reason) {
-    expect(fn () => Template::open($blade))->toThrow(Unsupported::class, $reason);
+it('keeps half a block as it is written, and takes none in a snippet', function (string $blade, string $reason) {
+    // In a file: the directive stays, marked, and the rest is read as usual.
+    $template = Template::open($blade);
+    expect($template->print())->toBe($blade)
+        ->and(array_map(fn (Node $node) => $node->stray, $template->strays()))->toBe([$reason]);
+
+    // In something about to be put into a file: refused.
+    expect(fn () => Fragment::parse($blade))->toThrow(EditRejected::class, $reason);
 })->with([
     ['<p>@if ($a) x</p>', '@if is never closed'],
     ['<p>x @endif</p>', '@endif has nothing to close'],
-    ['<p>x @else y</p>', '@else has nothing before it'],
+    ['<p>x @else y</p>', '@else has nothing before it to continue'],
     ['<p>@empty none</p>', '@empty is outside any @forelse'],
     ['<p>@case(1) one</p>', '@case is outside any @switch'],
     ['@empty($a) none', '@empty is never closed'],

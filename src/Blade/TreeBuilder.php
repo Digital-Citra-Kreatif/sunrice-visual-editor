@@ -7,9 +7,15 @@ namespace Sunrice\VisualEditor\Blade;
 /**
  * Builds the template tree from the Blade atoms and the HTML tokens.
  *
- * It is strict on purpose. When HTML and Blade don't nest cleanly (a tag
- * opened inside @if and closed outside it, an end tag left out), it throws
- * Unsupported instead of guessing, and the file is edited as code.
+ * It doesn't guess. Where HTML and Blade don't nest cleanly (a tag opened
+ * inside @if and closed outside it, an end tag left out), the tag that has
+ * no other half in the same place is kept as it is written: a leaf marked
+ * stray, shown as code and left where it is. What is between such tags is
+ * read as usual. A snippet about to be put into a template is read
+ * strictly instead: there, the same things throw Unsupported.
+ *
+ * Blade's own blocks have to pair up in either case. A block that is never
+ * closed throws Unsupported, and the file is edited as code.
  */
 final class TreeBuilder
 {
@@ -21,12 +27,20 @@ final class TreeBuilder
 
     private bool $foreign = false;
 
+    private bool $strict = false;
+
+    /** @var array<int, Node> the block each opening directive or component tag started, by the atom's object id */
+    private array $blocks = [];
+
     /**
      * @param  bool  $foreign  the source belongs inside <svg> or <math>, where a tag may close itself (<path />)
+     * @param  bool  $strict  refuse what doesn't nest instead of keeping it as stray tags
      */
-    public function build(string $source, bool $foreign = false): Node
+    public function build(string $source, bool $foreign = false, bool $strict = false): Node
     {
         $this->foreign = $foreign;
+        $this->strict = $strict;
+        $this->blocks = [];
         $atoms = (new BladeScanner)->scan($source);
         $tokens = (new HtmlLexer)->lex($source, $atoms);
 
@@ -72,8 +86,18 @@ final class TreeBuilder
                     break;
 
                 case 'close':
-                    if ($current->type !== 'element' || $current->name !== $event['name']) {
-                        throw new Unsupported("</{$event['name']}> does not close ".$this->describe($current), $start);
+                    $element = $this->openElement($current, $event['name']);
+                    if ($element !== $current) {
+                        if ($this->strict) {
+                            throw new Unsupported("</{$event['name']}> does not close ".$this->describe($current), $start);
+                        }
+                        if ($element === null) {
+                            // Nothing here for it to close: its opening tag is in another arm, another file, or missing.
+                            $this->stray($current, 'tag', $event['name'], $text, $start, $end, "</{$event['name']}> closes nothing here");
+                            break;
+                        }
+                        // It closes an element further out: the ones in between were left open.
+                        $current = $this->leaveOpen($current, $element);
                     }
                     $current->close = $text;
                     $current->end = $end;
@@ -85,11 +109,81 @@ final class TreeBuilder
         if ($position < strlen($source)) {
             $this->leaf($current, 'text', $source, $position, strlen($source));
         }
+        if (! $this->strict) {
+            $current = $this->leaveOpen($current, $this->arm($current));
+        }
         if ($current !== $root) {
             throw new Unsupported($this->describe($current).' is never closed', $current->start);
         }
 
         return $root;
+    }
+
+    /** The element this end tag closes: the nearest one of that name still open in the same arm, or null. */
+    private function openElement(Node $current, string $name): ?Node
+    {
+        $node = $current;
+        while ($node->type === 'element') {
+            if ($node->name === $name) {
+                return $node;
+            }
+            if ($node->parent === null) {
+                break;
+            }
+            $node = $node->parent;
+        }
+
+        return null;
+    }
+
+    /** What the elements open at this point are in: an arm of a block, or the root. */
+    private function arm(Node $current): Node
+    {
+        while ($current->type === 'element' && $current->parent !== null) {
+            $current = $current->parent;
+        }
+
+        return $current;
+    }
+
+    /**
+     * Gives up on the elements open between $current and $until, which were
+     * never closed where they could be. Each opening tag stays as a stray
+     * leaf, and what the element held follows it in its parent.
+     */
+    private function leaveOpen(Node $current, Node $until): Node
+    {
+        while ($current !== $until && $current->type === 'element' && $current->parent !== null) {
+            $parent = $current->parent;
+
+            $tag = new Node('atom');
+            $tag->kind = 'tag';
+            $tag->name = $current->name;
+            $tag->open = $current->open;
+            $tag->attrs = $current->attrs;
+            $tag->start = $current->start;
+            $tag->end = $current->start + strlen($current->open);
+            $tag->stray = "<{$current->name}> is not closed here";
+            $tag->parent = $parent;
+            foreach ($current->children as $child) {
+                $child->parent = $parent;
+            }
+            array_splice($parent->children, $current->index(), 1, [$tag, ...$current->children]);
+
+            $current = $parent;
+        }
+
+        return $current;
+    }
+
+    private function stray(Node $parent, string $kind, string $name, string $text, int $start, int $end, string $reason): Node
+    {
+        $leaf = $this->leafFromText($parent, 'atom', $text, $start, $end);
+        $leaf->kind = $kind;
+        $leaf->name = $name;
+        $leaf->stray = $reason;
+
+        return $leaf;
     }
 
     /**
@@ -134,23 +228,36 @@ final class TreeBuilder
     private function atom(Node $current, Atom $atom, string $text, int $start, int $end): Node
     {
         if ($atom->role === Atom::SINGLE) {
-            $separator = $this->isSeparator($current, $atom);
-            if ($separator === false) {
-                throw new Unsupported("@{$atom->name} is inside ".$this->describe($current), $start);
-            }
-            if ($separator === true) {
+            $block = $this->separates($current, $atom);
+            if ($block !== null) {
                 // @case, @default and @empty start the next arm of their block, as @else does.
+                $arm = $this->arm($current);
+                $direct = $arm->type === 'branch' && $arm->parent === $block;
+                if ($this->strict && ($arm !== $current || ! $direct)) {
+                    throw new Unsupported("@{$atom->name} is inside ".$this->describe($current), $start);
+                }
+                if (! $direct) {
+                    // Inside another block that is inside its own: it can't start an arm from there.
+                    $this->stray($current, 'directive', $atom->name, $text, $start, $end, "@{$atom->name} is inside ".$this->describe($arm))->args = $atom->args;
+
+                    return $current;
+                }
+                $current = $this->leaveOpen($current, $arm);
                 $current->end = $start;
 
-                return $this->branch($current->parent, $atom, $text, $start);
+                return $this->branch($block, $atom, $text, $start);
             }
-            if ($atom->kind === 'directive' && ($problem = $this->unpaired($atom)) !== null) {
+
+            $problem = $atom->kind === 'directive' ? $this->unpaired($atom) : null;
+            if ($problem !== null && $this->strict) {
                 throw new Unsupported($problem, $start);
             }
             $leaf = $this->leafFromText($current, 'atom', $text, $start, $end);
             $leaf->kind = $atom->kind;
             $leaf->name = $atom->name;
             $leaf->args = $atom->args;
+            // Half of a block the parser didn't pair up: kept as it is.
+            $leaf->stray = $problem;
 
             return $current;
         }
@@ -160,15 +267,29 @@ final class TreeBuilder
             $block->kind = $atom->kind;
             $block->name = $atom->name;
             $block->start = $start;
+            $this->blocks[spl_object_id($atom)] = $block;
 
             return $this->branch($block, $atom, $text, $start);
         }
 
         // @else, @elseif, @endif…: only valid directly inside the arm they follow.
-        if ($current->type !== 'branch') {
-            throw new Unsupported($this->label($atom).' arrives while '.$this->describe($current).' is still open', $start);
+        $block = $this->blockOf($atom);
+        $arm = $this->arm($current);
+        if ($block === null || $arm->type !== 'branch' || $arm->parent !== $block) {
+            // Its block isn't the one open here: it was opened inside a tag, or another block is in the way.
+            if ($this->strict || ($block !== null && $this->isOpen($block, $current))) {
+                throw new Unsupported($this->label($atom).' arrives while '.$this->describe($current).' is still open', $start);
+            }
+            $this->stray($current, $atom->kind, $atom->name, $text, $start, $end, $this->label($atom).' has nothing here to '.($atom->role === Atom::BRANCH ? 'continue' : 'close'))->args = $atom->args;
+
+            return $current;
         }
-        $block = $current->parent;
+        if ($arm !== $current) {
+            if ($this->strict) {
+                throw new Unsupported($this->label($atom).' arrives while '.$this->describe($current).' is still open', $start);
+            }
+            $current = $this->leaveOpen($current, $arm);
+        }
         $current->end = $start;
 
         if ($atom->role === Atom::BRANCH) {
@@ -178,7 +299,31 @@ final class TreeBuilder
         $block->close = $text;
         $block->end = $end;
 
-        return $block->parent;
+        return $block->parent ?? $block;
+    }
+
+    /** The block a continuing or closing atom belongs to, when its opening is in the tree. */
+    private function blockOf(Atom $atom): ?Node
+    {
+        for ($opener = $atom->openedBy; $opener !== null; $opener = $opener->openedBy) {
+            if (isset($this->blocks[spl_object_id($opener)])) {
+                return $this->blocks[spl_object_id($opener)];
+            }
+        }
+
+        return null;
+    }
+
+    /** Whether the block is among what is open around the current node. */
+    private function isOpen(Node $block, Node $current): bool
+    {
+        for ($node = $current; $node !== null; $node = $node->parent) {
+            if ($node === $block) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function branch(Node $block, Atom $atom, string $text, int $start): Node
@@ -194,10 +339,11 @@ final class TreeBuilder
     }
 
     /**
-     * Null when the directive isn't a separator; true when it is one and
-     * sits directly in its block; false when an element is open around it.
+     * The block a single directive divides into arms: the nearest @switch
+     * around a @case, the nearest @forelse around an @empty. Null for any
+     * other directive.
      */
-    private function isSeparator(Node $current, Atom $atom): ?bool
+    private function separates(Node $current, Atom $atom): ?Node
     {
         if ($atom->kind !== 'directive') {
             return null;
@@ -205,11 +351,7 @@ final class TreeBuilder
         for ($node = $current; $node !== null; $node = $node->parent) {
             if ($node->type === 'block' && in_array($atom->name, self::SEPARATORS[$node->name] ?? [], true)) {
                 // @empty($x) with arguments is its own block, not a @forelse arm.
-                if ($atom->name === 'empty' && $atom->args !== null) {
-                    return null;
-                }
-
-                return $current->type === 'branch' && $current->parent === $node;
+                return $atom->name === 'empty' && $atom->args !== null ? null : $node;
             }
         }
 

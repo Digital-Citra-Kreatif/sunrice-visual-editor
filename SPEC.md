@@ -9,7 +9,7 @@ Today a developer writes the templates in a code editor while fields and content
 ## Principles
 
 1. **The Blade file is the only copy of a template.** The editor reads the file, changes it and writes it back. Nothing about a template is stored in the database or in a second file. A developer can edit the same file in a code editor at any time.
-2. **Lossless or code.** A file opens in the visual tree only if it can be read into a tree and written back byte for byte. Anything else is edited as code. The editor never writes a file it could not read back exactly.
+2. **Lossless or code.** A file opens in the visual tree only if it can be read into a tree and written back byte for byte. What the tree can't hold is kept as code, exactly as written: one tag, or the whole file. The editor never writes a file it could not read back exactly.
 3. **An edit changes only what it names.** Adding a class changes one opening tag. Indentation, comments and everything else in the file stay as they were.
 4. **Nothing of the editor ships.** Saved templates contain no editor attributes, wrappers or runtime. Removing the package leaves a normal Sunrice site.
 5. **Simplest thing that is good enough**, as in Sunrice itself. The package uses Sunrice's public API only.
@@ -39,8 +39,9 @@ Today a developer writes the templates in a code editor while fields and content
 ### Opening a template
 
 - Opening a file parses it into a tree of elements, text, Blade blocks (`@if … @endif`, `@foreach`, `@section`, component tags) and single Blade constructs (echoes, `@include`, `@php`).
-- The tree is strict. A file is refused, and opens in the code panel, when HTML and Blade do not nest cleanly: a tag opened in one `@if` and closed in another, an element left open across `@else`, an end tag left out, or a Blade syntax error. The reason is shown.
-- A later release narrows a refusal to the smallest region that does not nest, shown as one code node, so the rest of the file stays visual.
+- Tags that don't nest cleanly are kept as they are written: a tag opened in one `@if` and closed in another, an element left open across `@else`, an end tag left out, the two halves of a layout split over a header file and a footer file. Each such tag is shown as code, with the reason, and stays where it is; so does anything that holds one. When it is an opening tag its attributes can still be edited. Everything around it is visual.
+- A file is refused, and opens in the code panel only, when Blade itself can't be read into the tree: a Blade syntax error, or a block (`@if`, a component tag) whose end the tree can't find. The reason is shown.
+- What is inserted or pasted has to nest cleanly on its own.
 - Every node is one of:
 
   | Kind | Examples | Edited with |
