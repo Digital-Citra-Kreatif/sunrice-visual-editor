@@ -46,4 +46,21 @@ return [
 
     'theme_css' => 'editor.css',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Paths
+    |--------------------------------------------------------------------------
+    |
+    | Where the site's templates and theme files are. Leave both null for
+    | Sunrice's own places: resources/views/sunrice and public/sunrice-theme.
+    | The templates directory must be named "sunrice" and its parent must be
+    | a view path, since templates are the views "sunrice.…".
+    |
+    */
+
+    'paths' => [
+        'templates' => null,
+        'theme' => null,
+    ],
+
 ];

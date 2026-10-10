@@ -126,7 +126,8 @@ src/
     Classifier.php     visual / field / label / expression / mixed / code
     Edit.php           the edits, and the directive seam rule
   Http/Controllers/    the editor's screen
-  Support/Access.php   who may use the editor
+  Support/             Access: who may use the editor; SunriceBridge: the one file that
+                       reads Sunrice's internals (templates, field definitions)
   VisualEditorServiceProvider.php
 config/              sunrice-visual-editor.php
 routes/admin.php     routes inside the Sunrice admin

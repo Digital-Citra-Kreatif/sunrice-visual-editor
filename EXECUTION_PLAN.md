@@ -149,17 +149,19 @@ Sizes are rough guesses for one developer working with coding agents. Phases 1 a
 **Done when:** CI is green: a Super Admin opens `/cms/visual-editor` and sees the shell with the site in the frame (browser check); other users get 403 and guests the sign-in page (feature tests). That bundled libraries get the admin's React is checked when the first one is added (V4.4).
 
 ### V0.4 Sunrice bridge and core changes
-**Depends on:** V0.1
-The package needs three things Sunrice has but does not publish. Each is a small pull request in sunrice-cms; until it merges, `SunriceBridge` reaches the internal class.
+**Depends on:** V0.2
+The package needs three things Sunrice has but does not publish. Each is asked for in an issue in sunrice-cms; until it exists, `SunriceBridge` reaches the internal classes, and it is the only file that does.
 
 | | Needed | In Sunrice today | Proposed public API |
 | --- | --- | --- | --- |
-| C1 | Template directories, the template map (which view each collection and taxonomy uses), safe path resolution, Blade syntax check, backups | `Sunrice\Mcp\Templates`, `WriteTemplate::backup()` | `Sunrice::templates()` returning a documented service |
-| C2 | Field definitions of a collection's blueprint, a fieldset, a taxonomy and a global set, with fieldset includes expanded | Models and `BlueprintSchema`, undocumented | `Sunrice::schema()->collection($handle)` etc., returning plain arrays |
+| C1 | Template directories and the template map (which view each collection and taxonomy uses) | `Sunrice\Mcp\Templates` | `Sunrice::templates()` returning a documented service |
+| C2 | Field definitions of a collection's blueprint, a listing page, a fieldset, a taxonomy and a global set, with fieldset includes expanded; the lists of collections, global sets and menus | Models and `BlueprintSchema`, undocumented | `Sunrice::schema()->collection($handle)` etc., returning plain arrays |
 | C3 | Adding MCP tools from a package | `SunriceServer::$tools` is a fixed list | `Sunrice::registerMcpTool(string $class)` |
 
-**Files:** `src/Support/SunriceBridge.php` — `templateDirectory()`, `themeDirectory()`, `packageViewDirectories()`, `templateMap()`, `syntaxError(string $blade)`, `backup(string $file)`, `fields(string $kind, string $handle)`, `globals()`, `menus()`. Uses the public API when the installed Sunrice has it (`method_exists`), the internals otherwise.
-**Done when:** unit tests cover each bridge method against the workbench content, and the three issues are opened in sunrice-cms with the proposed signatures.
+**Files:**
+- `src/Support/SunriceBridge.php` — `templateDirectory()`, `themeDirectory()`, `packageViewDirectories()`, `templateMap()`, `syntaxError(string $blade)`, `backup(string $file, string $relative)`, `fields(string $kind, string $handle)`, `collections()`, `globals()`, `menus()`. The syntax check and the backup need nothing internal (Laravel's Blade compiler; the same backup location Sunrice uses). When Sunrice ships C1–C3, the bridge switches to them and nothing else changes.
+- `config/sunrice-visual-editor.php` — `paths.templates`, `paths.theme`: null for Sunrice's own places; set by tests, and by a site that keeps its templates elsewhere.
+**Done when:** unit tests cover each bridge method against the workbench content, and the three issues are open in sunrice-cms with the proposed signatures.
 
 ---
 

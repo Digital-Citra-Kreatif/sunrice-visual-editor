@@ -26,6 +26,7 @@ trait WithStarterSite
         $this->templates = $views.'/sunrice';
         File::copyDirectory(self::starterTemplates(), $this->templates);
         View::getFinder()->prependLocation($views);
+        config(['sunrice-visual-editor.paths.templates' => $this->templates]);
 
         $this->seed(DemoSeeder::class);
         RouteMatcher::flush();
