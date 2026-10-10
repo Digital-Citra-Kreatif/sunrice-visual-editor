@@ -8,7 +8,8 @@ if [ "${1:-}" = "--report" ]; then
     for failed in .ci/*.failed; do
         [ -e "$failed" ] || continue
         name=$(basename "$failed" .failed)
-        body=$(tail -n 80 ".ci/$name.log" | sed -e 's/\x1b\[[0-9;]*[A-Za-z]//g' -e 's/%/%25/g' | tr -d '\r' | awk '{printf "%s%%0A", $0}')
+        # The end of the output is what says why; annotations are cut off after a few kilobytes.
+        body=$(sed -e 's/\x1b\[[0-9;]*[A-Za-z]//g' ".ci/$name.log" | tr -d '\r' | tail -c 3000 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
         echo "::error title=$name failed::$body"
     done
     exit 0

@@ -7,7 +7,7 @@
 - One task per branch and pull request. Branch `task/<task-id>-<short-name>`, PR titled `[<task-id>] <name>`.
 - Only start a task when all its dependencies are merged.
 - No Composer or npm packages beyond `EXECUTION_PLAN.md` §2. If one seems needed, stop and explain why in the PR instead of adding it.
-- Every task ships tests. Before opening a PR run `composer test`, `composer lint`, `composer analyse`, `composer spike`, and for admin tasks `npm run typecheck && npm run build`.
+- Every task ships tests. Before opening a PR run `composer test`, `composer lint`, `composer analyse`, `composer spike`, and for admin tasks `npm run typecheck && npm run test:frontend && npm run build`.
 - The round-trip test (`composer spike`) must stay green. Under `src/Blade/`, a template that prints back differently, or an edit that touches bytes it should not, is a bug however small.
 - Use Sunrice's public API only. `src/Support/SunriceBridge.php` is the one file allowed to touch Sunrice internals.
 - The editor never writes a file it could not read back exactly, and nothing of the editor is written into a template.
@@ -31,4 +31,11 @@ composer analyse   # Larastan
 composer serve     # build and serve the demo site, admin at /cms
 ```
 
-The npm scripts arrive with task V0.3.
+```bash
+npm run typecheck
+npm run test:frontend   # node --test over tests/Frontend
+npm run build           # dist/visual-editor.js and .css
+BASE_URL=http://127.0.0.1:8000 npm run test:browser   # needs `composer serve` running and Chrome
+```
+
+CI rebuilds `dist/` on every pull request and commits it to the branch: pull before pushing again.
