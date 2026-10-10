@@ -91,8 +91,7 @@ To look at the site the tests use, with the admin at `/cms` (sign in as
 `admin@example.com` / `password`):
 
 ```bash
-vendor/bin/testbench workbench:build
-vendor/bin/testbench serve
+composer serve     # builds the workbench (assets, templates, database, demo content) and serves it
 ```
 
 Where Packagist isn't reachable, the round-trip report still runs from source

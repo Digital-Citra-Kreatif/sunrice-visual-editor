@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Builds the workbench app (publish assets and templates, migrate, seed),
+# Builds the workbench app (`composer workbench`: publish assets and templates, migrate, seed),
 # serves it and checks the seeded homepage and the admin sign-in page.
 set -euo pipefail
 
-vendor/bin/testbench workbench:build --no-ansi
+# The database file has to exist before the build starts: Testbench falls
+# back to an in-memory database for a whole command when it is missing.
+composer workbench --no-ansi
 
 vendor/bin/testbench serve --port=8089 --no-ansi > .ci/serve.log 2>&1 &
 server=$!

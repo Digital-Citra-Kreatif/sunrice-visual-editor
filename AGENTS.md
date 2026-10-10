@@ -28,7 +28,7 @@ composer spike     # round-trip report; rewrites spike/RESULTS.md
 composer lint      # Pint (test mode)
 composer format    # Pint (fix)
 composer analyse   # Larastan
-vendor/bin/testbench workbench:build && vendor/bin/testbench serve   # the demo site, admin at /cms
+composer serve     # build and serve the demo site, admin at /cms
 ```
 
 The npm scripts arrive with task V0.3.

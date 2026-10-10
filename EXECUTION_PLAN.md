@@ -133,7 +133,7 @@ Sizes are rough guesses for one developer working with coding agents. Phases 1 a
 - `workbench/`, `testbench.yaml` — app with Sunrice installed, starter templates published, and a seeder: `pages` and `articles` collections, a `hero`/`text`/`gallery` flexible field, `site` and `footer` globals, a `main` menu, a homepage and five articles.
 - `tests/Support/WithStarterSite.php` — for a test: the starter templates in a directory of its own plus the workbench content.
 - `.github/` — CI repeats the output of a failed step as an annotation, and builds and serves the workbench to check the seeded homepage.
-**Done when:** CI is green, including the workbench check (`testbench workbench:build`, `testbench serve`, the homepage shows the seeded site).
+**Done when:** CI is green, including the workbench check (`composer workbench`, `testbench serve`, the homepage shows the seeded site).
 
 ### V0.3 Admin script build and empty editor page
 **Depends on:** V0.1
