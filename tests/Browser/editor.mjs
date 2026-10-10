@@ -146,9 +146,22 @@ await step('show one of Sunrice\'s own views as read-only', async () => {
     await page.locator('.sve-note').getByText('one of Sunrice’s own views').waitFor();
 });
 
-await step('say so when a page can\'t be followed', async () => {
+await step('follow a missing page like any other: the error page is drawn by the site too', async () => {
     await open('no-such-page-anywhere');
+    await addressIs('/no-such-page-anywhere');
+    // Its templates, or word that it has none of the site's: either way the panel knows the page.
+    await page.locator('.sve-panel--left .sve-templates, .sve-panel--left .sve-empty:has-text("No template of the site")').first().waitFor();
+});
+
+await step('say so when what is in the frame is no page of the site', async () => {
+    // A file the web server hands out itself: nothing renders it, so nothing marks it.
+    await open('vendor/sunrice-visual-editor/bridge.js');
     await page.locator('.sve-panel--left .sve-empty').getByText('not drawn for the editor').waitFor();
+});
+
+await step('refuse the admin\'s own address', async () => {
+    await open('/cms/users');
+    await page.getByRole('alert').getByText('admin').waitFor();
 });
 
 await step('take a screenshot', async () => {

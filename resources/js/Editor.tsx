@@ -4,7 +4,7 @@ import { Outlines, type Outline } from './canvas/Outlines';
 import { ApiError, copyToSite, listTemplates, readTemplate, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
 import { pageOf, rememberPage } from './lib/memory';
-import { sitePath } from './lib/path';
+import { isAdminPath, sitePath } from './lib/path';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { TemplatePanel, type Loaded } from './panels/TemplatePanel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
@@ -150,6 +150,11 @@ export function Editor({ startPath }: Props) {
         const next = sitePath(address, window.location.origin);
         if (next === null) {
             setProblem('The editor only opens pages of this site.');
+
+            return;
+        }
+        if (isAdminPath(next, Sunrice.adminUrl())) {
+            setProblem('That is the admin. The editor opens pages of the site itself.');
 
             return;
         }

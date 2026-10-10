@@ -20,3 +20,11 @@ export function sitePath(input: string, origin: string): string | null {
 
     return url.pathname + url.search;
 }
+
+/** Whether a path of the site is the admin, or inside it: "/cms", "/cms/users". */
+export function isAdminPath(path: string, admin: string): boolean {
+    const root = `/${admin.replace(/^\/+|\/+$/g, '')}`;
+    const pathname = path.split(/[?#]/)[0];
+
+    return root !== '/' && (pathname === root || pathname.startsWith(`${root}/`));
+}
