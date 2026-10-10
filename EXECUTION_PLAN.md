@@ -54,7 +54,7 @@ A node is addressed as `{file, version, node}`. Offsets are only valid for one v
 
 **Composer — require-dev:** `orchestra/testbench`, `pestphp/pest`, `pestphp/pest-plugin-laravel`, `laravel/pint`, `larastan/larastan`.
 
-**npm (admin script only):** `typescript`, `esbuild`, `@types/react`, `@dnd-kit/core`, `@dnd-kit/sortable` (Layers panel), `codemirror`, `@codemirror/lang-html`, `@codemirror/lang-css`, `@codemirror/lang-php` (code panel). React, Inertia and the admin's UI components come from `window.Sunrice` and are never bundled.
+**npm (admin script only, all dev dependencies):** `typescript`, `esbuild` (pinned to an exact version, so every build of `dist/` is the same), `@types/react`, `@types/react-dom`, `playwright-core` (the browser check; drives the Chrome already on the machine). Added when first used: `@dnd-kit/core`, `@dnd-kit/sortable` (Layers panel, V4.4), `codemirror`, `@codemirror/lang-html`, `@codemirror/lang-css`, `@codemirror/lang-php` (code panel, V3.4). React, Inertia and the admin's UI components come from `window.Sunrice` and are never bundled.
 
 A CSS parser is deliberately not chosen yet: V6.1 decides it with a round-trip test.
 
@@ -138,12 +138,15 @@ Sizes are rough guesses for one developer working with coding agents. Phases 1 a
 ### V0.3 Admin script build and empty editor page
 **Depends on:** V0.1
 **Files:**
-- `package.json`, `tsconfig.json`, `build.mjs` — esbuild, one ES module, JSX factory `Sunrice.React.createElement`, `react` and `@inertiajs/react` aliased to `window.Sunrice`, so bundled libraries that import React (dnd-kit) get the admin's copy.
-- `resources/js/index.tsx` — registers `VisualEditor/Editor` with `layout = null`: a top bar (back to admin, address field), an empty frame and empty side panels.
-- `.github/workflows/assets.yml` — builds the admin script on pull requests and commits `dist/` to the branch when it changed.
-- `src/Http/Controllers/EditorController.php` — `show()`: authorizes with `Access`, renders `VisualEditor/Editor` with the admin path and the homepage URL.
+- `package.json`, `tsconfig.json`, `build.mjs` — esbuild, one ES module, JSX factory `Sunrice.React.createElement`; `react`, `react-dom` and `react/jsx-runtime` imports, ours or a bundled library's, resolve to the copies on `window.Sunrice`.
+- `resources/js/` — `index.tsx` registers `VisualEditor/Editor` with `layout = null`; `Editor.tsx` is the shell: a top bar (back to admin, address field), the page in a frame, and empty side panels. `sunrice.d.ts` types the part of `window.Sunrice` the editor uses.
+- `resources/css/visual-editor.css` — the editor's own stylesheet, on the admin's colour variables (the admin's stylesheet only has the classes Sunrice itself uses).
+- `src/Http/Controllers/EditorController.php` — `show()`: authorizes with `Access`, renders `VisualEditor/Editor` with the path to open (`?url=`, pages of the site only).
 - `routes/admin.php` — `GET visual-editor` inside `Sunrice::adminRoutes()`.
-**Done when:** a Super Admin opens `/cms/visual-editor` in the workbench and sees the shell; other users get 403; a feature test asserts both. Verify the React aliasing with a dnd-kit import that renders.
+- `src/VisualEditorServiceProvider.php` — when enabled: the route, the admin script and stylesheet (`Sunrice::registerAdminScript()` / `registerAdminStyle()`, with a fingerprint of the build), the sidebar link (`Sunrice::addNavigationItem()`, Super Admins only), and `dist/` published under the tag `sunrice-visual-editor-assets`.
+- `tests/Browser/editor.mjs` — signs in to the workbench in a real browser, opens the editor from the sidebar, uses the address field, and saves `docs/screenshots/editor.png`.
+- `.github/workflows/assets.yml` — on pull requests: typecheck, frontend tests, build, the browser check, then commits `dist/`, `package-lock.json` and the screenshot to the branch when they changed.
+**Done when:** CI is green: a Super Admin opens `/cms/visual-editor` and sees the shell with the site in the frame (browser check); other users get 403 and guests the sign-in page (feature tests). That bundled libraries get the admin's React is checked when the first one is added (V4.4).
 
 ### V0.4 Sunrice bridge and core changes
 **Depends on:** V0.1
@@ -296,7 +299,7 @@ A searchable list: elements, Blade structures, Sunrice components, and **Paste H
 
 ### V4.4 Move, duplicate, wrap, delete
 **Depends on:** V4.1
-Drag in the Layers panel (dnd-kit) with drop targets limited to what V1.4 allows; duplicate, wrap, unwrap, delete from a menu and the keyboard.
+Drag in the Layers panel (dnd-kit) with drop targets limited to what V1.4 allows; duplicate, wrap, unwrap, delete from a menu and the keyboard. dnd-kit is the first bundled library that imports React: the browser check must show it running on the admin's copy (no second React, no hook errors).
 **Done when:** a move between parents produces exactly the V1.4 result.
 
 ### V4.5 History

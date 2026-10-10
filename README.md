@@ -9,8 +9,10 @@ file into a tree, change one thing, and write the file back with nothing else
 disturbed. This repository holds the test of that idea and the code it needed.
 
 What the package will do is in [SPEC.md](SPEC.md); the order of work is in
-[EXECUTION_PLAN.md](EXECUTION_PLAN.md). So far only the template tree and its
-test exist.
+[EXECUTION_PLAN.md](EXECUTION_PLAN.md). So far there is the template tree with
+its tests, and the editor's empty screen in the Sunrice admin:
+
+![The editor's screen: an address bar over the site, with empty panels for templates and settings](docs/screenshots/editor.png)
 
 ## Result of the round-trip test
 
@@ -85,10 +87,18 @@ composer test      # Pest: the round-trip checks, the package, a seeded Sunrice 
 composer spike     # the round-trip report: adds Laravel's own views, rewrites spike/RESULTS.md
 composer lint      # Pint
 composer analyse   # Larastan
+
+npm install
+npm run typecheck
+npm run test:frontend
+npm run build          # resources/js and resources/css → dist/
 ```
 
+`dist/` is committed. On a pull request, CI rebuilds it and commits the
+result to the branch, so it doesn't have to be built by hand.
+
 To look at the site the tests use, with the admin at `/cms` (sign in as
-`admin@example.com` / `password`):
+`admin@example.com` / `password`) and the editor at `/cms/visual-editor`:
 
 ```bash
 composer serve     # builds the workbench (assets, templates, database, demo content) and serves it
@@ -115,11 +125,14 @@ src/
     Template.php       open(): tree, or Unsupported
     Classifier.php     visual / field / label / expression / mixed / code
     Edit.php           the edits, and the directive seam rule
+  Http/Controllers/    the editor's screen
   Support/Access.php   who may use the editor
   VisualEditorServiceProvider.php
 config/              sunrice-visual-editor.php
+routes/admin.php     routes inside the Sunrice admin
+resources/js, css/   the editor UI (React from the Sunrice admin), built into dist/
 spike/               the round-trip report and its results
-tests/               Pest tests; fixtures/ holds sunrice-starter and sunrice-package
-                     (copied from sunrice-cms at 8c9794e) and edge
+tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fixtures/ holds
+                     sunrice-starter and sunrice-package (copied from sunrice-cms at 8c9794e) and edge
 workbench/           the Testbench app: user model, migrations, demo content
 ```

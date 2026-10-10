@@ -37,6 +37,7 @@ workbench:
   assets:
     - sunrice-assets
     - sunrice-templates
+    - sunrice-visual-editor-assets
   sync:
     - from: storage
       to: workbench/storage

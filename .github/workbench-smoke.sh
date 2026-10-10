@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Builds the workbench app (`composer workbench`: publish assets and templates, migrate, seed),
 # serves it and checks the seeded homepage and the admin sign-in page.
+# Arguments, if any, are a command to run while the site is up:
+#   .github/workbench-smoke.sh npm run test:browser
 set -euo pipefail
 
 # The database file has to exist before the build starts: Testbench falls
@@ -29,3 +31,7 @@ fi
 login=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8089/cms/login)
 echo "GET /cms/login -> $login"
 [ "$login" = "200" ]
+
+if [ "$#" -gt 0 ]; then
+    BASE_URL=http://127.0.0.1:8089 "$@"
+fi
