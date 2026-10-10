@@ -159,7 +159,7 @@ The package needs three things Sunrice has but does not publish. Each is asked f
 | C3 ([#38](https://github.com/littleboy130491/sunrice-cms/issues/38)) | Adding MCP tools from a package | `SunriceServer::$tools` is a fixed list | `Sunrice::registerMcpTool(string $class)` |
 
 **Files:**
-- `src/Support/SunriceBridge.php` — `templateDirectory()`, `themeDirectory()`, `packageViewDirectories()`, `templateMap()`, `syntaxError(string $blade)`, `backup(string $file, string $relative)`, `fields(string $kind, string $handle)`, `collections()`, `globals()`, `menus()`. The syntax check and the backup need nothing internal (Laravel's Blade compiler; the same backup location Sunrice uses). When Sunrice ships C1–C3, the bridge switches to them and nothing else changes.
+- `src/Support/SunriceBridge.php` — `templateDirectory()`, `themeDirectory()`, `packageViewDirectories()`, `templateMap()`, `backup(string $file, string $relative)`, `fields(string $kind, string $handle)`, `collections()`, `globals()`, `menus()`. The backup needs nothing internal (the same location Sunrice uses). The syntax check started here and moved to `src/Blade/Syntax.php` in V1.7: it needs Laravel's Blade compiler and nothing of Sunrice. When Sunrice ships C1–C3, the bridge switches to them and nothing else changes.
 - `config/sunrice-visual-editor.php` — `paths.templates`, `paths.theme`: null for Sunrice's own places; set by tests, and by a site that keeps its templates elsewhere.
 **Done when:** unit tests cover each bridge method against the workbench content, and the three issues are open in sunrice-cms with the proposed signatures.
 
@@ -224,9 +224,14 @@ Treat `@switch` like `@if`, with `@case` and `@default` as arms. This turns the 
 
 ### V1.7 Operations
 **Depends on:** V1.2–V1.4
-- `src/Blade/Operation.php` — a serializable edit: `type` and parameters, naming nodes by id.
-- `src/Blade/Operations.php` — `apply(string $source, array $operations): string`: opens the source, applies each operation, prints, reopens the result, runs the Blade syntax check, and throws `EditRejected` with a readable reason if any step fails.
-**Done when:** every `Edit` method is reachable as an operation, and the round-trip datasets run through `Operations::apply()`.
+- `src/Blade/Operation.php` — an edit as plain data: `type`, `node` (an id) and what the type takes, one type for each `Edit` method with the same name and the same things in the same order (`['type' => 'move', 'node' => '412', 'target' => 'b96', 'position' => 'inside']`). `Operation::from()` refuses an unknown type, something missing, something of the wrong kind, and something the type doesn't take.
+- `src/Blade/Operations.php` — `apply(string $source, array $operations): string` and `run()`, which returns `Applied`: opens the source, finds every node named before anything changes, makes each edit, prints, opens the result again, and checks that it compiles. Any failure throws `EditRejected` with a reason for the person and the position of the operation in the list; nothing is half applied.
+- `src/Blade/Applied.php` — the new source, and `focus`: the id, in the new file, of the node the last operation made or changed (what was inserted, the copy, the wrapper, the node where it was moved to). The UI selects it.
+- `src/Blade/Syntax.php` — `error(string $blade): ?string`: compiles with the application's Blade compiler and reads the PHP with PHP's parser. A template that names a component the application doesn't have is still checked for the rest, so one missing component doesn't lock a file; an operation that brings one in is refused.
+- `src/Blade/ResultRejected.php` — an `EditRejected` for a result that can't be saved: it doesn't open, doesn't compile, or leaves a `@break` or `@continue` with no loop around it (PHP's parser lets that through; the page would not run).
+- Nodes are named by their id in the version the operations were written for. In one list, a later operation can name any node an earlier one left in place, but not one it removed, rewrote, or moved to another parent.
+- `Edit::move`, `unwrap` and `setCode` return the nodes now in place. A wrapper may hold whitespace (`@auth @endauth` can't be written without it).
+**Done when:** every `Edit` method is reachable as an operation, and the round-trip datasets run through `Operations`.
 
 ---
 
@@ -239,7 +244,7 @@ Treat `@switch` like `@if`, with `@case` and `@default` as arms. This turns the 
 
 ### V2.2 Saving
 **Depends on:** V1.7, V2.1
-`src/Actions/SaveTemplate.php` — `handle(path, expectedVersion, newSource)`: resolves the path safely inside the template directory; refuses with `Conflict` when the file's current version differs; runs the syntax check; backs up; writes atomically (temp file plus rename); returns the new version. `src/Actions/CopyPackageView.php` — **Copy to site**.
+`src/Actions/SaveTemplate.php` — `handle(path, expectedVersion, newSource)`: resolves the path safely inside the template directory; refuses with `Conflict` when the file's current version differs; runs the syntax check (`Syntax::error`); backs up; writes atomically (temp file plus rename); returns the new version. `src/Actions/CopyPackageView.php` — **Copy to site**.
 **Done when:** tests cover conflict, syntax error (nothing written), backup created, path traversal refused, and a write from a second process between read and save.
 
 ### V2.3 HTTP API

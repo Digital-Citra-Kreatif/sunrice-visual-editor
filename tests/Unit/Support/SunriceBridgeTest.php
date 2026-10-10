@@ -74,12 +74,6 @@ it('lists collections, globals and menus', function () {
     ]);
 });
 
-it('checks Blade for syntax errors, knowing the application\'s directives', function () {
-    expect(SunriceBridge::syntaxError('<p>{{ $entry->title }}</p> @if ($a) x @endif <body @bodyClass>'))->toBeNull()
-        ->and(SunriceBridge::syntaxError('@if ($a) <p>never closed</p>'))->toBeString()
-        ->and(SunriceBridge::syntaxError('{{ $a +* }}'))->toBeString();
-});
-
 it('keeps a copy of a file before it is changed', function () {
     $this->setUpStarterSite();
     $file = $this->templates.'/partials/header.blade.php';

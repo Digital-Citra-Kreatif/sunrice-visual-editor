@@ -40,7 +40,8 @@ For every template:
 
 1. **It opens as a tree and the tree prints back the same bytes.**
    `Template::open()` refuses the file otherwise.
-2. **Every kind of edit, on every node it applies to**, each on a fresh tree:
+2. **Every kind of edit, on every node it applies to**, each on a fresh tree
+   and sent the way the editor sends it, as an operation through `Operations`:
    add and remove a class, add, change and remove an attribute, rename the
    element, retype text, change an echo's expression and escaping, change a
    directive's arguments, rewrite a code node, insert before and after,
@@ -133,6 +134,9 @@ src/
     Rules.php          what may be done to a node
     TreeData.php       the tree as plain data for the editor's panels
     Edit.php           every edit, in one place
+    Operation.php      an edit as plain data: what the editor's screen and AI agents send
+    Operations.php     applies operations; hands back a file only if it opens and compiles
+    Syntax.php         whether a template compiles
     Attributes.php     edits to an opening tag: attributes, classes, the tag name
     Content.php        edits to text, echoes, directive arguments; a node rewritten as code
     Structure.php      insert, move, duplicate, delete, wrap, unwrap

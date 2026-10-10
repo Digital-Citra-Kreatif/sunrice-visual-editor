@@ -7,14 +7,17 @@ namespace Sunrice\VisualEditor\Tests\Support;
 use FilesystemIterator;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
+use LogicException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Sunrice\VisualEditor\Blade\Attributes;
 use Sunrice\VisualEditor\Blade\Classifier;
-use Sunrice\VisualEditor\Blade\Edit;
 use Sunrice\VisualEditor\Blade\EditRejected;
 use Sunrice\VisualEditor\Blade\Inert;
 use Sunrice\VisualEditor\Blade\Node;
+use Sunrice\VisualEditor\Blade\Operation;
+use Sunrice\VisualEditor\Blade\Operations;
+use Sunrice\VisualEditor\Blade\ResultRejected;
 use Sunrice\VisualEditor\Blade\Rules;
 use Sunrice\VisualEditor\Blade\Seams;
 use Sunrice\VisualEditor\Blade\Template;
@@ -39,6 +42,15 @@ final class RoundTrip
 
     /** @var array{0: string, 1: string}|null the source last opened, and its tree serialized */
     private static ?array $opened = null;
+
+    /** The tree handed out last: the one the next edit is made on. */
+    private static ?Template $current = null;
+
+    /** What the last edit left, when Operations accepted it. */
+    private static ?string $accepted = null;
+
+    /** Why Operations would not hand back what the last edit left. */
+    private static ?string $refused = null;
 
     public static function fixtures(string $directory = ''): string
     {
@@ -79,8 +91,15 @@ final class RoundTrip
     /** An edited template is good when it is exactly what was expected, opens as a tree again and compiles. */
     public static function verify(string $out, string $expected): ?string
     {
+        if (self::$refused !== null) {
+            return 'the editor would not save this: '.self::$refused;
+        }
         if ($out !== $expected) {
             return 'output differs from the expected bytes';
+        }
+        if ($out === self::$accepted) {
+            // Operations has opened and compiled exactly this.
+            return null;
         }
         try {
             Template::open($out);
@@ -103,8 +122,39 @@ final class RoundTrip
         }
         /** @var Template $template */
         $template = unserialize(self::$opened[1]);
+        [self::$accepted, self::$refused] = [null, null];
 
-        return $template;
+        return self::$current = $template;
+    }
+
+    /**
+     * Makes an edit the way the editor does: as an operation, through
+     * Operations, on the tree opened last. Operations opens what the edit
+     * leaves and compiles it; what it would not hand back is a failure,
+     * reported by verify().
+     *
+     * @param  string  $type  the name of the Edit method
+     * @param  mixed  ...$arguments  what that method takes after the node
+     */
+    private static function edit(string $type, Node $node, mixed ...$arguments): void
+    {
+        if (self::$current === null || self::root($node) !== self::$current->root) {
+            throw new LogicException('The node is not from the tree opened last.');
+        }
+
+        $parameters = [];
+        foreach (array_keys(Operation::takes($type)) as $position => $name) {
+            if (array_key_exists($position, $arguments)) {
+                $parameters[$name] = $arguments[$position] instanceof Node ? $arguments[$position]->id() : $arguments[$position];
+            }
+        }
+
+        [self::$accepted, self::$refused] = [null, null];
+        try {
+            self::$accepted = Operations::runOn(self::$current, [Operation::make($type, $node->id(), $parameters)])->source;
+        } catch (ResultRejected $e) {
+            self::$refused = $e->getMessage();
+        }
     }
 
     /**
@@ -163,7 +213,7 @@ final class RoundTrip
             // Add a class: one insertion, inside this element's opening tag.
             $hadClass = $element->attr('class') !== null;
             try {
-                Edit::addClass($element, 'sr-added');
+                self::edit('addClass', $element, 'sr-added');
                 $out = self::root($element)->print();
                 $inserted = $insertion($out, [' class="sr-added"', ' sr-added', 'sr-added']);
                 $error = $inserted === null ? 'not a single insertion inside the opening tag' : self::verify($out, $out);
@@ -182,7 +232,7 @@ final class RoundTrip
                 $element = $fresh();
                 $before = self::attributeTexts($element);
                 try {
-                    Edit::removeClass($element, $class);
+                    self::edit('removeClass', $element, $class);
                     $out = self::root($element)->print();
                     $error = $slice(0, $element->start) === substr($out, 0, $element->start) && str_ends_with($out, $slice($openEnd, $end))
                         ? self::verify($out, $out)
@@ -206,7 +256,7 @@ final class RoundTrip
             $element = $fresh();
             $written = Inert::attribute(self::AWKWARD);
             try {
-                Edit::setAttribute($element, 'data-sr', self::AWKWARD);
+                self::edit('setAttribute', $element, 'data-sr', self::AWKWARD);
                 $out = self::root($element)->print();
                 $error = $insertion($out, [' data-sr="'.$written.'"']) === null ? 'not a single insertion inside the opening tag' : self::verify($out, $out);
                 $error ??= Inert::decode((string) Template::open($out)->elements()[$i]->attributeValue('data-sr')) === self::AWKWARD ? null : 'the value does not read back as typed';
@@ -229,7 +279,7 @@ final class RoundTrip
                     $valueEnd = $element->start + $attr['valueEnd'];
                     $quoted = in_array($source[$valueEnd] ?? '', ['"', "'"], true);
                     try {
-                        Edit::setAttribute($element, $attr['name'], self::AWKWARD);
+                        self::edit('setAttribute', $element, $attr['name'], self::AWKWARD);
                         $out = self::root($element)->print();
                         $expected = $slice(0, $valueStart).($quoted ? $written : '"'.$written.'"').$slice($valueEnd, $end);
                         $error = self::verify($out, $expected);
@@ -243,7 +293,7 @@ final class RoundTrip
                 // Remove it: the attribute and the space before it go.
                 $element = $fresh();
                 try {
-                    Edit::removeAttribute($element, $attr['name']);
+                    self::edit('removeAttribute', $element, $attr['name']);
                     $from = $attrStart;
                     while ($from > 0 && ctype_space($source[$from - 1])) {
                         $from--;
@@ -262,7 +312,7 @@ final class RoundTrip
             $old = strlen($element->name);
             $closeStart = $element->end - strlen($element->close);
             try {
-                Edit::setTag($element, $element->name === 'article' ? 'section' : 'article');
+                self::edit('setTag', $element, $element->name === 'article' ? 'section' : 'article');
                 $tag = $element->name;
                 $expected = $slice(0, $element->start).'<'.$tag.$slice($element->start + 1 + $old, $closeStart).'</'.$tag.$slice($closeStart + 2 + $old, $end);
                 $record('rename', self::verify(self::root($element)->print(), $expected), $where);
@@ -285,7 +335,7 @@ final class RoundTrip
                     }
                 }
                 $root = self::root($element);
-                Edit::append($element, $field);
+                self::edit('append', $element, $field);
                 $out = $root->print();
                 if ($last === null) {
                     $error = self::squash($out) === self::squash($slice(0, $closeStart).$field.$slice($closeStart, $end)) ? self::verify($out, $out) : 'more than the field changed';
@@ -311,7 +361,7 @@ final class RoundTrip
                 $leading = strlen($text->open) - strlen(ltrim($text->open));
                 $trailing = strlen($text->open) - strlen(rtrim($text->open));
                 $root = self::root($text);
-                Edit::setText($text, $words);
+                self::edit('setText', $text, $words);
                 $out = $root->print();
                 $error = self::verify($out, self::join($slice(0, $text->start + $leading), Inert::text($words), $slice($text->end - $trailing, $end)));
                 // Nothing typed may turn into a Blade node or into PHP.
@@ -333,13 +383,13 @@ final class RoundTrip
                 continue;
             }
             $root = self::root($echo);
-            Edit::setExpression($echo, "\$sr->get('x') ?? 'y'");
+            self::edit('setExpression', $echo, "\$sr->get('x') ?? 'y'");
             $record('change expression', self::verify($root->print(), $slice(0, $echo->start).$m[1].$m[2]."\$sr->get('x') ?? 'y'".$m[4].$m[5].$slice($echo->end, $end)), self::where($echo));
 
             $echo = $echoes()[$i];
             $root = self::root($echo);
             $raw = $echo->kind !== 'raw_echo';
-            Edit::setEchoRaw($echo, $raw);
+            self::edit('setEchoRaw', $echo, $raw);
             $record('switch escaping', self::verify($root->print(), $slice(0, $echo->start).($raw ? '{!!' : '{{').$m[2].$m[3].$m[4].($raw ? '!!}' : '}}').$slice($echo->end, $end)), self::where($echo));
         }
 
@@ -359,7 +409,7 @@ final class RoundTrip
             }
             $root = self::root($directive);
             try {
-                Edit::setArguments($directive, ' '.$args.' ');
+                self::edit('setArguments', $directive, ' '.$args.' ');
                 $bracket = $directive->start + strlen($head) - strlen($args) - 1;
                 $record('change arguments', self::verify($root->print(), $slice(0, $bracket).' '.$args.' '.$slice($bracket + strlen($args), $end)), self::where($directive));
             } catch (EditRejected) {
@@ -376,7 +426,7 @@ final class RoundTrip
         foreach (array_keys($codes()) as $i) {
             $node = $codes()[$i];
             $root = self::root($node);
-            Edit::setCode($node, '@php($sr = 1)');
+            self::edit('setCode', $node, '@php($sr = 1)');
             $record('rewrite code', self::verify($root->print(), self::join($slice(0, $node->start), '@php($sr = 1)', $slice($node->end, $end))), self::where($node));
         }
 
@@ -404,29 +454,29 @@ final class RoundTrip
                 $expected = $slice(0, $start).preg_replace('/^[ \t]*\r?\n/', '', $slice($finish, $end));
             }
             $root = self::root($node);
-            Edit::remove($node);
+            self::edit('remove', $node);
             $record('delete', self::verify($root->print(), $expected), $where);
 
             // Duplicate, and insert before and after: beside a node on its own line, a line of its own.
             $node = $fresh();
             $root = self::root($node);
-            Edit::duplicate($node);
+            self::edit('duplicate', $node);
             $record('duplicate', self::verify($root->print(), self::join($slice(0, $finish).$line, $text, $slice($finish, $end))), $where);
 
             $node = $fresh();
             $root = self::root($node);
-            Edit::insertAfter($node, $snippet);
+            self::edit('insertAfter', $node, $snippet);
             $record('insert after', self::verify($root->print(), self::join($slice(0, $finish).$line, $snippet, $slice($finish, $end))), $where);
 
             $node = $fresh();
             $root = self::root($node);
-            Edit::insertBefore($node, $snippet);
+            self::edit('insertBefore', $node, $snippet);
             $record('insert before', self::verify($root->print(), self::join($slice(0, $start), $snippet, $line.$slice($start, $end))), $where);
 
             // Wrap: inline the bytes are known; on its own line the node moves in a step.
             $node = $fresh();
             $root = self::root($node);
-            Edit::wrap($node, '<div class="sr-wrap"></div>');
+            self::edit('wrap', $node, '<div class="sr-wrap"></div>');
             $out = $root->print();
             $inline = $slice(0, $start).'<div class="sr-wrap">'.$text.'</div>'.$slice($finish, $end);
             $record('wrap', $indent === null ? self::verify($out, $inline) : (self::squash($out) === self::squash($inline) ? self::verify($out, $out) : 'more than the wrapper changed'), $where);
@@ -437,7 +487,7 @@ final class RoundTrip
             if (($node->type === 'element' && Rules::holdsChildren($node)) || $holder->type === 'branch') {
                 $root = self::root($node);
                 try {
-                    Edit::unwrap($node);
+                    self::edit('unwrap', $node);
                     $out = $root->print();
                     $naive = $slice(0, $start).substr($text, strlen($holder->open), strlen($text) - strlen($holder->open) - strlen($node->close)).$slice($finish, $end);
                     $record('unwrap', self::squash($out) === self::squash($naive) ? self::verify($out, $out) : 'more than the wrapper went', $where);
@@ -484,7 +534,7 @@ final class RoundTrip
                 $pieces[] = $slice($span($slot)[1], isset($slots[$k + 1]) ? $span($slots[$k + 1])[0] : $end);
             }
             $root = self::root($node);
-            Edit::move($node, $after, 'after');
+            self::edit('move', $node, $after, 'after');
             $record('reorder', self::verify($root->print(), self::join(...$pieces)), $where);
 
             // Move into the next sibling, when that holds children.
@@ -504,7 +554,7 @@ final class RoundTrip
             }
             $closeStart = $into->end - strlen($into->close);
             $root = self::root($node);
-            Edit::move($node, $into, 'inside');
+            self::edit('move', $node, $into, 'inside');
             $out = $root->print();
             $naive = $slice(0, $start).$slice($finish, $closeStart).$text.$slice($closeStart, $end);
             $record('move inside', self::squash($out) === self::squash($naive) ? self::verify($out, $out) : 'more than the node moved', $where);
@@ -526,7 +576,7 @@ final class RoundTrip
                 }
             }
             $root = self::root($holder);
-            Edit::append($holder, $snippet);
+            self::edit('append', $holder, $snippet);
             $out = $root->print();
             $record('insert inside', self::squash($out) === self::squash($slice(0, $at).$snippet.$slice($at, $end)) ? self::verify($out, $out) : 'more than the snippet went in', self::where($holder));
         }
