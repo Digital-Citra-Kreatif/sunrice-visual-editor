@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { editorAddress, isEditorAddress, type ManifestFile, type Measured, type Mode } from './bridge/protocol';
+import { editorAddress, isEditorAddress, markValue, type ManifestFile, type Mark, type Measured, type Mode } from './bridge/protocol';
 import { Outlines, type Outline } from './canvas/Outlines';
 import { ApiError, copyToSite, listTemplates, readTemplate, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
 import { pageOf, rememberPage } from './lib/memory';
 import { isAdminPath, sitePath } from './lib/path';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
+import { boxesOf, findNode } from './lib/tree';
 import { CodePanel } from './panels/CodePanel';
+import { LayersPanel, nodeTitle } from './panels/LayersPanel';
+import { Side } from './panels/Panel';
 import { TemplatePanel, type Loaded } from './panels/TemplatePanel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
 
@@ -24,13 +27,14 @@ const READY_WITHIN = 1500;
 const message = (error: unknown) => (error instanceof ApiError || error instanceof Error ? error.message : 'Something went wrong.');
 
 /**
- * The editor's screen: the page being edited in a frame, the templates that
- * drew it on the left, and the template that is open on the right.
+ * The editor's screen: the page being edited in a frame, its templates and
+ * the layers of the open one on the left, and the open template on the
+ * right.
  *
  * The page is rendered for the editor (`?sve=1`): its elements say which
- * template they came from, and a script in it (the bridge) tells this
- * screen what the pointer is over. Everything drawn over the page is drawn
- * here, above the frame.
+ * template and which node they came from, and a script in it (the bridge)
+ * tells this screen what the pointer is over. Everything drawn over the
+ * page is drawn here, above the frame.
  */
 export function Editor({ startPath }: Props) {
     const frame = useRef<HTMLIFrameElement>(null);
@@ -64,10 +68,20 @@ export function Editor({ startPath }: Props) {
     const [all, setAll] = useState<TemplateInfo[] | null>(null);
     const [copying, setCopying] = useState(false);
 
-    /** The key of the template under the pointer: in the frame, or in the list. */
-    const [hovered, setHovered] = useState<string | null>(null);
-    const [pointed, setPointed] = useState<string | null>(null);
+    /** The selected node of the open template, by its id in the tree. */
+    const [selected, setSelected] = useState<string | null>(null);
+    /** A node to select once the template it is in has been opened and read. */
+    const toSelect = useRef<{ template: TemplateName; id: string } | null>(null);
+    const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+
+    /** What the pointer is over: an element of the page, a row of the template list, a row of the layers. */
+    const [hovered, setHovered] = useState<Mark | null>(null);
+    const [pointedFile, setPointedFile] = useState<string | null>(null);
+    const [pointedNode, setPointedNode] = useState<string | null>(null);
     const [measured, setMeasured] = useState<Measured | null>(null);
+
+    const tree = template.state === 'ready' ? template.data.tree : null;
+    const openFile = open === null ? null : (page?.files.find((file) => sameTemplate(file, open)) ?? null);
 
     const tell = useBridge(frame, (said) => {
         if (said.type === 'ready') {
@@ -85,14 +99,29 @@ export function Editor({ startPath }: Props) {
             const still = open !== null && (unsaved || said.url === lastPage.current || files.some((file) => sameTemplate(file, open)));
             lastPage.current = said.url;
             const own = pageTemplate(files);
-            setOpen(wanted.current ?? (still ? open : own === null ? null : { path: own.path, origin: own.origin }));
+            const next = wanted.current ?? (still ? open : own === null ? null : { path: own.path, origin: own.origin });
             wanted.current = null;
+            if (!sameTemplate(next, open)) {
+                setSelected(null);
+            }
+            setOpen(next);
         } else if (said.type === 'hover') {
-            setHovered(said.target?.mark.file ?? null);
+            setHovered(said.target?.mark ?? null);
         } else if (said.type === 'select') {
-            const file = page?.files.find((candidate) => candidate.key === said.target.mark.file);
-            if (file !== undefined) {
-                setOpen({ path: file.path, origin: file.origin });
+            const { file: key, id } = said.target.mark;
+            const file = page?.files.find((candidate) => candidate.key === key);
+            if (file === undefined) {
+                return;
+            }
+            if (sameTemplate(file, open)) {
+                // An element of the open template: select it.
+                if (findNode(tree, id) !== null) {
+                    setSelected(id);
+                }
+            } else {
+                // An element of another template: open that one, and select the element once it is read.
+                toSelect.current = { template: { path: file.path, origin: file.origin }, id };
+                openTemplate({ path: file.path, origin: file.origin });
             }
         } else if (said.type === 'measured') {
             setMeasured(said.measured);
@@ -191,9 +220,13 @@ export function Editor({ startPath }: Props) {
             return;
         }
         if (unsaved && !window.confirm(`Leave ${open?.path ?? 'this template'} without saving what you changed in its code?`)) {
+            toSelect.current = null;
+
             return;
         }
         setDraft(null);
+        setSelected(null);
+        setPointedNode(null);
         const here = page?.files.some((file) => sameTemplate(file, name)) ?? false;
         const seenOn = here ? null : pageOf(`${name.origin}:${name.path}`);
         if (seenOn !== null && seenOn !== page?.url) {
@@ -221,6 +254,15 @@ export function Editor({ startPath }: Props) {
             .finally(() => setCopying(false));
     };
 
+    /** Selects a layer and brings what shows it on the page into view. */
+    const select = (id: string) => {
+        setSelected(id);
+        const [first] = boxesOf(tree, id).ids;
+        if (first !== undefined && openFile !== null) {
+            tell({ type: 'reveal', mark: { file: openFile.key, id: first } });
+        }
+    };
+
     // Every template there is, for the list of those not on this page.
     useEffect(() => {
         if (all !== null) {
@@ -245,8 +287,20 @@ export function Editor({ startPath }: Props) {
         }
         let stale = false;
         setTemplate({ state: 'loading' });
+        setCollapsed(new Set());
         readTemplate(open.path, open.origin)
-            .then((data) => !stale && setTemplate({ state: 'ready', data }))
+            .then((data) => {
+                if (stale) {
+                    return;
+                }
+                setTemplate({ state: 'ready', data });
+                // The element that was clicked to get here.
+                const waitingFor = toSelect.current;
+                toSelect.current = null;
+                if (waitingFor !== null && sameTemplate(waitingFor.template, open) && findNode(data.tree, waitingFor.id) !== null) {
+                    setSelected(waitingFor.id);
+                }
+            })
             .catch((error: unknown) => !stale && setTemplate({ state: 'failed', error: message(error) }));
 
         return () => {
@@ -269,6 +323,9 @@ export function Editor({ startPath }: Props) {
     const saved = (data: TemplateData) => {
         setTemplate({ state: 'ready', data });
         setDraft(null);
+        // The ids of the old tree mean nothing in the new one.
+        setSelected(null);
+        setCollapsed(new Set());
         // Whether it opens as a tree may have changed with it.
         setAll(null);
         if (page !== null) {
@@ -276,9 +333,24 @@ export function Editor({ startPath }: Props) {
         }
     };
 
-    const openFile = open === null ? null : (page?.files.find((file) => sameTemplate(file, open)) ?? null);
-    const lit = hovered ?? pointed;
-    const watched = useMemo(() => [...new Set([openFile?.key, lit].filter((key): key is string => typeof key === 'string'))], [openFile?.key, lit]);
+    // --- What is shown on the page -------------------------------------------------
+
+    /** The node under the pointer: a row of the layers, or an element of the open template on the page. */
+    const litNode = pointedNode ?? (hovered !== null && hovered.file === openFile?.key && findNode(tree, hovered.id) !== null ? hovered.id : null);
+    /** The template under the pointer, when it is not the open one: a row of the list, or an element of another template. */
+    const litFile = pointedFile ?? (hovered !== null && hovered.file !== openFile?.key ? hovered.file : null);
+
+    const selectedBoxes = useMemo(() => boxesOf(tree, selected), [tree, selected]);
+    const litBoxes = useMemo(() => boxesOf(tree, litNode === selected ? null : litNode), [tree, litNode, selected]);
+    const watch = useMemo(() => {
+        const key = openFile?.key;
+        const ids = key === undefined ? [] : [...new Set([...selectedBoxes.ids, ...litBoxes.ids])];
+
+        return {
+            marks: ids.map((id) => ({ file: key ?? '', id })),
+            files: [...new Set([key, litFile].filter((file): file is string => typeof file === 'string'))],
+        };
+    }, [openFile?.key, selectedBoxes, litBoxes, litFile]);
 
     // A page that has just arrived starts in Select mode and watches nothing: tell it how things are.
     useEffect(() => {
@@ -288,20 +360,45 @@ export function Editor({ startPath }: Props) {
     }, [page, mode, tell]);
     useEffect(() => {
         if (page !== null) {
-            tell({ type: 'watch', watch: { marks: [], files: watched } });
+            tell({ type: 'watch', watch });
         }
-    }, [page, watched, tell]);
+    }, [page, watch, tell]);
 
     const outlines: Outline[] = [];
     if (page !== null && measured !== null) {
+        // An answer to an earlier question may still be on its way: draw only what is asked for now.
+        const rectsOf = (ids: string[]) =>
+            ids.flatMap((id) => {
+                const at = measured.watch.marks.findIndex((mark) => mark.file === openFile?.key && mark.id === id);
+
+                return at === -1 ? [] : (measured.marks[at] ?? []);
+            });
         for (const [index, key] of measured.watch.files.entries()) {
             const file = page.files.find((candidate) => candidate.key === key);
-            // An answer to an earlier question may still be on its way: draw only what is asked for now.
-            if (file !== undefined && watched.includes(key)) {
-                outlines.push({ id: key, kind: key === lit ? 'hover' : 'open', label: shortName(file.path), rects: measured.files[index] ?? [] });
+            if (file !== undefined && watch.files.includes(key) && (key === litFile || (selected === null && litNode === null))) {
+                outlines.push({ id: key, kind: key === litFile ? 'hover' : 'open', label: shortName(file.path), rects: measured.files[index] ?? [] });
             }
         }
+        const selectedNode = findNode(tree, selected);
+        if (selectedNode !== null) {
+            outlines.push({ id: `selected:${markValue({ file: openFile?.key ?? '', id: selectedNode.id })}`, kind: selectedBoxes.inside ? 'around' : 'selected', label: nodeTitle(selectedNode), rects: rectsOf(selectedBoxes.ids) });
+        }
+        const lit = findNode(tree, litNode === selected ? null : litNode);
+        if (lit !== null) {
+            outlines.push({ id: `lit:${lit.id}`, kind: 'hover', label: nodeTitle(lit), rects: rectsOf(litBoxes.ids) });
+        }
     }
+
+    const layersNote =
+        open === null
+            ? 'No template is open.'
+            : template.state === 'loading' || template.state === 'idle'
+              ? 'Opening…'
+              : template.state === 'failed'
+                ? 'The template could not be opened.'
+                : template.data.tree === null
+                  ? 'This template can only be edited as code, so it has no layers to show.'
+                  : null;
 
     return (
         <div className="sve-shell">
@@ -357,7 +454,28 @@ export function Editor({ startPath }: Props) {
                 </a>
             </header>
 
-            <TemplatesPanel files={page?.files ?? null} waiting={waiting} all={all} open={open} onOpen={openTemplate} onPoint={setPointed} />
+            <Side side="left">
+                <TemplatesPanel files={page?.files ?? null} waiting={waiting} all={all} open={open} onOpen={openTemplate} onPoint={setPointedFile} />
+                <LayersPanel
+                    tree={tree}
+                    note={layersNote}
+                    selected={selected}
+                    lit={litNode}
+                    collapsed={collapsed}
+                    onSelect={select}
+                    onPoint={setPointedNode}
+                    onToggle={(id) =>
+                        setCollapsed((before) => {
+                            const after = new Set(before);
+                            if (!after.delete(id)) {
+                                after.add(id);
+                            }
+
+                            return after;
+                        })
+                    }
+                />
+            </Side>
 
             <main className={`sve-canvas sve-canvas--${mode}`}>
                 <div className="sve-stage">
@@ -372,6 +490,7 @@ export function Editor({ startPath }: Props) {
                         onSaved={saved}
                         onReload={() => {
                             setDraft(null);
+                            setSelected(null);
                             setReadings((count) => count + 1);
                         }}
                         onClose={() => setCoding(false)}
@@ -379,23 +498,27 @@ export function Editor({ startPath }: Props) {
                 )}
             </main>
 
-            <TemplatePanel
-                open={open}
-                template={template}
-                page={page === null ? null : pageTemplate(page.files)}
-                onPage={openFile !== null}
-                seenOn={open === null || openFile !== null ? null : pageOf(`${open.origin}:${open.path}`)}
-                copying={copying}
-                coding={coding}
-                unsaved={unsaved}
-                onCode={() => setCoding((on) => !on)}
-                onOpen={openTemplate}
-                onShowPage={(path) => {
-                    wanted.current = open;
-                    show(path);
-                }}
-                onCopy={copy}
-            />
+            <Side side="right">
+                <TemplatePanel
+                    open={open}
+                    template={template}
+                    page={page === null ? null : pageTemplate(page.files)}
+                    onPage={openFile !== null}
+                    seenOn={open === null || openFile !== null ? null : pageOf(`${open.origin}:${open.path}`)}
+                    copying={copying}
+                    coding={coding}
+                    unsaved={unsaved}
+                    selected={findNode(tree, selected)}
+                    onDeselect={() => setSelected(null)}
+                    onCode={() => setCoding((on) => !on)}
+                    onOpen={openTemplate}
+                    onShowPage={(path) => {
+                        wanted.current = open;
+                        show(path);
+                    }}
+                    onCopy={copy}
+                />
+            </Side>
         </div>
     );
 }

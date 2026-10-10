@@ -125,7 +125,7 @@
 
 /* Side panels */
 
-.sve-panel {
+.sve-side {
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -133,14 +133,32 @@
     color: var(--sidebar-foreground);
 }
 
-.sve-panel--left {
+.sve-side--left {
     grid-area: left;
     border-inline-end: 1px solid var(--border);
 }
 
-.sve-panel--right {
+.sve-side--right {
     grid-area: right;
     border-inline-start: 1px solid var(--border);
+}
+
+/* A panel is as tall as what it holds, up to a share of its side; one that grows takes the rest. */
+.sve-panel {
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: 45%;
+}
+
+.sve-panel--grow {
+    flex: 1 1 0;
+    max-height: none;
+}
+
+.sve-panel + .sve-panel {
+    border-block-start: 1px solid var(--border);
 }
 
 .sve-panel__title {
@@ -283,6 +301,157 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
     cursor: pointer;
+}
+
+/* Layers: the open template as a tree */
+
+.sve-layers {
+    margin: 0 -0.5rem;
+    padding: 0;
+    list-style: none;
+}
+
+.sve-layer {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    border-radius: calc(var(--radius) - 2px);
+}
+
+.sve-layer:hover,
+.sve-layer--lit {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.sve-layer[aria-selected='true'] {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.sve-layer__toggle {
+    flex: none;
+    width: 1rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.625rem;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.sve-layer__pick {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+    height: 1.5rem;
+    padding: 0 0.375rem 0 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.sve-layer__badge {
+    flex: none;
+    min-width: 1.5rem;
+    color: var(--muted-foreground);
+    font: 600 0.625rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    text-align: center;
+}
+
+.sve-layer[aria-selected='true'] .sve-layer__badge {
+    color: inherit;
+    opacity: 0.8;
+}
+
+.sve-layer__label {
+    min-width: 0;
+    overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Words a person wrote read as words, not as code. */
+.sve-layer--text .sve-layer__label {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.sve-layer--comment .sve-layer__label,
+.sve-layer--arm .sve-layer__label {
+    opacity: 0.75;
+}
+
+.sve-layer__pick:focus-visible,
+.sve-layer__toggle:focus-visible,
+.sve-selection__clear:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+/* The selected node */
+
+.sve-selection {
+    margin: 0 0 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--card);
+}
+
+.sve-selection__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.sve-selection__kind {
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.sve-selection__clear {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    font-size: 0.6875rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.sve-selection__title {
+    display: block;
+    margin-block-start: 0.25rem;
+    overflow-wrap: anywhere;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+}
+
+.sve-selection__source {
+    max-height: 9rem;
+    margin: 0.5rem 0 0;
+    padding: 0.375rem 0.5rem;
+    overflow: auto;
+    border-radius: calc(var(--radius) - 4px);
+    background: var(--muted);
+    font: 0.6875rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre;
 }
 
 /* The open template */
@@ -450,6 +619,16 @@
 
 .sve-outline--open {
     border-style: dashed;
+}
+
+.sve-outline--selected {
+    border-width: 2px;
+}
+
+/* A node with no box of its own, shown by the element around it. */
+.sve-outline--around {
+    border-width: 2px;
+    border-style: dotted;
 }
 
 .sve-outline__label {

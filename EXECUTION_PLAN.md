@@ -338,7 +338,11 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V4.1 Layers panel and selection
 **Depends on:** M1
-The open file's tree from `toArray()`, with icons per kind and the node label. Selecting a layer highlights every instance in the frame (a loop draws one node many times); clicking the frame selects the layer. Selection is `{file, version, node}`.
+- `resources/js/panels/LayersPanel.tsx` — the open template's tree, under the list of templates: elements, text, Blade blocks and echoes in the order of the file, each with a short badge for its kind and the node's label. Rows fold. A block with one arm (a loop, a lone `@if`) lists what the arm holds directly; one with several lists its arms.
+- **Selecting.** A click on a layer selects it and scrolls the page to it. A click on the page selects the element clicked; when that element belongs to another template, the template is opened first. The selection is a node id of the open template's tree.
+- **Showing a node on the page** (`lib/tree.ts`, `boxesOf`). An element is outlined as itself, once for every copy the page has of it: a node in a loop is drawn many times. A block or an arm is outlined as the outermost elements inside it. Text, an echo or a directive has no box of its own and is shown, dotted, by the element around it.
+- Pointing at a layer outlines it on the page; pointing at the page lights its layer.
+- The right panel shows what is selected, in a few words, above the template. Its settings are V4.2.
 **Done when:** selection stays in sync both ways, including nodes inside loops and sections.
 
 ### V4.2 Settings panel

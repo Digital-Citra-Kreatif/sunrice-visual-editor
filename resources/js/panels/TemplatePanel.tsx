@@ -1,6 +1,8 @@
 import type { ManifestFile } from '../bridge/protocol';
-import type { TemplateData } from '../lib/api';
+import type { TemplateData, TreeNode } from '../lib/api';
 import { roleLabel, sameTemplate, shortName, type TemplateName } from '../lib/templates';
+import { kindOf } from '../lib/tree';
+import { nodeTitle } from './LayersPanel';
 import { Panel } from './Panel';
 
 export type Loaded<T> = { state: 'idle' } | { state: 'loading' } | { state: 'ready'; data: T } | { state: 'failed'; error: string };
@@ -19,6 +21,9 @@ type Props = {
     coding: boolean;
     /** Whether the code panel holds changes that are not saved. */
     unsaved: boolean;
+    /** The selected node of the open template. */
+    selected: TreeNode | null;
+    onDeselect(): void;
     onCode(): void;
     onOpen(template: TemplateName): void;
     onShowPage(path: string): void;
@@ -26,9 +31,9 @@ type Props = {
 };
 
 /** The right panel: the template that is open. */
-export function TemplatePanel({ open, template, page, onPage, seenOn, copying, coding, unsaved, onCode, onOpen, onShowPage, onCopy }: Props) {
+export function TemplatePanel({ open, template, page, onPage, seenOn, copying, coding, unsaved, selected, onDeselect, onCode, onOpen, onShowPage, onCopy }: Props) {
     return (
-        <Panel title="Template" side="right">
+        <Panel title="Template" grow>
             {open === null ? (
                 <p className="sve-empty">No template is open. Click a part of the page, or a template in the list.</p>
             ) : (
@@ -53,6 +58,7 @@ export function TemplatePanel({ open, template, page, onPage, seenOn, copying, c
                             {template.error}
                         </p>
                     )}
+                    {template.state === 'ready' && selected !== null && <Selection node={selected} onDeselect={onDeselect} />}
                     {template.state === 'ready' && (
                         <>
                             <About template={template.data} onPage={onPage} seenOn={seenOn} copying={copying} onShowPage={onShowPage} onCopy={onCopy} />
@@ -131,5 +137,43 @@ function About({ template, onPage, seenOn, copying, onShowPage, onCopy }: AboutP
                 </p>
             )}
         </>
+    );
+}
+
+/** What each kind of node is called. */
+const KINDS: Record<ReturnType<typeof kindOf>, string> = {
+    element: 'Element',
+    text: 'Text',
+    field: 'Field',
+    label: 'Interface text',
+    expression: 'Expression',
+    condition: 'Condition',
+    loop: 'Loop',
+    arm: 'Part of a block',
+    include: 'Include',
+    component: 'Component',
+    directive: 'Directive',
+    code: 'Code',
+    comment: 'Comment',
+    stray: 'Tag without its other half',
+};
+
+/** The selected node, in a few words. Its settings come in the next task of the plan (V4.2). */
+function Selection({ node, onDeselect }: { node: TreeNode; onDeselect(): void }) {
+    const kind = kindOf(node);
+    const source = typeof node.source === 'string' ? node.source : null;
+
+    return (
+        <div className="sve-selection">
+            <div className="sve-selection__head">
+                <span className="sve-selection__kind">{KINDS[kind]}</span>
+                <button type="button" className="sve-selection__clear" onClick={onDeselect} title="Select nothing">
+                    Clear
+                </button>
+            </div>
+            <strong className="sve-selection__title">{nodeTitle(node)}</strong>
+            {typeof node.stray === 'string' && <p className="sve-note__reason">{node.stray}</p>}
+            {(kind === 'code' || kind === 'stray') && source !== null && <pre className="sve-selection__source">{source}</pre>}
+        </div>
     );
 }

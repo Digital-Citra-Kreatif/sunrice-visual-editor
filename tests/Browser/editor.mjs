@@ -71,7 +71,7 @@ await step('open on the page named in the link', async () => {
 
 // --- The templates of a page ----------------------------------------------------
 
-const listed = () => page.locator('.sve-panel--left .sve-templates').first().locator('.sve-template__name').allTextContents();
+const listed = () => page.locator('.sve-side--left .sve-templates').first().locator('.sve-template__name').allTextContents();
 const openIs = (name) => page.waitForFunction((expected) => document.querySelector('.sve-trail__here')?.textContent === expected, name);
 const addressIs = (path) => page.waitForFunction((expected) => document.querySelector('#sve-address')?.value === expected, path);
 
@@ -115,7 +115,7 @@ await step('go back to the page\'s template in one click', async () => {
 });
 
 await step('outline a template when its row is pointed at, and open it on a click', async () => {
-    const row = page.locator('.sve-panel--left .sve-templates').first().locator('.sve-template', { hasText: 'blocks/hero' });
+    const row = page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'blocks/hero' });
     await row.hover();
     await page.locator('.sve-outline--hover .sve-outline__label', { hasText: 'blocks/hero' }).waitFor();
     await row.click();
@@ -146,6 +146,66 @@ await step('show one of Sunrice\'s own views as read-only', async () => {
     await page.locator('.sve-note').getByText('one of Sunrice’s own views').waitFor();
 });
 
+// --- Layers and selection --------------------------------------------------------
+
+const layerIs = (label) => page.waitForFunction((expected) => document.querySelector('.sve-layer[aria-selected="true"] .sve-layer__label')?.textContent === expected, label);
+const outlineIs = (kind, label) => page.waitForFunction(([wanted, expected]) => [...document.querySelectorAll(`.sve-outline--${wanted} .sve-outline__label`)].some((each) => each.textContent === expected), [kind, label]);
+/** Checks that an outline lies exactly over an element of the page in the frame. */
+const outlineOver = async (kind, selector) => {
+    const outline = await page.locator(`.sve-outline--${kind}`).first().boundingBox();
+    const element = await frame.locator(selector).first().boundingBox();
+    if (outline === null || element === null || ['x', 'y', 'width', 'height'].some((side) => Math.abs(outline[side] - element[side]) > 1.5)) {
+        throw new Error(`The outline is at ${JSON.stringify(outline)}, the element at ${JSON.stringify(element)}`);
+    }
+};
+
+await step('select an element by clicking it on the page: its template opens, its layer is selected', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero h1').click();
+    await openIs('blocks/hero');
+    await layerIs('h1');
+    await outlineIs('selected', 'h1');
+    await outlineOver('selected', '.hero h1');
+});
+
+await step('select a layer: the page shows it', async () => {
+    await page.locator('.sve-layer__pick', { hasText: 'a.button' }).click();
+    await layerIs('a.button');
+    await outlineIs('selected', 'a.button');
+    await outlineOver('selected', '.hero a.button');
+});
+
+await step('point at a layer, and the page outlines it; point at the page, and the layer lights up', async () => {
+    await page.locator('.sve-layer__pick', { hasText: 'p.muted' }).hover();
+    await outlineIs('hover', 'p.muted');
+    await frame.locator('.hero h1').hover();
+    await page.waitForFunction(() => document.querySelector('.sve-layer--lit .sve-layer__label')?.textContent === 'h1');
+});
+
+await step('show a field, which has no box of its own, by the element around it', async () => {
+    await page.locator('.sve-layer__pick', { hasText: '$block->heading' }).click();
+    await page.waitForSelector('.sve-outline--around');
+    await outlineOver('around', '.hero h1');
+    await page.locator('.sve-selection').getByText('Field').waitFor();
+});
+
+await step('show a node inside a loop once for every turn of the loop', async () => {
+    await open('/articles');
+    await openIs('index');
+    await frame.locator('.card p.muted').nth(1).click();
+    await openIs('partials/card');
+    await layerIs('p.muted');
+    await page.waitForFunction(() => document.querySelectorAll('.sve-outline--selected').length === 5);
+});
+
+await step('select an element of a section, drawn inside the layout, in the page\'s own template', async () => {
+    await frame.locator('main .hero h1').click();
+    await openIs('index');
+    await layerIs('h1');
+    await outlineOver('selected', 'main .hero h1');
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');
@@ -153,7 +213,7 @@ const code = page.locator('.sve-code__field');
 await step('open the footer as code, coloured and character for character', async () => {
     await page.goto(`${base}/cms/visual-editor`);
     await page.waitForSelector('.sve-template');
-    await page.locator('.sve-panel--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
     await openIs('partials/footer');
     await page.getByRole('button', { name: 'Edit as code' }).click();
     await code.waitFor();
@@ -219,16 +279,16 @@ await step('follow a missing page, or say that it can\'t be followed', async () 
     // without one of its own would get word that the page can't be followed. Either way
     // the list is not the one of the page before, which had the page template in it.
     await page.waitForFunction(() => {
-        const names = [...document.querySelectorAll('.sve-panel--left .sve-panel__body > .sve-templates .sve-template__name')].map((name) => name.textContent);
+        const names = [...document.querySelectorAll('.sve-side--left > .sve-panel:first-child .sve-panel__body > .sve-templates .sve-template__name')].map((name) => name.textContent);
 
-        return !names.includes('show') && (names.length > 0 || document.querySelector('.sve-panel--left .sve-panel__body > .sve-empty') !== null);
+        return !names.includes('show') && (names.length > 0 || document.querySelector('.sve-side--left > .sve-panel:first-child .sve-panel__body > .sve-empty') !== null);
     });
 });
 
 await step('say so when what is in the frame is no page of the site', async () => {
     // A file the web server hands out itself: nothing renders it, so nothing marks it.
     await open('vendor/sunrice-visual-editor/bridge.js');
-    await page.locator('.sve-panel--left .sve-empty').getByText('not drawn for the editor').waitFor();
+    await page.locator('.sve-side--left > .sve-panel:first-child .sve-empty').getByText('not drawn for the editor').waitFor();
 });
 
 await step('refuse the admin\'s own address', async () => {
