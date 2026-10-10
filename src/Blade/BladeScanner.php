@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Sunrice\VisualEditor\Blade;
 
 use Illuminate\Container\Container;
+use Illuminate\View\Compilers\BladeCompiler;
+use ReflectionClass;
 use SplObjectStorage;
 use Stillat\BladeParser\Nodes\AbstractNode;
 use Stillat\BladeParser\Nodes\CommentNode;
@@ -54,6 +56,32 @@ final class BladeScanner
         return [];
     }
 
+    /**
+     * Every directive the installed Blade compiles. Blade runs "@name" when
+     * its compiler has a compileName() method, so the methods are the list;
+     * the parser's own list misses newer ones (@includeIsolated), which it
+     * would otherwise show as text.
+     *
+     * @return list<string>
+     */
+    public static function compilerDirectives(): array
+    {
+        static $names = null;
+
+        if ($names === null) {
+            $names = [];
+            if (class_exists(BladeCompiler::class)) {
+                foreach ((new ReflectionClass(BladeCompiler::class))->getMethods() as $method) {
+                    if (preg_match('/^compile([A-Z]\w*)$/', $method->getName(), $match) === 1) {
+                        $names[] = lcfirst($match[1]);
+                    }
+                }
+            }
+        }
+
+        return $names;
+    }
+
     /** @return list<Atom> in source order, never overlapping */
     public function scan(string $source): array
     {
@@ -61,7 +89,7 @@ final class BladeScanner
         // app, in tests and on the command line. It knows Blade's own
         // directives; the application's are added by name.
         $parser = new DocumentParser;
-        $parser->setDirectiveNames(self::customDirectives());
+        $parser->setDirectiveNames([...self::customDirectives(), ...self::compilerDirectives()]);
         $parser->parse(self::asBladeReadsIt($source));
         $document = $parser->toDocument();
 
