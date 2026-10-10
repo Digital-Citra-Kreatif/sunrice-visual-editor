@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Sunrice\Facades\Sunrice;
+use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Tests\DisabledTestCase;
+use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 
 use function Pest\Laravel\get;
 use function Pest\Laravel\getJson;
 
-uses(DisabledTestCase::class);
+uses(DisabledTestCase::class, WithStarterSite::class);
 
 it('registers no editor routes when turned off', function () {
     $names = collect(Route::getRoutes()->getRoutesByName())->keys()
@@ -35,4 +37,12 @@ it('adds nothing to the admin when turned off', function () {
     expect(implode(' ', $sunrice->adminScripts()))->not->toContain('sunrice-visual-editor')
         ->and(implode(' ', $sunrice->adminStyles()))->not->toContain('sunrice-visual-editor')
         ->and(collect(Sunrice::navigationItems())->pluck('href'))->not->toContain('visual-editor');
+});
+
+it('renders every page as always when turned off, whatever the address says', function () {
+    $this->setUpStarterSite();
+    actingAsSuperAdmin();
+
+    expect((string) get('/?sve=1')->assertOk()->getContent())->not->toContain('data-sve', 'sve-manifest')
+        ->and(Route::getRoutes()->getByName('sunrice.frontend.home')->gatherMiddleware())->not->toContain(EditorRender::class);
 });

@@ -7,6 +7,7 @@ namespace Sunrice\VisualEditor;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\ServiceProvider;
 use Sunrice\Facades\Sunrice;
+use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Support\Access;
 
 class VisualEditorServiceProvider extends ServiceProvider
@@ -35,6 +36,14 @@ class VisualEditorServiceProvider extends ServiceProvider
         }
 
         Sunrice::adminRoutes(fn () => $this->loadRoutesFrom(__DIR__.'/../routes/admin.php'));
+
+        // Sunrice reads this list once every provider has booted, when it
+        // adds its frontend routes. The middleware does nothing unless a
+        // page is asked for by the editor (see EditorRender).
+        config(['sunrice.frontend.middleware' => [
+            ...(array) config('sunrice.frontend.middleware', ['web']),
+            EditorRender::class,
+        ]]);
 
         Sunrice::registerAdminScript(self::asset('visual-editor.js'));
         Sunrice::registerAdminStyle(self::asset('visual-editor.css'));

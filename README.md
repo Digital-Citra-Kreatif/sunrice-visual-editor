@@ -155,6 +155,7 @@ src/
     Seams.php          keeps directives readable where an edit joins two pieces
   Templates/           the files the editor works with: the site's templates and Sunrice's views
   Actions/             SaveTemplate: the only place a template is written; CopyPackageView
+  Rendering/           a page rendered for the editor: elements marked with their template
   Http/                the editor's screen, and its API for templates (Controllers/Api)
   Support/             Access: who may use the editor; SunriceBridge: the one file that
                        reads Sunrice's internals (templates, field definitions)
