@@ -3,8 +3,12 @@ import type { Rect } from '../bridge/protocol';
 export type Outline = {
     /** What sets it apart in the list: a template's key. */
     id: string;
-    /** hover: under the pointer. open: the template that is open. */
-    kind: 'hover' | 'open';
+    /**
+     * hover: under the pointer. open: the template that is open. selected:
+     * the selected node. around: the element around a selected node that
+     * has no box of its own, such as a piece of text.
+     */
+    kind: 'hover' | 'open' | 'selected' | 'around';
     /** Shown on the first box. */
     label: string;
     rects: Rect[];

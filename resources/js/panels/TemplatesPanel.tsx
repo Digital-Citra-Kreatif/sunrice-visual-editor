@@ -21,7 +21,7 @@ export function TemplatesPanel({ files, waiting, all, open, onOpen, onPoint }: P
     const others = (all ?? []).filter((template) => !(files ?? []).some((file) => sameTemplate(file, template)));
 
     return (
-        <Panel title="Templates on this page" side="left">
+        <Panel title="Templates on this page">
             {files === null ? (
                 <p className="sve-empty">{waiting === 'unknown' ? 'This page was not drawn for the editor, so its templates can’t be listed. It may be an error page, or not one of the site’s own.' : 'Loading the page…'}</p>
             ) : files.length === 0 ? (
