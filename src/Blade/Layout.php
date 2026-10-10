@@ -67,17 +67,29 @@ final class Layout
     /**
      * Moves the lines of a snippet from one indentation to another. The
      * first line is left alone: where it starts is the caller's business.
-     * Snippets holding text where spaces matter are returned as they are.
+     * So is a line that starts inside a <pre> or a <textarea>, where the
+     * spaces are part of what is shown, and a snippet with a heredoc in it
+     * is returned as it is.
      */
     public static function reindent(string $blade, string $from, string $to): string
     {
-        if ($from === $to || ! str_contains($blade, "\n") || preg_match('/<pre\b|<textarea\b|<<</i', $blade) === 1) {
+        if ($from === $to || ! str_contains($blade, "\n") || str_contains($blade, '<<<')) {
             return $blade;
         }
 
         $lines = explode("\n", $blade);
+        $holding = null;
         foreach ($lines as $i => $line) {
-            if ($i === 0 || trim($line) === '') {
+            $held = $holding !== null;
+            preg_match_all('/<(\/?)(pre|textarea)\b/i', $line, $tags, PREG_SET_ORDER);
+            foreach ($tags as [, $closes, $name]) {
+                if ($holding === null && $closes === '') {
+                    $holding = strtolower($name);
+                } elseif ($closes === '/' && strtolower($name) === $holding) {
+                    $holding = null;
+                }
+            }
+            if ($i === 0 || $held || trim($line) === '') {
                 continue;
             }
             if ($from === '' || str_starts_with($line, $from)) {

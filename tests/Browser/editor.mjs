@@ -257,6 +257,64 @@ await step('refuse a change that doesn\'t compile, say why, and show the file ag
     }
 });
 
+// --- Insert ------------------------------------------------------------------------
+
+const inserting = page.getByRole('region', { name: 'Insert' });
+const insertable = (title) => inserting.locator('.sve-insertable').filter({ has: page.locator('.sve-insertable__title', { hasText: new RegExp(`^${title}$`) }) });
+const heroApi = `${base}/cms/visual-editor/api/templates/blocks/hero.blade.php`;
+let hero = null;
+
+await step('insert a container after the heading, then a heading inside it: each becomes the selection', async () => {
+    hero = (await (await page.request.get(heroApi)).json()).template;
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    await page.locator('.sve-bar').getByRole('button', { name: 'Insert' }).click();
+    await insertable('Container').click();
+    await layerIs('div');
+    await idle();
+    // The container is empty, so the next thing goes inside it.
+    await insertable('Heading').click();
+    await layerIs('h2');
+    await frame.locator('.hero h1 + div > h2', { hasText: 'Heading' }).waitFor();
+});
+
+await step('insert one of Sunrice\'s components, and see the site\'s own content drawn by it', async () => {
+    await idle();
+    await inserting.getByLabel('Find something to insert').fill('entries articles');
+    await insertable('Entries: Articles').click();
+    await frame.locator('.hero h1 + div article a', { hasText: 'First post' }).waitFor();
+    await inserting.getByLabel('Find something to insert').fill('');
+});
+
+await step('refuse pasted HTML that leaves a tag open, and keep it to be put right', async () => {
+    await idle();
+    await inserting.getByText('Paste HTML or Blade').click();
+    const pasted = inserting.getByLabel('HTML or Blade to insert');
+    await pasted.fill('<div class="sve-browser-test"><p>Open');
+    await inserting.getByRole('button', { name: 'Insert', exact: true }).click();
+    await page.locator('.sve-notice--problem', { hasText: 'is never closed' }).waitFor();
+    await idle();
+    if ((await pasted.inputValue()) !== '<div class="sve-browser-test"><p>Open') {
+        throw new Error('What was pasted is gone');
+    }
+    if ((await (await page.request.get(`${base}/`)).text()).includes('sve-browser-test')) {
+        throw new Error('The refused paste is on the page');
+    }
+});
+
+await step('put the hero back', async () => {
+    const token = decodeURIComponent((await page.context().cookies()).find((cookie) => cookie.name === 'XSRF-TOKEN')?.value ?? '');
+    const now = (await (await page.request.get(heroApi)).json()).template;
+    const put = await page.request.put(`${heroApi}/source`, { data: { version: now.version, source: hero.source }, headers: { Accept: 'application/json', 'X-XSRF-TOKEN': token } });
+    if (put.status() !== 200) {
+        throw new Error(`Putting the hero back answered ${put.status()}`);
+    }
+    await inserting.getByRole('button', { name: 'Done' }).click();
+    await page.getByRole('region', { name: 'Templates on this page' }).waitFor();
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');
