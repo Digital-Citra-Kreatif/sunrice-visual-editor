@@ -187,7 +187,8 @@ await step('show a field, which has no box of its own, by the element around it'
     await page.locator('.sve-layer__pick', { hasText: '$block->heading' }).click();
     await page.waitForSelector('.sve-outline--around');
     await outlineOver('around', '.hero h1');
-    await page.locator('.sve-selection').getByText('Field').waitFor();
+    await page.locator('.sve-selection__kind', { hasText: 'Field' }).waitFor();
+    await page.waitForFunction(() => document.querySelector('.sve-settings textarea')?.value === '$block->heading');
 });
 
 await step('show a node inside a loop once for every turn of the loop', async () => {
