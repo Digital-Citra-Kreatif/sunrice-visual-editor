@@ -260,6 +260,10 @@ export function Editor({ startPath }: Props) {
 
             return;
         }
+        if (toSelect.current !== null && !sameTemplate(toSelect.current.template, name)) {
+            // An element clicked for a template that is no longer where the editor is going.
+            toSelect.current = null;
+        }
         setDraft(null);
         setSelected(null);
         setPointedNode(null);
@@ -333,11 +337,15 @@ export function Editor({ startPath }: Props) {
                     return;
                 }
                 setTemplate({ state: 'ready', data });
-                // The element that was clicked to get here.
+                // The element that was clicked to get here. One clicked for another template is
+                // not this reading's to take: the template that was open may still be arriving
+                // when the click sends the editor on.
                 const waitingFor = toSelect.current;
-                toSelect.current = null;
-                if (waitingFor !== null && sameTemplate(waitingFor.template, open) && findNode(data.tree, waitingFor.id) !== null) {
-                    setSelected(waitingFor.id);
+                if (waitingFor !== null && sameTemplate(waitingFor.template, open)) {
+                    toSelect.current = null;
+                    if (findNode(data.tree, waitingFor.id) !== null) {
+                        setSelected(waitingFor.id);
+                    }
                 }
             })
             .catch((error: unknown) => !stale && setTemplate({ state: 'failed', error: message(error) }));
