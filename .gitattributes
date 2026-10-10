@@ -1,0 +1,16 @@
+tests/ export-ignore
+spike/ export-ignore
+workbench/ export-ignore
+.github/ export-ignore
+resources/js/ export-ignore
+AGENTS.md export-ignore
+SPEC.md export-ignore
+EXECUTION_PLAN.md export-ignore
+CHANGELOG.md export-ignore
+package.json export-ignore
+tsconfig.json export-ignore
+build.mjs export-ignore
+pint.json export-ignore
+phpstan.neon export-ignore
+phpunit.xml export-ignore
+testbench.yaml export-ignore
