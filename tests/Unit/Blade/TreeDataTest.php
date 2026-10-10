@@ -113,6 +113,17 @@ it('describes each kind of node', function () {
         ->and($byLabel('Comment')['source'])->toBe('<!-- an HTML note -->');
 });
 
+it('says a comment can be picked up like any node, and the doctype can\'t', function () {
+    [$doctype, $blade, $html, $paragraph] = Template::open("<!DOCTYPE html>\n{{-- a note --}}\n<!-- another -->\n<p>Text</p>\n")->toArray()['tree']['children'];
+    $text = $paragraph['children'][0];
+
+    expect($blade['can'])->toBe(['move' => true, 'delete' => true, 'wrap' => true, 'insert' => false, 'attributes' => false])
+        ->and($html['can'])->toBe(['move' => true, 'delete' => true, 'wrap' => true, 'insert' => false, 'attributes' => false])
+        ->and($doctype['can'])->toBe(['move' => false, 'delete' => false, 'wrap' => false, 'insert' => false, 'attributes' => false])
+        // Text is edited where it is: wrapped, yes, but emptied rather than taken out.
+        ->and($text['can'])->toBe(['move' => false, 'delete' => false, 'wrap' => true, 'insert' => false, 'attributes' => false]);
+});
+
 it('leaves out the whitespace between nodes', function () {
     $tree = Template::open("<ul>\n    <li>One</li>\n\n    <li>Two</li>\n</ul>\n")->toArray()['tree'];
 

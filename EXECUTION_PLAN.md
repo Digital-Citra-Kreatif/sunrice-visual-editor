@@ -54,7 +54,7 @@ A node is addressed as `{file, version, node}`. Offsets are only valid for one v
 
 **Composer — require-dev:** `orchestra/testbench`, `pestphp/pest`, `pestphp/pest-plugin-laravel`, `laravel/pint`, `larastan/larastan`.
 
-**npm (admin script only, all dev dependencies):** `typescript`, `esbuild` (pinned to an exact version, so every build of `dist/` is the same), `@types/react`, `@types/react-dom`, `playwright-core` (the browser check; drives the Chrome already on the machine). Added when first used: `@dnd-kit/core`, `@dnd-kit/sortable` (Layers panel, V4.4), `codemirror`, `@codemirror/lang-html`, `@codemirror/lang-css`, `@codemirror/lang-php` (code panel, V3.4). React, Inertia and the admin's UI components come from `window.Sunrice` and are never bundled.
+**npm (admin script only, all dev dependencies):** `typescript`, `esbuild` (pinned to an exact version, so every build of `dist/` is the same), `@types/react`, `@types/react-dom`, `playwright-core` (the browser check; drives the Chrome already on the machine). Named here at first and not used, each for the reason given in its task: `@dnd-kit/core`, `@dnd-kit/sortable` (Layers panel, V4.4), `codemirror`, `@codemirror/lang-html`, `@codemirror/lang-css`, `@codemirror/lang-php` (code panel, V3.4). React, Inertia and the admin's UI components come from `window.Sunrice` and are never bundled.
 
 A CSS parser is deliberately not chosen yet: V6.1 decides it with a round-trip test.
 
@@ -372,21 +372,25 @@ How a page is rendered for the editor without touching normal rendering:
   | Group | Entries |
   | --- | --- |
   | Elements | section, container, heading, paragraph, text, link, button, image, lists, the sectioning elements, divider, video, form fields |
-  | Blade | condition (with and without `@else`), loop (`@foreach`, `@forelse`), value, interface text, `@auth`, `@guest`, `@section`, `@yield`, `@push`, `@stack`, `@php` |
+  | Blade | condition (with and without `@else`), loop (`@foreach`, `@forelse`), value, interface text, `@auth`, `@guest`, `@section`, `@yield`, `@push`, `@stack`, note (since V4.4, when comments became deletable), `@php` |
   | Sunrice | `<x-sunrice::entries>` for each collection, `<x-sunrice::terms>` for each taxonomy, `<x-sunrice::form>` for each form, the search box, `<x-sunrice::seo />`, `<x-sunrice::code />` |
   | Partials | `@include` for each partial of the site, with the variables it needs |
 
 - **Every entry can be drawn where it lands.** A condition starts as `@if (true)`, a loop goes over `[]`, and a component names a collection, taxonomy or form the site has: one that names something missing answers the whole page with "not found". A partial is the exception and says so: its hint is **Needs $entry**, read from the file by `src/Blade/Variables.php` (the variables a template reads without setting them, from its compiled PHP: a first pass at what V5.2 does properly).
 - `resources/js/panels/InsertPanel.tsx` — **+ Insert** in the top bar puts the list in the left side, in place of the page's templates and above the layers. At its top, where the next thing goes by the selected node: **Before**, **Inside** or **After**. It starts at Inside for something still empty and at After otherwise, so a click after a click builds a structure: what is inserted becomes the selection. A block with one arm takes things into that arm; an arm takes them only inside. With nothing selected only an empty template takes something.
 - A field to search titles, hints, keywords and the Blade itself. **Paste HTML or Blade** inserts what is pasted the same way; a refusal (a tag left open) leaves the pasted text in place to be put right.
-- `<x-sunrice::entry-filter>` is not in the list: its filters are an array to write by hand, in the code panel or by pasting. Nor is a comment: the tree does not let one be moved or deleted yet, and nothing is offered here that can't be taken out again.
+- `<x-sunrice::entry-filter>` is not in the list: its filters are an array to write by hand, in the code panel or by pasting.
 - `Layout::reindent()` now holds back only the lines inside a `<pre>` or `<textarea>`, not the whole snippet: the form component's markup has a one-line `<textarea>` and was put in unindented.
 **Done when:** every entry inserts, opens as a tree and compiles (`tests/Unit/Insert/LibraryTest.php`: each entry, six ways in), and is drawn on a page of the workbench site (`tests/Feature/InsertApiTest.php`).
 
 ### V4.4 Move, duplicate, wrap, delete
 **Depends on:** V4.1
-Drag in the Layers panel (dnd-kit) with drop targets limited to what V1.4 allows; duplicate, wrap, unwrap, delete from a menu and the keyboard. dnd-kit is the first bundled library that imports React: the browser check must show it running on the admin's copy (no second React, no hook errors).
-**Done when:** a move between parents produces exactly the V1.4 result.
+- **Dragging** (`panels/LayersPanel.tsx`). A layer that can be moved is dragged onto another: the top of a row is before it, the bottom after it, and the middle into it, where it takes things. A line shows where it would land, at the depth it would have; for "after" that is under everything the row holds. `lib/move.ts` (`dropAt`) says where a drop goes and refuses the ones the tree would: onto itself, into something inside itself, beside or into what takes nothing there, after the `@break` that ends a `@case`.
+- **Buttons** at the top of the Settings panel, for the selected node: move up, move down (one step among what is beside it), **Duplicate**, **Unwrap**, **Delete**, and **Wrap in…** a container, a section, a link or a condition. The same from the keyboard on a layer: Alt+↑, Alt+↓, Ctrl/⌘+D, Delete.
+- Each is one operation of V1.4 (`move`, `duplicate`, `wrap`, `unwrap`, `remove`), and what it made or moved stays selected. Text is not picked up like a node: **Delete** empties it (`setText`), and it can be wrapped but not moved.
+- **Comments can now be moved, copied and deleted** (`Rules::selectable`): Blade's and HTML's. Until now a comment could only be changed in the code, which left nothing to do with one in the Layers panel. The round trip covers them: 19,289 edits, up from 18,591.
+- **No dnd-kit.** The plan named it; this is the browser's own drag and drop, about a hundred lines. It needs no library that brings React with it, so there is no second copy of React to keep out of the script, and nothing to keep up with. What it lacks: it does not work by touch, and the browser draws the thing being dragged. The buttons and keys do the same without dragging. It could also not have been tried before it shipped: where this was built, the npm registry can't be reached.
+**Done when:** a move between parents produces exactly the V1.4 result (`tests/Feature/StructureOperationsTest.php`: eight moves, each compared with `Edit::move` on the tree and with the file written out in full).
 
 ### V4.5 History
 **Depends on:** V4.2

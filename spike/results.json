@@ -8,7 +8,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 43.79,
+            "ms": 24.46,
             "nodes": {
                 "visual": 33,
                 "field": 6,
@@ -86,51 +86,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 45,
-                    "passed": 45,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 45,
-                    "passed": 45,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 45,
-                    "passed": 45,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 45,
-                    "passed": 45,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 45,
-                    "passed": 45,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 28,
                     "passed": 28,
-                    "skipped": 17,
+                    "skipped": 23,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 31,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 3,
                     "passed": 3,
-                    "skipped": 42,
+                    "skipped": 48,
                     "failures": []
                 },
                 "insert inside": {
@@ -150,7 +150,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.84,
+            "ms": 0.88,
             "nodes": {
                 "visual": 11,
                 "field": 2,
@@ -234,51 +234,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 5,
                     "passed": 5,
-                    "skipped": 2,
+                    "skipped": 3,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 6,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 1,
                     "passed": 1,
-                    "skipped": 6,
+                    "skipped": 7,
                     "failures": []
                 },
                 "insert inside": {
@@ -298,7 +298,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 6.96,
+            "ms": 6.62,
             "nodes": {
                 "visual": 16,
                 "field": 4,
@@ -376,51 +376,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 28,
-                    "passed": 28,
+                    "tried": 30,
+                    "passed": 30,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 28,
-                    "passed": 28,
+                    "tried": 30,
+                    "passed": 30,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 28,
-                    "passed": 28,
+                    "tried": 30,
+                    "passed": 30,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 28,
-                    "passed": 28,
+                    "tried": 30,
+                    "passed": 30,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 28,
-                    "passed": 28,
+                    "tried": 30,
+                    "passed": 30,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 13,
                     "passed": 13,
-                    "skipped": 15,
+                    "skipped": 17,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 9,
-                    "passed": 9,
+                    "tried": 11,
+                    "passed": 11,
                     "skipped": 19,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 25,
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 26,
                     "failures": []
                 },
                 "insert inside": {
@@ -440,7 +440,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.67,
+            "ms": 2.37,
             "nodes": {
                 "visual": 7,
                 "field": 1,
@@ -512,51 +512,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 6,
                     "passed": 6,
-                    "skipped": 2,
+                    "skipped": 4,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 7,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 7,
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 8,
                     "failures": []
                 },
                 "insert inside": {
@@ -576,7 +576,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.02,
+            "ms": 1.66,
             "nodes": {
                 "visual": 7,
                 "field": 2,
@@ -654,51 +654,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 14,
+                    "passed": 14,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 14,
+                    "passed": 14,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 14,
+                    "passed": 14,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 14,
+                    "passed": 14,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 14,
+                    "passed": 14,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 7,
                     "passed": 7,
-                    "skipped": 5,
+                    "skipped": 7,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 4,
-                    "passed": 4,
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 8,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 11,
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 12,
                     "failures": []
                 },
                 "insert inside": {
@@ -718,7 +718,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.65,
+            "ms": 0.53,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -784,50 +784,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 1,
                     "passed": 1,
-                    "skipped": 1,
+                    "skipped": 2,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 0,
-                    "passed": 0,
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 2,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 0,
-                    "passed": 0,
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 2,
                     "failures": []
                 },
@@ -848,7 +848,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.83,
+            "ms": 4.03,
             "nodes": {
                 "visual": 15,
                 "field": 3,
@@ -926,51 +926,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 11,
                     "passed": 11,
-                    "skipped": 12,
+                    "skipped": 14,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 9,
-                    "passed": 9,
+                    "tried": 11,
+                    "passed": 11,
                     "skipped": 14,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 2,
                     "passed": 2,
-                    "skipped": 21,
+                    "skipped": 23,
                     "failures": []
                 },
                 "insert inside": {
@@ -990,7 +990,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.64,
+            "ms": 3.76,
             "nodes": {
                 "visual": 18,
                 "field": 0,
@@ -1050,51 +1050,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 23,
+                    "passed": 23,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 23,
+                    "passed": 23,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 23,
+                    "passed": 23,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 23,
+                    "passed": 23,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 23,
+                    "passed": 23,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 6,
                     "passed": 6,
-                    "skipped": 13,
+                    "skipped": 17,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 16,
+                    "passed": 16,
                     "skipped": 7,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 17,
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 20,
                     "failures": []
                 },
                 "insert inside": {
@@ -1114,7 +1114,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.1,
+            "ms": 2.46,
             "nodes": {
                 "visual": 13,
                 "field": 4,
@@ -1192,51 +1192,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 9,
                     "passed": 9,
-                    "skipped": 10,
+                    "skipped": 12,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 7,
+                    "passed": 7,
                     "skipped": 14,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 18,
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 19,
                     "failures": []
                 },
                 "insert inside": {
@@ -1256,7 +1256,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 11.73,
+            "ms": 11.22,
             "nodes": {
                 "visual": 37,
                 "field": 8,
@@ -1346,51 +1346,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 51,
-                    "passed": 51,
+                    "tried": 53,
+                    "passed": 53,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 51,
-                    "passed": 51,
+                    "tried": 53,
+                    "passed": 53,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 51,
-                    "passed": 51,
+                    "tried": 53,
+                    "passed": 53,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 51,
-                    "passed": 51,
+                    "tried": 53,
+                    "passed": 53,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 51,
-                    "passed": 51,
+                    "tried": 53,
+                    "passed": 53,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 29,
                     "passed": 29,
-                    "skipped": 22,
+                    "skipped": 24,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 15,
-                    "passed": 15,
+                    "tried": 17,
+                    "passed": 17,
                     "skipped": 36,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 48,
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 49,
                     "failures": []
                 },
                 "insert inside": {
@@ -1410,7 +1410,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.55,
+            "ms": 2.42,
             "nodes": {
                 "visual": 14,
                 "field": 1,
@@ -1500,51 +1500,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 21,
+                    "passed": 21,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 12,
                     "passed": 12,
-                    "skipped": 6,
+                    "skipped": 9,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 13,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 2,
                     "passed": 2,
-                    "skipped": 16,
+                    "skipped": 19,
                     "failures": []
                 },
                 "insert inside": {
@@ -1564,7 +1564,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.76,
+            "ms": 3.34,
             "nodes": {
                 "visual": 15,
                 "field": 0,
@@ -1642,51 +1642,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 11,
                     "passed": 11,
-                    "skipped": 7,
+                    "skipped": 9,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 11,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 4,
                     "passed": 4,
-                    "skipped": 14,
+                    "skipped": 16,
                     "failures": []
                 },
                 "insert inside": {
@@ -1706,7 +1706,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.97,
+            "ms": 1.78,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -1784,51 +1784,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 7,
+                    "passed": 7,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 7,
+                    "passed": 7,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 7,
+                    "passed": 7,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 7,
+                    "passed": 7,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 7,
+                    "passed": 7,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 4,
                     "passed": 4,
-                    "skipped": 2,
+                    "skipped": 3,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 5,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 6,
+                    "skipped": 7,
                     "failures": []
                 },
                 "insert inside": {
@@ -1848,7 +1848,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.67,
+            "ms": 1.72,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -1920,50 +1920,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 5,
                     "passed": 5,
-                    "skipped": 2,
+                    "skipped": 3,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 6,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 0,
-                    "passed": 0,
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 7,
                     "failures": []
                 },
@@ -1984,7 +1984,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.03,
+            "ms": 3.22,
             "nodes": {
                 "visual": 20,
                 "field": 3,
@@ -2056,51 +2056,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 16,
                     "passed": 16,
-                    "skipped": 11,
+                    "skipped": 12,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 25,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 1,
                     "passed": 1,
-                    "skipped": 26,
+                    "skipped": 27,
                     "failures": []
                 },
                 "insert inside": {
@@ -2120,7 +2120,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.98,
+            "ms": 1.07,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -2186,51 +2186,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 3,
                     "passed": 3,
-                    "skipped": 2,
+                    "skipped": 3,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 4,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 1,
                     "passed": 1,
-                    "skipped": 4,
+                    "skipped": 5,
                     "failures": []
                 },
                 "insert inside": {
@@ -2250,7 +2250,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.07,
+            "ms": 3.2,
             "nodes": {
                 "visual": 16,
                 "field": 3,
@@ -2322,51 +2322,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 13,
                     "passed": 13,
-                    "skipped": 11,
+                    "skipped": 12,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 17,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 2,
                     "passed": 2,
-                    "skipped": 22,
+                    "skipped": 23,
                     "failures": []
                 },
                 "insert inside": {
@@ -2386,7 +2386,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 4.27,
+            "ms": 4.68,
             "nodes": {
                 "visual": 13,
                 "field": 2,
@@ -2464,51 +2464,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 10,
                     "passed": 10,
-                    "skipped": 8,
+                    "skipped": 10,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 11,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 1,
                     "passed": 1,
-                    "skipped": 17,
+                    "skipped": 19,
                     "failures": []
                 },
                 "insert inside": {
@@ -2528,7 +2528,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.78,
+            "ms": 3.39,
             "nodes": {
                 "visual": 16,
                 "field": 5,
@@ -2606,51 +2606,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 13,
                     "passed": 13,
-                    "skipped": 11,
+                    "skipped": 12,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 16,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 2,
                     "passed": 2,
-                    "skipped": 22,
+                    "skipped": 23,
                     "failures": []
                 },
                 "insert inside": {
@@ -2672,7 +2672,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.36,
+            "ms": 0.32,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -2754,7 +2754,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.48,
+            "ms": 2.28,
             "nodes": {
                 "visual": 12,
                 "field": 2,
@@ -2826,51 +2826,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 8,
                     "passed": 8,
-                    "skipped": 10,
+                    "skipped": 11,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 10,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 1,
                     "passed": 1,
-                    "skipped": 17,
+                    "skipped": 18,
                     "failures": []
                 },
                 "insert inside": {
@@ -2890,7 +2890,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.31,
+            "ms": 3.65,
             "nodes": {
                 "visual": 34,
                 "field": 1,
@@ -3026,7 +3026,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1,
+            "ms": 0.96,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -3092,50 +3092,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 4,
                     "passed": 4,
-                    "skipped": 4,
+                    "skipped": 5,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 4,
+                    "passed": 4,
                     "skipped": 5,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 6,
                     "failures": []
                 },
@@ -3156,7 +3156,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.58,
+            "ms": 1.7,
             "nodes": {
                 "visual": 15,
                 "field": 3,
@@ -3292,7 +3292,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.22,
+            "ms": 1.82,
             "nodes": {
                 "visual": 18,
                 "field": 2,
@@ -3428,7 +3428,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.87,
+            "ms": 1.91,
             "nodes": {
                 "visual": 14,
                 "field": 0,
@@ -3500,50 +3500,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 18,
-                    "passed": 18,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 8,
                     "passed": 8,
-                    "skipped": 10,
+                    "skipped": 12,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 7,
-                    "passed": 7,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 11,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 4,
+                    "passed": 4,
                     "skipped": 16,
                     "failures": []
                 },
@@ -3564,7 +3564,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.46,
+            "ms": 1.63,
             "nodes": {
                 "visual": 15,
                 "field": 4,
@@ -3700,7 +3700,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.41,
+            "ms": 1.35,
             "nodes": {
                 "visual": 11,
                 "field": 0,
@@ -3790,51 +3790,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 8,
                     "passed": 8,
-                    "skipped": 6,
+                    "skipped": 7,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 7,
+                    "passed": 7,
                     "skipped": 8,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 3,
                     "passed": 3,
-                    "skipped": 11,
+                    "skipped": 12,
                     "failures": []
                 },
                 "insert inside": {
@@ -3849,154 +3849,6 @@
         {
             "file": "errors/500.blade.php",
             "bytes": 1030,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 1.96,
-            "nodes": {
-                "visual": 16,
-                "field": 0,
-                "label": 4,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "add class": {
-                    "tried": 14,
-                    "passed": 14,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 19,
-                    "passed": 19,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 14,
-                    "passed": 14,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 10,
-                    "passed": 10,
-                    "skipped": 4,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 10,
-                    "passed": 10,
-                    "skipped": 4,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 10,
-                    "passed": 10,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 10,
-                    "passed": 10,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 19,
-                    "passed": 19,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 19,
-                    "passed": 19,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 19,
-                    "passed": 19,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 19,
-                    "passed": 19,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 19,
-                    "passed": 19,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 11,
-                    "passed": 11,
-                    "skipped": 8,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 8,
-                    "passed": 8,
-                    "skipped": 11,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 14,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 11,
-                    "passed": 11,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "errors/503.blade.php",
-            "bytes": 1031,
             "opens": true,
             "reason": null,
             "identical": true,
@@ -4086,50 +3938,198 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 19,
-                    "passed": 19,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 11,
                     "passed": 11,
-                    "skipped": 8,
+                    "skipped": 9,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 11,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 14,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
+                    "failures": []
+                }
+            },
+            "asExpected": null
+        },
+        {
+            "file": "errors/503.blade.php",
+            "bytes": 1031,
+            "opens": true,
+            "reason": null,
+            "identical": true,
+            "compiles": true,
+            "strays": [],
+            "ms": 1.29,
+            "nodes": {
+                "visual": 16,
+                "field": 0,
+                "label": 4,
+                "expression": 0,
+                "mixed": 0,
+                "code": 0
+            },
+            "codeBytes": 0,
+            "edits": {
+                "add class": {
+                    "tried": 14,
+                    "passed": 14,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove class": {
+                    "tried": 19,
+                    "passed": 19,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "add attribute": {
+                    "tried": 14,
+                    "passed": 14,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rename": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 4,
+                    "failures": []
+                },
+                "add field": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 4,
+                    "failures": []
+                },
+                "change attribute": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove attribute": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "delete": {
+                    "tried": 20,
+                    "passed": 20,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "duplicate": {
+                    "tried": 20,
+                    "passed": 20,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert after": {
+                    "tried": 20,
+                    "passed": 20,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert before": {
+                    "tried": 20,
+                    "passed": 20,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "wrap": {
+                    "tried": 20,
+                    "passed": 20,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "unwrap": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 9,
+                    "failures": []
+                },
+                "reorder": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 11,
+                    "failures": []
+                },
+                "move inside": {
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 14,
                     "failures": []
                 },
@@ -4151,7 +4151,7 @@
             "reason": "@if is never closed",
             "identical": false,
             "compiles": true,
-            "ms": 0.7,
+            "ms": 0.74,
             "asExpected": true
         },
         {
@@ -4161,7 +4161,7 @@
             "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
             "identical": false,
             "compiles": true,
-            "ms": 0.98,
+            "ms": 0.96,
             "asExpected": true
         },
         {
@@ -4172,7 +4172,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.79,
+            "ms": 0.86,
             "nodes": {
                 "visual": 13,
                 "field": 1,
@@ -4256,50 +4256,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 7,
                     "passed": 7,
-                    "skipped": 1,
+                    "skipped": 2,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 6,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 7,
                     "failures": []
                 },
@@ -4320,7 +4320,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.5,
+            "ms": 1.45,
             "nodes": {
                 "visual": 6,
                 "field": 1,
@@ -4456,7 +4456,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.99,
+            "ms": 1.11,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -4592,7 +4592,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.81,
+            "ms": 0.8,
             "nodes": {
                 "visual": 11,
                 "field": 3,
@@ -4676,50 +4676,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 9,
-                    "passed": 9,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 9,
-                    "passed": 9,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 9,
-                    "passed": 9,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 9,
-                    "passed": 9,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 9,
-                    "passed": 9,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 6,
                     "passed": 6,
-                    "skipped": 3,
+                    "skipped": 4,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 4,
+                    "passed": 4,
                     "skipped": 6,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 7,
                     "failures": []
                 },
@@ -4740,7 +4740,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.19,
+            "ms": 1.13,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -4876,7 +4876,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.19,
+            "ms": 1.12,
             "nodes": {
                 "visual": 7,
                 "field": 2,
@@ -5030,7 +5030,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.49,
+            "ms": 0.55,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -5148,7 +5148,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.71,
+            "ms": 0.97,
             "nodes": {
                 "visual": 8,
                 "field": 0,
@@ -5271,7 +5271,7 @@
                 "</a> closes nothing here",
                 "</div> closes nothing here"
             ],
-            "ms": 1.02,
+            "ms": 0.95,
             "nodes": {
                 "visual": 5,
                 "field": 2,
@@ -5410,7 +5410,7 @@
                 "<a> is not closed here",
                 "</a> closes nothing here"
             ],
-            "ms": 0.69,
+            "ms": 0.85,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -5470,51 +5470,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 1,
+                    "skipped": 2,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 0,
-                    "passed": 0,
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 1,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 1,
+                    "skipped": 2,
                     "failures": []
                 },
                 "insert inside": {
@@ -5536,7 +5536,7 @@
             "strays": [
                 "@endif has nothing here to close"
             ],
-            "ms": 0.51,
+            "ms": 0.67,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5602,50 +5602,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 2,
                     "passed": 2,
-                    "skipped": 0,
+                    "skipped": 1,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 0,
-                    "passed": 0,
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 2,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 0,
-                    "passed": 0,
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 2,
                     "failures": []
                 },
@@ -5796,7 +5796,7 @@
             "strays": [
                 "</div> closes nothing here"
             ],
-            "ms": 0.38,
+            "ms": 0.31,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -6082,7 +6082,7 @@
                 "<body> is not closed here",
                 "<main> is not closed here"
             ],
-            "ms": 1.17,
+            "ms": 1.11,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -6154,50 +6154,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 7,
                     "passed": 7,
-                    "skipped": 5,
+                    "skipped": 6,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 4,
-                    "passed": 4,
+                    "tried": 5,
+                    "passed": 5,
                     "skipped": 8,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 4,
+                    "passed": 4,
                     "skipped": 9,
                     "failures": []
                 },
@@ -6221,7 +6221,7 @@
                 "<li> is not closed here",
                 "<li> is not closed here"
             ],
-            "ms": 0.37,
+            "ms": 0.42,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -6298,7 +6298,7 @@
                 "<td> is not closed here",
                 "<td> is not closed here"
             ],
-            "ms": 0.69,
+            "ms": 0.71,
             "nodes": {
                 "visual": 4,
                 "field": 2,
@@ -6382,51 +6382,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 2,
-                    "passed": 2,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 2,
+                    "skipped": 3,
                     "failures": []
                 },
                 "reorder": {
                     "tried": 1,
                     "passed": 1,
-                    "skipped": 1,
+                    "skipped": 2,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 2,
+                    "skipped": 3,
                     "failures": []
                 },
                 "insert inside": {
@@ -6448,7 +6448,7 @@
             "strays": [
                 "<section> is not closed here"
             ],
-            "ms": 0.35,
+            "ms": 0.57,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -6568,7 +6568,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.73,
+            "ms": 0.88,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6644,7 +6644,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.52,
+            "ms": 0.81,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6720,7 +6720,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.53,
+            "ms": 0.68,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6796,7 +6796,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.55,
+            "ms": 1.07,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6872,7 +6872,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.73,
+            "ms": 0.68,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6948,7 +6948,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.57,
+            "ms": 0.72,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -7024,7 +7024,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.57,
+            "ms": 0.56,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -7100,7 +7100,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.53,
+            "ms": 0.62,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -7176,7 +7176,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.91,
+            "ms": 1.23,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -7236,51 +7236,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 7,
                     "passed": 7,
-                    "skipped": 5,
+                    "skipped": 6,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 4,
-                    "passed": 4,
+                    "tried": 5,
+                    "passed": 5,
                     "skipped": 8,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 2,
                     "passed": 2,
-                    "skipped": 10,
+                    "skipped": 11,
                     "failures": []
                 },
                 "insert inside": {
@@ -7300,7 +7300,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.49,
+            "ms": 2.73,
             "nodes": {
                 "visual": 18,
                 "field": 0,
@@ -7424,7 +7424,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.9,
+            "ms": 0.82,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -7554,7 +7554,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.51,
+            "ms": 0.47,
             "nodes": {
                 "visual": 3,
                 "field": 1,
@@ -7708,7 +7708,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.11,
+            "ms": 1.08,
             "nodes": {
                 "visual": 8,
                 "field": 4,
@@ -7862,7 +7862,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.9,
+            "ms": 0.85,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -7944,7 +7944,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.89,
+            "ms": 0.9,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8074,7 +8074,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.56,
+            "ms": 2.03,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -8140,50 +8140,50 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 8,
                     "passed": 8,
-                    "skipped": 6,
+                    "skipped": 7,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 7,
+                    "passed": 7,
                     "skipped": 8,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 4,
+                    "passed": 4,
                     "skipped": 11,
                     "failures": []
                 },
@@ -8204,7 +8204,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.05,
+            "ms": 2.11,
             "nodes": {
                 "visual": 21,
                 "field": 3,
@@ -8358,7 +8358,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.75,
+            "ms": 0.86,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -8458,7 +8458,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.78,
+            "ms": 0.87,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -8576,7 +8576,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.35,
+            "ms": 0.43,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8694,7 +8694,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.5,
+            "ms": 0.46,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8812,7 +8812,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.37,
+            "ms": 0.39,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8930,7 +8930,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.58,
+            "ms": 0.57,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -9048,7 +9048,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.42,
+            "ms": 0.43,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9166,7 +9166,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.46,
+            "ms": 0.47,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9284,7 +9284,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.49,
+            "ms": 0.53,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -9402,7 +9402,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.48,
+            "ms": 0.46,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -9520,7 +9520,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.49,
+            "ms": 0.47,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -9638,7 +9638,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.5,
+            "ms": 0.6,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -9756,7 +9756,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.44,
+            "ms": 0.47,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -9874,7 +9874,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.5,
+            "ms": 0.47,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -9992,7 +9992,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.47,
+            "ms": 0.57,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -10110,7 +10110,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.01,
+            "ms": 0.97,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -10228,7 +10228,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.77,
+            "ms": 0.65,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -10346,7 +10346,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.14,
+            "ms": 1.13,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -10488,7 +10488,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 6.06,
+            "ms": 5.56,
             "nodes": {
                 "visual": 32,
                 "field": 2,
@@ -10578,51 +10578,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 35,
-                    "passed": 35,
+                    "tried": 39,
+                    "passed": 39,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 35,
-                    "passed": 35,
+                    "tried": 39,
+                    "passed": 39,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 35,
-                    "passed": 35,
+                    "tried": 39,
+                    "passed": 39,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 35,
-                    "passed": 35,
+                    "tried": 39,
+                    "passed": 39,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 35,
-                    "passed": 35,
+                    "tried": 39,
+                    "passed": 39,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 23,
                     "passed": 23,
-                    "skipped": 12,
+                    "skipped": 16,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 10,
-                    "passed": 10,
+                    "tried": 14,
+                    "passed": 14,
                     "skipped": 25,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 8,
-                    "passed": 8,
-                    "skipped": 27,
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 30,
                     "failures": []
                 },
                 "insert inside": {
@@ -10642,7 +10642,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 7.05,
+            "ms": 7.13,
             "nodes": {
                 "visual": 37,
                 "field": 2,
@@ -10732,51 +10732,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 38,
-                    "passed": 38,
+                    "tried": 44,
+                    "passed": 44,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 38,
-                    "passed": 38,
+                    "tried": 44,
+                    "passed": 44,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 38,
-                    "passed": 38,
+                    "tried": 44,
+                    "passed": 44,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 38,
-                    "passed": 38,
+                    "tried": 44,
+                    "passed": 44,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 38,
-                    "passed": 38,
+                    "tried": 44,
+                    "passed": 44,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 25,
                     "passed": 25,
-                    "skipped": 13,
+                    "skipped": 19,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 20,
+                    "passed": 20,
                     "skipped": 24,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 12,
-                    "passed": 12,
-                    "skipped": 26,
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 31,
                     "failures": []
                 },
                 "insert inside": {
@@ -10796,7 +10796,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.69,
+            "ms": 1.75,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -10938,7 +10938,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.79,
+            "ms": 0.81,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -11092,7 +11092,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.36,
+            "ms": 2.88,
             "nodes": {
                 "visual": 8,
                 "field": 2,
@@ -11234,7 +11234,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.95,
+            "ms": 1.67,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -11376,7 +11376,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.32,
+            "ms": 1.27,
             "nodes": {
                 "visual": 11,
                 "field": 2,
@@ -11530,7 +11530,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.43,
+            "ms": 0.48,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -11648,7 +11648,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.37,
+            "ms": 0.4,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -11766,7 +11766,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.44,
+            "ms": 1.5,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -11908,7 +11908,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.71,
+            "ms": 1.82,
             "nodes": {
                 "visual": 12,
                 "field": 1,
@@ -12050,7 +12050,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.07,
+            "ms": 1.91,
             "nodes": {
                 "visual": 15,
                 "field": 1,
@@ -12204,7 +12204,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.92,
+            "ms": 1,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -12346,7 +12346,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.07,
+            "ms": 1.9,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -12500,7 +12500,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.39,
+            "ms": 3.46,
             "nodes": {
                 "visual": 36,
                 "field": 21,
@@ -12606,7 +12606,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 4.98,
+            "ms": 5.86,
             "nodes": {
                 "visual": 22,
                 "field": 0,
@@ -12688,7 +12688,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.01,
+            "ms": 1.48,
             "nodes": {
                 "visual": 25,
                 "field": 0,
@@ -12772,51 +12772,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 25,
+                    "passed": 25,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 14,
                     "passed": 14,
-                    "skipped": 9,
+                    "skipped": 11,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 10,
-                    "passed": 10,
+                    "tried": 12,
+                    "passed": 12,
                     "skipped": 13,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 5,
                     "passed": 5,
-                    "skipped": 18,
+                    "skipped": 20,
                     "failures": []
                 },
                 "insert inside": {
@@ -12836,7 +12836,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.77,
+            "ms": 0.79,
             "nodes": {
                 "visual": 10,
                 "field": 1,
@@ -12978,7 +12978,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.42,
+            "ms": 0.46,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -13108,7 +13108,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.02,
+            "ms": 0.76,
             "nodes": {
                 "visual": 5,
                 "field": 1,
@@ -13250,7 +13250,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.09,
+            "ms": 1.12,
             "nodes": {
                 "visual": 19,
                 "field": 0,
@@ -13316,51 +13316,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 26,
+                    "passed": 26,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 26,
+                    "passed": 26,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 26,
+                    "passed": 26,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 26,
+                    "passed": 26,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 24,
-                    "passed": 24,
+                    "tried": 26,
+                    "passed": 26,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 13,
                     "passed": 13,
-                    "skipped": 11,
+                    "skipped": 13,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 10,
-                    "passed": 10,
+                    "tried": 12,
+                    "passed": 12,
                     "skipped": 14,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 22,
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 23,
                     "failures": []
                 },
                 "insert inside": {
@@ -13380,7 +13380,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.69,
+            "ms": 2.64,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -13422,51 +13422,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 8,
                     "passed": 8,
-                    "skipped": 6,
+                    "skipped": 10,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 9,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 14,
+                    "skipped": 18,
                     "failures": []
                 },
                 "insert inside": {
@@ -13486,7 +13486,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.46,
+            "ms": 0.47,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -13746,7 +13746,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.36,
+            "ms": 0.38,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -13876,7 +13876,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.38,
+            "ms": 0.37,
             "nodes": {
                 "visual": 1,
                 "field": 2,
@@ -13970,7 +13970,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.34,
+            "ms": 0.32,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -14052,7 +14052,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.37,
+            "ms": 0.42,
             "nodes": {
                 "visual": 1,
                 "field": 2,
@@ -14146,7 +14146,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.62,
+            "ms": 0.63,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -14240,7 +14240,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.88,
+            "ms": 4.67,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -14288,51 +14288,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 14,
-                    "passed": 14,
+                    "tried": 18,
+                    "passed": 18,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 8,
                     "passed": 8,
-                    "skipped": 6,
+                    "skipped": 10,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 5,
-                    "passed": 5,
+                    "tried": 9,
+                    "passed": 9,
                     "skipped": 9,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 14,
+                    "skipped": 18,
                     "failures": []
                 },
                 "insert inside": {
@@ -14352,7 +14352,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.36,
+            "ms": 0.41,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -14434,7 +14434,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.28,
+            "ms": 0.31,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -14516,7 +14516,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.34,
+            "ms": 1.41,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -14598,7 +14598,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3,
+            "ms": 3.36,
             "nodes": {
                 "visual": 18,
                 "field": 7,
@@ -14688,51 +14688,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 25,
-                    "passed": 25,
+                    "tried": 31,
+                    "passed": 31,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 25,
-                    "passed": 25,
+                    "tried": 31,
+                    "passed": 31,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 25,
-                    "passed": 25,
+                    "tried": 31,
+                    "passed": 31,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 25,
-                    "passed": 25,
+                    "tried": 31,
+                    "passed": 31,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 25,
-                    "passed": 25,
+                    "tried": 31,
+                    "passed": 31,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 8,
                     "passed": 8,
-                    "skipped": 17,
+                    "skipped": 23,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 10,
-                    "passed": 10,
+                    "tried": 16,
+                    "passed": 16,
                     "skipped": 15,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 1,
                     "passed": 1,
-                    "skipped": 24,
+                    "skipped": 30,
                     "failures": []
                 },
                 "insert inside": {
@@ -14752,7 +14752,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.11,
+            "ms": 3.69,
             "nodes": {
                 "visual": 28,
                 "field": 3,
@@ -14836,51 +14836,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 21,
                     "passed": 21,
-                    "skipped": 6,
+                    "skipped": 11,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 24,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 27,
+                    "skipped": 32,
                     "failures": []
                 },
                 "insert inside": {
@@ -14900,7 +14900,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 19.37,
+            "ms": 3.55,
             "nodes": {
                 "visual": 28,
                 "field": 3,
@@ -14984,51 +14984,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 32,
+                    "passed": 32,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 21,
                     "passed": 21,
-                    "skipped": 6,
+                    "skipped": 11,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 24,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 27,
+                    "skipped": 32,
                     "failures": []
                 },
                 "insert inside": {
@@ -15048,7 +15048,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 6.23,
+            "ms": 17.92,
             "nodes": {
                 "visual": 46,
                 "field": 6,
@@ -15138,51 +15138,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 56,
-                    "passed": 56,
+                    "tried": 63,
+                    "passed": 63,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 56,
-                    "passed": 56,
+                    "tried": 63,
+                    "passed": 63,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 56,
-                    "passed": 56,
+                    "tried": 63,
+                    "passed": 63,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 56,
-                    "passed": 56,
+                    "tried": 63,
+                    "passed": 63,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 56,
-                    "passed": 56,
+                    "tried": 63,
+                    "passed": 63,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 37,
                     "passed": 37,
-                    "skipped": 19,
+                    "skipped": 26,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 44,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 5,
                     "passed": 5,
-                    "skipped": 51,
+                    "skipped": 58,
                     "failures": []
                 },
                 "insert inside": {
@@ -15202,7 +15202,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.96,
+            "ms": 3.06,
             "nodes": {
                 "visual": 20,
                 "field": 3,
@@ -15274,51 +15274,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 23,
-                    "passed": 23,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 17,
                     "passed": 17,
-                    "skipped": 6,
+                    "skipped": 11,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 20,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 23,
+                    "skipped": 28,
                     "failures": []
                 },
                 "insert inside": {
@@ -15338,7 +15338,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.44,
+            "ms": 1.68,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -15404,51 +15404,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 11,
                     "passed": 11,
-                    "skipped": 6,
+                    "skipped": 8,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 16,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 17,
+                    "skipped": 19,
                     "failures": []
                 },
                 "insert inside": {
@@ -15468,7 +15468,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.56,
+            "ms": 1.47,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -15534,51 +15534,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 11,
                     "passed": 11,
-                    "skipped": 6,
+                    "skipped": 8,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 16,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 17,
+                    "skipped": 19,
                     "failures": []
                 },
                 "insert inside": {
@@ -15598,7 +15598,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.49,
+            "ms": 1.79,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -15670,51 +15670,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 17,
-                    "passed": 17,
+                    "tried": 19,
+                    "passed": 19,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 11,
                     "passed": 11,
-                    "skipped": 6,
+                    "skipped": 8,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 1,
-                    "passed": 1,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 16,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 0,
                     "passed": 0,
-                    "skipped": 17,
+                    "skipped": 19,
                     "failures": []
                 },
                 "insert inside": {
@@ -15734,7 +15734,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.66,
+            "ms": 1.58,
             "nodes": {
                 "visual": 8,
                 "field": 0,
@@ -15870,7 +15870,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 8.68,
+            "ms": 9.12,
             "nodes": {
                 "visual": 44,
                 "field": 7,
@@ -15942,51 +15942,51 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 59,
-                    "passed": 59,
+                    "tried": 64,
+                    "passed": 64,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 59,
-                    "passed": 59,
+                    "tried": 64,
+                    "passed": 64,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 59,
-                    "passed": 59,
+                    "tried": 64,
+                    "passed": 64,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 59,
-                    "passed": 59,
+                    "tried": 64,
+                    "passed": 64,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 59,
-                    "passed": 59,
+                    "tried": 64,
+                    "passed": 64,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
                     "tried": 30,
                     "passed": 30,
-                    "skipped": 29,
+                    "skipped": 34,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 12,
-                    "passed": 12,
+                    "tried": 17,
+                    "passed": 17,
                     "skipped": 47,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 4,
                     "passed": 4,
-                    "skipped": 55,
+                    "skipped": 60,
                     "failures": []
                 },
                 "insert inside": {
@@ -16006,7 +16006,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.62,
+            "ms": 0.49,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -16130,7 +16130,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.07,
+            "ms": 0.51,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -16248,7 +16248,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.39,
+            "ms": 0.41,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -16371,7 +16371,7 @@
             "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
             "identical": false,
             "compiles": true,
-            "ms": 0.36,
+            "ms": 0.38,
             "asExpected": null
         },
         {
@@ -16392,7 +16392,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.24,
+            "ms": 0.29,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -16426,7 +16426,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.38,
+            "ms": 0.36,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -16520,7 +16520,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.38,
+            "ms": 0.39,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -16644,7 +16644,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.37,
+            "ms": 0.43,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -16768,7 +16768,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.41,
+            "ms": 0.45,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -16950,7 +16950,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.31,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -16984,7 +16984,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.4,
+            "ms": 0.46,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -17072,7 +17072,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.37,
+            "ms": 0.38,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -17166,7 +17166,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.63,
+            "ms": 0.65,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -17300,7 +17300,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.4,
+            "ms": 0.37,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -17382,7 +17382,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.3,
+            "ms": 0.34,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -17464,7 +17464,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.31,
+            "ms": 0.35,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -17546,7 +17546,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.28,
+            "ms": 0.32,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -17580,7 +17580,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.37,
+            "ms": 0.24,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -17601,7 +17601,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.33,
+            "ms": 0.26,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -17635,7 +17635,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.52,
+            "ms": 0.27,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -17669,7 +17669,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.61,
+            "ms": 0.4,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -17763,7 +17763,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.31,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -17797,7 +17797,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.36,
+            "ms": 0.35,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -17927,7 +17927,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.34,
+            "ms": 0.32,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -18057,7 +18057,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.31,
+            "ms": 0.39,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -18187,7 +18187,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.63,
+            "ms": 0.56,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -18275,7 +18275,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.51,
+            "ms": 0.53,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -18417,7 +18417,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.51,
+            "ms": 0.56,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -18529,7 +18529,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.46,
+            "ms": 0.45,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -18599,7 +18599,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.5,
+            "ms": 0.48,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -18741,7 +18741,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.48,
+            "ms": 0.45,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -18871,7 +18871,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.55,
+            "ms": 0.71,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -19001,7 +19001,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.51,
+            "ms": 0.79,
             "nodes": {
                 "visual": 4,
                 "field": 3,
@@ -19143,7 +19143,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.76,
+            "ms": 0.78,
             "nodes": {
                 "visual": 10,
                 "field": 1,
@@ -19415,7 +19415,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.1,
+            "ms": 1.07,
             "nodes": {
                 "visual": 11,
                 "field": 0,
@@ -19509,7 +19509,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.32,
+            "ms": 0.41,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -19603,7 +19603,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.37,
+            "ms": 0.4,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -19697,7 +19697,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.32,
+            "ms": 0.38,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -19773,7 +19773,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1,
+            "ms": 1.03,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -19867,7 +19867,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.45,
+            "ms": 0.39,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -19937,7 +19937,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.38,
+            "ms": 0.37,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -20013,7 +20013,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.42,
+            "ms": 0.38,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -20095,7 +20095,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.44,
+            "ms": 0.53,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -20183,7 +20183,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.61,
+            "ms": 0.63,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -20271,7 +20271,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.42,
+            "ms": 0.51,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -20359,7 +20359,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.6,
+            "ms": 0.61,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -20429,7 +20429,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.3,
+            "ms": 0.51,
             "nodes": {
                 "visual": 1,
                 "field": 1,

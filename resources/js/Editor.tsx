@@ -5,6 +5,7 @@ import { Outlines, type Outline } from './canvas/Outlines';
 import { ApiError, applyOperations, copyToSite, listInserts, listTemplates, readTemplate, type Insertable, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
 import { pageOf, rememberPage } from './lib/memory';
+import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
 import { isAdminPath, sitePath } from './lib/path';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { boxesOf, findNode, rowFor } from './lib/tree';
@@ -520,16 +521,25 @@ export function Editor({ startPath }: Props) {
                   : null;
 
     const codeUnsaved = 'The code of this template has changes that are not saved. Save or revert them first.';
-    const insertLocked =
+    /** Why the open template can't be changed from the panels right now, when it can't. */
+    const fixed =
         template.state !== 'ready'
             ? (layersNote ?? 'No template is open.')
             : !template.data.editable
-              ? 'This is one of Sunrice’s own views: nothing can be put into it here.'
+              ? 'This is one of Sunrice’s own views: it can’t be changed here.'
               : tree === null
                 ? 'This template can only be edited as code.'
                 : unsaved
                   ? codeUnsaved
                   : null;
+
+    /** Moves, copies, unwraps or deletes a node, from a button or a key. */
+    const act = (id: string, action: Action) => {
+        const operation = fixed === null ? actionOn(tree, id, action) : null;
+        if (operation !== null) {
+            void apply([operation]);
+        }
+    };
 
     return (
         <div className="sve-shell" aria-busy={applying}>
@@ -596,7 +606,7 @@ export function Editor({ startPath }: Props) {
                         failed={inserts.state === 'failed' ? inserts.error : null}
                         tree={tree}
                         selected={selectedNode?.id ?? null}
-                        locked={insertLocked}
+                        locked={fixed}
                         busy={applying}
                         onInsert={(operation) => apply([operation])}
                         onClose={() => setInserting(false)}
@@ -610,8 +620,11 @@ export function Editor({ startPath }: Props) {
                     selected={selected}
                     lit={litNode}
                     collapsed={collapsed}
+                    fixed={applying || fixed !== null}
                     onSelect={select}
                     onPoint={setPointedNode}
+                    onMove={(id, drop) => void apply([moveTo(id, drop)])}
+                    onAct={act}
                     onToggle={(id) =>
                         setCollapsed((before) => {
                             const after = new Set(before);
@@ -655,7 +668,9 @@ export function Editor({ startPath }: Props) {
                         busy={applying}
                         refusals={refusals}
                         locked={unsaved ? codeUnsaved : null}
+                        can={actionsFor(tree, selectedNode.id)}
                         onApply={apply}
+                        onAct={(action) => act(selectedNode.id, action)}
                         onDeselect={() => setSelected(null)}
                     />
                 )}
