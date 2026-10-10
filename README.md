@@ -8,7 +8,11 @@ the same file in a code editor. That only works if the editor can read a Blade
 file into a tree, change one thing, and write the file back with nothing else
 disturbed. This repository holds the test of that idea and the code it needed.
 
-## Result
+What the package will do is in [SPEC.md](SPEC.md); the order of work is in
+[EXECUTION_PLAN.md](EXECUTION_PLAN.md). So far only the template tree and its
+test exist.
+
+## Result of the round-trip test
 
 The approach holds. Full numbers are in [spike/RESULTS.md](spike/RESULTS.md).
 
