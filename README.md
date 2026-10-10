@@ -2,17 +2,69 @@
 
 A visual template editor for [Sunrice CMS](https://github.com/littleboy130491/sunrice-cms), as a separate package.
 
-The plan is for the editor to work on the Blade files themselves: no database
-copy of a template and no second file beside it. A developer can keep editing
-the same file in a code editor. That only works if the editor can read a Blade
-file into a tree, change one thing, and write the file back with nothing else
-disturbed. This repository holds the test of that idea and the code it needed.
+It works on the Blade files themselves: no copy of a template in the database
+and no second file beside it. A developer can keep editing the same file in a
+code editor. The editor reads a Blade file into a tree, changes one thing, and
+writes the file back with nothing else disturbed.
 
 What the package will do is in [SPEC.md](SPEC.md); the order of work is in
-[EXECUTION_PLAN.md](EXECUTION_PLAN.md). So far there is the template tree with
-its tests, and the editor's empty screen in the Sunrice admin:
+[EXECUTION_PLAN.md](EXECUTION_PLAN.md).
 
-![The editor's screen: an address bar over the site, with empty panels for templates and settings](docs/screenshots/editor.png)
+![The editor: the homepage in a frame, the templates that draw it listed on the left, the hero block outlined on the page](docs/screenshots/editor.png)
+
+## What works today
+
+The first milestone of three: **see a page's templates, click through them, edit them as code.**
+
+- Open any page of the site in the editor. The left panel lists the Blade
+  files that draw it: layout, the page's own template, partials, blocks,
+  components.
+- Point at the page, or at a row, and the part that template draws is
+  outlined with its name. Click either to open the template. One click goes
+  back to the page's own template.
+- **Edit as code** opens the template's source under the page. Saving shows
+  the change on the page at once.
+- A save is refused, and nothing is written, when the code doesn't compile or
+  the file has changed on disk since it was opened. The previous version of
+  every saved file is kept in `storage/app/sunrice/template-backups/`.
+- Sunrice's own fallback views are shown read-only, with **Copy to site** to
+  get a copy the site uses and you can edit.
+- Saves appear in the admin's activity log.
+
+Not yet: changing a template without touching code (layers, settings, insert,
+drag) is the second milestone, and the field picker is the third. The template
+tree, the edits and the API they need are built and tested; the screens are
+not.
+
+## Using it
+
+The package is not on Packagist yet. To try it, run the demo site from this
+repository (`composer serve`, below), or require it from this repository in a
+Sunrice site and publish its script:
+
+```bash
+php artisan vendor:publish --tag=sunrice-visual-editor-assets
+```
+
+**Where it runs.** The editor writes Blade files, which run PHP on the server
+and belong in the project's git repository. It is on when `APP_ENV` is `local`
+and off otherwise. `SUNRICE_VISUAL_EDITOR=true` turns it on elsewhere, such as
+a staging copy; `false` turns it off locally. When it is off, the package adds
+no routes and changes nothing about how pages render.
+
+**Who can use it.** Super Admins, for now. Permissions of its own come later.
+
+**Opening it.** *Visual editor* in the admin's sidebar, under Manage, or
+directly:
+
+| Address | Opens |
+| --- | --- |
+| `/cms/visual-editor` | the homepage |
+| `/cms/visual-editor?url=/about` | that page of the site |
+
+`/cms` stands for the site's admin path. The `url` has to be a path on the
+site; anything else opens the homepage. A link like the second one can be put
+wherever it is handy, for instance in a bookmark for the page being worked on.
 
 ## Result of the round-trip test
 
@@ -84,14 +136,13 @@ For every template:
   a syntax error, or an `@if` whose `@endif` sits inside a tag (the
   `locked-…` fixtures). Such a file is edited as code.
 
-## Not covered
+## Not covered by the round-trip test
 
-- The check is on bytes and on compiling, not on rendered pages.
-- Component tags (`<x-sunrice::entries>`) are parsed and paired, but the
-  compile check runs without a Laravel application, so it leaves them as text.
-- Attribute editing beyond adding a class, and CSS.
-- An argument-less directive followed by text starting with `(` after a
-  deletion (`@else` + `(note)`) is not handled; a space doesn't fix that one.
+- The check is on bytes and on compiling, not on rendered pages. The editor
+  render has tests of its own (`tests/Feature/EditorRenderTest.php`).
+- The report (`composer spike`) runs without a Laravel application, so it
+  leaves component tags (`<x-sunrice::entries>`) as text when compiling. The
+  Pest tests run the same edits inside an application, where they compile.
 - Edits are checked to be syntactically safe, not meaningful: moving a
   `@php($image = …)` line below the place that uses `$image` still compiles.
 
@@ -108,6 +159,7 @@ npm install
 npm run typecheck
 npm run test:frontend
 npm run build          # resources/js and resources/css → dist/
+npm run test:bridge    # the frame's script in Chrome, against a fixture page
 ```
 
 `dist/` is committed. On a pull request, CI rebuilds it and commits the

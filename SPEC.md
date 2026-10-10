@@ -141,3 +141,5 @@ Today a developer writes the templates in a code editor while fields and content
 | 2 | Plain CSS or a Tailwind build as the main styling path? | Plain CSS in `public/sunrice-theme/`, as the starter templates use. |
 | 3 | May Sunrice core gain the three small public APIs in `EXECUTION_PLAN.md` Phase 0? | Yes; until they merge the package wraps the internals in one adapter class. |
 | 4 | Licence of this package. | Same as Sunrice (MIT); not stated in the repository yet. |
+| 5 | Is the code panel's own small editor enough, or is CodeMirror wanted (search and replace, several cursors, folding)? | Enough. It can be swapped in without changing anything around it. |
+| 6 | Should a draft's banner on the site carry an **Edit visually** link? Sunrice would need a hook for it. | No link; the editor is opened from the admin or by `?url=`. |

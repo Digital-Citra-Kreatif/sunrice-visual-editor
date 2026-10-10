@@ -107,6 +107,8 @@ sunrice-visual-editor/
 
 Sizes are rough guesses for one developer working with coding agents. Phases 1 and 2 have no UI and can run alongside Phase 0. V5.1–V5.3 are backend only and can run alongside Phases 3 and 4.
 
+**Where it stands:** Phases 0 to 3 are done and merged, which is milestone M1. Phase 4 is next. Where a task was built differently from what was first written here, its text below says what was built and why.
+
 ---
 
 ## Phase 0 — Skeleton
@@ -325,7 +327,9 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V3.5 Editor entry points
 **Depends on:** V3.3
-`{admin}/visual-editor?url=/about` opens that page. Add an **Edit visually** link to the draft banner shown to signed-in editors if Sunrice offers a hook; otherwise document the URL.
+- `{admin}/visual-editor?url=/about` opens that page (`EditorController::sitePath` keeps it to paths of the site; the address field refuses the admin's own address the same way).
+- Sunrice's draft banner (`sunrice::defaults.draft-banner`, put into the page by `PageController::renderDraft`) has no hook for a link of a package's, so there is no **Edit visually** link on it. Not filed with Sunrice yet; if wanted, it would be **C4**: a way for a package to add a link to the banner, such as `Sunrice::addDraftBannerLink(label, fn (Entry $entry, string $locale): ?string)`.
+- The README says what works at this milestone and how to open the editor.
 **Done when:** the query parameter works. **Milestone M1.**
 
 ---
