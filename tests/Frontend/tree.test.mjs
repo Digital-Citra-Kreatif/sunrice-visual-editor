@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { boxesOf, findNode, kindOf, pathTo, rows, shownChildren } from '../../resources/js/lib/tree.ts';
+import { boxesOf, findNode, kindOf, pathTo, rowFor, rows, shownChildren } from '../../resources/js/lib/tree.ts';
 
 /** A node as the server describes one, with only what these helpers read. */
 const node = (id, type, more = {}, children = undefined) => ({
@@ -79,6 +79,17 @@ test('leaves out what is under a collapsed row', () => {
         ['0', '10', '14', '30', '90', '100', '130', '150'],
     );
     assert.deepEqual(rows(tree, new Set(['0'])).map((row) => row.node.id), ['0', '150']);
+});
+
+test('finds the row that stands for a node', () => {
+    assert.equal(rowFor(tree, '104'), '104');
+    // The only arm of a loop has no row of its own: the loop's row stands for it.
+    assert.equal(rowFor(tree, 'b90'), '90');
+    // An @if with an @else lists both arms.
+    assert.equal(rowFor(tree, 'b30'), 'b30');
+    assert.equal(rowFor(tree, 'b50'), 'b50');
+    assert.equal(rowFor(tree, '999'), null);
+    assert.equal(rowFor(tree, null), null);
 });
 
 test('shows an element on the page as itself', () => {

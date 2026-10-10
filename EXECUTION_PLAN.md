@@ -347,8 +347,23 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V4.2 Settings panel
 **Depends on:** V4.1, V2.3
-Controls by node kind, each sending one operation: tag, id, class chips, attribute rows (static or expression), text; echo expression and raw toggle; condition; loop source and item name; include view and data; code node text. After each response the tree and frame refresh and the selection is restored by finding the edited node in the new tree (the operation response returns its new id).
-**Done when:** each control changes the file with the minimal diff (asserted in a feature test per operation type).
+- `resources/js/panels/SettingsPanel.tsx` — the right panel when a node is selected, above the template. A control for each thing that can be changed, by kind of node:
+
+  | Node | Controls |
+  | --- | --- |
+  | Element | Tag; ID; classes as chips, with one field to add; a row per other attribute, to change or remove; a row to add one. A value Blade prints stays Blade when changed, a plain one stays text. Attributes written as Blade on their own (`@class([…])`, `{{ $attributes }}`) are shown and left to the code |
+  | Text | the words, typed as text |
+  | Echo | what it prints; **Print as HTML** (`{!! !!}`) |
+  | `@if` and its like, `@elseif`, `@case` | the condition |
+  | `@foreach`, `@forelse` | what is looped over, and what each one is called |
+  | `@include` | the view, and the data passed to it |
+  | Any other directive with brackets | what is between them |
+  | Code, and anything else that can be moved | **As code**: the node as written, to rewrite |
+
+- A control sends one operation when it is left or Enter is pressed (Ctrl/⌘+Enter where a field has several lines); Escape puts back what was there. The file is saved, the page drawn again and the node stays selected, found again by the id the response gives.
+- A refusal is shown as a message, and the controls show the file again. While a change is being saved nothing else is sent and nothing else selected. While the code panel has unsaved changes the controls are off.
+- `Editor.redraw()` draws the page again without dropping what the panels show; V4.6 makes it seamless.
+**Done when:** each control changes the file with the minimal diff (asserted in a feature test per operation type: `tests/Feature/SettingsOperationsTest.php`).
 
 ### V4.3 Insert
 **Depends on:** V4.2

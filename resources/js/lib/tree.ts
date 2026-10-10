@@ -80,6 +80,22 @@ export function rows(tree: TreeNode | null, collapsed: ReadonlySet<string> = new
     return list;
 }
 
+/**
+ * The node whose row stands for a node in the panel: the node itself, or
+ * for the only arm of a block, which has no row of its own, the block.
+ * Null when the node isn't in the tree.
+ */
+export function rowFor(tree: TreeNode | null, id: string | null): string | null {
+    const path = pathTo(tree, id);
+    const node = path[path.length - 1];
+    const parent = path[path.length - 2];
+    if (node === undefined) {
+        return null;
+    }
+
+    return node.type === 'branch' && parent !== undefined && !shownChildren(parent).includes(node) ? parent.id : node.id;
+}
+
 /** Whether a node has a box of its own on the page: its opening tag was marked for the editor. */
 export function isMarked(node: TreeNode): boolean {
     return node.can.attributes;

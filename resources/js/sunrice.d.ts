@@ -22,7 +22,6 @@ interface SunriceApi {
     /** 'visual-editor' → '/cms/visual-editor', with the site's admin path. */
     adminUrl(path?: string): string;
     fetchJson<T = unknown>(url: string, init?: RequestInit): Promise<T>;
-    toast: { success(message: string): void; error(message: string): void };
 }
 
 declare global {

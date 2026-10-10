@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\View;
 use Sunrice\Models\ActivityLog;
 use Sunrice\VisualEditor\Actions\SaveTemplate;
 use Sunrice\VisualEditor\Templates\Conflict;
@@ -43,6 +44,26 @@ it('writes the new source and says which version the file has now', function () 
         ->and($version)->toBe(TemplateRepository::version($new))
         // Nothing is left beside the file.
         ->and(glob(dirname($this->file).'/.*.tmp'))->toBe([]);
+});
+
+it('drops Laravel\'s compiled copy, so the next page is drawn from the new file', function () {
+    $blade = app('blade.compiler');
+    $source = View::getFinder()->find('sunrice.partials.footer');
+    $blade->compile($source);
+    $compiled = $blade->getCompiledPath($source);
+    expect($compiled)->toBeFile();
+
+    $this->save->handle('partials/footer.blade.php', sha1($this->original), $this->original.'<p>sve-compiled-test</p>');
+
+    // Gone, whether or not Laravel would have looked at the file's time.
+    expect($compiled)->not->toBeFile()
+        ->and($blade->isExpired($source))->toBeTrue();
+
+    // A save that changes nothing leaves it alone.
+    $blade->compile($source);
+    $this->save->handle('partials/footer.blade.php', sha1($this->original.'<p>sve-compiled-test</p>'), $this->original.'<p>sve-compiled-test</p>');
+    expect($compiled)->toBeFile();
+    @unlink($compiled);
 });
 
 it('keeps the file readable as it was', function () {
