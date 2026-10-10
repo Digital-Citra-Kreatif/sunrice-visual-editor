@@ -12,15 +12,15 @@ namespace Sunrice\VisualEditor\Blade;
  *   label       an echo of a translation string: {{ __('…') }}
  *   expression  an echo of any other PHP expression: shown as a chip, edited as text
  *   mixed       an element whose tag holds a directive: movable, attributes edited as text
- *   code        kept verbatim and edited as text: @php, @switch, unknown directives
+ *   code        kept verbatim and edited as text: @php, @while, unknown directives
  */
 final class Classifier
 {
     /** Paired directives the editor can show as a condition, a loop or a region. */
-    private const STRUCTURE = ['if', 'unless', 'isset', 'empty', 'foreach', 'forelse', 'for', 'section', 'push', 'prepend', 'once', 'auth', 'guest', 'env', 'production', 'error'];
+    private const STRUCTURE = ['if', 'unless', 'isset', 'empty', 'foreach', 'forelse', 'for', 'switch', 'section', 'push', 'prepend', 'once', 'auth', 'guest', 'env', 'production', 'error'];
 
     /** Single directives the editor understands. */
-    private const KNOWN = ['include', 'includeif', 'includewhen', 'includeunless', 'includefirst', 'each', 'extends', 'yield', 'stack', 'section', 'csrf', 'method', 'empty'];
+    private const KNOWN = ['include', 'includeif', 'includewhen', 'includeunless', 'includefirst', 'each', 'extends', 'yield', 'stack', 'section', 'csrf', 'method', 'empty', 'break', 'continue'];
 
     private const PATH = '/^\$[A-Za-z_]\w*(?:\??->\w+(?:\((?:\s*(?:\'[^\']*\'|"[^"]*"|\d+|\$\w+)\s*(?:,\s*(?:\'[^\']*\'|"[^"]*"|\d+|\$\w+)\s*)*)?\))?|\[(?:\'[^\']*\'|"[^"]*"|\d+)\])*$/';
 

@@ -12,6 +12,9 @@ use ParseError;
  */
 final class Content
 {
+    /** Directives that don't compile without brackets. */
+    private const NEEDS_ARGUMENTS = ['if', 'elseif', 'unless', 'isset', 'foreach', 'forelse', 'for', 'while', 'switch', 'case'];
+
     public static function setText(Node $text, string $words): void
     {
         if ($text->type !== 'text' || $text->parent === null) {
@@ -57,6 +60,12 @@ final class Content
         // With brackets @empty($x) opens a block; without, it is an arm of @forelse.
         if ($directive->name === 'empty' && ($arguments === null) !== ($directive->args === null)) {
             throw new EditRejected('@empty means something else with and without brackets.');
+        }
+        if ($arguments !== null && in_array($directive->name, ['else', 'default'], true)) {
+            throw new EditRejected("@{$directive->name} takes no arguments.");
+        }
+        if ($arguments === null && in_array($directive->name, self::NEEDS_ARGUMENTS, true)) {
+            throw new EditRejected("@{$directive->name} needs something between its brackets.");
         }
 
         $new = '@'.$match[1].($arguments === null ? '' : ($directive->args === null ? '' : $match[2]).'('.$arguments.')');

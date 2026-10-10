@@ -7,7 +7,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 27.67,
+            "ms": 29.03,
             "nodes": {
                 "visual": 33,
                 "field": 6,
@@ -131,6 +131,12 @@
                     "passed": 3,
                     "skipped": 42,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 30,
+                    "passed": 30,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -142,7 +148,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.81,
+            "ms": 0.82,
             "nodes": {
                 "visual": 11,
                 "field": 2,
@@ -272,6 +278,12 @@
                     "passed": 1,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -283,16 +295,16 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 8.34,
+            "ms": 6.52,
             "nodes": {
-                "visual": 8,
-                "field": 2,
+                "visual": 16,
+                "field": 4,
                 "label": 0,
-                "expression": 1,
-                "mixed": 0,
+                "expression": 2,
+                "mixed": 6,
                 "code": 4
             },
-            "codeBytes": 2049,
+            "codeBytes": 482,
             "edits": {
                 "add class": {
                     "tried": 12,
@@ -331,26 +343,26 @@
                     "failures": []
                 },
                 "add field": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 8,
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 4,
                     "failures": []
                 },
                 "change expression": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 0,
                     "failures": []
                 },
                 "switch escaping": {
-                    "tried": 3,
-                    "passed": 3,
+                    "tried": 6,
+                    "passed": 6,
                     "skipped": 0,
                     "failures": []
                 },
                 "change arguments": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 13,
+                    "passed": 13,
                     "skipped": 0,
                     "failures": []
                 },
@@ -361,51 +373,57 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 15,
-                    "passed": 15,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 15,
-                    "passed": 15,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 15,
-                    "passed": 15,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 15,
-                    "passed": 15,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 15,
-                    "passed": 15,
+                    "tried": 28,
+                    "passed": 28,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
-                    "tried": 8,
-                    "passed": 8,
-                    "skipped": 7,
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 15,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 9,
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 19,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 14,
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 25,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 18,
+                    "passed": 18,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -418,7 +436,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.14,
+            "ms": 2.31,
             "nodes": {
                 "visual": 7,
                 "field": 1,
@@ -536,6 +554,12 @@
                     "passed": 1,
                     "skipped": 7,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -547,7 +571,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.85,
+            "ms": 1.79,
             "nodes": {
                 "visual": 7,
                 "field": 2,
@@ -671,6 +695,12 @@
                     "passed": 1,
                     "skipped": 11,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -682,7 +712,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.84,
+            "ms": 0.66,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -794,6 +824,12 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -805,7 +841,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 6.68,
+            "ms": 6.33,
             "nodes": {
                 "visual": 15,
                 "field": 3,
@@ -929,6 +965,12 @@
                     "passed": 2,
                     "skipped": 21,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -940,7 +982,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 6.65,
+            "ms": 3.83,
             "nodes": {
                 "visual": 18,
                 "field": 0,
@@ -1046,6 +1088,12 @@
                     "passed": 2,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -1057,7 +1105,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.13,
+            "ms": 2.17,
             "nodes": {
                 "visual": 13,
                 "field": 4,
@@ -1181,6 +1229,12 @@
                     "passed": 1,
                     "skipped": 18,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -1192,16 +1246,16 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 14.33,
+            "ms": 10.76,
             "nodes": {
-                "visual": 19,
-                "field": 4,
-                "label": 3,
-                "expression": 1,
-                "mixed": 1,
+                "visual": 37,
+                "field": 8,
+                "label": 4,
+                "expression": 3,
+                "mixed": 5,
                 "code": 1
             },
-            "codeBytes": 2463,
+            "codeBytes": 332,
             "edits": {
                 "add class": {
                     "tried": 23,
@@ -1240,9 +1294,9 @@
                     "failures": []
                 },
                 "add field": {
-                    "tried": 12,
-                    "passed": 12,
-                    "skipped": 11,
+                    "tried": 19,
+                    "passed": 19,
+                    "skipped": 4,
                     "failures": []
                 },
                 "change text": {
@@ -1258,20 +1312,20 @@
                     "failures": []
                 },
                 "change expression": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "switch escaping": {
-                    "tried": 8,
-                    "passed": 8,
+                    "tried": 15,
+                    "passed": 15,
                     "skipped": 0,
                     "failures": []
                 },
                 "change arguments": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 17,
+                    "passed": 17,
                     "skipped": 0,
                     "failures": []
                 },
@@ -1282,51 +1336,57 @@
                     "failures": []
                 },
                 "delete": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 27,
-                    "passed": 27,
+                    "tried": 51,
+                    "passed": 51,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
-                    "tried": 18,
-                    "passed": 18,
-                    "skipped": 9,
+                    "tried": 29,
+                    "passed": 29,
+                    "skipped": 22,
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 8,
-                    "passed": 8,
-                    "skipped": 19,
+                    "tried": 15,
+                    "passed": 15,
+                    "skipped": 36,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 3,
                     "passed": 3,
-                    "skipped": 24,
+                    "skipped": 48,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 36,
+                    "passed": 36,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -1339,7 +1399,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.24,
+            "ms": 2.35,
             "nodes": {
                 "visual": 14,
                 "field": 1,
@@ -1475,6 +1535,12 @@
                     "passed": 2,
                     "skipped": 16,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 12,
+                    "passed": 12,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -1486,7 +1552,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.04,
+            "ms": 3.22,
             "nodes": {
                 "visual": 15,
                 "field": 0,
@@ -1610,6 +1676,12 @@
                     "passed": 4,
                     "skipped": 14,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -1621,7 +1693,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.72,
+            "ms": 1.52,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -1745,6 +1817,12 @@
                     "passed": 0,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -1756,7 +1834,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.63,
+            "ms": 2.03,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -1874,6 +1952,12 @@
                     "passed": 0,
                     "skipped": 7,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -1885,7 +1969,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.62,
+            "ms": 3.09,
             "nodes": {
                 "visual": 20,
                 "field": 3,
@@ -2003,6 +2087,12 @@
                     "passed": 1,
                     "skipped": 26,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 24,
+                    "passed": 24,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -2014,7 +2104,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.07,
+            "ms": 1.76,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -2126,6 +2216,12 @@
                     "passed": 1,
                     "skipped": 4,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -2137,7 +2233,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 5.18,
+            "ms": 3.07,
             "nodes": {
                 "visual": 16,
                 "field": 3,
@@ -2255,6 +2351,12 @@
                     "passed": 2,
                     "skipped": 22,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 16,
+                    "passed": 16,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -2266,7 +2368,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 5.46,
+            "ms": 4.08,
             "nodes": {
                 "visual": 13,
                 "field": 2,
@@ -2390,6 +2492,12 @@
                     "passed": 1,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -2401,7 +2509,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.33,
+            "ms": 27.43,
             "nodes": {
                 "visual": 16,
                 "field": 5,
@@ -2525,6 +2633,12 @@
                     "passed": 2,
                     "skipped": 22,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 15,
+                    "passed": 15,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -2538,7 +2652,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.51,
+            "ms": 0.35,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -2619,7 +2733,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.38,
+            "ms": 2.13,
             "nodes": {
                 "visual": 12,
                 "field": 2,
@@ -2737,6 +2851,12 @@
                     "passed": 1,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -2748,7 +2868,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 5.11,
+            "ms": 3.39,
             "nodes": {
                 "visual": 34,
                 "field": 1,
@@ -2866,6 +2986,12 @@
                     "passed": 0,
                     "skipped": 35,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 15,
+                    "passed": 15,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -2877,7 +3003,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.91,
+            "ms": 0.86,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -2989,6 +3115,12 @@
                     "passed": 2,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -3000,7 +3132,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.59,
+            "ms": 1.53,
             "nodes": {
                 "visual": 15,
                 "field": 3,
@@ -3118,6 +3250,12 @@
                     "passed": 3,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -3129,7 +3267,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.74,
+            "ms": 1.8,
             "nodes": {
                 "visual": 18,
                 "field": 2,
@@ -3247,6 +3385,12 @@
                     "passed": 5,
                     "skipped": 19,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 12,
+                    "passed": 12,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -3258,7 +3402,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.69,
+            "ms": 1.86,
             "nodes": {
                 "visual": 14,
                 "field": 0,
@@ -3376,6 +3520,12 @@
                     "passed": 2,
                     "skipped": 16,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -3387,7 +3537,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.45,
+            "ms": 1.98,
             "nodes": {
                 "visual": 15,
                 "field": 4,
@@ -3505,6 +3655,12 @@
                     "passed": 3,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -3516,7 +3672,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.39,
+            "ms": 1.62,
             "nodes": {
                 "visual": 11,
                 "field": 0,
@@ -3652,6 +3808,12 @@
                     "passed": 3,
                     "skipped": 11,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -3663,7 +3825,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.14,
+            "ms": 1.16,
             "nodes": {
                 "visual": 16,
                 "field": 0,
@@ -3792,6 +3954,12 @@
                     "tried": 5,
                     "passed": 5,
                     "skipped": 14,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -3804,7 +3972,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.63,
+            "ms": 1.21,
             "nodes": {
                 "visual": 16,
                 "field": 0,
@@ -3933,6 +4101,12 @@
                     "tried": 5,
                     "passed": 5,
                     "skipped": 14,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -3947,7 +4121,7 @@
             "reason": "@endif arrives while <a> is still open",
             "identical": false,
             "compiles": true,
-            "ms": 0.65,
+            "ms": 0.86,
             "asExpected": true
         },
         {
@@ -3957,7 +4131,7 @@
             "reason": "@else arrives while <div> is still open",
             "identical": false,
             "compiles": true,
-            "ms": 0.64,
+            "ms": 0.51,
             "asExpected": true
         },
         {
@@ -3967,7 +4141,7 @@
             "reason": "</ul> does not close <li>",
             "identical": false,
             "compiles": true,
-            "ms": 0.32,
+            "ms": 0.28,
             "asExpected": true
         },
         {
@@ -3977,7 +4151,7 @@
             "reason": "</div> does not close the template root",
             "identical": false,
             "compiles": true,
-            "ms": 0.32,
+            "ms": 0.25,
             "asExpected": true
         },
         {
@@ -3987,7 +4161,7 @@
             "reason": "<section> is never closed",
             "identical": false,
             "compiles": true,
-            "ms": 0.32,
+            "ms": 0.34,
             "asExpected": true
         },
         {
@@ -3997,7 +4171,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.73,
+            "ms": 0.66,
             "nodes": {
                 "visual": 13,
                 "field": 1,
@@ -4127,6 +4301,12 @@
                     "passed": 1,
                     "skipped": 7,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": true
@@ -4138,9 +4318,9 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.47,
+            "ms": 1.48,
             "nodes": {
-                "visual": 7,
+                "visual": 6,
                 "field": 1,
                 "label": 1,
                 "expression": 0,
@@ -4246,15 +4426,21 @@
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 5,
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 6,
                     "failures": []
                 },
                 "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 7,
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 8,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -4267,7 +4453,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.04,
+            "ms": 1.08,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -4385,6 +4571,12 @@
                     "passed": 0,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": true
@@ -4396,7 +4588,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.74,
+            "ms": 1,
             "nodes": {
                 "visual": 11,
                 "field": 3,
@@ -4526,6 +4718,12 @@
                     "passed": 2,
                     "skipped": 7,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": true
@@ -4537,7 +4735,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.11,
+            "ms": 1.25,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -4655,6 +4853,12 @@
                     "passed": 0,
                     "skipped": 11,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": true
@@ -4666,16 +4870,16 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.99,
+            "ms": 1.31,
             "nodes": {
-                "visual": 3,
-                "field": 0,
+                "visual": 7,
+                "field": 2,
                 "label": 0,
                 "expression": 0,
                 "mixed": 0,
-                "code": 4
+                "code": 3
             },
-            "codeBytes": 452,
+            "codeBytes": 235,
             "edits": {
                 "add class": {
                     "tried": 4,
@@ -4714,9 +4918,9 @@
                     "failures": []
                 },
                 "add field": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 2,
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
                     "failures": []
                 },
                 "change text": {
@@ -4731,58 +4935,82 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "rewrite code": {
-                    "tried": 4,
-                    "passed": 4,
+                    "tried": 3,
+                    "passed": 3,
                     "skipped": 0,
                     "failures": []
                 },
                 "delete": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "duplicate": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert after": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "insert before": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "wrap": {
-                    "tried": 6,
-                    "passed": 6,
+                    "tried": 10,
+                    "passed": 10,
                     "skipped": 0,
                     "failures": []
                 },
                 "unwrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 4,
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 6,
                     "failures": []
                 },
                 "reorder": {
                     "tried": 4,
                     "passed": 4,
-                    "skipped": 2,
+                    "skipped": 6,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 2,
                     "passed": 2,
-                    "skipped": 4,
+                    "skipped": 8,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -4795,7 +5023,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.54,
+            "ms": 0.53,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -4895,6 +5123,12 @@
                     "passed": 1,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": true
@@ -4906,7 +5140,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.48,
+            "ms": 0.54,
             "nodes": {
                 "visual": 8,
                 "field": 0,
@@ -5006,6 +5240,12 @@
                     "passed": 1,
                     "skipped": 7,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": true
@@ -5019,7 +5259,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.87,
+            "ms": 0.72,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5094,7 +5334,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.58,
+            "ms": 0.56,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5169,7 +5409,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.13,
+            "ms": 0.55,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5244,7 +5484,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.63,
+            "ms": 0.51,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5319,7 +5559,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.74,
+            "ms": 0.48,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5394,7 +5634,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.47,
+            "ms": 0.5,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5469,7 +5709,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.61,
+            "ms": 0.49,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5544,7 +5784,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.55,
+            "ms": 0.52,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5619,7 +5859,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.17,
+            "ms": 1.08,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -5725,6 +5965,12 @@
                     "passed": 2,
                     "skipped": 10,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -5736,7 +5982,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.87,
+            "ms": 2.43,
             "nodes": {
                 "visual": 18,
                 "field": 0,
@@ -5842,6 +6088,12 @@
                     "passed": 3,
                     "skipped": 13,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -5853,7 +6105,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.89,
+            "ms": 0.81,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -5965,6 +6217,12 @@
                     "passed": 1,
                     "skipped": 3,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -5976,7 +6234,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.56,
+            "ms": 0.54,
             "nodes": {
                 "visual": 3,
                 "field": 1,
@@ -6112,6 +6370,12 @@
                     "passed": 1,
                     "skipped": 3,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -6123,7 +6387,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.7,
+            "ms": 1.1,
             "nodes": {
                 "visual": 8,
                 "field": 4,
@@ -6259,6 +6523,12 @@
                     "passed": 3,
                     "skipped": 10,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -6270,7 +6540,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.82,
+            "ms": 0.88,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -6351,7 +6621,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.82,
+            "ms": 1.27,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -6463,6 +6733,12 @@
                     "passed": 1,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -6474,7 +6750,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.05,
+            "ms": 3.51,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -6586,6 +6862,12 @@
                     "passed": 3,
                     "skipped": 11,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -6597,7 +6879,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.03,
+            "ms": 3.3,
             "nodes": {
                 "visual": 21,
                 "field": 3,
@@ -6733,6 +7015,12 @@
                     "passed": 6,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 14,
+                    "passed": 14,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -6744,7 +7032,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.84,
+            "ms": 0.88,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -6826,6 +7114,12 @@
                     "passed": 0,
                     "skipped": 5,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -6837,7 +7131,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.74,
+            "ms": 0.78,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -6937,6 +7231,12 @@
                     "passed": 1,
                     "skipped": 5,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -6948,7 +7248,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.35,
+            "ms": 0.48,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -7047,6 +7347,12 @@
                     "tried": 0,
                     "passed": 0,
                     "skipped": 2,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -7054,117 +7360,6 @@
         },
         {
             "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevron-left.blade.php",
-            "bytes": 235,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "ms": 0.41,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 0
-            },
-            "codeBytes": 17,
-            "edits": {
-                "add class": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 9,
-                    "passed": 9,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 9,
-                    "passed": 9,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevron-right.blade.php",
             "bytes": 235,
             "opens": true,
             "reason": null,
@@ -7270,573 +7465,24 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
         },
         {
-            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevrons-down-up.blade.php",
-            "bytes": 601,
+            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevron-right.blade.php",
+            "bytes": 235,
             "opens": true,
             "reason": null,
             "identical": true,
             "compiles": true,
             "ms": 0.46,
-            "nodes": {
-                "visual": 6,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 0
-            },
-            "codeBytes": 17,
-            "edits": {
-                "add class": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 20,
-                    "passed": 20,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 20,
-                    "passed": 20,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 4,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 4,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 5,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 6,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevrons-left.blade.php",
-            "bytes": 335,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "ms": 0.43,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 0
-            },
-            "codeBytes": 17,
-            "edits": {
-                "add class": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 13,
-                    "passed": 13,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 13,
-                    "passed": 13,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevrons-right.blade.php",
-            "bytes": 335,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "ms": 0.38,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 0
-            },
-            "codeBytes": 17,
-            "edits": {
-                "add class": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 13,
-                    "passed": 13,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 13,
-                    "passed": 13,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevrons-up-down.blade.php",
-            "bytes": 570,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "ms": 0.5,
-            "nodes": {
-                "visual": 6,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 0
-            },
-            "codeBytes": 17,
-            "edits": {
-                "add class": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 19,
-                    "passed": 19,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 19,
-                    "passed": 19,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 4,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 4,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 5,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 6,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/copy.blade.php",
-            "bytes": 445,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "ms": 0.46,
-            "nodes": {
-                "visual": 5,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 0
-            },
-            "codeBytes": 17,
-            "edits": {
-                "add class": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 13,
-                    "passed": 13,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 13,
-                    "passed": 13,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 5,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 5,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/database.blade.php",
-            "bytes": 584,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "ms": 0.43,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -7936,6 +7582,714 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                }
+            },
+            "asExpected": null
+        },
+        {
+            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevrons-down-up.blade.php",
+            "bytes": 601,
+            "opens": true,
+            "reason": null,
+            "identical": true,
+            "compiles": true,
+            "ms": 0.97,
+            "nodes": {
+                "visual": 6,
+                "field": 0,
+                "label": 0,
+                "expression": 0,
+                "mixed": 1,
+                "code": 0
+            },
+            "codeBytes": 17,
+            "edits": {
+                "add class": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove class": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "add attribute": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change attribute": {
+                    "tried": 20,
+                    "passed": 20,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove attribute": {
+                    "tried": 20,
+                    "passed": 20,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rename": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 4,
+                    "failures": []
+                },
+                "add field": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "delete": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "duplicate": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert after": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert before": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "wrap": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "unwrap": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 4,
+                    "failures": []
+                },
+                "reorder": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 5,
+                    "failures": []
+                },
+                "move inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 6,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                }
+            },
+            "asExpected": null
+        },
+        {
+            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevrons-left.blade.php",
+            "bytes": 335,
+            "opens": true,
+            "reason": null,
+            "identical": true,
+            "compiles": true,
+            "ms": 0.46,
+            "nodes": {
+                "visual": 2,
+                "field": 0,
+                "label": 0,
+                "expression": 0,
+                "mixed": 1,
+                "code": 0
+            },
+            "codeBytes": 17,
+            "edits": {
+                "add class": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove class": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "add attribute": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change attribute": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove attribute": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rename": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "add field": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "delete": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "duplicate": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert after": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert before": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "wrap": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "unwrap": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "reorder": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "move inside": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                }
+            },
+            "asExpected": null
+        },
+        {
+            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevrons-right.blade.php",
+            "bytes": 335,
+            "opens": true,
+            "reason": null,
+            "identical": true,
+            "compiles": true,
+            "ms": 0.43,
+            "nodes": {
+                "visual": 2,
+                "field": 0,
+                "label": 0,
+                "expression": 0,
+                "mixed": 1,
+                "code": 0
+            },
+            "codeBytes": 17,
+            "edits": {
+                "add class": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove class": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "add attribute": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change attribute": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove attribute": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rename": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "add field": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "delete": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "duplicate": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert after": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert before": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "wrap": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "unwrap": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "reorder": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "move inside": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                }
+            },
+            "asExpected": null
+        },
+        {
+            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/chevrons-up-down.blade.php",
+            "bytes": 570,
+            "opens": true,
+            "reason": null,
+            "identical": true,
+            "compiles": true,
+            "ms": 0.51,
+            "nodes": {
+                "visual": 6,
+                "field": 0,
+                "label": 0,
+                "expression": 0,
+                "mixed": 1,
+                "code": 0
+            },
+            "codeBytes": 17,
+            "edits": {
+                "add class": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove class": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "add attribute": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change attribute": {
+                    "tried": 19,
+                    "passed": 19,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove attribute": {
+                    "tried": 19,
+                    "passed": 19,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rename": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 4,
+                    "failures": []
+                },
+                "add field": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "delete": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "duplicate": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert after": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert before": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "wrap": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "unwrap": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 4,
+                    "failures": []
+                },
+                "reorder": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 5,
+                    "failures": []
+                },
+                "move inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 6,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                }
+            },
+            "asExpected": null
+        },
+        {
+            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/copy.blade.php",
+            "bytes": 445,
+            "opens": true,
+            "reason": null,
+            "identical": true,
+            "compiles": true,
+            "ms": 0.86,
+            "nodes": {
+                "visual": 5,
+                "field": 0,
+                "label": 0,
+                "expression": 0,
+                "mixed": 1,
+                "code": 0
+            },
+            "codeBytes": 17,
+            "edits": {
+                "add class": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove class": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "add attribute": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change attribute": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove attribute": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rename": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "add field": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "delete": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "duplicate": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert after": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert before": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "wrap": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "unwrap": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 3,
+                    "failures": []
+                },
+                "reorder": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 5,
+                    "failures": []
+                },
+                "move inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 5,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                }
+            },
+            "asExpected": null
+        },
+        {
+            "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/icons/database.blade.php",
+            "bytes": 584,
+            "opens": true,
+            "reason": null,
+            "identical": true,
+            "compiles": true,
+            "ms": 0.76,
+            "nodes": {
+                "visual": 1,
+                "field": 0,
+                "label": 0,
+                "expression": 0,
+                "mixed": 1,
+                "code": 0
+            },
+            "codeBytes": 17,
+            "edits": {
+                "add class": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove class": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "add attribute": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change attribute": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "remove attribute": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rename": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "add field": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 1,
+                    "failures": []
+                },
+                "delete": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "duplicate": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert after": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "insert before": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "wrap": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "unwrap": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "reorder": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "move inside": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 2,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -7947,7 +8301,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.59,
+            "ms": 0.96,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -8047,6 +8401,12 @@
                     "passed": 1,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -8058,7 +8418,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.44,
+            "ms": 0.49,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -8157,6 +8517,12 @@
                     "tried": 0,
                     "passed": 0,
                     "skipped": 4,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -8269,6 +8635,12 @@
                     "passed": 0,
                     "skipped": 4,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -8280,7 +8652,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.44,
+            "ms": 0.64,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -8380,6 +8752,12 @@
                     "passed": 0,
                     "skipped": 4,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -8391,7 +8769,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.08,
+            "ms": 1.25,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -8491,6 +8869,12 @@
                     "passed": 0,
                     "skipped": 5,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -8502,7 +8886,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.74,
+            "ms": 0.65,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -8602,6 +8986,12 @@
                     "passed": 0,
                     "skipped": 4,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -8613,7 +9003,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.19,
+            "ms": 1.28,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -8737,6 +9127,12 @@
                     "passed": 3,
                     "skipped": 10,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -8748,7 +9144,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 5.73,
+            "ms": 5.99,
             "nodes": {
                 "visual": 32,
                 "field": 2,
@@ -8884,6 +9280,12 @@
                     "passed": 8,
                     "skipped": 27,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 29,
+                    "passed": 29,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -8895,9 +9297,9 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 7.39,
+            "ms": 6.77,
             "nodes": {
-                "visual": 38,
+                "visual": 37,
                 "field": 2,
                 "label": 0,
                 "expression": 0,
@@ -9021,15 +9423,21 @@
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 15,
-                    "passed": 15,
-                    "skipped": 23,
+                    "tried": 14,
+                    "passed": 14,
+                    "skipped": 24,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 12,
                     "passed": 12,
                     "skipped": 26,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 27,
+                    "passed": 27,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -9042,7 +9450,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.09,
+            "ms": 1.38,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -9166,6 +9574,12 @@
                     "passed": 1,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9177,7 +9591,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.79,
+            "ms": 0.74,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -9313,6 +9727,12 @@
                     "passed": 4,
                     "skipped": 8,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9324,7 +9744,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.4,
+            "ms": 2.25,
             "nodes": {
                 "visual": 8,
                 "field": 2,
@@ -9448,6 +9868,12 @@
                     "passed": 3,
                     "skipped": 10,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9459,7 +9885,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.92,
+            "ms": 1.19,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -9583,6 +10009,12 @@
                     "passed": 1,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9594,9 +10026,9 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.38,
+            "ms": 1.33,
             "nodes": {
-                "visual": 12,
+                "visual": 11,
                 "field": 2,
                 "label": 0,
                 "expression": 0,
@@ -9720,15 +10152,21 @@
                     "failures": []
                 },
                 "reorder": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 8,
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 9,
                     "failures": []
                 },
                 "move inside": {
                     "tried": 4,
                     "passed": 4,
                     "skipped": 9,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -9741,7 +10179,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.44,
+            "ms": 0.81,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -9840,6 +10278,12 @@
                     "tried": 0,
                     "passed": 0,
                     "skipped": 2,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -9952,6 +10396,12 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9963,7 +10413,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.7,
+            "ms": 1.56,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -10087,6 +10537,12 @@
                     "passed": 2,
                     "skipped": 4,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -10098,7 +10554,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.68,
+            "ms": 3.11,
             "nodes": {
                 "visual": 12,
                 "field": 1,
@@ -10222,6 +10678,12 @@
                     "passed": 4,
                     "skipped": 10,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -10233,7 +10695,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.3,
+            "ms": 3.59,
             "nodes": {
                 "visual": 15,
                 "field": 1,
@@ -10369,6 +10831,12 @@
                     "passed": 3,
                     "skipped": 13,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -10380,7 +10848,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.89,
+            "ms": 0.96,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -10504,6 +10972,12 @@
                     "passed": 1,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -10515,7 +10989,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.93,
+            "ms": 1.96,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -10651,6 +11125,12 @@
                     "passed": 4,
                     "skipped": 12,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -10662,9 +11142,9 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.18,
+            "ms": 3.36,
             "nodes": {
-                "visual": 39,
+                "visual": 36,
                 "field": 21,
                 "label": 0,
                 "expression": 5,
@@ -10750,6 +11230,12 @@
                     "passed": 0,
                     "skipped": 34,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 12,
+                    "passed": 12,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -10761,7 +11247,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 5.19,
+            "ms": 4.34,
             "nodes": {
                 "visual": 22,
                 "field": 0,
@@ -10825,6 +11311,12 @@
                     "passed": 0,
                     "skipped": 22,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -10836,7 +11328,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.3,
+            "ms": 1.37,
             "nodes": {
                 "visual": 25,
                 "field": 0,
@@ -10966,6 +11458,12 @@
                     "passed": 5,
                     "skipped": 18,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 14,
+                    "passed": 14,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -10977,7 +11475,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.04,
+            "ms": 1.13,
             "nodes": {
                 "visual": 10,
                 "field": 1,
@@ -11101,6 +11599,12 @@
                     "passed": 1,
                     "skipped": 11,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -11112,7 +11616,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.46,
+            "ms": 0.91,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -11224,6 +11728,12 @@
                     "passed": 0,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -11235,7 +11745,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.69,
+            "ms": 0.68,
             "nodes": {
                 "visual": 5,
                 "field": 1,
@@ -11359,6 +11869,12 @@
                     "passed": 1,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -11370,7 +11886,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.15,
+            "ms": 1.26,
             "nodes": {
                 "visual": 19,
                 "field": 0,
@@ -11482,6 +11998,12 @@
                     "passed": 2,
                     "skipped": 22,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 13,
+                    "passed": 13,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -11493,7 +12015,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.55,
+            "ms": 2.66,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -11581,6 +12103,12 @@
                     "passed": 0,
                     "skipped": 14,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -11592,7 +12120,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.72,
+            "ms": 1.19,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -11704,6 +12232,12 @@
                     "passed": 0,
                     "skipped": 7,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -11715,7 +12249,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.4,
+            "ms": 0.42,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -11827,6 +12361,12 @@
                     "passed": 0,
                     "skipped": 4,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -11838,7 +12378,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.69,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -11950,6 +12490,12 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -11961,7 +12507,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.59,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 2,
@@ -12054,7 +12600,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.26,
+            "ms": 0.35,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -12135,7 +12681,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.29,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 2,
@@ -12228,7 +12774,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.68,
+            "ms": 0.65,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -12304,6 +12850,12 @@
                     "passed": 0,
                     "skipped": 5,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -12315,7 +12867,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.73,
+            "ms": 1.88,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -12409,6 +12961,12 @@
                     "passed": 0,
                     "skipped": 14,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -12420,7 +12978,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.41,
+            "ms": 0.34,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -12582,7 +13140,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.27,
+            "ms": 0.29,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -12663,7 +13221,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.98,
+            "ms": 2.91,
             "nodes": {
                 "visual": 18,
                 "field": 7,
@@ -12799,6 +13357,12 @@
                     "passed": 1,
                     "skipped": 24,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 14,
+                    "passed": 14,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -12810,7 +13374,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.95,
+            "ms": 5.1,
             "nodes": {
                 "visual": 28,
                 "field": 3,
@@ -12940,6 +13504,12 @@
                     "passed": 0,
                     "skipped": 27,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 27,
+                    "passed": 27,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -12951,7 +13521,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.95,
+            "ms": 2.99,
             "nodes": {
                 "visual": 28,
                 "field": 3,
@@ -13081,6 +13651,12 @@
                     "passed": 0,
                     "skipped": 27,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 27,
+                    "passed": 27,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -13092,7 +13668,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 10.14,
+            "ms": 6.72,
             "nodes": {
                 "visual": 46,
                 "field": 6,
@@ -13228,6 +13804,12 @@
                     "passed": 5,
                     "skipped": 51,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 47,
+                    "passed": 47,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -13239,7 +13821,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 4.09,
+            "ms": 2.86,
             "nodes": {
                 "visual": 20,
                 "field": 3,
@@ -13357,6 +13939,12 @@
                     "passed": 0,
                     "skipped": 23,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 23,
+                    "passed": 23,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -13368,7 +13956,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.41,
+            "ms": 1.32,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -13480,6 +14068,12 @@
                     "passed": 0,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 15,
+                    "passed": 15,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -13491,7 +14085,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.54,
+            "ms": 2.35,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -13603,6 +14197,12 @@
                     "passed": 0,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 15,
+                    "passed": 15,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -13614,7 +14214,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.47,
+            "ms": 3.06,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -13732,6 +14332,12 @@
                     "passed": 0,
                     "skipped": 17,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 15,
+                    "passed": 15,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -13743,7 +14349,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.59,
+            "ms": 1.95,
             "nodes": {
                 "visual": 8,
                 "field": 0,
@@ -13861,6 +14467,12 @@
                     "passed": 0,
                     "skipped": 12,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -13872,7 +14484,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 10.24,
+            "ms": 9.14,
             "nodes": {
                 "visual": 44,
                 "field": 7,
@@ -13990,6 +14602,12 @@
                     "passed": 4,
                     "skipped": 55,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 46,
+                    "passed": 46,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -14001,7 +14619,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.41,
+            "ms": 0.46,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -14107,6 +14725,12 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -14118,7 +14742,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.38,
+            "ms": 0.47,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -14218,6 +14842,12 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -14229,7 +14859,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.32,
+            "ms": 0.34,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -14335,6 +14965,12 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -14346,7 +14982,7 @@
             "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
             "identical": false,
             "compiles": true,
-            "ms": 0.94,
+            "ms": 1,
             "asExpected": null
         },
         {
@@ -14356,7 +14992,7 @@
             "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
             "identical": false,
             "compiles": true,
-            "ms": 0.29,
+            "ms": 0.32,
             "asExpected": null
         },
         {
@@ -14366,7 +15002,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.24,
+            "ms": 0.29,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -14399,7 +15035,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.32,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -14492,7 +15128,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.37,
+            "ms": 0.32,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -14615,7 +15251,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.52,
+            "ms": 0.4,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -14738,7 +15374,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.43,
+            "ms": 0.41,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -14831,7 +15467,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.43,
+            "ms": 0.48,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -14918,7 +15554,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.29,
+            "ms": 0.27,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -14951,7 +15587,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.44,
+            "ms": 0.54,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -15038,7 +15674,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.29,
+            "ms": 0.39,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -15131,7 +15767,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.61,
+            "ms": 0.66,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -15213,6 +15849,12 @@
                     "passed": 0,
                     "skipped": 3,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -15224,7 +15866,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.29,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -15257,7 +15899,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.43,
+            "ms": 0.36,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -15338,7 +15980,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.27,
+            "ms": 0.36,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -15419,7 +16061,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.32,
+            "ms": 0.34,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -15500,7 +16142,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.25,
+            "ms": 0.31,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -15533,7 +16175,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.21,
+            "ms": 0.36,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -15553,7 +16195,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.22,
+            "ms": 0.23,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -15586,7 +16228,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.25,
+            "ms": 0.24,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -15619,7 +16261,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.74,
+            "ms": 0.39,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -15712,7 +16354,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.25,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -15745,7 +16387,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.4,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -15857,6 +16499,12 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -15868,7 +16516,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.33,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -15980,6 +16628,12 @@
                     "passed": 0,
                     "skipped": 1,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -15991,7 +16645,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.41,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -16103,6 +16757,12 @@
                     "passed": 0,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -16114,7 +16774,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.81,
+            "ms": 0.55,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -16184,6 +16844,12 @@
                     "passed": 0,
                     "skipped": 3,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -16195,7 +16861,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.56,
+            "ms": 0.57,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -16319,6 +16985,12 @@
                     "passed": 1,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -16330,7 +17002,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.49,
+            "ms": 0.59,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -16441,7 +17113,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.4,
+            "ms": 0.45,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -16510,7 +17182,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.46,
+            "ms": 0.47,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -16634,6 +17306,12 @@
                     "passed": 1,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -16645,7 +17323,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.48,
+            "ms": 0.42,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -16757,6 +17435,12 @@
                     "passed": 1,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -16768,7 +17452,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.39,
+            "ms": 0.45,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -16880,6 +17564,12 @@
                     "passed": 1,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -16891,7 +17581,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.49,
+            "ms": 0.55,
             "nodes": {
                 "visual": 4,
                 "field": 3,
@@ -17015,6 +17705,12 @@
                     "passed": 1,
                     "skipped": 4,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -17026,7 +17722,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.84,
+            "ms": 0.78,
             "nodes": {
                 "visual": 10,
                 "field": 1,
@@ -17138,6 +17834,12 @@
                     "passed": 0,
                     "skipped": 6,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -17149,7 +17851,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.49,
+            "ms": 0.48,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -17273,6 +17975,12 @@
                     "passed": 1,
                     "skipped": 2,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -17284,7 +17992,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.12,
+            "ms": 1.07,
             "nodes": {
                 "visual": 11,
                 "field": 0,
@@ -17360,6 +18068,12 @@
                     "passed": 0,
                     "skipped": 7,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -17371,7 +18085,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.45,
+            "ms": 0.31,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -17464,7 +18178,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.42,
+            "ms": 0.39,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -17557,7 +18271,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.37,
+            "ms": 0.34,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -17632,7 +18346,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.09,
+            "ms": 1.01,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -17708,6 +18422,12 @@
                     "passed": 0,
                     "skipped": 3,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -17719,7 +18439,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.39,
+            "ms": 0.36,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -17788,7 +18508,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.38,
+            "ms": 0.36,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -17863,7 +18583,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.34,
+            "ms": 0.39,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -17944,7 +18664,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.52,
+            "ms": 0.43,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -18014,6 +18734,12 @@
                     "passed": 0,
                     "skipped": 1,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -18025,7 +18751,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.56,
+            "ms": 0.77,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -18094,6 +18820,12 @@
                     "tried": 0,
                     "passed": 0,
                     "skipped": 1,
+                    "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
                     "failures": []
                 }
             },
@@ -18106,7 +18838,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.47,
+            "ms": 0.43,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -18176,6 +18908,12 @@
                     "passed": 0,
                     "skipped": 1,
                     "failures": []
+                },
+                "insert inside": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -18187,7 +18925,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.75,
+            "ms": 0.57,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -18256,7 +18994,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.39,
+            "ms": 0.41,
             "nodes": {
                 "visual": 1,
                 "field": 1,

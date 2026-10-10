@@ -140,24 +140,65 @@ it('says what may be done to a node', function () {
         ->and($can('img')['insert'])->toBeFalse()                       // void: holds nothing
         ->and($can('script')['insert'])->toBeFalse()                    // its content isn't markup
         ->and($can('@forelse ($items as $item)'))->toMatchArray(['move' => true, 'insert' => false])   // the block; its arms hold the children
-        ->and($can('@empty'))->toMatchArray(['move' => false, 'delete' => false])                      // an arm, not a node of its own
+        ->and($can('@empty'))->toMatchArray(['move' => false, 'delete' => false, 'insert' => true])    // an arm: it holds children and goes nowhere
         ->and($can('$item')['move'])->toBeTrue();
 });
 
 it('shows a code block as one piece of text', function () {
     $tree = Template::open(<<<'BLADE'
+        @while ($i < 3)
+            <b>{{ $i++ }}</b>
+        @endwhile
+        BLADE)->toArray()['tree'];
+    $while = $tree['children'][0];
+
+    expect($while)->toMatchArray(['type' => 'block', 'kind' => 'code', 'name' => 'while'])
+        ->and($while['source'])->toStartWith('@while ($i < 3)')
+        ->and($while['source'])->toEndWith('@endwhile')
+        ->and($while)->not->toHaveKey('children');
+});
+
+it('shows @switch and @forelse with an arm for each part', function () {
+    $tree = Template::open(<<<'BLADE'
         @switch($type)
             @case('a')
                 <b>A</b>
                 @break
+            @case('b')
+            @case('c')
+                <u>B or C</u>
+                @break
             @default
                 <i>Other</i>
         @endswitch
+        @forelse ($items as $item)
+            <p>{{ $item }}</p>
+        @empty
+            <p>None</p>
+        @endforelse
         BLADE)->toArray()['tree'];
-    $switch = $tree['children'][0];
+    [$switch, $forelse] = $tree['children'];
+    $arms = fn (array $block) => array_map(fn (array $arm) => [$arm['type'], $arm['label'], $arm['arguments'], array_column($arm['children'], 'label')], $block['children']);
 
-    expect($switch)->toMatchArray(['type' => 'block', 'kind' => 'code', 'name' => 'switch'])
-        ->and($switch['source'])->toStartWith('@switch($type)')
-        ->and($switch['source'])->toEndWith('@endswitch')
-        ->and($switch)->not->toHaveKey('children');
+    expect($switch)->toMatchArray(['type' => 'block', 'kind' => 'visual', 'name' => 'switch', 'label' => '@switch($type)'])
+        ->and($arms($switch))->toBe([
+            ['branch', '@switch($type)', '$type', []],
+            ['branch', "@case('a')", "'a'", ['b', '@break']],
+            ['branch', "@case('b')", "'b'", []],
+            ['branch', "@case('c')", "'c'", ['u', '@break']],
+            ['branch', '@default', null, ['i']],
+        ])
+        ->and($arms($forelse))->toBe([
+            ['branch', '@forelse ($items as $item)', '$items as $item', ['p']],
+            ['branch', '@empty', null, ['p']],
+        ]);
+
+    // Nothing goes between @switch and its first @case, and the @break
+    // that ends an arm stays where it is.
+    $head = $switch['children'][0];
+    $break = $switch['children'][1]['children'][1];
+    expect($head['can'])->toMatchArray(['insert' => false, 'move' => false])
+        ->and($switch['children'][1]['can']['insert'])->toBeTrue()
+        ->and($switch['children'][2]['can']['insert'])->toBeTrue()
+        ->and($break['can'])->toMatchArray(['move' => false, 'delete' => false, 'wrap' => false, 'insert' => false]);
 });

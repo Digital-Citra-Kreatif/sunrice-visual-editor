@@ -37,6 +37,9 @@ final class RoundTrip
 
     private static ?BladeCompiler $compiler = null;
 
+    /** @var array{0: string, 1: string}|null the source last opened, and its tree serialized */
+    private static ?array $opened = null;
+
     public static function fixtures(string $directory = ''): string
     {
         return dirname(__DIR__).'/fixtures'.($directory === '' ? '' : '/'.$directory);
@@ -89,6 +92,22 @@ final class RoundTrip
     }
 
     /**
+     * A tree of the source for one edit to work on. Every edit starts from
+     * a tree of its own; parsing the same bytes again each time would be
+     * most of the run, so they are parsed once and each caller gets a copy.
+     */
+    private static function open(string $source): Template
+    {
+        if ((self::$opened[0] ?? null) !== $source) {
+            self::$opened = [$source, serialize(Template::open($source))];
+        }
+        /** @var Template $template */
+        $template = unserialize(self::$opened[1]);
+
+        return $template;
+    }
+
+    /**
      * Nodes that can be moved, wrapped or deleted on their own.
      *
      * @return list<Node>
@@ -122,9 +141,9 @@ final class RoundTrip
         // Plain text is good when it reads back as typed and adds nothing for PHP to run.
         $inert = fn (string $out): ?string => substr_count((string) self::compiled($out), '<?php') === $phpBlocks ? null : 'typed text became code';
 
-        $count = count(Template::open($source)->elements());
+        $count = count(self::open($source)->elements());
         for ($i = 0; $i < $count; $i++) {
-            $fresh = fn (): Node => Template::open($source)->elements()[$i];
+            $fresh = fn (): Node => self::open($source)->elements()[$i];
             $element = $fresh();
             $where = self::where($element);
             $openEnd = $element->start + strlen($element->open);
@@ -284,11 +303,11 @@ final class RoundTrip
             }
         }
 
-        $selectable = count(Template::open($source)->selectable());
-        $count = count(Template::open($source)->texts());
+        $selectable = count(self::open($source)->selectable());
+        $count = count(self::open($source)->texts());
         for ($i = 0; $i < $count; $i++) {
             foreach (['change text' => 'Edited — teks baru', 'type awkward text' => self::AWKWARD] as $edit => $words) {
-                $text = Template::open($source)->texts()[$i];
+                $text = self::open($source)->texts()[$i];
                 $leading = strlen($text->open) - strlen(ltrim($text->open));
                 $trailing = strlen($text->open) - strlen(rtrim($text->open));
                 $root = self::root($text);
@@ -303,7 +322,7 @@ final class RoundTrip
 
         // Echoes: a new expression between the same delimiters and spacing; escaped ↔ raw.
         $echoes = fn (): array => array_values(array_filter(
-            iterator_to_array(Template::open($source)->root->walk(), false),
+            iterator_to_array(self::open($source)->root->walk(), false),
             fn (Node $node) => $node->type === 'atom' && in_array($node->kind, ['echo', 'raw_echo'], true) && Rules::movable($node),
         ));
         foreach (array_keys($echoes()) as $i) {
@@ -326,7 +345,7 @@ final class RoundTrip
 
         // Directive arguments: only what is between the brackets changes.
         $directives = fn (): array => array_values(array_filter(
-            iterator_to_array(Template::open($source)->root->walk(), false),
+            iterator_to_array(self::open($source)->root->walk(), false),
             fn (Node $node) => in_array($node->type, ['atom', 'branch'], true) && $node->kind === 'directive' && $node->args !== null && ! Rules::insideCode($node),
         ));
         foreach (array_keys($directives()) as $i) {
@@ -351,7 +370,7 @@ final class RoundTrip
         // Rewrite a code node by hand: the node is replaced, nothing else.
         $classifier = new Classifier;
         $codes = fn (): array => array_values(array_filter(
-            self::editable(Template::open($source)),
+            self::editable(self::open($source)),
             fn (Node $node) => $classifier->classify($node) === 'code',
         ));
         foreach (array_keys($codes()) as $i) {
@@ -362,9 +381,9 @@ final class RoundTrip
         }
 
         $snippet = '<i class="sr-new">{{ $sr }}</i>';
-        $count = count(self::editable(Template::open($source)));
+        $count = count(self::editable(self::open($source)));
         for ($i = 0; $i < $count; $i++) {
-            $fresh = fn (): Node => self::editable(Template::open($source))[$i];
+            $fresh = fn (): Node => self::editable(self::open($source))[$i];
             $node = $fresh();
             $where = self::where($node);
             [$start, $finish] = [$node->start, $node->end];
@@ -431,7 +450,7 @@ final class RoundTrip
             }
 
             // Reorder: the node and the next one change places; the whitespace between stays.
-            $nodes = self::editable(Template::open($source));
+            $nodes = self::editable(self::open($source));
             $node = $nodes[$i];
             $after = null;
             foreach (array_slice($node->parent->children ?? [], $node->index() + 1) as $sibling) {
@@ -469,7 +488,7 @@ final class RoundTrip
             $record('reorder', self::verify($root->print(), self::join(...$pieces)), $where);
 
             // Move into the next sibling, when that holds children.
-            $nodes = self::editable(Template::open($source));
+            $nodes = self::editable(self::open($source));
             $node = $nodes[$i];
             $into = null;
             foreach (array_slice($node->parent->children ?? [], $node->index() + 1) as $sibling) {
@@ -489,6 +508,27 @@ final class RoundTrip
             $out = $root->print();
             $naive = $slice(0, $start).$slice($finish, $closeStart).$text.$slice($closeStart, $end);
             $record('move inside', self::squash($out) === self::squash($naive) ? self::verify($out, $out) : 'more than the node moved', $where);
+        }
+
+        // Insert inside: at the end of every element and arm that holds
+        // children, and before the @break that ends an arm of a @switch.
+        $holders = fn (): array => array_values(array_filter(
+            iterator_to_array(self::open($source)->root->walk(), false),
+            fn (Node $node) => in_array($node->type, ['element', 'branch'], true) && Rules::holdsChildren($node),
+        ));
+        foreach (array_keys($holders()) as $i) {
+            $holder = $holders()[$i];
+            $at = $holder->end - strlen($holder->close);
+            foreach (array_reverse($holder->children) as $child) {
+                if (trim($child->print()) !== '') {
+                    $at = Rules::isArmBreak($child) ? $child->start : $at;
+                    break;
+                }
+            }
+            $root = self::root($holder);
+            Edit::append($holder, $snippet);
+            $out = $root->print();
+            $record('insert inside', self::squash($out) === self::squash($slice(0, $at).$snippet.$slice($at, $end)) ? self::verify($out, $out) : 'more than the snippet went in', self::where($holder));
         }
 
         return $results;

@@ -66,7 +66,7 @@ Today a developer writes the templates in a code editor while fields and content
 - With a template open, a **Layers** panel shows its tree and the frame highlights the selected node. Selecting works from either side.
 - A **Settings** panel edits the selection: tag, id, classes, attributes, text; the expression of an echo; the condition of an `@if`; the source and item name of a `@foreach`; the view and data of an `@include`.
 - **Insert** adds elements (section, container, heading, text, link, image, button, list), Blade structures (condition, loop, include, section), Sunrice components (`<x-sunrice::entries>`, `<x-sunrice::terms>`, `<x-sunrice::form>`) and fields.
-- Nodes can be moved by dragging in the Layers panel, duplicated, wrapped, unwrapped and deleted. Arms of a block (`@else`, `@empty`, `@case`) are not moved or deleted on their own.
+- Nodes can be moved by dragging in the Layers panel, duplicated, wrapped, unwrapped and deleted. Arms of a block (`@else`, `@empty`, `@case`) are not moved or deleted on their own; each one holds its own children, and what is added to a `@case` goes before the `@break` that ends it.
 - Where an edit would put a directive directly against a letter or digit (`@else@endif`, `@elseText`), the editor adds one space so Blade still reads it.
 - Pasting HTML inserts it as nodes.
 

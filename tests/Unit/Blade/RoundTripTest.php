@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Sunrice\VisualEditor\Blade\Classifier;
+use Sunrice\VisualEditor\Blade\Node;
+use Sunrice\VisualEditor\Blade\Rules;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
 use Sunrice\VisualEditor\Tests\Support\RoundTrip;
@@ -45,6 +48,21 @@ it('opens, prints back and edits the installed starter templates', function (str
     expect(Template::open($source)->print())->toBe($source)
         ->and(RoundTrip::failures(RoundTrip::edits($source)))->toBe([]);
 })->with('installed starter templates');
+
+it('shows the @switch of the form templates as arms, not as code', function (string $file, int $arms) {
+    $template = Template::open((string) file_get_contents(RoundTrip::fixtures('sunrice-starter').'/'.$file));
+    $nodes = collect(iterator_to_array($template->root->walk(), false));
+    $switch = $nodes->first(fn (Node $node) => $node->type === 'block' && $node->name === 'switch');
+    $inside = $nodes->filter(fn (Node $node) => $node->type === 'element' && $node->start > $switch->start && $node->end < $switch->end);
+
+    expect((new Classifier)->classify($switch))->toBe('visual')
+        ->and($switch->children)->toHaveCount($arms)
+        ->and($inside)->not->toBeEmpty()
+        ->and($inside->every(fn (Node $element) => Rules::movable($element)))->toBeTrue();
+})->with([
+    ['blocks/form.blade.php', 6],
+    ['partials/entry-filter.blade.php', 6],
+]);
 
 it('knows the directives the application registers', function () {
     // Sunrice's @bodyClass is not a Blade directive of its own: the parser

@@ -146,8 +146,26 @@ it('only sets arguments of a directive, and keeps @empty what it is', function (
 
     expect(fn () => Edit::setArguments($template->elements()[0], '$x'))->toThrow(EditRejected::class)
         ->and(fn () => Edit::setArguments(firstNode($template, 'echo'), '$x'))->toThrow(EditRejected::class)
-        ->and(fn () => Edit::setArguments($arm('@empty y') ?? $arm('@empty'), '$x'))->toThrow(EditRejected::class, '@empty')
+        ->and(fn () => Edit::setArguments($arm('@empty'), '$x'))->toThrow(EditRejected::class, '@empty')
         ->and(fn () => Edit::setArguments($arm('@empty($c)'), null))->toThrow(EditRejected::class, '@empty');
+});
+
+it('keeps brackets on the directives that need them and off the ones that take none', function () {
+    $blade = '@if ($a) x @else y @endif @switch($t) @case(1) one @break @default other @endswitch @foreach ($a as $b) z @endforeach';
+    $template = Template::open($blade);
+    $arm = fn (string $name) => collect(iterator_to_array($template->root->walk(), false))->first(fn (Node $n) => $n->type === 'branch' && $n->name === $name);
+
+    expect(fn () => Edit::setArguments($arm('if'), null))->toThrow(EditRejected::class, '@if needs')
+        ->and(fn () => Edit::setArguments($arm('switch'), null))->toThrow(EditRejected::class, '@switch needs')
+        ->and(fn () => Edit::setArguments($arm('case'), null))->toThrow(EditRejected::class, '@case needs')
+        ->and(fn () => Edit::setArguments($arm('foreach'), null))->toThrow(EditRejected::class, '@foreach needs')
+        ->and(fn () => Edit::setArguments($arm('else'), '$b'))->toThrow(EditRejected::class, '@else takes no')
+        ->and(fn () => Edit::setArguments($arm('default'), '2'))->toThrow(EditRejected::class, '@default takes no')
+        ->and($template->print())->toBe($blade);
+
+    Edit::setArguments($arm('switch'), '$type');
+    Edit::setArguments($arm('case'), "'one'");
+    expect($template->print())->toStartWith('@if ($a) x @else y @endif @switch($type) @case(\'one\') one @break @default other @endswitch');
 });
 
 it('rewrites a node as code', function () {
@@ -206,14 +224,20 @@ it('takes directives that are whole on their own', function (string $blade) {
 ]);
 
 it('will not rewrite an arm of a block or what is inside a code block', function () {
-    $template = Template::open("@forelse (\$a as \$b) x @empty y @endforelse\n@switch(\$t) @case(1) <b>one</b> @break @endswitch");
-    $nodes = iterator_to_array($template->root->walk(), false);
-    $empty = collect($nodes)->first(fn (Node $n) => $n->type === 'atom' && $n->name === 'empty');
-    $bold = $template->elements()[0];
+    $template = Template::open("@forelse (\$a as \$b) x @empty y @endforelse\n@switch(\$t) @case(1) <b>one</b> @break @endswitch\n@while (\$w) <u>w</u> @endwhile");
+    $nodes = collect(iterator_to_array($template->root->walk(), false));
+    $empty = $nodes->first(fn (Node $n) => $n->type === 'branch' && $n->name === 'empty');
+    $break = $nodes->first(fn (Node $n) => $n->type === 'atom' && $n->name === 'break');
+    [$bold, $underline] = $template->elements();
 
     expect(fn () => Edit::setCode($empty, ''))->toThrow(EditRejected::class)
-        ->and(fn () => Edit::setCode($bold, '<i>one</i>'))->toThrow(EditRejected::class)
+        ->and(fn () => Edit::setCode($break, ''))->toThrow(EditRejected::class)
+        ->and(fn () => Edit::setCode($underline, '<i>w</i>'))->toThrow(EditRejected::class)
         ->and(fn () => Edit::setCode($template->root, ''))->toThrow(EditRejected::class);
+
+    // An arm of a @switch is no code block: what is in it is edited like anything else.
+    Edit::setCode($bold, '<i>one</i>');
+    expect($template->print())->toContain('@case(1) <i>one</i> @break');
 });
 
 it('reads a snippet into nodes that belong to no tree yet', function () {
