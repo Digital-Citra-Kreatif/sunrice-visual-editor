@@ -69,9 +69,94 @@ await step('open on the page named in the link', async () => {
     await frame.getByRole('link', { name: 'Fifth post', exact: true }).waitFor();
 });
 
+// --- The templates of a page ----------------------------------------------------
+
+const listed = () => page.locator('.sve-panel--left .sve-templates').first().locator('.sve-template__name').allTextContents();
+const openIs = (name) => page.waitForFunction((expected) => document.querySelector('.sve-trail__here')?.textContent === expected, name);
+const addressIs = (path) => page.waitForFunction((expected) => document.querySelector('#sve-address')?.value === expected, path);
+
+await step('list the templates that drew the homepage, the layout first', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    const names = await listed();
+    for (const name of ['layouts/app', 'show', 'partials/header', 'partials/footer', 'blocks/hero', 'blocks/text']) {
+        if (!names.includes(name)) {
+            throw new Error(`"${name}" is not in the list: ${names.join(', ')}`);
+        }
+    }
+    if (names[0] !== 'layouts/app') {
+        throw new Error(`The list starts with "${names[0]}"`);
+    }
+});
+
+await step('open the page\'s own template to begin with', async () => {
+    await openIs('show');
+});
+
+await step('outline the template under the pointer, with its name', async () => {
+    await frame.locator('.site-header .brand').hover();
+    await page.waitForSelector('.sve-outline--hover');
+    const label = await page.locator('.sve-outline--hover .sve-outline__label').first().textContent();
+    if (label !== 'partials/header') {
+        throw new Error(`The outline is labelled "${label}"`);
+    }
+});
+
+await step('open the header when it is clicked on the page, and stay on the page', async () => {
+    await frame.locator('.site-header .brand').click();
+    await openIs('partials/header');
+    await page.locator('.sve-facts').getByText('partials/header.blade.php').waitFor();
+    await frame.getByText('Templates you can see').waitFor();
+});
+
+await step('go back to the page\'s template in one click', async () => {
+    await page.locator('.sve-trail__back').click();
+    await openIs('show');
+});
+
+await step('outline a template when its row is pointed at, and open it on a click', async () => {
+    const row = page.locator('.sve-panel--left .sve-templates').first().locator('.sve-template', { hasText: 'blocks/hero' });
+    await row.hover();
+    await page.locator('.sve-outline--hover .sve-outline__label', { hasText: 'blocks/hero' }).waitFor();
+    await row.click();
+    await openIs('blocks/hero');
+});
+
+await step('follow a link when browsing, with the address and the list following', async () => {
+    await page.locator('.sve-modes__mode', { hasText: 'Browse' }).click();
+    await frame.getByRole('link', { name: 'Articles', exact: true }).first().click();
+    await addressIs('/articles');
+    await openIs('index');
+    await frame.getByRole('link', { name: 'Fifth post', exact: true }).waitFor();
+    // An editor render all the way: the page in the frame still carries marks.
+    await frame.locator('[data-sve]').first().waitFor({ state: 'attached' });
+});
+
+await step('open a template that is on another page, and bring that page', async () => {
+    await page.locator('.sve-others summary').click();
+    await page.locator('.sve-others .sve-template', { hasText: 'blocks/hero' }).click();
+    await addressIs('/');
+    await openIs('blocks/hero');
+    await frame.getByText('Templates you can see').waitFor();
+});
+
+await step('show one of Sunrice\'s own views as read-only', async () => {
+    await page.locator('.sve-others .sve-template', { hasText: 'defaults/draft-banner' }).click();
+    await openIs('defaults/draft-banner');
+    await page.locator('.sve-note').getByText('one of Sunrice’s own views').waitFor();
+});
+
+await step('say so when a page can\'t be followed', async () => {
+    await open('no-such-page-anywhere');
+    await page.locator('.sve-panel--left .sve-empty').getByText('not drawn for the editor').waitFor();
+});
+
 await step('take a screenshot', async () => {
     await page.goto(`${base}/cms/visual-editor`);
     await frame.getByText('Templates you can see').waitFor();
+    await page.waitForSelector('.sve-template');
+    await frame.getByText('Templates you can see').hover();
+    await page.locator('.sve-outline--hover .sve-outline__label', { hasText: 'blocks/hero' }).waitFor();
     await mkdir('docs/screenshots', { recursive: true });
     await page.screenshot({ path: 'docs/screenshots/editor.png' });
 });

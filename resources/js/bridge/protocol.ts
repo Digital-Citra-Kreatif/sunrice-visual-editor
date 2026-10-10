@@ -134,6 +134,15 @@ export function editorAddress(href: string, base: string): string | null {
     return url.href;
 }
 
+/** Whether an address is already one of an editor render. */
+export function isEditorAddress(href: string): boolean {
+    try {
+        return new URL(href).searchParams.get(PARAMETER) === '1';
+    } catch {
+        return false;
+    }
+}
+
 /** The address as a visitor has it: without `sve`. */
 export function visitorAddress(href: string): string {
     const url = new URL(href);

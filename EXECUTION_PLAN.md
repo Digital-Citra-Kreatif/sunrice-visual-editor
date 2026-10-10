@@ -307,7 +307,13 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V3.3 Editor shell and Templates panel
 **Depends on:** V3.2, V0.3
-The frame loads `{url}?sve=1`. The **Templates on this page** panel lists the manifest; hovering a row outlines that file's elements in the frame; hovering the frame shows the file's name on the region. Clicking either opens the template (`GET templates/{path}`), with a breadcrumb back. Select/Browse toggle. The last URL is remembered per file, so opening `partials/header` later shows a page that uses it.
+- The frame shows `{url}?sve=1`. `resources/js/lib/frame.ts` is the editor's end of the bridge; `lib/api.ts` the template API, with a refusal as an `ApiError` carrying the server's reason.
+- **Templates on this page** (`panels/TemplatesPanel.tsx`) lists the manifest the way a page is built: layout, the page's own template, then partials, blocks and components, with *Read-only* and *Code only* marked. Pointing at a row outlines what that template drew; pointing at the page outlines the template under the pointer, with its name. A click on either opens the template.
+- **Template** (`panels/TemplatePanel.tsx`), on the right, is the open template: what it is, what it draws, why it is read-only or code only, and **Copy to site** for one of Sunrice's views. A trail leads back to the page's own template in one click. A page opens on its own template.
+- Outlines are drawn by the editor above the frame (`canvas/Outlines.tsx`) from the boxes the bridge measures; the page itself is never drawn on.
+- **Select / Browse**: in Browse, links on the page work and the address and the list follow.
+- **Other templates** lists the rest of the site's templates and Sunrice's views. Opening one that is not on the page brings the page it was last seen on, remembered in the browser (`lib/memory.ts`).
+- A page that arrives without `sve=1` (a form posted, a redirect elsewhere) is asked for again with it. A page the editor can't follow, such as a missing one, says so in the panel.
 **Done when:** in the workbench, from the homepage: click header → header opens; back → homepage template.
 
 ### V3.4 Code panel

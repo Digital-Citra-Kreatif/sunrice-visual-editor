@@ -162,7 +162,9 @@ src/
   VisualEditorServiceProvider.php
 config/              sunrice-visual-editor.php
 routes/admin.php     routes inside the Sunrice admin
-resources/js, css/   the editor UI (React from the Sunrice admin), built into dist/
+resources/js, css/   the editor UI (React from the Sunrice admin), built into dist/:
+                       Editor.tsx the screen, panels/ the columns beside the page,
+                       canvas/ what is drawn over it, lib/ the API and the frame
 resources/js/bridge/ the script in a page shown in the editor's frame, built into dist/bridge.js
 spike/               the round-trip report and its results
 tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fixtures/ holds
