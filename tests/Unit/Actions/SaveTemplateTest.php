@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
+use Sunrice\Models\ActivityLog;
 use Sunrice\VisualEditor\Actions\SaveTemplate;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\DoesNotCompile;
@@ -157,6 +158,37 @@ it('writes nowhere but to a template of the site', function (string $path) {
     'one of Sunrice\'s own views' => ['defaults/show.blade.php'],
     'a file that is no template' => ['partials/footer.php'],
 ]);
+
+it('records the save in Sunrice\'s activity log, and nothing when nothing was written', function () {
+    $admin = actingAsSuperAdmin();
+    $lines = fn () => ActivityLog::query()->where('subject_type', 'template')->get();
+
+    // Refused, or nothing to do: no line.
+    $this->save->handle('partials/footer.blade.php', sha1($this->original), $this->original);
+    rescue(fn () => $this->save->handle('partials/footer.blade.php', sha1($this->original), '@if ($a)'), report: false);
+    rescue(fn () => $this->save->handle('partials/footer.blade.php', 'another version', '<p>x</p>'), report: false);
+    expect($lines())->toHaveCount(0);
+
+    $this->save->handle('partials/footer.blade.php', sha1($this->original), $this->original.'<p>x</p>');
+
+    expect($lines())->toHaveCount(1)
+        ->and($lines()->first())->toMatchArray([
+            'action' => 'updated',
+            'subject_type' => 'template',
+            'subject_label' => 'partials/footer.blade.php',
+            'user_id' => $admin->getKey(),
+            'properties' => ['note' => 'Visual editor'],
+        ]);
+});
+
+it('saves all the same when the activity log is off', function () {
+    config(['sunrice.activity.enabled' => false]);
+
+    $this->save->handle('partials/footer.blade.php', sha1($this->original), $this->original.'<p>x</p>');
+
+    expect(File::get($this->file))->toBe($this->original.'<p>x</p>')
+        ->and(ActivityLog::query()->where('subject_type', 'template')->count())->toBe(0);
+});
 
 it('shows the new version to the next page that is rendered', function () {
     $this->get('/')->assertOk()->assertDontSee('Saved by the editor');

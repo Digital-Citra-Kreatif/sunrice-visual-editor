@@ -6,6 +6,7 @@ namespace Sunrice\VisualEditor\Actions;
 
 use Illuminate\Support\Facades\File;
 use RuntimeException;
+use Sunrice\Activity\ActivityLogger;
 use Sunrice\VisualEditor\Blade\Syntax;
 use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\Conflict;
@@ -60,6 +61,9 @@ final class SaveTemplate
                 SunriceBridge::backup($file->file, $file->path);
             }
             $this->replace($file->file, $newSource);
+
+            // Beside the content changes in Manage → Activity log.
+            app(ActivityLogger::class)->record('updated', $file->path, ['note' => 'Visual editor'], 'template');
 
             return TemplateRepository::version($newSource);
         } finally {

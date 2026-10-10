@@ -6,6 +6,7 @@ namespace Sunrice\VisualEditor\Actions;
 
 use Illuminate\Support\Facades\File;
 use RuntimeException;
+use Sunrice\Activity\ActivityLogger;
 use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\CopyRefused;
 use Sunrice\VisualEditor\Templates\TemplateNotFound;
@@ -47,6 +48,8 @@ final class CopyPackageView
         }
         fwrite($handle, (string) file_get_contents($view->file));
         fclose($handle);
+
+        app(ActivityLogger::class)->record('created', $view->copyTo, ['note' => "Visual editor: copied from Sunrice's {$view->path}"], 'template');
 
         return $view->copyTo;
     }

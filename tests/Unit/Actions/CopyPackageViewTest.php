@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
+use Sunrice\Models\ActivityLog;
 use Sunrice\VisualEditor\Actions\CopyPackageView;
 use Sunrice\VisualEditor\Templates\CopyRefused;
 use Sunrice\VisualEditor\Templates\TemplateNotFound;
@@ -27,6 +28,16 @@ it('copies a fallback view to where Sunrice looks first, and the site then uses 
     expect($path)->toBe('taxonomies/show.blade.php')
         ->and(File::get($this->templates.'/taxonomies/show.blade.php'))->toBe($view['source'])
         ->and($this->repository->read('taxonomies/show.blade.php'))->toMatchArray(['origin' => 'site', 'editable' => true, 'role' => 'term', 'source' => $view['source']]);
+});
+
+it('records the copy in Sunrice\'s activity log', function () {
+    File::delete($this->templates.'/taxonomies/show.blade.php');
+
+    $this->copy->handle('defaults/term.blade.php');
+
+    $line = ActivityLog::query()->where('subject_type', 'template')->sole();
+    expect($line)->toMatchArray(['action' => 'created', 'subject_label' => 'taxonomies/show.blade.php'])
+        ->and($line->properties['note'])->toContain('defaults/term.blade.php');
 });
 
 it('makes the folder the copy goes in', function () {
