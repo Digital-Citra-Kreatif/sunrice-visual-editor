@@ -211,6 +211,8 @@
 
 .sve-templates {
     display: grid;
+    /* A column that can be narrower than its longest row: long names are cut short, not the labels after them. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.125rem;
     margin: 0;
     padding: 0;
@@ -221,7 +223,9 @@
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
+    box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     padding: 0.375rem 0.5rem;
     border: 0;
     border-radius: calc(var(--radius) - 2px);
