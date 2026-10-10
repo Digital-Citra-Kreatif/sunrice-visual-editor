@@ -84,7 +84,9 @@ final class SunriceBridge
     public static function syntaxError(string $blade): ?string
     {
         try {
-            token_get_all(Blade::compileString($blade), TOKEN_PARSE);
+            // Throws a ParseError on invalid PHP.
+            $tokens = token_get_all(Blade::compileString($blade), TOKEN_PARSE);
+            unset($tokens);
         } catch (Throwable $e) {
             return $e->getMessage().' (line '.$e->getLine().' of the compiled template)';
         }

@@ -7,7 +7,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 33.14,
+            "ms": 21.25,
             "nodes": {
                 "visual": 33,
                 "field": 6,
@@ -60,6 +60,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 17,
+                    "passed": 17,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 45,
                     "passed": 45,
@@ -88,7 +112,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.88,
+            "ms": 0.83,
             "nodes": {
                 "visual": 11,
                 "field": 2,
@@ -147,6 +171,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 7,
                     "passed": 7,
@@ -175,7 +223,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 6.9,
+            "ms": 6.76,
             "nodes": {
                 "visual": 8,
                 "field": 2,
@@ -228,6 +276,30 @@
                     "skipped": 4,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 15,
                     "passed": 15,
@@ -256,7 +328,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.22,
+            "ms": 1.18,
             "nodes": {
                 "visual": 7,
                 "field": 1,
@@ -309,6 +381,24 @@
                     "skipped": 1,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 8,
                     "passed": 8,
@@ -337,7 +427,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.56,
+            "ms": 1.84,
             "nodes": {
                 "visual": 7,
                 "field": 2,
@@ -390,6 +480,30 @@
                     "skipped": 1,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 12,
                     "passed": 12,
@@ -418,7 +532,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.36,
+            "ms": 0.63,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -471,6 +585,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -499,7 +625,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 5.96,
+            "ms": 3.98,
             "nodes": {
                 "visual": 15,
                 "field": 3,
@@ -552,6 +678,30 @@
                     "skipped": 1,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 23,
                     "passed": 23,
@@ -580,7 +730,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.37,
+            "ms": 3.49,
             "nodes": {
                 "visual": 18,
                 "field": 0,
@@ -633,6 +783,12 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 19,
                     "passed": 19,
@@ -661,7 +817,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.18,
+            "ms": 2.11,
             "nodes": {
                 "visual": 13,
                 "field": 4,
@@ -714,6 +870,30 @@
                     "skipped": 2,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 19,
                     "passed": 19,
@@ -742,7 +922,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 18.09,
+            "ms": 10.98,
             "nodes": {
                 "visual": 19,
                 "field": 4,
@@ -801,6 +981,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 27,
                     "passed": 27,
@@ -829,7 +1039,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.77,
+            "ms": 3.54,
             "nodes": {
                 "visual": 14,
                 "field": 1,
@@ -888,6 +1098,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 18,
                     "passed": 18,
@@ -916,7 +1156,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 7.73,
+            "ms": 2.75,
             "nodes": {
                 "visual": 15,
                 "field": 0,
@@ -969,6 +1209,30 @@
                     "skipped": 1,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 18,
                     "passed": 18,
@@ -997,7 +1261,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.76,
+            "ms": 1.58,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -1050,6 +1314,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 6,
                     "passed": 6,
@@ -1078,7 +1366,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 10.91,
+            "ms": 1.67,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -1131,6 +1419,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 7,
                     "passed": 7,
@@ -1159,7 +1465,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 6.59,
+            "ms": 2.98,
             "nodes": {
                 "visual": 20,
                 "field": 3,
@@ -1212,6 +1518,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 27,
                     "passed": 27,
@@ -1240,7 +1564,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.02,
+            "ms": 1.57,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -1293,6 +1617,18 @@
                     "skipped": 1,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 5,
                     "passed": 5,
@@ -1321,7 +1657,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.83,
+            "ms": 2.84,
             "nodes": {
                 "visual": 16,
                 "field": 3,
@@ -1374,6 +1710,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 24,
                     "passed": 24,
@@ -1402,7 +1756,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.83,
+            "ms": 4.52,
             "nodes": {
                 "visual": 13,
                 "field": 2,
@@ -1455,6 +1809,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 18,
                     "passed": 18,
@@ -1483,7 +1861,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.03,
+            "ms": 3.53,
             "nodes": {
                 "visual": 16,
                 "field": 5,
@@ -1536,6 +1914,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 9,
+                    "passed": 9,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 24,
                     "passed": 24,
@@ -1566,7 +1968,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.26,
+            "ms": 0.42,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -1577,6 +1979,18 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -1605,7 +2019,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.72,
+            "ms": 7.63,
             "nodes": {
                 "visual": 12,
                 "field": 2,
@@ -1658,6 +2072,24 @@
                     "skipped": 3,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 18,
                     "passed": 18,
@@ -1686,7 +2118,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 4.77,
+            "ms": 5.31,
             "nodes": {
                 "visual": 34,
                 "field": 1,
@@ -1739,6 +2171,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 14,
+                    "passed": 14,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 35,
                     "passed": 35,
@@ -1767,7 +2217,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.74,
+            "ms": 1.02,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -1820,6 +2270,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 8,
                     "passed": 8,
@@ -1848,7 +2310,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.41,
+            "ms": 2,
             "nodes": {
                 "visual": 15,
                 "field": 3,
@@ -1901,6 +2363,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 20,
                     "passed": 20,
@@ -1929,7 +2409,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.58,
+            "ms": 1.97,
             "nodes": {
                 "visual": 18,
                 "field": 2,
@@ -1979,6 +2459,24 @@
                 "remove attribute": {
                     "tried": 8,
                     "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 0,
                     "failures": []
                 },
@@ -2063,6 +2561,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 18,
                     "passed": 18,
@@ -2091,7 +2607,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.46,
+            "ms": 17.59,
             "nodes": {
                 "visual": 15,
                 "field": 4,
@@ -2144,6 +2660,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 20,
                     "passed": 20,
@@ -2172,7 +2706,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.28,
+            "ms": 1.4,
             "nodes": {
                 "visual": 11,
                 "field": 0,
@@ -2231,6 +2765,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 14,
                     "passed": 14,
@@ -2259,7 +2823,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.14,
+            "ms": 1.25,
             "nodes": {
                 "visual": 16,
                 "field": 0,
@@ -2318,6 +2882,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 19,
                     "passed": 19,
@@ -2346,7 +2934,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.18,
+            "ms": 1.72,
             "nodes": {
                 "visual": 16,
                 "field": 0,
@@ -2400,6 +2988,30 @@
                     "failures": []
                 },
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -2435,7 +3047,7 @@
             "reason": "@endif arrives while <a> is still open",
             "identical": false,
             "compiles": true,
-            "ms": 1.12,
+            "ms": 0.82,
             "asExpected": true
         },
         {
@@ -2445,7 +3057,7 @@
             "reason": "@else arrives while <div> is still open",
             "identical": false,
             "compiles": true,
-            "ms": 0.57,
+            "ms": 0.61,
             "asExpected": true
         },
         {
@@ -2455,7 +3067,7 @@
             "reason": "</ul> does not close <li>",
             "identical": false,
             "compiles": true,
-            "ms": 0.28,
+            "ms": 0.42,
             "asExpected": true
         },
         {
@@ -2465,7 +3077,7 @@
             "reason": "</div> does not close the template root",
             "identical": false,
             "compiles": true,
-            "ms": 0.21,
+            "ms": 0.61,
             "asExpected": true
         },
         {
@@ -2475,7 +3087,7 @@
             "reason": "<section> is never closed",
             "identical": false,
             "compiles": true,
-            "ms": 0.22,
+            "ms": 0.57,
             "asExpected": true
         },
         {
@@ -2485,7 +3097,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.69,
+            "ms": 1.21,
             "nodes": {
                 "visual": 13,
                 "field": 1,
@@ -2544,6 +3156,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 8,
                     "passed": 8,
@@ -2572,7 +3208,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.43,
+            "ms": 1.44,
             "nodes": {
                 "visual": 7,
                 "field": 1,
@@ -2625,6 +3261,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 8,
                     "passed": 8,
@@ -2653,7 +3307,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.48,
+            "ms": 0.95,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -2706,6 +3360,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 6,
                     "passed": 6,
@@ -2734,7 +3406,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.66,
+            "ms": 0.75,
             "nodes": {
                 "visual": 11,
                 "field": 3,
@@ -2793,6 +3465,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 9,
                     "passed": 9,
@@ -2821,7 +3517,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.94,
+            "ms": 0.96,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -2868,6 +3564,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 11,
                     "passed": 11,
@@ -2896,7 +3616,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.26,
+            "ms": 1.37,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -2955,6 +3675,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 6,
                     "passed": 6,
@@ -2983,7 +3715,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.44,
+            "ms": 0.47,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -3064,7 +3796,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.39,
+            "ms": 0.49,
             "nodes": {
                 "visual": 8,
                 "field": 0,
@@ -3147,7 +3879,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.52,
+            "ms": 0.72,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -3158,6 +3890,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3186,7 +3924,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.34,
+            "ms": 0.57,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -3197,6 +3935,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3225,7 +3969,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.36,
+            "ms": 0.55,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -3236,6 +3980,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3264,7 +4014,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.37,
+            "ms": 0.51,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -3275,6 +4025,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3303,7 +4059,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.49,
+            "ms": 0.59,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -3314,6 +4070,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3342,7 +4104,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.42,
+            "ms": 0.71,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -3353,6 +4115,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3381,7 +4149,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.56,
+            "ms": 0.48,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -3392,6 +4160,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3420,7 +4194,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.35,
+            "ms": 0.56,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -3431,6 +4205,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3459,7 +4239,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.95,
+            "ms": 1.16,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -3512,6 +4292,12 @@
                     "skipped": 3,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 12,
                     "passed": 12,
@@ -3540,7 +4326,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.1,
+            "ms": 3.28,
             "nodes": {
                 "visual": 18,
                 "field": 0,
@@ -3593,6 +4379,12 @@
                     "skipped": 4,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 16,
                     "passed": 16,
@@ -3621,7 +4413,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.77,
+            "ms": 1.62,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -3662,6 +4454,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3690,7 +4506,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.3,
+            "ms": 0.84,
             "nodes": {
                 "visual": 3,
                 "field": 1,
@@ -3749,6 +4565,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -3777,7 +4623,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.14,
+            "ms": 1.61,
             "nodes": {
                 "visual": 8,
                 "field": 4,
@@ -3836,6 +4682,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 13,
                     "passed": 13,
@@ -3864,7 +4740,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.68,
+            "ms": 1.81,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -3875,6 +4751,18 @@
             },
             "codeBytes": 408,
             "edits": {
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 3,
                     "passed": 3,
@@ -3903,7 +4791,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.73,
+            "ms": 0.92,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -3956,6 +4844,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 3,
                     "passed": 3,
@@ -3984,7 +4884,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.15,
+            "ms": 2.38,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -4037,6 +4937,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 14,
                     "passed": 14,
@@ -4065,7 +4977,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.94,
+            "ms": 2.11,
             "nodes": {
                 "visual": 21,
                 "field": 3,
@@ -4124,6 +5036,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 23,
                     "passed": 23,
@@ -4152,7 +5094,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.65,
+            "ms": 0.78,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -4163,6 +5105,30 @@
             },
             "codeBytes": 210,
             "edits": {
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 5,
                     "passed": 5,
@@ -4191,7 +5157,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.58,
+            "ms": 1.54,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -4272,7 +5238,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.37,
+            "ms": 0.43,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -4353,7 +5319,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.39,
+            "ms": 0.41,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -4434,7 +5400,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.25,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -4515,7 +5481,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.56,
+            "ms": 0.55,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -4596,7 +5562,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.3,
+            "ms": 0.68,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -4677,7 +5643,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.27,
+            "ms": 0.41,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -4758,7 +5724,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.34,
+            "ms": 0.47,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -4839,7 +5805,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.29,
+            "ms": 0.61,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -4920,7 +5886,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.42,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -5001,7 +5967,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.43,
+            "ms": 0.52,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -5082,7 +6048,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.48,
+            "ms": 0.61,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -5163,7 +6129,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.44,
+            "ms": 0.54,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -5244,7 +6210,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.38,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -5325,7 +6291,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.37,
+            "ms": 0.95,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -5406,7 +6372,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.61,
+            "ms": 1.08,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5487,7 +6453,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.04,
+            "ms": 1.28,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -5540,6 +6506,30 @@
                     "skipped": 3,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 13,
                     "passed": 13,
@@ -5568,7 +6558,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 5.14,
+            "ms": 6.05,
             "nodes": {
                 "visual": 32,
                 "field": 2,
@@ -5627,6 +6617,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 35,
                     "passed": 35,
@@ -5655,7 +6675,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 6.85,
+            "ms": 8.2,
             "nodes": {
                 "visual": 38,
                 "field": 2,
@@ -5714,6 +6734,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 38,
                     "passed": 38,
@@ -5742,7 +6792,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.84,
+            "ms": 1.09,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -5801,6 +6851,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 7,
                     "passed": 7,
@@ -5829,7 +6897,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.61,
+            "ms": 0.75,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -5888,6 +6956,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 12,
                     "passed": 12,
@@ -5916,7 +7014,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.2,
+            "ms": 2.28,
             "nodes": {
                 "visual": 8,
                 "field": 2,
@@ -5969,6 +7067,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 13,
                     "passed": 13,
@@ -5997,7 +7119,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.15,
+            "ms": 0.98,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -6056,6 +7178,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 7,
                     "passed": 7,
@@ -6084,7 +7224,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.94,
+            "ms": 1.16,
             "nodes": {
                 "visual": 12,
                 "field": 2,
@@ -6143,6 +7283,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 13,
                     "passed": 13,
@@ -6171,7 +7341,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.33,
+            "ms": 0.8,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -6212,6 +7382,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -6240,7 +7422,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.27,
+            "ms": 0.36,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -6321,7 +7503,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.54,
+            "ms": 1.51,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -6374,6 +7556,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 6,
                     "passed": 6,
@@ -6402,7 +7608,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.72,
+            "ms": 2.86,
             "nodes": {
                 "visual": 12,
                 "field": 1,
@@ -6455,6 +7661,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 14,
                     "passed": 14,
@@ -6483,7 +7713,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.47,
+            "ms": 2.05,
             "nodes": {
                 "visual": 15,
                 "field": 1,
@@ -6542,6 +7772,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 16,
                     "passed": 16,
@@ -6570,7 +7830,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.81,
+            "ms": 1,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -6629,6 +7889,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 7,
                     "passed": 7,
@@ -6657,7 +7935,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.75,
+            "ms": 2.01,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -6716,6 +7994,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 16,
                     "passed": 16,
@@ -6744,7 +8052,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 3.32,
+            "ms": 4.14,
             "nodes": {
                 "visual": 39,
                 "field": 21,
@@ -6758,6 +8066,30 @@
                 "change text": {
                     "tried": 28,
                     "passed": 28,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 28,
+                    "passed": 28,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 26,
+                    "passed": 26,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 26,
+                    "passed": 26,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 8,
+                    "passed": 8,
                     "skipped": 0,
                     "failures": []
                 },
@@ -6789,7 +8121,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 4.3,
+            "ms": 6.84,
             "nodes": {
                 "visual": 22,
                 "field": 0,
@@ -6800,6 +8132,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 22,
                     "passed": 22,
@@ -6828,7 +8166,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.2,
+            "ms": 1.62,
             "nodes": {
                 "visual": 25,
                 "field": 0,
@@ -6887,6 +8225,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 23,
                     "passed": 23,
@@ -6915,7 +8277,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.61,
+            "ms": 0.82,
             "nodes": {
                 "visual": 10,
                 "field": 1,
@@ -6968,6 +8330,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 12,
                     "passed": 12,
@@ -6996,7 +8382,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.37,
+            "ms": 0.76,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -7049,6 +8435,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 6,
                     "passed": 6,
@@ -7077,7 +8475,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.56,
+            "ms": 0.82,
             "nodes": {
                 "visual": 5,
                 "field": 1,
@@ -7130,6 +8528,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 7,
                     "passed": 7,
@@ -7158,7 +8580,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.32,
+            "ms": 1.23,
             "nodes": {
                 "visual": 19,
                 "field": 0,
@@ -7211,6 +8633,18 @@
                     "skipped": 5,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 24,
                     "passed": 24,
@@ -7239,7 +8673,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.56,
+            "ms": 1.54,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -7253,6 +8687,30 @@
                 "change text": {
                     "tried": 2,
                     "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 0,
                     "failures": []
                 },
@@ -7284,7 +8742,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.39,
+            "ms": 0.57,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -7337,6 +8795,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 7,
                     "passed": 7,
@@ -7365,7 +8835,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.41,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -7418,6 +8888,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 4,
                     "passed": 4,
@@ -7446,7 +8928,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.35,
+            "ms": 0.38,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -7499,6 +8981,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -7527,7 +9021,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.49,
+            "ms": 0.38,
             "nodes": {
                 "visual": 1,
                 "field": 2,
@@ -7541,6 +9035,24 @@
                 "change text": {
                     "tried": 1,
                     "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 0,
                     "failures": []
                 },
@@ -7572,7 +9084,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.32,
+            "ms": 0.27,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -7583,6 +9095,18 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -7611,7 +9135,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.42,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 2,
@@ -7625,6 +9149,24 @@
                 "change text": {
                     "tried": 1,
                     "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
                     "skipped": 0,
                     "failures": []
                 },
@@ -7656,7 +9198,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.86,
+            "ms": 0.71,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -7667,6 +9209,24 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 5,
                     "passed": 5,
@@ -7695,7 +9255,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.75,
+            "ms": 2.26,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -7709,6 +9269,36 @@
                 "change text": {
                     "tried": 2,
                     "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 0,
                     "failures": []
                 },
@@ -7740,7 +9330,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.21,
+            "ms": 0.33,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -7751,6 +9341,18 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -7779,7 +9381,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.18,
+            "ms": 0.26,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -7790,6 +9392,18 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -7818,7 +9432,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.16,
+            "ms": 0.28,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -7829,6 +9443,18 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -7857,7 +9483,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.56,
+            "ms": 2.94,
             "nodes": {
                 "visual": 18,
                 "field": 7,
@@ -7916,6 +9542,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 6,
+                    "passed": 6,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 25,
                     "passed": 25,
@@ -7944,7 +9600,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 2.59,
+            "ms": 3,
             "nodes": {
                 "visual": 28,
                 "field": 3,
@@ -8003,6 +9659,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 27,
                     "passed": 27,
@@ -8031,7 +9711,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 4.95,
+            "ms": 3.46,
             "nodes": {
                 "visual": 28,
                 "field": 3,
@@ -8090,6 +9770,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 27,
                     "passed": 27,
@@ -8118,7 +9822,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 6.05,
+            "ms": 6.91,
             "nodes": {
                 "visual": 46,
                 "field": 6,
@@ -8177,6 +9881,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 10,
+                    "passed": 10,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 14,
+                    "passed": 14,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 56,
                     "passed": 56,
@@ -8205,7 +9939,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 4.68,
+            "ms": 2.9,
             "nodes": {
                 "visual": 20,
                 "field": 3,
@@ -8258,6 +9992,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 8,
+                    "passed": 8,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 23,
                     "passed": 23,
@@ -8286,7 +10038,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.41,
+            "ms": 2.22,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -8339,6 +10091,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 17,
                     "passed": 17,
@@ -8367,7 +10131,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.33,
+            "ms": 1.5,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -8420,6 +10184,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 7,
+                    "passed": 7,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 17,
                     "passed": 17,
@@ -8448,7 +10224,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.4,
+            "ms": 1.53,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -8501,6 +10277,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 17,
                     "passed": 17,
@@ -8529,7 +10323,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 1.41,
+            "ms": 1.64,
             "nodes": {
                 "visual": 8,
                 "field": 0,
@@ -8582,6 +10376,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 12,
                     "passed": 12,
@@ -8610,7 +10422,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 14.92,
+            "ms": 21.19,
             "nodes": {
                 "visual": 44,
                 "field": 7,
@@ -8663,6 +10475,24 @@
                     "skipped": 4,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 15,
+                    "passed": 15,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 15,
+                    "passed": 15,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 11,
+                    "passed": 11,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 59,
                     "passed": 59,
@@ -8691,7 +10521,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.45,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -8738,6 +10568,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -8766,7 +10608,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.28,
+            "ms": 0.72,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -8813,6 +10655,12 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -8841,7 +10689,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.23,
+            "ms": 0.34,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -8888,6 +10736,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -8916,7 +10776,7 @@
             "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
             "identical": false,
             "compiles": true,
-            "ms": 1.05,
+            "ms": 0.99,
             "asExpected": null
         },
         {
@@ -8926,7 +10786,7 @@
             "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
             "identical": false,
             "compiles": true,
-            "ms": 0.21,
+            "ms": 0.36,
             "asExpected": null
         },
         {
@@ -8936,7 +10796,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.14,
+            "ms": 0.24,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8952,6 +10812,12 @@
                     "passed": 1,
                     "skipped": 0,
                     "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -8963,7 +10829,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.33,
+            "ms": 0.51,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -8975,6 +10841,24 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -9008,7 +10892,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.2,
+            "ms": 0.31,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9062,6 +10946,12 @@
                     "failures": []
                 },
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -9095,7 +10985,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.44,
+            "ms": 0.47,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9149,6 +11039,12 @@
                     "failures": []
                 },
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -9182,7 +11078,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.26,
+            "ms": 0.4,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9194,6 +11090,24 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
                     "tried": 2,
                     "passed": 2,
                     "skipped": 0,
@@ -9227,7 +11141,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.37,
+            "ms": 0.56,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -9241,6 +11155,18 @@
                 "change text": {
                     "tried": 2,
                     "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 0,
                     "failures": []
                 },
@@ -9272,7 +11198,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.18,
+            "ms": 0.24,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -9288,6 +11214,12 @@
                     "passed": 1,
                     "skipped": 0,
                     "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9299,7 +11231,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.34,
+            "ms": 0.45,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -9311,6 +11243,18 @@
             "codeBytes": 65,
             "edits": {
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -9344,7 +11288,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.19,
+            "ms": 0.37,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -9358,6 +11302,24 @@
                 "change text": {
                     "tried": 2,
                     "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 0,
                     "failures": []
                 },
@@ -9389,7 +11351,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.52,
+            "ms": 0.98,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -9403,6 +11365,24 @@
                 "change text": {
                     "tried": 2,
                     "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 0,
                     "failures": []
                 },
@@ -9434,7 +11414,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.15,
+            "ms": 0.28,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -9450,6 +11430,12 @@
                     "passed": 1,
                     "skipped": 0,
                     "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9461,7 +11447,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.37,
+            "ms": 0.45,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -9472,6 +11458,18 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -9500,7 +11498,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.17,
+            "ms": 0.43,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -9511,6 +11509,18 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -9539,7 +11549,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.23,
+            "ms": 0.27,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -9550,6 +11560,18 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -9578,7 +11600,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.14,
+            "ms": 0.28,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -9594,6 +11616,12 @@
                     "passed": 1,
                     "skipped": 0,
                     "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9605,7 +11633,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.23,
+            "ms": 0.24,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -9625,7 +11653,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.14,
+            "ms": 0.28,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -9637,6 +11665,12 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -9652,7 +11686,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.13,
+            "ms": 0.31,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -9668,6 +11702,12 @@
                     "passed": 1,
                     "skipped": 0,
                     "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9679,7 +11719,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.25,
+            "ms": 0.37,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9691,6 +11731,24 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
                     "tried": 2,
                     "passed": 2,
                     "skipped": 0,
@@ -9724,7 +11782,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.16,
+            "ms": 0.24,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -9740,6 +11798,12 @@
                     "passed": 1,
                     "skipped": 0,
                     "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
                 }
             },
             "asExpected": null
@@ -9751,7 +11815,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.26,
+            "ms": 0.35,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -9804,6 +11868,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -9832,7 +11908,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.15,
+            "ms": 0.27,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9891,6 +11967,12 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -9919,7 +12001,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.25,
+            "ms": 0.38,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -9972,6 +12054,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 2,
                     "passed": 2,
@@ -10000,7 +12094,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.41,
+            "ms": 0.58,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -10012,6 +12106,12 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -10045,7 +12145,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.44,
+            "ms": 0.55,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -10092,6 +12192,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 3,
                     "passed": 3,
@@ -10120,7 +12250,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.41,
+            "ms": 0.48,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -10161,6 +12291,18 @@
                     "skipped": 1,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 3,
                     "passed": 3,
@@ -10189,7 +12331,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.33,
+            "ms": 0.42,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -10228,7 +12370,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.61,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -10275,6 +12417,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 3,
                     "passed": 3,
@@ -10303,7 +12475,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.3,
+            "ms": 0.44,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -10356,6 +12528,18 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 3,
                     "passed": 3,
@@ -10384,7 +12568,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.34,
+            "ms": 0.41,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -10425,6 +12609,30 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 3,
                     "passed": 3,
@@ -10453,7 +12661,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.32,
+            "ms": 0.63,
             "nodes": {
                 "visual": 4,
                 "field": 3,
@@ -10500,6 +12708,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 5,
                     "passed": 5,
@@ -10528,7 +12766,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 6.97,
+            "ms": 0.9,
             "nodes": {
                 "visual": 10,
                 "field": 1,
@@ -10575,6 +12813,24 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 5,
+                    "passed": 5,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 6,
                     "passed": 6,
@@ -10603,7 +12859,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.36,
+            "ms": 0.44,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -10650,6 +12906,36 @@
                     "skipped": 0,
                     "failures": []
                 },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 3,
                     "passed": 3,
@@ -10678,7 +12964,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.95,
+            "ms": 1.24,
             "nodes": {
                 "visual": 11,
                 "field": 0,
@@ -10692,6 +12978,18 @@
                 "change text": {
                     "tried": 4,
                     "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 4,
+                    "passed": 4,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 0,
                     "failures": []
                 },
@@ -10723,7 +13021,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.26,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -10735,6 +13033,24 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -10768,7 +13084,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.23,
+            "ms": 0.48,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -10780,6 +13096,24 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
                     "tried": 2,
                     "passed": 2,
                     "skipped": 0,
@@ -10813,7 +13147,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.24,
+            "ms": 0.28,
             "nodes": {
                 "visual": 0,
                 "field": 0,
@@ -10824,6 +13158,12 @@
             },
             "codeBytes": 81,
             "edits": {
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -10852,7 +13192,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.92,
+            "ms": 9.15,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -10866,6 +13206,18 @@
                 "change text": {
                     "tried": 2,
                     "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 2,
+                    "passed": 2,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
                     "skipped": 0,
                     "failures": []
                 },
@@ -10897,7 +13249,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.25,
+            "ms": 0.4,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -10936,7 +13288,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.2,
+            "ms": 0.32,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -10947,6 +13299,12 @@
             },
             "codeBytes": 0,
             "edits": {
+                "change arguments": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
                 "delete": {
                     "tried": 1,
                     "passed": 1,
@@ -10975,21 +13333,45 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.16,
+            "ms": 0.38,
             "nodes": {
-                "visual": 1,
+                "visual": 0,
                 "field": 0,
                 "label": 0,
                 "expression": 0,
                 "mixed": 0,
-                "code": 0
+                "code": 1
             },
-            "codeBytes": 0,
+            "codeBytes": 76,
             "edits": {
-                "change text": {
+                "change arguments": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
+                    "failures": []
+                },
+                "rewrite code": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "delete": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "wrap": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "reorder": {
+                    "tried": 0,
+                    "passed": 0,
+                    "skipped": 1,
                     "failures": []
                 }
             },
@@ -11002,7 +13384,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.29,
+            "ms": 0.47,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -11014,6 +13396,12 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 3,
+                    "passed": 3,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
                     "tried": 3,
                     "passed": 3,
                     "skipped": 0,
@@ -11047,7 +13435,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.49,
+            "ms": 0.57,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -11059,6 +13447,12 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -11092,7 +13486,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.31,
+            "ms": 0.58,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -11104,6 +13498,12 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,
@@ -11137,7 +13537,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.49,
+            "ms": 0.64,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -11176,7 +13576,7 @@
             "reason": null,
             "identical": true,
             "compiles": true,
-            "ms": 0.23,
+            "ms": 0.29,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -11188,6 +13588,24 @@
             "codeBytes": 0,
             "edits": {
                 "change text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "type awkward text": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "change expression": {
+                    "tried": 1,
+                    "passed": 1,
+                    "skipped": 0,
+                    "failures": []
+                },
+                "switch escaping": {
                     "tried": 1,
                     "passed": 1,
                     "skipped": 0,

@@ -10,12 +10,14 @@ use Illuminate\View\Compilers\BladeCompiler;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Sunrice\VisualEditor\Blade\Attributes;
+use Sunrice\VisualEditor\Blade\Classifier;
 use Sunrice\VisualEditor\Blade\Edit;
 use Sunrice\VisualEditor\Blade\EditRejected;
 use Sunrice\VisualEditor\Blade\HtmlLexer;
 use Sunrice\VisualEditor\Blade\Inert;
 use Sunrice\VisualEditor\Blade\Node;
 use Sunrice\VisualEditor\Blade\Rules;
+use Sunrice\VisualEditor\Blade\Seams;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
 use Throwable;
@@ -261,14 +263,81 @@ final class RoundTrip
             }
         }
 
+        $selectable = count(Template::open($source)->selectable());
         $count = count(Template::open($source)->texts());
         for ($i = 0; $i < $count; $i++) {
-            $text = Template::open($source)->texts()[$i];
-            $leading = strlen($text->open) - strlen(ltrim($text->open));
-            $trailing = strlen($text->open) - strlen(rtrim($text->open));
-            $root = self::root($text);
-            Edit::setText($text, 'Edited — teks baru');
-            $record('change text', self::verify($root->print(), self::join($slice(0, $text->start + $leading), 'Edited — teks baru', $slice($text->end - $trailing, $end))), self::where($text));
+            foreach (['change text' => 'Edited — teks baru', 'type awkward text' => self::AWKWARD] as $edit => $words) {
+                $text = Template::open($source)->texts()[$i];
+                $leading = strlen($text->open) - strlen(ltrim($text->open));
+                $trailing = strlen($text->open) - strlen(rtrim($text->open));
+                $root = self::root($text);
+                Edit::setText($text, $words);
+                $out = $root->print();
+                $error = self::verify($out, self::join($slice(0, $text->start + $leading), Inert::text($words), $slice($text->end - $trailing, $end)));
+                // Nothing typed may turn into a Blade node or into PHP.
+                $error ??= count(Template::open($out)->selectable()) === $selectable ? null : 'typed text became a node';
+                $record($edit, $error ?? $inert($out), self::where($text));
+            }
+        }
+
+        // Echoes: a new expression between the same delimiters and spacing; escaped ↔ raw.
+        $echoes = fn (): array => array_values(array_filter(
+            iterator_to_array(Template::open($source)->root->walk(), false),
+            fn (Node $node) => $node->type === 'atom' && in_array($node->kind, ['echo', 'raw_echo'], true) && Rules::movable($node),
+        ));
+        foreach (array_keys($echoes()) as $i) {
+            $echo = $echoes()[$i];
+            if (preg_match('/^(\{\{\{|\{\{|\{!!)(\s*)(.*?)(\s*)(\}\}\}|\}\}|!!\})$/s', $echo->open, $m) !== 1) {
+                $record('change expression', 'echo not understood', self::where($echo));
+
+                continue;
+            }
+            $root = self::root($echo);
+            Edit::setExpression($echo, "\$sr->get('x') ?? 'y'");
+            $record('change expression', self::verify($root->print(), $slice(0, $echo->start).$m[1].$m[2]."\$sr->get('x') ?? 'y'".$m[4].$m[5].$slice($echo->end, $end)), self::where($echo));
+
+            $echo = $echoes()[$i];
+            $root = self::root($echo);
+            $raw = $echo->kind !== 'raw_echo';
+            Edit::setEchoRaw($echo, $raw);
+            $record('switch escaping', self::verify($root->print(), $slice(0, $echo->start).($raw ? '{!!' : '{{').$m[2].$m[3].$m[4].($raw ? '!!}' : '}}').$slice($echo->end, $end)), self::where($echo));
+        }
+
+        // Directive arguments: only what is between the brackets changes.
+        $directives = fn (): array => array_values(array_filter(
+            iterator_to_array(Template::open($source)->root->walk(), false),
+            fn (Node $node) => in_array($node->type, ['atom', 'branch'], true) && $node->kind === 'directive' && $node->args !== null && ! Rules::insideCode($node),
+        ));
+        foreach (array_keys($directives()) as $i) {
+            $directive = $directives()[$i];
+            $head = $directive->open;
+            $args = (string) $directive->args;
+            if (! str_ends_with($head, '('.$args.')')) {
+                $skip('change arguments');
+
+                continue;
+            }
+            $root = self::root($directive);
+            try {
+                Edit::setArguments($directive, ' '.$args.' ');
+                $bracket = $directive->start + strlen($head) - strlen($args) - 1;
+                $record('change arguments', self::verify($root->print(), $slice(0, $bracket).' '.$args.' '.$slice($bracket + strlen($args), $end)), self::where($directive));
+            } catch (EditRejected) {
+                $skip('change arguments');
+            }
+        }
+
+        // Rewrite a code node by hand: the node is replaced, nothing else.
+        $classifier = new Classifier;
+        $codes = fn (): array => array_values(array_filter(
+            self::editable(Template::open($source)),
+            fn (Node $node) => $classifier->classify($node) === 'code',
+        ));
+        foreach (array_keys($codes()) as $i) {
+            $node = $codes()[$i];
+            $root = self::root($node);
+            Edit::setCode($node, '@php($sr = 1)');
+            $record('rewrite code', self::verify($root->print(), self::join($slice(0, $node->start), '@php($sr = 1)', $slice($node->end, $end))), self::where($node));
         }
 
         $count = count(self::editable(Template::open($source)));
@@ -352,13 +421,13 @@ final class RoundTrip
 
     /**
      * Pieces brought together by an edit get one space where Blade would
-     * misread them joined (see Edit::unsafeSeam).
+     * misread them joined (see Seams).
      */
     private static function join(string ...$pieces): string
     {
         $out = (string) array_shift($pieces);
         foreach ($pieces as $piece) {
-            $out .= (Edit::unsafeSeam($out, $piece) ? ' ' : '').$piece;
+            $out .= (Seams::unsafe($out, $piece) ? ' ' : '').$piece;
         }
 
         return $out;

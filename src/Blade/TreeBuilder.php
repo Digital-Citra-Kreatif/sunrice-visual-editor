@@ -16,6 +16,9 @@ final class TreeBuilder
     /** Single directives that divide their block into arms. */
     private const SEPARATORS = ['forelse' => ['empty'], 'switch' => ['case', 'default']];
 
+    /** @var array<string, true>|null */
+    private ?array $directives = null;
+
     public function build(string $source): Node
     {
         $atoms = (new BladeScanner)->scan($source);
@@ -125,8 +128,12 @@ final class TreeBuilder
     private function atom(Node $current, Atom $atom, string $text, int $start, int $end): Node
     {
         if ($atom->role === Atom::SINGLE) {
-            if ($this->isSeparator($current, $atom) === false) {
+            $separator = $this->isSeparator($current, $atom);
+            if ($separator === false) {
                 throw new Unsupported("@{$atom->name} is inside ".$this->describe($current), $start);
+            }
+            if ($atom->kind === 'directive' && $separator === null && ($problem = $this->unpaired($atom)) !== null) {
+                throw new Unsupported($problem, $start);
             }
             $leaf = $this->leafFromText($current, 'atom', $text, $start, $end);
             $leaf->kind = $atom->kind;
@@ -195,6 +202,37 @@ final class TreeBuilder
         }
 
         return null;
+    }
+
+    /**
+     * Why a directive standing alone is half of something, or null when it
+     * is whole. The parser pairs @if with @endif and the rest; one it left
+     * unpaired has lost its other half, and the file would not compile.
+     */
+    private function unpaired(Atom $atom): ?string
+    {
+        $name = strtolower($atom->name);
+        $known = $this->directives();
+
+        return match (true) {
+            $name === 'empty' && $atom->args === null => '@empty is outside any @forelse',
+            in_array($name, ['case', 'default'], true) => "@{$atom->name} is outside any @switch",
+            // @section may end with @show or @stop, and with @php, @slot and @lang it has a one-line form.
+            in_array($name, ['section', 'php', 'slot', 'lang'], true) => null,
+            str_starts_with($name, 'else') && isset($known[$name]) => "@{$atom->name} has nothing before it to continue",
+            str_starts_with($name, 'end') && isset($known[substr($name, 3)]) => "@{$atom->name} has nothing to close",
+            isset($known['end'.$name]) => "@{$atom->name} is never closed",
+            default => null,
+        };
+    }
+
+    /** @return array<string, true> every directive name Blade knows here, lower-cased */
+    private function directives(): array
+    {
+        return $this->directives ??= array_fill_keys(
+            array_map(strtolower(...), [...BladeScanner::compilerDirectives(), ...BladeScanner::customDirectives()]),
+            true,
+        );
     }
 
     private function leaf(Node $parent, string $type, string $source, int $start, int $end): Node

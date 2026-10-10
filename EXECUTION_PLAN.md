@@ -187,16 +187,19 @@ The spike left `src/Blade/` with: `BladeScanner`, `HtmlLexer`, `TreeBuilder`, `N
 **Done when:** each edit is a minimal change in the opening tag for static, dynamic, unquoted, valueless and absent attributes, on every element of every fixture, and typed text reads back as typed and compiles to no new PHP.
 
 ### V1.3 Text, echoes and directive arguments
-**Depends on:** V1.1
-`Edit::setText` (exists; add HTML escaping and escaping of `{{` and `@` so typed text can never become Blade), `setExpression` (echo, keeping `{{ }}` or `{!! !!}`), `setEchoRaw(bool)`, `setArguments` (directive arguments, for conditions, loops and includes), `setCode` (replace a code node's text).
-**Done when:** round-trip datasets pass, and a test proves text containing `{{ $x }}`, `@php` and `<script>` comes out inert.
+**Depends on:** V1.2
+- `src/Blade/Content.php`, reached through `Edit::setText` (typed text written with `Inert`; not inside `<script>` or `<style>`), `setExpression` (an echo's expression, keeping `{{ }}` or `{!! !!}` and the spacing; must be one PHP expression), `setEchoRaw(bool)`, `setArguments` (what is between a directive's brackets: conditions, loops, includes; brackets and quotes must match up) and `setCode` (a node rewritten by hand; an empty string removes it).
+- `src/Blade/Fragment.php` — reads a snippet into nodes with the same builder as a file, and refuses what a file would be refused for.
+- `src/Blade/Seams.php` — the seam rule, moved out of `Edit`.
+- `src/Blade/BladeScanner.php` — knows every directive the installed Blade compiles (its compiler's `compile…` methods), not only the parser's own list, which misses newer ones such as `@includeIsolated`.
+- `src/Blade/TreeBuilder.php` — refuses half a block: an `@if` never closed, an `@endif` or `@else` with nothing before it, `@empty` outside `@forelse`, `@case` outside `@switch`.
+**Done when:** round-trip datasets pass, and tests prove text containing `{{ $x }}`, `@php` and `<script>` comes out inert, and that an expression or arguments that would end their construct early are refused.
 
 ### V1.4 Structure edits
 **Depends on:** V1.2, V1.3
-- `src/Blade/Fragment.php` — parses a snippet of HTML/Blade into nodes with the same builder; refuses what a file would be refused for.
 - `Edit::insert(Node $parent, int $index, Fragment)`, `move(Node, Node $parent, int $index)`, `duplicate`, `remove` (exists), `wrap` (exists; take a fragment), `unwrap`.
 - Indentation: an inserted or moved node takes the indentation of its new siblings; nothing else is reindented.
-- Seam rule: extend `Edit::unsafeSeam` to an argument-less directive followed by `(`, which a space does not fix; refuse that edit with a message.
+- Seam rule: extend `Seams` to an argument-less directive followed by `(`, which a space does not fix; refuse that edit with a message.
 - Guards: arms of a block and the block's closer are not movable; a node cannot move into itself; nothing moves into a code node.
 **Done when:** datasets pass, including move between parents and into and out of Blade blocks.
 
