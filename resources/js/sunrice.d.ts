@@ -35,6 +35,7 @@ declare global {
     // JSX compiles to Sunrice.React.createElement (tsconfig.json), so
     // TypeScript looks for the JSX types globally: they are React's.
     namespace JSX {
+        type ElementType = ReactNS.JSX.ElementType;
         type Element = ReactNS.JSX.Element;
         type ElementClass = ReactNS.JSX.ElementClass;
         type ElementAttributesProperty = ReactNS.JSX.ElementAttributesProperty;
