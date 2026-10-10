@@ -20,10 +20,10 @@ The approach holds. Full numbers are in [spike/RESULTS.md](spike/RESULTS.md).
 
 | Templates | Files | Open and print back byte for byte | Refused | Edits passed |
 | --- | ---: | ---: | ---: | ---: |
-| Sunrice starter templates (`stubs/templates`) | 19 | 19 | 0 | 1,042 of 1,042 |
-| Sunrice package views (defaults, components, error pages) | 11 | 11 | 0 | 654 of 654 |
-| Laravel framework's own Blade views | 129 | 127 | 2 | 3,164 of 3,164 |
-| Edge cases written for this test | 12 | 7 | 5, as intended | 181 of 181 |
+| Sunrice starter templates (`stubs/templates`) | 19 | 19 | 0 | 1,743 of 1,743 |
+| Sunrice package views (defaults, components, error pages) | 11 | 11 | 0 | 1,103 of 1,103 |
+| Laravel framework's own Blade views | 129 | 127 | 2 | 7,018 of 7,018 |
+| Edge cases written for this test | 13 | 8 | 5, as intended | 376 of 376 |
 
 The two Laravel files refused are test fixtures that are malformed on purpose.
 
@@ -40,12 +40,14 @@ For every template:
 
 1. **It opens as a tree and the tree prints back the same bytes.**
    `Template::open()` refuses the file otherwise.
-2. **Six kinds of edit, on every node they apply to**, each on a fresh tree:
-   add a class, change text, delete, reorder with the next sibling, wrap in a
+2. **Every kind of edit, on every node it applies to**, each on a fresh tree:
+   add and remove a class, add, change and remove an attribute, rename the
+   element, change text, delete, reorder with the next sibling, wrap in a
    `<div>`, and add a field (`<p>{{ $entry->get('…') }}</p>`) as last child.
    An edit passes when the output is exactly the expected bytes, computed
    from the original file and the node's offsets, opens as a tree again, and
-   compiles with Laravel's Blade compiler to valid PHP.
+   compiles with Laravel's Blade compiler to valid PHP. Text typed into an
+   attribute must also read back as typed and add nothing for PHP to run.
 3. **Templates the tree can't hold are refused, not damaged** (the `locked-…`
    edge fixtures).
 
@@ -127,6 +129,8 @@ src/
     Rules.php          what may be done to a node
     TreeData.php       the tree as plain data for the editor's panels
     Edit.php           the edits, and the directive seam rule
+    Attributes.php     edits to an opening tag: attributes, classes, the tag name
+    Inert.php          typed text as text Blade won't run
   Http/Controllers/    the editor's screen
   Support/             Access: who may use the editor; SunriceBridge: the one file that
                        reads Sunrice's internals (templates, field definitions)

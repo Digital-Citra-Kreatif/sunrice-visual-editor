@@ -10,27 +10,40 @@ namespace Sunrice\VisualEditor\Blade;
  */
 final class Edit
 {
-    /** Adds a class; false when the class list isn't a plain quoted attribute. */
-    public static function addClass(Node $element, string $class): bool
+    /**
+     * Sets an attribute to plain text, or with $blade to a value written as
+     * given (`{{ $entry->url }}`). Null writes the bare name (`disabled`).
+     */
+    public static function setAttribute(Node $element, string $name, ?string $value, bool $blade = false): void
     {
-        foreach ($element->attrs as $attr) {
-            if ($attr['kind'] === 'code' && $attr['name'] === '@class') {
-                return false;
-            }
-        }
-        $attr = $element->attr('class');
-        if ($attr === null) {
-            $at = 1 + strlen($element->name);
-            $insert = ' class="'.$class.'"';
-        } elseif ($attr['valueEnd'] !== null && in_array($element->open[$attr['valueEnd']] ?? '', ['"', "'"], true)) {
-            $at = $attr['valueEnd'];
-            $insert = ($attr['valueEnd'] > $attr['valueStart'] ? ' ' : '').$class;
-        } else {
-            return false;
-        }
-        $element->open = substr($element->open, 0, $at).$insert.substr($element->open, $at);
+        Attributes::set($element, $name, $value, $blade);
+    }
 
-        return true;
+    public static function removeAttribute(Node $element, string $name): void
+    {
+        Attributes::remove($element, $name);
+    }
+
+    public static function addClass(Node $element, string $class): void
+    {
+        Attributes::addClass($element, $class);
+    }
+
+    public static function removeClass(Node $element, string $class): void
+    {
+        Attributes::removeClass($element, $class);
+    }
+
+    /** Sets the id; an empty one removes the attribute. */
+    public static function setId(Node $element, string $id): void
+    {
+        trim($id) === '' ? Attributes::remove($element, 'id') : Attributes::set($element, 'id', trim($id));
+    }
+
+    /** Renames the element, both tags. */
+    public static function setTag(Node $element, string $tag): void
+    {
+        Attributes::setTag($element, $tag);
     }
 
     /** Replaces the words of a text node, keeping the whitespace around them. */

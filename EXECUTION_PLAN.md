@@ -179,8 +179,12 @@ The spike left `src/Blade/` with: `BladeScanner`, `HtmlLexer`, `TreeBuilder`, `N
 
 ### V1.2 Attributes
 **Depends on:** V1.1
-`Edit::setAttribute`, `removeAttribute`, `addClass`, `removeClass`, `setId`, `setTag` (renames both tags). Values are HTML-escaped unless passed as a Blade expression. An attribute whose value contains Blade is replaced whole or left alone. Directives in the tag (`@class`, `@if … @endif`) are never rewritten; `setTag` and edits to other attributes still work.
-**Done when:** each edit is a minimal change in the opening tag for static, dynamic, unquoted, valueless and absent attributes, on every element of every fixture.
+- `src/Blade/Attributes.php`, reached through `Edit::setAttribute`, `removeAttribute`, `addClass`, `removeClass`, `setId`, `setTag` (renames both tags). After each change the opening tag is read again, so several edits can follow one another.
+- `src/Blade/Inert.php` — typed text as text: HTML-escaped, and `{{`, `{!!` and `@name` broken with character references so Blade has nothing to run. Values are written this way unless passed as Blade (`{{ $entry->url }}`), which is refused when it would end the attribute.
+- `src/Blade/EditRejected.php` — an edit that can't be made as asked, with a reason for the person; nothing is changed when it is thrown.
+- `src/Blade/BladeScanner.php` — follows Blade's own rule that `@name` straight after a letter, digit or underscore is not a directive (`joe@if.org`), which the parser alone does not.
+- Refused: a second attribute of the same name; classes when the tag has `@class([…])`; renaming to or from a void element, `script`, `style`, `svg` or `math`.
+**Done when:** each edit is a minimal change in the opening tag for static, dynamic, unquoted, valueless and absent attributes, on every element of every fixture, and typed text reads back as typed and compiles to no new PHP.
 
 ### V1.3 Text, echoes and directive arguments
 **Depends on:** V1.1

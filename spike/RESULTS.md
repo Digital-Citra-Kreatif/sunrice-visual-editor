@@ -32,14 +32,19 @@ Of 333 nodes: 87.4% fully visual, 4.8% expressions, 1.8% elements with a directi
 | Edit | Tried | Passed | Not applicable |
 | --- | ---: | ---: | ---: |
 | add class | 152 | 152 | 1 |
+| remove class | 213 | 213 | 0 |
+| add attribute | 153 | 153 | 0 |
+| rename | 132 | 132 | 21 |
 | add field | 132 | 132 | 21 |
+| change attribute | 101 | 101 | 0 |
+| remove attribute | 102 | 102 | 0 |
 | delete | 324 | 324 | 0 |
 | wrap | 324 | 324 | 0 |
 | reorder | 99 | 99 | 225 |
 | change text | 11 | 11 | 0 |
-| **Total** | 1042 | 1042 | |
+| **Total** | 1743 | 1743 | |
 
-Opening a file: median 2.63 ms, slowest 26.75 ms.
+Opening a file: median 3.03 ms, slowest 33.14 ms.
 
 ## Package views (defaults, components, error pages)
 
@@ -66,11 +71,16 @@ Of 199 nodes: 93% fully visual, 3.5% expressions, 3% elements with a directive i
 | wrap | 196 | 196 | 0 |
 | reorder | 86 | 86 | 110 |
 | add class | 106 | 106 | 0 |
+| remove class | 125 | 125 | 0 |
+| add attribute | 106 | 106 | 0 |
+| change attribute | 74 | 74 | 0 |
+| remove attribute | 77 | 77 | 0 |
+| rename | 67 | 67 | 39 |
 | add field | 67 | 67 | 39 |
 | change text | 3 | 3 | 0 |
-| **Total** | 654 | 654 | |
+| **Total** | 1103 | 1103 | |
 
-Opening a file: median 2.19 ms, slowest 8.53 ms.
+Opening a file: median 1.41 ms, slowest 4.77 ms.
 
 ## Edge cases written for this test
 
@@ -81,6 +91,7 @@ Opening a file: median 2.19 ms, slowest 8.53 ms.
 | `locked-omitted-end-tag.blade.php` | refused | refused | </ul> does not close <li> |
 | `locked-stray-close-tag.blade.php` | refused | refused | </div> does not close the template root |
 | `locked-unclosed-element.blade.php` | refused | refused | <section> is never closed |
+| `ok-at-sign-after-letter.blade.php` | opens, identical | opens, identical |  |
 | `ok-components-and-slots.blade.php` | opens, identical | opens, identical |  |
 | `ok-directives-in-tag.blade.php` | opens, identical | opens, identical |  |
 | `ok-multibyte.blade.php` | opens, identical | opens, identical |  |
@@ -91,15 +102,20 @@ Opening a file: median 2.19 ms, slowest 8.53 ms.
 
 | Edit | Tried | Passed | Not applicable |
 | --- | ---: | ---: | ---: |
-| add class | 30 | 30 | 1 |
-| add field | 23 | 23 | 8 |
-| delete | 51 | 51 | 0 |
-| wrap | 51 | 51 | 0 |
-| reorder | 19 | 19 | 32 |
-| change text | 7 | 7 | 0 |
-| **Total** | 181 | 181 | |
+| add class | 35 | 35 | 1 |
+| remove class | 44 | 44 | 0 |
+| add attribute | 36 | 36 | 0 |
+| change attribute | 27 | 27 | 0 |
+| remove attribute | 27 | 27 | 0 |
+| rename | 27 | 27 | 9 |
+| add field | 28 | 28 | 8 |
+| change text | 13 | 13 | 0 |
+| delete | 59 | 59 | 0 |
+| wrap | 59 | 59 | 0 |
+| reorder | 21 | 21 | 38 |
+| **Total** | 376 | 376 | |
 
-Opening a file: median 0.64 ms, slowest 2.02 ms.
+Opening a file: median 0.66 ms, slowest 1.48 ms.
 
 ## Laravel framework's own Blade views (not written for this editor)
 
@@ -114,8 +130,13 @@ Opening a file: median 0.64 ms, slowest 2.02 ms.
 | wrap | 943 | 943 | 0 |
 | reorder | 306 | 306 | 637 |
 | add class | 454 | 454 | 2 |
+| remove class | 1645 | 1645 | 0 |
+| add attribute | 456 | 456 | 0 |
+| change attribute | 687 | 687 | 0 |
+| remove attribute | 696 | 696 | 0 |
+| rename | 370 | 370 | 86 |
 | add field | 390 | 390 | 66 |
 | change text | 128 | 128 | 0 |
-| **Total** | 3164 | 3164 | |
+| **Total** | 7018 | 7018 | |
 
-Opening a file: median 0.4 ms, slowest 9.11 ms.
+Opening a file: median 0.41 ms, slowest 14.92 ms.
