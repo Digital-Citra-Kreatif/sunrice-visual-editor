@@ -100,7 +100,6 @@ final class Library
             $entry('yield', 'Place for a section', '@yield', "@yield('content')", 'layout slot'),
             $entry('push', 'Addition to a stack', '@push', "@push('scripts')\n@endpush", 'script style head'),
             $entry('stack', 'Place for a stack', '@stack', "@stack('scripts')", 'script style head'),
-            $entry('comment', 'Note', '{{-- --}}', '{{-- Note --}}', 'comment remark'),
             $entry('php', 'PHP', '@php', "@php\n@endphp", 'code variable'),
         ];
     }
