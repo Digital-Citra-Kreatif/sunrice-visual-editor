@@ -124,20 +124,23 @@ Sizes are rough guesses for one developer working with coding agents. Phases 1 a
 - `.github/workflows/tests.yml` — PHP 8.3 and 8.4, sqlite; runs lint, analyse, test and the round-trip test.
 **Done when:** CI is green, with tests showing the provider loads, that only Super Admins are allowed, and that with `enabled = false` nobody is allowed and no route named `sunrice.admin.visual-editor.*` exists.
 
-### V0.2 Round-trip tests in Pest, workbench site and asset CI
+### V0.2 Round-trip tests in Pest and the workbench site
 **Depends on:** V0.1
 **Files:**
 - `src/Blade/BladeScanner.php` — build the parser explicitly (core directives plus the application's own, read from the Blade compiler when there is one) instead of relying on a global factory, so it behaves the same in an app, in tests and in the spike.
-- `tests/Unit/Blade/RoundTripTest.php` — the spike's checks as Pest datasets over `tests/fixtures/**`: opens, prints back identical, expected refusals, and the six edits. `spike/run.php` stays as the report generator and uses the same code.
-- `workbench/`, `testbench.yaml` — app with Sunrice installed, starter templates published, and a seeder: `pages` and `articles` collections, a `hero`/`text`/`gallery` flexible field, a `site` global, a `main` menu, a homepage and five articles.
-- `.github/workflows/assets.yml` — builds the admin script on pull requests once `package.json` exists (V0.3) and commits `dist/` to the branch when it changed.
-**Done when:** CI is green and `vendor/bin/testbench serve` shows the seeded site.
+- `tests/Support/RoundTrip.php` — the round-trip checks, used by both the Pest tests and `spike/run.php`, which stays as the report generator.
+- `tests/Unit/Blade/RoundTripTest.php` — the checks as Pest datasets over `tests/fixtures/**` and over the starter templates of the installed Sunrice: opens, prints back identical, expected refusals, and the six edits.
+- `workbench/`, `testbench.yaml` — app with Sunrice installed, starter templates published, and a seeder: `pages` and `articles` collections, a `hero`/`text`/`gallery` flexible field, `site` and `footer` globals, a `main` menu, a homepage and five articles.
+- `tests/Support/WithStarterSite.php` — for a test: the starter templates in a directory of its own plus the workbench content.
+- `.github/` — CI repeats the output of a failed step as an annotation, and builds and serves the workbench to check the seeded homepage.
+**Done when:** CI is green, including the workbench check (`composer workbench`, `testbench serve`, the homepage shows the seeded site).
 
 ### V0.3 Admin script build and empty editor page
 **Depends on:** V0.1
 **Files:**
 - `package.json`, `tsconfig.json`, `build.mjs` — esbuild, one ES module, JSX factory `Sunrice.React.createElement`, `react` and `@inertiajs/react` aliased to `window.Sunrice`, so bundled libraries that import React (dnd-kit) get the admin's copy.
 - `resources/js/index.tsx` — registers `VisualEditor/Editor` with `layout = null`: a top bar (back to admin, address field), an empty frame and empty side panels.
+- `.github/workflows/assets.yml` — builds the admin script on pull requests and commits `dist/` to the branch when it changed.
 - `src/Http/Controllers/EditorController.php` — `show()`: authorizes with `Access`, renders `VisualEditor/Editor` with the admin path and the homepage URL.
 - `routes/admin.php` — `GET visual-editor` inside `Sunrice::adminRoutes()`.
 **Done when:** a Super Admin opens `/cms/visual-editor` in the workbench and sees the shell; other users get 403; a feature test asserts both. Verify the React aliasing with a dnd-kit import that renders.

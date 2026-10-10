@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Blade;
 
+use Illuminate\Container\Container;
 use SplObjectStorage;
-use Stillat\BladeParser\Document\Document;
 use Stillat\BladeParser\Nodes\AbstractNode;
 use Stillat\BladeParser\Nodes\CommentNode;
 use Stillat\BladeParser\Nodes\Components\ComponentNode;
@@ -15,6 +15,7 @@ use Stillat\BladeParser\Nodes\LiteralNode;
 use Stillat\BladeParser\Nodes\PhpBlockNode;
 use Stillat\BladeParser\Nodes\PhpTagNode;
 use Stillat\BladeParser\Nodes\VerbatimNode;
+use Stillat\BladeParser\Parser\DocumentParser;
 
 /**
  * Finds the Blade constructs in a template with stillat/blade-parser and
@@ -22,15 +23,52 @@ use Stillat\BladeParser\Nodes\VerbatimNode;
  */
 final class BladeScanner
 {
+    /** @var (callable(): list<string>)|null */
+    private static $customDirectives = null;
+
+    /**
+     * Where the names of the application's own Blade directives (@bodyClass…)
+     * come from. Without a resolver they are read from Laravel's Blade
+     * compiler when there is an application, so nothing needs calling in an
+     * app. Pass null to go back to that.
+     *
+     * @param  (callable(): list<string>)|null  $resolver
+     */
+    public static function resolveCustomDirectivesUsing(?callable $resolver): void
+    {
+        self::$customDirectives = $resolver;
+    }
+
+    /** @return list<string> */
+    public static function customDirectives(): array
+    {
+        if (self::$customDirectives !== null) {
+            return (self::$customDirectives)();
+        }
+
+        $container = Container::getInstance();
+        if ($container->bound('blade.compiler')) {
+            return array_map(strval(...), array_keys($container->make('blade.compiler')->getCustomDirectives()));
+        }
+
+        return [];
+    }
+
     /** @return list<Atom> in source order, never overlapping */
     public function scan(string $source): array
     {
-        $document = Document::fromText($source);
+        // Built here, not taken from the container: the same parser in an
+        // app, in tests and on the command line. It knows Blade's own
+        // directives; the application's are added by name.
+        $parser = new DocumentParser;
+        $parser->setDirectiveNames(self::customDirectives());
+        $parser->parse($source);
+        $document = $parser->toDocument();
+
         if ($document->getErrors()->count() > 0) {
             $error = $document->getErrors()->first();
             throw new Unsupported('Blade syntax error: '.(method_exists($error, 'getErrorMessage') ? $error->getErrorMessage() : 'unknown'));
         }
-        $document->resolveStructures();
 
         $byte = $this->byteOffsets($source);
         /** @var SplObjectStorage<AbstractNode, Atom> $atoms */

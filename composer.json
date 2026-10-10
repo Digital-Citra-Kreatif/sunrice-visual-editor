@@ -35,7 +35,8 @@
     "autoload-dev": {
         "psr-4": {
             "Sunrice\\VisualEditor\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "extra": {
@@ -50,7 +51,16 @@
         "lint": "pint --test",
         "format": "pint",
         "analyse": "phpstan analyse --memory-limit=1G",
-        "spike": "php spike/run.php --check"
+        "spike": "php spike/run.php --check",
+        "workbench": [
+            "@php vendor/bin/testbench workbench:create-sqlite-db",
+            "@php vendor/bin/testbench workbench:build"
+        ],
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@workbench",
+            "@php vendor/bin/testbench serve"
+        ]
     },
     "config": {
         "sort-packages": true,
