@@ -64,7 +64,8 @@ final class TemplateRepository
         [$status, $template] = $this->status($source);
 
         return $file->toArray() + $status + [
-            'source' => $source,
+            // Text that isn't UTF-8 can't be sent to the screen or typed back from it.
+            'source' => mb_check_encoding($source, 'UTF-8') ? $source : null,
             'version' => self::version($source),
             'tree' => $template?->toArray()['tree'],
         ];
@@ -127,6 +128,10 @@ final class TemplateRepository
      */
     private function status(string $source): array
     {
+        if (! mb_check_encoding($source, 'UTF-8')) {
+            return [['opens' => false, 'reason' => 'The file is not UTF-8 text: save it as UTF-8 in a code editor first', 'strays' => 0], null];
+        }
+
         try {
             $template = Template::open($source);
         } catch (Unsupported $e) {

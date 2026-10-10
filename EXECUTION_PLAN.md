@@ -261,17 +261,18 @@ Treat `@switch` like `@if`, with `@case` and `@default` as arms. This turns the 
 
 ### V2.3 HTTP API
 **Depends on:** V2.2
-Routes under `{admin}/visual-editor/api`, all behind `Access`:
+Routes under `{admin}/visual-editor/api`, inside Sunrice's admin routes (signed in) and behind `src/Http/Middleware/EditorAccess.php`. A template is named in the address by its path, slashes and all; `src/Http/Controllers/Api/TemplateController.php` answers in JSON.
 
 | Route | Does |
 | --- | --- |
-| `GET templates` | `TemplateRepository::all()` |
-| `GET templates/{path}` | source, version, tree |
-| `POST templates/{path}/operations` | `{version, operations}` → applies and saves → new source, version, tree |
-| `PUT templates/{path}/source` | `{version, source}` from the code panel → saves |
-| `POST templates/{path}/copy` | Copy to site |
+| `GET templates` | `TemplateRepository::all()` → `{templates}` |
+| `GET templates/{path}` | `{template}`: source, version, tree. `?origin=package` for one of Sunrice's views |
+| `POST templates/{path}/operations` | `{version, operations}` → applies and saves → `{template, focus}` |
+| `PUT templates/{path}/source` | `{version, source}` from the code panel → saves → `{template}` |
+| `POST templates/{path}/copy` | Copy to site → `201 {template}`, the new site template |
 
-Errors are JSON with a `reason` the UI can show: `conflict`, `rejected`, `syntax`, `forbidden`.
+A refusal is JSON with a `reason` the screen can act on and a `message` for the person: `forbidden` (403), `not_found` (404), `conflict` (409, with the file's current `version`), `rejected` (422, with the position of the `operation`), `syntax` (422), `invalid` (422: the request itself is wrong). A request carries at most 200 operations, or a source of 1 MB.
+A template that is not UTF-8 is listed as not opening, with `source: null`: it can't be sent to the screen as JSON.
 **Done when:** feature tests cover each route and each error.
 
 ### V2.4 Activity

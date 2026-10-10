@@ -132,6 +132,16 @@ it('says when a template only opens as code, and when it has tags that don\'t ma
         ->and($broken['version'])->toBe(sha1("<p>Text</p>\n<?php \$a = 1;"));
 });
 
+it('leaves a file that is not UTF-8 to a code editor', function () {
+    File::put($this->templates.'/partials/latin.blade.php', "<p>Caf\xE9</p>");
+
+    $read = $this->repository->read('partials/latin.blade.php');
+
+    expect($read)->toMatchArray(['opens' => false, 'source' => null, 'tree' => null, 'version' => sha1("<p>Caf\xE9</p>")])
+        ->and($read['reason'])->toContain('not UTF-8')
+        ->and(json_encode($this->repository->all()))->toBeString();
+});
+
 it('finds nothing outside the directories it lists', function (string $path, string $origin) {
     // Something real to be tempted by, next to the template directory.
     File::put(dirname($this->templates).'/secret.blade.php', 'secret');
