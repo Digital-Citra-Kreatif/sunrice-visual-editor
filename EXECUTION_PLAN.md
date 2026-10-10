@@ -277,7 +277,7 @@ A template that is not UTF-8 is listed as not opening, with `source: null`: it c
 
 ### V2.4 Activity
 **Depends on:** V2.2
-Record each save in Sunrice's activity log with its documented call, `app(ActivityLogger::class)->record('updated', 'Template partials/header.blade.php', […], 'template')`, so template changes appear beside content changes.
+`SaveTemplate` and `CopyPackageView` record what they wrote in Sunrice's activity log with its documented call, `app(ActivityLogger::class)->record('updated', 'partials/header.blade.php', ['note' => 'Visual editor'], 'template')`, so template changes appear beside content changes as *Updated template “partials/header.blade.php”*. A refused save, or one with nothing to write, records nothing.
 **Done when:** a save shows in Manage → Activity log.
 
 ---
