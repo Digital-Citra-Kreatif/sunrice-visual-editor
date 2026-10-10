@@ -90,7 +90,8 @@ final class EditorRender
 
         // "<" and "&" written as escapes: nothing in a template's name can end the script.
         $script = '<script type="application/json" id="'.self::MANIFEST_ID.'">'
-            .json_encode($manifest->toArray(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
+            // With what the page was answered with: one that failed to draw is still shown, and the editor says so.
+            .json_encode($manifest->toArray() + ['status' => $response->getStatusCode()], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
             .'</script>'
             // The bridge: tells the editor what the pointer is over and what was clicked.
             .'<script src="'.e(asset(VisualEditorServiceProvider::asset('bridge.js'))).'" defer></script>';

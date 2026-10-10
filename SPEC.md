@@ -104,7 +104,8 @@ Today a developer writes the templates in a code editor while fields and content
 - Before writing, the result must open as a tree again (or, from the code panel, compile) and pass the Blade syntax check: compiled with the site's Blade compiler and read by PHP's parser, as Sunrice checks templates written by AI agents. Otherwise nothing is written and the error is shown.
 - An edit is sent as an operation: what to do, to which node, with what. Several can be sent together and are applied all or none.
 - The previous version is kept in `storage/app/sunrice/template-backups/`, as for templates written by AI agents.
-- Undo and redo cover the editing session, per file.
+- Undo and redo cover the editing session, per file, for every kind of change. A file that was changed otherwise meanwhile has nothing to undo: an undo never writes over a change the editor has not seen.
+- When a change compiles but the page can no longer be drawn with it, the editor says so and offers the undo.
 - After a save the frame reloads the page and keeps the selection.
 
 ### Styling

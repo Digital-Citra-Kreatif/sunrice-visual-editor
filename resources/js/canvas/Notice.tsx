@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 /** Something to tell the person: a change that was refused, or one that was made elsewhere than they are looking. */
-export type Notice = { kind: 'problem' | 'done'; text: string; at: number };
+export type Notice = { kind: 'problem' | 'done'; text: string; at: number; action?: { label: string; run(): void } };
 
 /** How long word of something done stays. A problem stays until it is dismissed or the next change goes through. */
 const DONE_FOR = 4000;
@@ -33,6 +33,11 @@ export function NoticeBar({ notice, onDismiss }: Props) {
     return (
         <div className={`sve-notice sve-notice--${notice.kind}`} role={notice.kind === 'problem' ? 'alert' : 'status'}>
             <span className="sve-notice__text">{notice.text}</span>
+            {notice.action !== undefined && (
+                <button type="button" className="sve-button sve-notice__action" onClick={notice.action.run}>
+                    {notice.action.label}
+                </button>
+            )}
             <button type="button" className="sve-notice__dismiss" onClick={onDismiss} aria-label="Dismiss" title="Dismiss">
                 <span aria-hidden="true">×</span>
             </button>

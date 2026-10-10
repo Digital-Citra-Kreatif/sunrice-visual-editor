@@ -219,6 +219,9 @@ it('keeps other pages of the site working: listings, entries, search and a missi
 
     $response = get($url)->assertStatus($status);
 
+    // The page says what it was answered with: the editor tells a page that failed to draw from one that did.
+    expect((string) $response->getContent())->toContain('"status":'.$status.'}</script>');
+
     if ($status === 200) {
         expect(marksIn($response))->not->toBeEmpty()
             ->and(manifestOf($response))->toHaveKey('layouts/app.blade.php');
