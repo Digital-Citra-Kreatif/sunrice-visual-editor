@@ -17,22 +17,18 @@ declare(strict_types=1);
  * refused (file name "locked-…") instead of being damaged.
  */
 
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\View\Compilers\BladeCompiler;
 use Sunrice\VisualEditor\Blade\Classifier;
-use Sunrice\VisualEditor\Blade\Edit;
-use Sunrice\VisualEditor\Blade\HtmlLexer;
-use Sunrice\VisualEditor\Blade\Node;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
+use Sunrice\VisualEditor\Tests\Support\RoundTrip;
 
 require __DIR__.'/bootstrap.php';
 
-$fixtures = dirname(__DIR__).'/tests/fixtures';
+// The checks themselves live in tests/Support/RoundTrip.php, shared with the Pest tests.
 $corpora = [
-    'starter' => ['Starter templates (stubs/templates)', $fixtures.'/sunrice-starter'],
-    'package' => ['Package views (defaults, components, error pages)', $fixtures.'/sunrice-package'],
-    'edge' => ['Edge cases written for this test', $fixtures.'/edge'],
+    'starter' => ['Starter templates (stubs/templates)', RoundTrip::fixtures('sunrice-starter')],
+    'package' => ['Package views (defaults, components, error pages)', RoundTrip::fixtures('sunrice-package')],
+    'edge' => ['Edge cases written for this test', RoundTrip::fixtures('edge')],
 ];
 // Blade written by other people: Laravel's own views, when a framework checkout is around.
 $laravel = is_dir($vendored = dirname(__DIR__).'/vendor/laravel/framework') ? $vendored : (getenv('SPIKE_DEPS') ?: dirname(__DIR__, 2).'/deps').'/framework';
@@ -40,208 +36,14 @@ if (is_dir($laravel)) {
     $corpora['laravel'] = ['Laravel framework\'s own Blade views (not written for this editor)', $laravel];
 }
 
-$compiler = new BladeCompiler(new Filesystem, sys_get_temp_dir());
-$compiler->withoutComponentTags();
-$compiler->directive('bodyClass', fn ($expression) => '<?php echo sunrice_body_class('.$expression.'); ?>');
-
-/** Null when the template compiles to valid PHP, else the error. */
-$phpError = function (string $blade) use ($compiler): ?string {
-    try {
-        token_get_all($compiler->compileString($blade), TOKEN_PARSE);
-    } catch (Throwable $e) {
-        return $e->getMessage();
-    }
-
-    return null;
-};
-
-/** An edited template is good when it is exactly what was expected, opens as a tree again and compiles. */
-$verify = function (string $out, string $expected) use ($phpError): ?string {
-    if ($out !== $expected) {
-        return 'output differs from the expected bytes';
-    }
-    try {
-        Template::open($out);
-    } catch (Unsupported $e) {
-        return 'edited file no longer opens: '.$e->getMessage();
-    }
-
-    return ($error = $phpError($out)) === null ? null : 'edited file does not compile: '.$error;
-};
-
-/** Directives that only mean something inside their block; never edited alone. */
-$isSeparator = fn (Node $node): bool => $node->type === 'atom' && $node->kind === 'directive'
-    && (in_array($node->name, ['case', 'default', 'break'], true) || ($node->name === 'empty' && $node->args === null));
-
-/** Selectable nodes outside code blocks (@switch bodies are edited as text). */
-$editable = function (Template $template) use ($isSeparator): array {
-    $classifier = new Classifier;
-
-    return array_values(array_filter($template->selectable(), function (Node $node) use ($classifier, $isSeparator) {
-        if ($isSeparator($node)) {
-            return false;
-        }
-        for ($up = $node->parent; $up !== null; $up = $up->parent) {
-            if ($up->type === 'block' && $classifier->classify($up) === 'code') {
-                return false;
-            }
-        }
-
-        return true;
-    }));
-};
-
-/**
- * Runs every edit on every node it applies to, each on a fresh tree.
- *
- * @return array<string, array{tried: int, passed: int, skipped: int, failures: list<string>}>
- */
-$runEdits = function (string $source) use ($verify, $editable): array {
-    $results = [];
-    $record = function (string $edit, ?string $error, string $where) use (&$results): void {
-        $results[$edit] ??= ['tried' => 0, 'passed' => 0, 'skipped' => 0, 'failures' => []];
-        $results[$edit]['tried']++;
-        $error === null ? $results[$edit]['passed']++ : $results[$edit]['failures'][] = "{$where}: {$error}";
-    };
-    $skip = function (string $edit) use (&$results): void {
-        $results[$edit] ??= ['tried' => 0, 'passed' => 0, 'skipped' => 0, 'failures' => []];
-        $results[$edit]['skipped']++;
-    };
-    $at = fn (Node $node): string => match (true) {
-        $node->type === 'element' => "<{$node->name}>",
-        $node->type === 'text' => 'text',
-        in_array($node->kind, ['echo', 'raw_echo'], true) => 'echo',
-        $node->kind === 'component' => "<x-{$node->name}>",
-        default => '@'.$node->name,
-    }.' at byte '.$node->start;
-    $slice = fn (int $from, int $to): string => substr($source, $from, $to - $from);
-    $end = strlen($source);
-    // Pieces brought together by an edit get one space when Blade would misread them joined (see Edit::unsafeSeam).
-    $join = function (string ...$pieces): string {
-        $out = array_shift($pieces);
-        foreach ($pieces as $piece) {
-            $out .= (Edit::unsafeSeam($out, $piece) ? ' ' : '').$piece;
-        }
-
-        return $out;
-    };
-
-    $count = count(Template::open($source)->elements());
-    for ($i = 0; $i < $count; $i++) {
-        // Add a class: one insertion, inside this element's opening tag.
-        $element = Template::open($source)->elements()[$i];
-        $openEnd = $element->start + strlen($element->open);
-        $hadClass = $element->attr('class') !== null;
-        if (Edit::addClass($element, 'sr-added')) {
-            $out = rootOf($element)->print();
-            // Exactly one insertion, somewhere in this element's opening tag.
-            $inserted = null;
-            $expected = '';
-            foreach ([' class="sr-added"', ' sr-added', 'sr-added'] as $candidate) {
-                for ($p = $element->start; $p <= $openEnd && $inserted === null; $p++) {
-                    if ($out === $slice(0, $p).$candidate.$slice($p, $end)) {
-                        $inserted = $candidate;
-                        $expected = $slice(0, $p).$candidate.$slice($p, $end);
-                    }
-                }
-            }
-            $error = $inserted === null ? 'not a single insertion inside the opening tag' : $verify($out, $expected);
-            if ($error === null) {
-                $after = Template::open($out)->elements()[$i];
-                $value = $after->attr('class');
-                $classes = $value === null ? '' : substr($after->open, (int) $value['valueStart'], (int) $value['valueEnd'] - (int) $value['valueStart']);
-                $error = str_contains($classes, 'sr-added') ? null : 'class not found after reopening';
-                $error ??= $hadClass === ($inserted === ' class="sr-added"') ? 'wrong insertion form' : null;
-            }
-            $record('add class', $error, $at($element));
-        } else {
-            $skip('add class');
-        }
-
-        // Add a field as the last child: one insertion, just before the closing tag.
-        $element = Template::open($source)->elements()[$i];
-        if ($element->close !== '' && ! in_array($element->name, HtmlLexer::RAW_TEXT, true)) {
-            $closeStart = $element->end - strlen($element->close);
-            Edit::appendField($element, 'p', "\$entry->get('sr_field')");
-            $record('add field', $verify(rootOf($element)->print(), $slice(0, $closeStart)."<p>{{ \$entry->get('sr_field') }}</p>".$slice($closeStart, $end)), $at($element));
-        } else {
-            $skip('add field');
-        }
-    }
-
-    $count = count(Template::open($source)->texts());
-    for ($i = 0; $i < $count; $i++) {
-        $text = Template::open($source)->texts()[$i];
-        $leading = strlen($text->open) - strlen(ltrim($text->open));
-        $trailing = strlen($text->open) - strlen(rtrim($text->open));
-        $root = rootOf($text);
-        Edit::setText($text, 'Edited — teks baru');
-        $record('change text', $verify($root->print(), $join($slice(0, $text->start + $leading), 'Edited — teks baru', $slice($text->end - $trailing, $end))), $at($text));
-    }
-
-    $count = count($editable(Template::open($source)));
-    for ($i = 0; $i < $count; $i++) {
-        $node = $editable(Template::open($source))[$i];
-        $root = rootOf($node);
-        Edit::remove($node);
-        $record('delete', $verify($root->print(), $join($slice(0, $node->start), $slice($node->end, $end))), $at($node));
-
-        $node = $editable(Template::open($source))[$i];
-        Edit::wrap($node, 'div', 'sr-wrap');
-        $record('wrap', $verify(rootOf($node)->print(), $slice(0, $node->start).'<div class="sr-wrap">'.$slice($node->start, $node->end).'</div>'.$slice($node->end, $end)), $at($node));
-
-        // Reorder: swap with the next selectable sibling.
-        $nodes = $editable(Template::open($source));
-        $node = $nodes[$i];
-        $next = null;
-        foreach (array_slice($node->parent->children, $node->index() + 1) as $sibling) {
-            if (in_array($sibling, $nodes, true)) {
-                $next = $sibling;
-                break;
-            }
-        }
-        if ($next === null) {
-            $skip('reorder');
-
-            continue;
-        }
-        Edit::swap($node, $next);
-        $expected = $join($slice(0, $node->start), $slice($next->start, $next->end), $slice($node->end, $next->start), $slice($node->start, $node->end), $slice($next->end, $end));
-        $record('reorder', $verify(rootOf($node)->print(), $expected), $at($node));
-    }
-
-    return $results;
-};
-
-function rootOf(Node $node): Node
-{
-    while ($node->parent !== null) {
-        $node = $node->parent;
-    }
-
-    return $node;
-}
-
-// ---------------------------------------------------------------------------
-
 $classifier = new Classifier;
 $report = [];
 $failed = false;
 
 foreach ($corpora as $key => [$title, $directory]) {
-    $files = [];
-    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
-    foreach ($iterator as $file) {
-        if (str_ends_with($file->getFilename(), '.blade.php')) {
-            $files[] = $file->getPathname();
-        }
-    }
-    sort($files);
-
-    foreach ($files as $path) {
-        $name = ltrim(str_replace($directory, '', $path), '/');
+    foreach (RoundTrip::files($directory) as $name => $path) {
         $source = (string) file_get_contents($path);
-        $row = ['file' => $name, 'bytes' => strlen($source), 'opens' => false, 'reason' => null, 'identical' => false, 'compiles' => $phpError($source) === null];
+        $row = ['file' => $name, 'bytes' => strlen($source), 'opens' => false, 'reason' => null, 'identical' => false, 'compiles' => RoundTrip::phpError($source) === null];
         $expectLocked = $key === 'edge' && str_starts_with(basename($name), 'locked-');
 
         $started = hrtime(true);
@@ -280,7 +82,7 @@ foreach ($corpora as $key => [$title, $directory]) {
             }
             $row['nodes'] = $kinds;
             $row['codeBytes'] = $codeBytes;
-            $row['edits'] = $runEdits($source);
+            $row['edits'] = RoundTrip::edits($source);
             foreach ($row['edits'] as $edit) {
                 $failed = $failed || $edit['failures'] !== [];
             }

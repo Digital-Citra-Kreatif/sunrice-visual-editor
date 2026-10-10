@@ -23,7 +23,12 @@
 ## Commands
 
 ```bash
-php spike/run.php --check   # round-trip test; rewrites spike/RESULTS.md
+composer test      # Pest
+composer spike     # round-trip report; rewrites spike/RESULTS.md
+composer lint      # Pint (test mode)
+composer format    # Pint (fix)
+composer analyse   # Larastan
+vendor/bin/testbench workbench:build && vendor/bin/testbench serve   # the demo site, admin at /cms
 ```
 
-`composer test`, `lint`, `analyse` and the npm scripts arrive with tasks V0.1–V0.3.
+The npm scripts arrive with task V0.3.

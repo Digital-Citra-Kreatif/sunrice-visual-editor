@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -24,18 +28,30 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
+        run: .github/run.sh install composer install --no-interaction --prefer-dist --no-ansi
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
 
       - name: Lint
-        run: composer lint
+        run: .github/run.sh lint composer lint
 
       - name: Analyse
-        run: composer analyse
+        run: .github/run.sh analyse composer analyse -- --no-progress --no-ansi
 
       - name: Test
-        run: composer test
+        run: .github/run.sh test composer test -- --colors=never
 
       - name: Round-trip test
-        run: composer spike
+        run: .github/run.sh spike composer spike
+
+      # The workbench is the site developers run by hand: build it and ask
+      # it for the homepage, so `testbench serve` is known to work.
+      - name: Workbench site
+        if: matrix.php == '8.4'
+        run: .github/run.sh workbench .github/workbench-smoke.sh
+
+      # Job logs can't always be read where this package is developed;
+      # failures are repeated as annotations, which can.
+      - name: Report failures
+        if: failure()
+        run: .github/run.sh --report

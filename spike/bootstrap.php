@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Str;
 use Ramsey\Uuid\Uuid;
-use Stillat\BladeParser\Parser\DocumentParser;
-use Stillat\BladeParser\Parser\DocumentParserFactory;
+use Sunrice\VisualEditor\Blade\BladeScanner;
 
 /*
  * Loads stillat/blade-parser and the parts of illuminate/* it needs straight
@@ -28,6 +27,7 @@ if (is_file($autoload = dirname(__DIR__).'/vendor/autoload.php')) {
         ],
         'Illuminate\\Contracts\\' => $deps.'/framework/src/Illuminate/Contracts/',
         'Illuminate\\' => $deps.'/framework/src/Illuminate/',
+        'Sunrice\\VisualEditor\\Tests\\' => dirname(__DIR__).'/tests/',
         'Sunrice\\VisualEditor\\' => dirname(__DIR__).'/src/',
     ];
     spl_autoload_register(function (string $class) use ($map): void {
@@ -57,15 +57,8 @@ if (! class_exists(Uuid::class)) {
     Str::createUuidsUsing(fn () => bin2hex(random_bytes(16)));
 }
 
-// No Laravel container here: build the parser directly, with Blade's core
-// directives plus the ones Sunrice registers.
-DocumentParserFactory::$factory = function (): DocumentParser {
-    $parser = new DocumentParser;
-    $parser->withCoreDirectives();
-    $parser->registerCustomDirective('bodyClass');
-
-    return $parser;
-};
+// No Laravel application here to ask for its directives: name Sunrice's.
+BladeScanner::resolveCustomDirectivesUsing(fn () => ['bodyClass']);
 
 // PHP 8.5 functions Laravel 13 uses (symfony/polyfill-php85 under Composer).
 if (! function_exists('array_first')) {

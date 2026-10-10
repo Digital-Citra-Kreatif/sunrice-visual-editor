@@ -79,16 +79,24 @@ For every template:
 
 ## Running it
 
-With Composer:
-
 ```bash
 composer install
-php spike/run.php --check
+composer test      # Pest: the round-trip checks, the package, a seeded Sunrice site
+composer spike     # the round-trip report: adds Laravel's own views, rewrites spike/RESULTS.md
+composer lint      # Pint
+composer analyse   # Larastan
 ```
 
-That path is untested: the test was written where Packagist wasn't reachable.
-There it runs from source checkouts instead, which `spike/bootstrap.php` loads
-when there is no `vendor/` directory:
+To look at the site the tests use, with the admin at `/cms` (sign in as
+`admin@example.com` / `password`):
+
+```bash
+vendor/bin/testbench workbench:build
+vendor/bin/testbench serve
+```
+
+Where Packagist isn't reachable, the round-trip report still runs from source
+checkouts, which `spike/bootstrap.php` loads when there is no `vendor/`:
 
 ```bash
 git clone --depth 1 --branch v2.1.0 https://github.com/Stillat/blade-parser ../deps/blade-parser
@@ -96,21 +104,23 @@ git clone --depth 1 --branch 13.x https://github.com/laravel/framework ../deps/f
 php spike/run.php --check    # or SPIKE_DEPS=/path/to/deps php spike/run.php --check
 ```
 
-It prints a summary, rewrites `spike/RESULTS.md` and `spike/results.json`, and
-with `--check` exits 1 if anything fails. The Laravel views are only tested
-when a framework checkout is present.
-
 ## Layout
 
 ```
-src/Blade/
-  BladeScanner.php   Blade constructs, from stillat/blade-parser, as atoms with byte offsets
-  HtmlLexer.php      tags, comments and doctypes around them, with exact ranges
-  TreeBuilder.php    the tree; strict about nesting, throws Unsupported otherwise
-  Node.php           a tree node; owns its source text
-  Template.php       open(): tree, or Unsupported
-  Classifier.php     visual / field / label / expression / mixed / code
-  Edit.php           the edits, and the directive seam rule
-spike/               the test runner and its results
-tests/fixtures/      sunrice-starter and sunrice-package (copied from sunrice-cms at 8c9794e), edge
+src/
+  Blade/             the template tree
+    BladeScanner.php   Blade constructs, from stillat/blade-parser, as atoms with byte offsets
+    HtmlLexer.php      tags, comments and doctypes around them, with exact ranges
+    TreeBuilder.php    the tree; strict about nesting, throws Unsupported otherwise
+    Node.php           a tree node; owns its source text
+    Template.php       open(): tree, or Unsupported
+    Classifier.php     visual / field / label / expression / mixed / code
+    Edit.php           the edits, and the directive seam rule
+  Support/Access.php   who may use the editor
+  VisualEditorServiceProvider.php
+config/              sunrice-visual-editor.php
+spike/               the round-trip report and its results
+tests/               Pest tests; fixtures/ holds sunrice-starter and sunrice-package
+                     (copied from sunrice-cms at 8c9794e) and edge
+workbench/           the Testbench app: user model, migrations, demo content
 ```

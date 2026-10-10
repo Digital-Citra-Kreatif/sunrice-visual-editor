@@ -1,0 +1,50 @@
+laravel: '@testbench'
+
+providers:
+  - Sunrice\SunriceServiceProvider
+  - Inertia\ServiceProvider
+  - Spatie\Permission\PermissionServiceProvider
+  - Spatie\Honeypot\HoneypotServiceProvider
+  - Laravel\Mcp\Server\McpServiceProvider
+  - Sunrice\VisualEditor\VisualEditorServiceProvider
+
+migrations:
+  - workbench/database/migrations
+
+seeders:
+  - Workbench\Database\Seeders\DatabaseSeeder
+
+workbench:
+  start: '/'
+  install: true
+  health: false
+  discovers:
+    web: true
+    api: false
+    commands: false
+    components: false
+    factories: true
+    views: false
+  build:
+    - asset-publish
+    - storage-link:
+        --force: true
+    - create-sqlite-db
+    - db-wipe
+    - migrate-fresh:
+        --seed: true
+        --seeder: Workbench\Database\Seeders\DatabaseSeeder
+  assets:
+    - sunrice-assets
+    - sunrice-templates
+  sync:
+    - from: storage
+      to: workbench/storage
+      reverse: true
+
+env:
+  AUTH_MODEL: Workbench\App\Models\User
+  SUNRICE_USER_MODEL: Workbench\App\Models\User
+  DB_CONNECTION: sqlite
+  SUNRICE_ADMIN_PATH: cms
+  SUNRICE_VISUAL_EDITOR: true
