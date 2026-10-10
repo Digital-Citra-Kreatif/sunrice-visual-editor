@@ -42,9 +42,10 @@ workbench:
       to: workbench/storage
       reverse: true
 
+# One KEY=value per line, as in a .env file.
 env:
-  AUTH_MODEL: Workbench\App\Models\User
-  SUNRICE_USER_MODEL: Workbench\App\Models\User
-  DB_CONNECTION: sqlite
-  SUNRICE_ADMIN_PATH: cms
-  SUNRICE_VISUAL_EDITOR: true
+  - 'AUTH_MODEL="Workbench\\App\\Models\\User"'
+  - 'SUNRICE_USER_MODEL="Workbench\\App\\Models\\User"'
+  - DB_CONNECTION=sqlite
+  - SUNRICE_ADMIN_PATH=cms
+  - SUNRICE_VISUAL_EDITOR=true
