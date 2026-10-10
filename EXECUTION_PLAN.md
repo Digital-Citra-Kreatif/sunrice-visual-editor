@@ -213,7 +213,13 @@ When nesting fails, find the smallest run of sibling nodes that contains the fai
 
 ### V1.6 `@switch` as a visual block
 **Depends on:** V1.4
-Treat `@switch` like `@if`, with `@case` and `@default` as arms and `@break` kept at the end of each arm. This turns the two largest code regions in the starter templates (the form block and the filter form) visual. Make `@empty` an arm of `@forelse` the same way, so the loop's part and the empty part are each something to insert into.
+Treat `@switch` like `@if`, with `@case` and `@default` as arms. This turns the two largest code regions in the starter templates (the form block and the filter form) visual. Make `@empty` an arm of `@forelse` the same way, so the loop's part and the empty part are each something to insert into.
+- `src/Blade/TreeBuilder.php` — `@case`, `@default` and `@empty` start the next arm of their block, as `@else` does. The part of a `@switch` before its first `@case` is an arm too, and holds nothing: Blade compiles whatever is there into PHP.
+- `src/Blade/Rules.php` — the `@break` directly in a `@case` ends the arm: it is not moved or deleted, nothing is put after it, and what is appended to the arm goes before it. A `@break` in a loop, or in a condition inside an arm, is an ordinary node.
+- `src/Blade/Structure.php` — an empty arm opens at the indentation of its own line (`@case`, `@else`), and the line after it keeps its place.
+- `src/Blade/Content.php` — `@else` and `@default` take no arguments; `@if`, `@switch`, `@case` and the loops can't lose theirs.
+- Arms are added, removed and reordered by rewriting the block as code (`setCode`), like `@else`. The UI can offer more in Phase 4 if it is missed.
+- The round-trip harness gains **insert inside**: appended to every element and arm that holds children.
 **Done when:** `blocks/form.blade.php` and `partials/entry-filter.blade.php` have no code node from `@switch`, and edits inside the arms pass.
 
 ### V1.7 Operations

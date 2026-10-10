@@ -6,6 +6,7 @@ use Sunrice\VisualEditor\Blade\Edit;
 use Sunrice\VisualEditor\Blade\EditRejected;
 use Sunrice\VisualEditor\Blade\Layout;
 use Sunrice\VisualEditor\Blade\Node;
+use Sunrice\VisualEditor\Blade\Rules;
 use Sunrice\VisualEditor\Blade\Template;
 
 const CARDS = <<<'BLADE'
@@ -219,11 +220,11 @@ it('will not unwrap what has nothing to keep or more than one arm', function () 
 });
 
 it('puts nothing where nothing can go', function () {
-    $template = Template::open('<div><img src="a"><script>let a;</script>@switch($t) @case(1) <b>x</b> @break @endswitch @forelse ($a as $b) <i>y</i> @empty <u>z</u> @endforelse</div>');
+    $template = Template::open('<div><img src="a"><script>let a;</script>@while ($w) <b>x</b> @endwhile @forelse ($a as $b) <i>y</i> @empty <u>z</u> @endforelse</div>');
     [$div, $img, $script, $b, $i] = $template->elements();
-    $nodes = iterator_to_array($template->root->walk(), false);
-    $empty = collect($nodes)->first(fn (Node $n) => $n->type === 'atom' && $n->name === 'empty');
-    $arm = collect($nodes)->first(fn (Node $n) => $n->type === 'branch' && $n->name === 'forelse');
+    $nodes = collect(iterator_to_array($template->root->walk(), false));
+    $loop = $nodes->first(fn (Node $n) => $n->type === 'branch' && $n->name === 'forelse');
+    $empty = $nodes->first(fn (Node $n) => $n->type === 'branch' && $n->name === 'empty');
     $before = $template->print();
 
     expect(fn () => Edit::append($img, '<b></b>'))->toThrow(EditRejected::class)            // void
@@ -231,8 +232,8 @@ it('puts nothing where nothing can go', function () {
         ->and(fn () => Edit::append($b, 'x'))->toThrow(EditRejected::class)                 // inside a code block
         ->and(fn () => Edit::insertAfter($b, '<b></b>'))->toThrow(EditRejected::class)
         ->and(fn () => Edit::insertBefore($template->root, '<b></b>'))->toThrow(EditRejected::class)
-        ->and(fn () => Edit::insertAfter($arm, '<b></b>'))->toThrow(EditRejected::class)    // an arm has no "beside"
-        ->and(fn () => Edit::remove($empty))->toThrow(EditRejected::class)                  // an arm of @forelse
+        ->and(fn () => Edit::insertAfter($loop, '<b></b>'))->toThrow(EditRejected::class)   // an arm has no "beside"
+        ->and(fn () => Edit::remove($empty))->toThrow(EditRejected::class)                  // and isn't removed on its own
         ->and(fn () => Edit::move($empty, $div, 'inside'))->toThrow(EditRejected::class)
         ->and(fn () => Edit::move($div, $i, 'inside'))->toThrow(EditRejected::class, 'itself')
         ->and(fn () => Edit::move($i, $i, 'after'))->toThrow(EditRejected::class, 'itself')
@@ -241,12 +242,91 @@ it('puts nothing where nothing can go', function () {
         ->and(fn () => Edit::append($div, '<li>'))->toThrow(EditRejected::class, 'never closed')
         ->and($template->print())->toBe($before);
 
-    // An arm of a block does hold children. A @forelse is one arm with
-    // @empty in it, so "inside, at the end" is after the @empty part;
-    // the loop's own part is reached by inserting before @empty.
-    Edit::append($arm, '<b>more</b>');
-    Edit::insertBefore($empty, '<s>each</s>');
-    expect($template->print())->toContain('<i>y</i> <s>each</s>@empty <u>z</u> <b>more</b>@endforelse');
+    // Each arm of a block holds children of its own.
+    Edit::append($loop, '<s>each</s>');
+    Edit::append($empty, '<b>none</b>');
+    expect($template->print())->toContain('@forelse ($a as $b) <i>y</i> <s>each</s>@empty <u>z</u> <b>none</b>@endforelse');
+});
+
+it('keeps the @break of a @switch arm last, and the top of a @switch empty', function () {
+    $blade = <<<'BLADE'
+        <div>
+            @switch($type)
+                @case('a')
+                    <b>A</b>
+                    @break
+                @case('b')
+                @case('c')
+                    @break
+                @default
+                    <i>Other</i>
+            @endswitch
+            <p>After</p>
+        </div>
+        BLADE;
+    $template = Template::open($blade);
+    $nodes = collect(iterator_to_array($template->root->walk(), false));
+    $arm = fn (string $head) => $nodes->first(fn (Node $n) => $n->type === 'branch' && $n->open === $head);
+    $break = $nodes->first(fn (Node $n) => $n->type === 'atom' && $n->name === 'break');
+    [, $b, , $p] = $template->elements();
+
+    expect(Rules::isArmBreak($break))->toBeTrue()
+        ->and(fn () => Edit::remove($break))->toThrow(EditRejected::class)
+        ->and(fn () => Edit::move($break, $p, 'after'))->toThrow(EditRejected::class)
+        ->and(fn () => Edit::insertAfter($break, '<s>x</s>'))->toThrow(EditRejected::class, '@break')
+        ->and(fn () => Edit::move($p, $break, 'after'))->toThrow(EditRejected::class, '@break')
+        ->and(fn () => Edit::move($b, $break, 'after'))->toThrow(EditRejected::class, '@break')
+        ->and(fn () => Edit::append($arm('@switch($type)'), '<s>x</s>'))->toThrow(EditRejected::class)
+        ->and(fn () => Edit::prepend($arm('@switch($type)'), '<s>x</s>'))->toThrow(EditRejected::class)
+        ->and(fn () => Edit::move($p, $arm('@switch($type)'), 'inside'))->toThrow(EditRejected::class)
+        ->and(fn () => Edit::wrap($p, '@switch($type)@endswitch'))->toThrow(EditRejected::class)
+        ->and($template->print())->toBe($blade);
+
+    // Into an arm: before its @break; a line of its own under @case when the arm was empty.
+    Edit::append($arm("@case('a')"), '<s>1</s>');
+    Edit::append($arm("@case('b')"), '<s>2</s>');
+    Edit::append($arm("@case('c')"), '<s>3</s>');
+    Edit::append($arm('@default'), '<s>4</s>');
+    Edit::move($p, $arm("@case('a')"), 'inside');
+
+    expect($template->print())->toBe(<<<'BLADE'
+        <div>
+            @switch($type)
+                @case('a')
+                    <b>A</b>
+                    <s>1</s>
+                    <p>After</p>
+                    @break
+                @case('b')
+                    <s>2</s>
+                @case('c')
+                    <s>3</s>
+                    @break
+                @default
+                    <i>Other</i>
+                    <s>4</s>
+            @endswitch
+        </div>
+        BLADE);
+
+    // A @break elsewhere is an ordinary node: in a loop, or in a condition inside an arm.
+    $loop = Template::open('@foreach ($a as $b) @break($b) @endforeach @switch($t) @case(1) @if ($x) @break @endif @break @endswitch');
+    $breaks = array_values(array_filter(iterator_to_array($loop->root->walk(), false), fn (Node $n) => $n->type === 'atom' && $n->name === 'break'));
+    expect(array_map(Rules::isArmBreak(...), $breaks))->toBe([false, false, true]);
+});
+
+it('opens an empty arm at the indentation of its own line', function () {
+    $template = Template::open("<ul>\n  @if (\$a)\n  @elseif (\$b)\n  @else\n  @endif\n</ul>");
+    foreach (array_values(array_filter(iterator_to_array($template->root->walk(), false), fn (Node $n) => $n->type === 'branch')) as $n => $arm) {
+        Edit::append($arm, '<li>'.$n.'</li>');
+    }
+
+    expect($template->print())->toBe("<ul>\n  @if (\$a)\n    <li>0</li>\n  @elseif (\$b)\n    <li>1</li>\n  @else\n    <li>2</li>\n  @endif\n</ul>");
+
+    // One line stays one line.
+    $inline = Template::open('<p>@if ($a) @else @endif</p>');
+    Edit::append($inline->root->children[0]->children[0]->children[1], '<b>no</b>');
+    expect($inline->print())->toBe('<p>@if ($a) @else <b>no</b>@endif</p>');
 });
 
 it('reads how a file is laid out around a node', function () {

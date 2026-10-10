@@ -33,6 +33,7 @@ final class Structure
     public static function insertAfter(Node $reference, string $blade, string $from = ''): array
     {
         $parent = self::siblingsOf($reference);
+        self::mustNotEndArm($reference);
         $indent = Layout::indent($reference);
         $nodes = Fragment::parse(Layout::reindent($blade, $from, $indent ?? $from), $parent);
         if ($nodes === []) {
@@ -54,11 +55,17 @@ final class Structure
 
         // After the last child that has a line of its own, on a line like it.
         foreach (array_reverse($parent->children) as $child) {
-            if (! Layout::isSpace($child)) {
-                return Layout::indent($child) === null && ! self::endsLine($child)
-                    ? self::inline($parent, count($parent->children), $blade, $from)
-                    : self::insertAfter($child, $blade, $from);
+            if (Layout::isSpace($child)) {
+                continue;
             }
+            if (Rules::isArmBreak($child)) {
+                // The @break that ends an arm of a @switch stays last.
+                return self::insertBefore($child, $blade, $from);
+            }
+
+            return Layout::indent($child) === null && ! self::endsLine($child)
+                ? self::inline($parent, count($parent->children), $blade, $from)
+                : self::insertAfter($child, $blade, $from);
         }
 
         return self::intoEmpty($parent, $blade, $from);
@@ -139,6 +146,9 @@ final class Structure
             throw new EditRejected("Unknown position \"{$position}\".");
         }
         $position === 'inside' ? self::mustHold($target) : self::siblingsOf($target);
+        if ($position === 'after') {
+            self::mustNotEndArm($target);
+        }
         if (Layout::isSpace($target)) {
             throw new EditRejected('Whitespace is no place to move to.');
         }
@@ -172,7 +182,7 @@ final class Structure
         $parsed = Fragment::parse($wrapper, $node->parent);
         $outer = $parsed[0] ?? null;
         $holder = $outer?->type === 'block' && count($outer->children) === 1 ? $outer->children[0] : $outer;
-        if (count($parsed) !== 1 || $holder === null || $holder->children !== []
+        if (count($parsed) !== 1 || $holder === null || $holder->children !== [] || Rules::isSwitchHead($holder)
             || ! ($holder->type === 'branch' || ($holder->type === 'element' && $holder->close !== '' && ! in_array($holder->name, HtmlLexer::RAW_TEXT, true)))) {
             throw new EditRejected('The wrapper has to be one empty element or block, such as <div class="card"></div>.');
         }
@@ -322,22 +332,26 @@ final class Structure
      */
     private static function intoEmpty(Node $parent, string $blade, string $from): array
     {
-        $holder = $parent->type === 'branch' && $parent->parent !== null ? $parent->parent : $parent;
-        $indent = $parent->type === 'root' ? null : Layout::indent($holder);
+        // An arm is indented from the line of its own directive: @else, @case.
+        $indent = $parent->type === 'root' ? null : Layout::indent($parent);
         if ($indent === null) {
             return self::inline($parent, count($parent->children), $blade, $from);
         }
 
         // Whatever whitespace it held is replaced by the lines written here.
+        // Where that whitespace ended is where the next line starts: the
+        // closing tag, the next arm or the end of the block.
+        $held = implode('', array_map(fn (Node $space) => $space->open, $parent->children));
+        $after = str_contains($held, "\n") ? substr($held, (int) strrpos($held, "\n") + 1) : $indent;
         foreach ($parent->children as $space) {
             $space->parent = null;
         }
         $parent->children = [];
 
-        $inner = $indent.Layout::step($holder);
+        $inner = $indent.Layout::step($parent);
         $nodes = Fragment::parse(Layout::reindent($blade, $from, $inner), $parent);
 
-        return $nodes === [] ? [] : self::splice($parent, 0, [Layout::space("\n".$inner), ...$nodes, Layout::space("\n".$indent)], $nodes);
+        return $nodes === [] ? [] : self::splice($parent, 0, [Layout::space("\n".$inner), ...$nodes, Layout::space("\n".$after)], $nodes);
     }
 
     /**
@@ -379,6 +393,13 @@ final class Structure
     {
         if (! Rules::holdsChildren($parent)) {
             throw new EditRejected('Nothing can be put inside this.');
+        }
+    }
+
+    private static function mustNotEndArm(Node $reference): void
+    {
+        if (Rules::isArmBreak($reference)) {
+            throw new EditRejected('Nothing can come after the @break that ends this arm.');
         }
     }
 

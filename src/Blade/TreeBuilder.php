@@ -13,7 +13,7 @@ namespace Sunrice\VisualEditor\Blade;
  */
 final class TreeBuilder
 {
-    /** Single directives that divide their block into arms. */
+    /** Single directives that divide their block into arms: each starts the next arm. */
     private const SEPARATORS = ['forelse' => ['empty'], 'switch' => ['case', 'default']];
 
     /** @var array<string, true>|null */
@@ -138,7 +138,13 @@ final class TreeBuilder
             if ($separator === false) {
                 throw new Unsupported("@{$atom->name} is inside ".$this->describe($current), $start);
             }
-            if ($atom->kind === 'directive' && $separator === null && ($problem = $this->unpaired($atom)) !== null) {
+            if ($separator === true) {
+                // @case, @default and @empty start the next arm of their block, as @else does.
+                $current->end = $start;
+
+                return $this->branch($current->parent, $atom, $text, $start);
+            }
+            if ($atom->kind === 'directive' && ($problem = $this->unpaired($atom)) !== null) {
                 throw new Unsupported($problem, $start);
             }
             $leaf = $this->leafFromText($current, 'atom', $text, $start, $end);

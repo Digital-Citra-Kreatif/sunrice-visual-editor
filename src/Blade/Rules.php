@@ -17,14 +17,19 @@ final class Rules
     }
 
     /**
-     * A single directive that only means something inside its block: @empty
-     * in a @forelse, and @case, @default and @break in a @switch. Never
-     * moved or deleted on its own.
+     * The @break that ends an arm of a @switch. It stays where it is, last
+     * in its arm: without it the arm would run on into the next one.
      */
-    public static function isSeparator(Node $node): bool
+    public static function isArmBreak(Node $node): bool
     {
-        return $node->type === 'atom' && $node->kind === 'directive'
-            && (in_array($node->name, ['case', 'default', 'break'], true) || ($node->name === 'empty' && $node->args === null));
+        return $node->type === 'atom' && $node->kind === 'directive' && $node->name === 'break'
+            && $node->parent?->type === 'branch' && $node->parent->parent?->name === 'switch';
+    }
+
+    /** The part of a @switch before its first @case, where Blade allows nothing but whitespace. */
+    public static function isSwitchHead(Node $node): bool
+    {
+        return $node->type === 'branch' && $node->name === 'switch';
     }
 
     /** Inside a block the editor treats as code (edited as one piece of text). */
@@ -43,7 +48,7 @@ final class Rules
     /** Can be moved, duplicated, wrapped or deleted as one piece. */
     public static function movable(Node $node): bool
     {
-        return $node->parent !== null && self::selectable($node) && ! self::isSeparator($node) && ! self::insideCode($node);
+        return $node->parent !== null && self::selectable($node) && ! self::isArmBreak($node) && ! self::insideCode($node);
     }
 
     /** Can be wrapped in an element or a block: anything movable, and text. */
@@ -62,7 +67,7 @@ final class Rules
     {
         return match ($node->type) {
             'root' => true,
-            'branch' => ! self::insideCode($node) && (new Classifier)->classify($node->parent ?? $node) !== 'code',
+            'branch' => ! self::isSwitchHead($node) && ! self::insideCode($node) && (new Classifier)->classify($node->parent ?? $node) !== 'code',
             'element' => $node->close !== '' && ! in_array($node->name, HtmlLexer::RAW_TEXT, true) && ! self::insideCode($node),
             default => false,
         };

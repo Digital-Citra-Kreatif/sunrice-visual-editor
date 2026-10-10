@@ -20,19 +20,19 @@ The approach holds. Full numbers are in [spike/RESULTS.md](spike/RESULTS.md).
 
 | Templates | Files | Open and print back byte for byte | Refused | Edits passed |
 | --- | ---: | ---: | ---: | ---: |
-| Sunrice starter templates (`stubs/templates`) | 19 | 19 | 0 | 3,198 of 3,198 |
-| Sunrice package views (defaults, components, error pages) | 11 | 11 | 0 | 1,928 of 1,928 |
-| Laravel framework's own Blade views | 129 | 127 | 2 | 11,148 of 11,148 |
-| Edge cases written for this test | 13 | 8 | 5, as intended | 638 of 638 |
+| Sunrice starter templates (`stubs/templates`) | 19 | 19 | 0 | 3,695 of 3,695 |
+| Sunrice package views (defaults, components, error pages) | 11 | 11 | 0 | 2,031 of 2,031 |
+| Laravel framework's own Blade views | 129 | 127 | 2 | 11,733 of 11,733 |
+| Edge cases written for this test | 13 | 8 | 5, as intended | 706 of 706 |
 
 The two Laravel files refused are test fixtures that are malformed on purpose.
 
-In the 19 starter templates, 87% of the 333 nodes are fully visual (elements,
-text, conditions, loops, includes, plain field echoes, translation strings),
-5% are echoes of a longer PHP expression, 2% are elements with a directive
-inside the tag, and 6% are code. Code regions cover 17% of the bytes; three
-quarters of that is two `@switch` blocks (the form block and the filter form),
-which this test treats as code wholesale.
+In the 19 starter templates, 85% of the 379 nodes are fully visual (elements,
+text, conditions, loops, `@switch` arms, includes, plain field echoes,
+translation strings), 5% are echoes of a longer PHP expression, 4% are
+elements with a directive inside the tag, and 5% are code, mostly `@php`
+lines. Code covers 6.5% of the bytes. It was 17% while `@switch` was kept as
+code: the form block and the filter form are now edited arm by arm.
 
 ## What was tested
 
@@ -67,8 +67,8 @@ For every template:
 - **Joining two pieces can break a directive.** Deleting the echo in
   `@else{{ $entry->title }}@endif` leaves `@else@endif`, which Blade no longer
   reads as two directives, so the file stops compiling. This turned up in
-  `partials/card.blade.php` and two package views. `Edit::unsafeSeam()` now
-  detects it and puts one space at the join.
+  `partials/card.blade.php` and two package views. `Seams` now detects it and
+  puts one space at the join.
 - **What gets refused.** A tag opened inside one `@if` and closed in another,
   an element left open across `@else`, and end tags left out (`<li>` without
   `</li>`). None of the 30 Sunrice templates do this. The file as a whole is
