@@ -1,20 +1,63 @@
 {
     "name": "sunrice/visual-editor",
-    "description": "Visual template editor for Sunrice CMS. Currently: the Blade round-trip test.",
+    "description": "Visual template editor for Sunrice CMS: edits the site's Blade files in the browser.",
     "type": "library",
+    "keywords": [
+        "sunrice",
+        "cms",
+        "laravel",
+        "blade",
+        "visual-editor"
+    ],
     "require": {
         "php": "^8.3",
-        "stillat/blade-parser": "^2.1"
+        "stillat/blade-parser": "^2.1",
+        "sunrice/cms": "^1.0 || dev-main"
     },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.0",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.1"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/littleboy130491/sunrice-cms"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Sunrice\\VisualEditor\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Sunrice\\VisualEditor\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Sunrice\\VisualEditor\\VisualEditorServiceProvider"
+            ]
+        }
+    },
     "scripts": {
+        "test": "pest",
+        "lint": "pint --test",
+        "format": "pint",
+        "analyse": "phpstan analyse --memory-limit=1G",
         "spike": "php spike/run.php --check"
     },
     "config": {
-        "sort-packages": true
-    }
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

@@ -88,6 +88,11 @@ final class Node
         return false;
     }
 
+    /**
+     * The attribute with this name, when it is written as one (not produced by a directive).
+     *
+     * @return array{kind: string, name: string, start: int, end: int, valueStart: ?int, valueEnd: ?int, dynamic: bool}|null
+     */
     public function attr(string $name): ?array
     {
         foreach ($this->attrs as $attr) {
@@ -114,6 +119,6 @@ final class Node
 
     public function index(): int
     {
-        return (int) array_search($this, $this->parent?->children ?? [], true);
+        return (int) array_search($this, $this->parent->children ?? [], true);
     }
 }

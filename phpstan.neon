@@ -1,0 +1,12 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    reportUnmatchedIgnoredErrors: false
+    paths:
+        - src/
+        - config/
+    ignoreErrors:
+        - identifier: larastan.noEnvCallsOutsideOfConfig
+          path: config/sunrice-visual-editor.php

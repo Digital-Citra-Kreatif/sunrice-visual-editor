@@ -111,23 +111,26 @@ Sizes are rough guesses for one developer working with coding agents. Phases 1 a
 
 ## Phase 0 — Skeleton
 
-### V0.1 Composer manifest, provider and config
+### V0.1 Composer manifest, provider, config and a first test run
 **Depends on:** —
 **Files:**
-- `composer.json` — add `sunrice/cms`, the dev tools, `extra.laravel.providers`, scripts `test`, `lint`, `format`, `analyse`, `spike`. If `sunrice/cms` is not on Packagist, add the GitHub repository under `repositories`.
-- `src/VisualEditorServiceProvider.php` — merges config; when enabled, registers routes (V0.3), the admin script and style with `Sunrice::registerAdminScript()` / `registerAdminStyle()`, the sidebar link with `Sunrice::addNavigationItem('Visual editor', 'visual-editor', 'layout-template', group: 'Manage', can: …)`, and publishes `dist/` under the tag `sunrice-visual-editor-assets`.
-- `config/sunrice-visual-editor.php` — `enabled` (`env('SUNRICE_VISUAL_EDITOR', app()->environment('local'))`), `backups` (bool), `theme_css` (`editor.css`).
-- `src/Support/Access.php` — `allowed(?Authenticatable $user): bool`: enabled and the user has Sunrice's super admin role. Phase 7 replaces the body.
-**Done when:** a Testbench test shows the provider loads, and that with `enabled = false` no route named `sunrice.admin.visual-editor.*` exists.
+- `composer.json` — `sunrice/cms` (from its GitHub repository under `repositories`, at `dev-main` until Sunrice tags a release), the dev tools, `extra.laravel.providers`, scripts `test`, `lint`, `format`, `analyse`, `spike`.
+- `src/VisualEditorServiceProvider.php` — merges and publishes config; does nothing else when the package is off. Routes, the admin script and the sidebar link are added in V0.3, when there is a page to link to.
+- `config/sunrice-visual-editor.php` — `enabled` (`env('SUNRICE_VISUAL_EDITOR', env('APP_ENV') === 'local')`), `backups` (bool), `theme_css` (`editor.css`).
+- `src/Support/Access.php` — `enabled(): bool`; `allowed(?Authenticatable $user): bool`: enabled and the user has Sunrice's super admin role. Phase 7 replaces the body.
+- `tests/Pest.php`, `tests/TestCase.php`, `tests/DisabledTestCase.php` — Testbench with Sunrice's providers and this one; sqlite in memory; `createUser()` and `actingAsSuperAdmin()` helpers. Tests that need the editor off live in `tests/Disabled/`.
+- `workbench/app/Models/User.php`, `workbench/database/migrations/` — a user model with roles and the users and permission tables, as in Sunrice's own workbench.
+- `phpunit.xml`, `phpstan.neon` (level 6), `pint.json`, `.gitattributes`.
+- `.github/workflows/tests.yml` — PHP 8.3 and 8.4, sqlite; runs lint, analyse, test and the round-trip test.
+**Done when:** CI is green, with tests showing the provider loads, that only Super Admins are allowed, and that with `enabled = false` nobody is allowed and no route named `sunrice.admin.visual-editor.*` exists.
 
-### V0.2 Test harness, workbench and CI
+### V0.2 Round-trip tests in Pest, workbench site and asset CI
 **Depends on:** V0.1
 **Files:**
-- `tests/Pest.php`, `tests/TestCase.php` — Testbench with Sunrice's provider and this one; sqlite in memory; a `superAdmin()` helper.
+- `src/Blade/BladeScanner.php` — build the parser explicitly (core directives plus the application's own, read from the Blade compiler when there is one) instead of relying on a global factory, so it behaves the same in an app, in tests and in the spike.
 - `tests/Unit/Blade/RoundTripTest.php` — the spike's checks as Pest datasets over `tests/fixtures/**`: opens, prints back identical, expected refusals, and the six edits. `spike/run.php` stays as the report generator and uses the same code.
-- `workbench/` — app with Sunrice installed, starter templates published, and a seeder: `pages` and `articles` collections, a `hero`/`text`/`gallery` flexible field, a `site` global, a `main` menu, a homepage and five articles.
-- `.github/workflows/tests.yml` — PHP 8.3 and 8.4, sqlite; runs test, lint, analyse, spike. `.github/workflows/assets.yml` — fails when `dist/` is stale.
-- `spike/bootstrap.php` — keep the no-Composer path working; confirm the Composer path (it was never run: see README).
+- `workbench/`, `testbench.yaml` — app with Sunrice installed, starter templates published, and a seeder: `pages` and `articles` collections, a `hero`/`text`/`gallery` flexible field, a `site` global, a `main` menu, a homepage and five articles.
+- `.github/workflows/assets.yml` — builds the admin script on pull requests once `package.json` exists (V0.3) and commits `dist/` to the branch when it changed.
 **Done when:** CI is green and `vendor/bin/testbench serve` shows the seeded site.
 
 ### V0.3 Admin script build and empty editor page

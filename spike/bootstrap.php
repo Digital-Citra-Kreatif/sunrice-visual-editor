@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+use Ramsey\Uuid\Uuid;
+use Stillat\BladeParser\Parser\DocumentParser;
+use Stillat\BladeParser\Parser\DocumentParserFactory;
+
 /*
  * Loads stillat/blade-parser and the parts of illuminate/* it needs straight
  * from source checkouts (SPIKE_DEPS), for environments where Packagist isn't
@@ -48,14 +53,14 @@ if (is_file($autoload = dirname(__DIR__).'/vendor/autoload.php')) {
 }
 
 // Without Composer there is no ramsey/uuid: node IDs only need to be unique.
-if (! class_exists(\Ramsey\Uuid\Uuid::class)) {
-    \Illuminate\Support\Str::createUuidsUsing(fn () => bin2hex(random_bytes(16)));
+if (! class_exists(Uuid::class)) {
+    Str::createUuidsUsing(fn () => bin2hex(random_bytes(16)));
 }
 
 // No Laravel container here: build the parser directly, with Blade's core
 // directives plus the ones Sunrice registers.
-\Stillat\BladeParser\Parser\DocumentParserFactory::$factory = function (): \Stillat\BladeParser\Parser\DocumentParser {
-    $parser = new \Stillat\BladeParser\Parser\DocumentParser;
+DocumentParserFactory::$factory = function (): DocumentParser {
+    $parser = new DocumentParser;
     $parser->withCoreDirectives();
     $parser->registerCustomDirective('bodyClass');
 
