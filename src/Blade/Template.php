@@ -31,6 +31,40 @@ final class Template
     }
 
     /**
+     * Identifies these exact bytes. Node ids are offsets into this version
+     * and mean nothing in another.
+     */
+    public function version(): string
+    {
+        return sha1($this->source);
+    }
+
+    /** The node with this id (see Node::id()), or null. */
+    public function find(string $id): ?Node
+    {
+        if ($id === 'root') {
+            return $this->root;
+        }
+        foreach ($this->root->walk() as $node) {
+            if ($node->id() === $id) {
+                return $node;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The template as plain data for the editor's panels.
+     *
+     * @return array{version: string, bytes: int, tree: array<string, mixed>}
+     */
+    public function toArray(): array
+    {
+        return ['version' => $this->version(), 'bytes' => strlen($this->source), 'tree' => $this->root->toArray()];
+    }
+
+    /**
      * Nodes a person can select, move or delete: elements, Blade blocks and
      * standalone Blade constructs.
      *
@@ -38,10 +72,7 @@ final class Template
      */
     public function selectable(): array
     {
-        return array_values(array_filter(
-            iterator_to_array($this->root->walk(), false),
-            fn (Node $node) => in_array($node->type, ['element', 'block'], true) || ($node->type === 'atom' && $node->kind !== 'comment'),
-        ));
+        return array_values(array_filter(iterator_to_array($this->root->walk(), false), Rules::selectable(...)));
     }
 
     /** @return list<Node> */

@@ -117,6 +117,51 @@ final class Node
         }
     }
 
+    /**
+     * The node's address in the version of the file it was parsed from: its
+     * start offset. A branch starts where its block does, so it is told
+     * apart by a "b"; the root has no offset to speak of.
+     */
+    public function id(): string
+    {
+        return match ($this->type) {
+            'root' => 'root',
+            'branch' => 'b'.$this->start,
+            default => (string) $this->start,
+        };
+    }
+
+    /** The node's own text in the file, without its children. */
+    public function source(): string
+    {
+        return $this->isLeaf() ? $this->open : $this->print();
+    }
+
+    /**
+     * The value of an attribute as written, Blade included; null when the
+     * attribute has no value or isn't there.
+     */
+    public function attributeValue(string $name): ?string
+    {
+        $attr = $this->attr($name);
+        if ($attr === null || $attr['valueStart'] === null || $attr['valueEnd'] === null) {
+            return null;
+        }
+
+        return substr($this->open, $attr['valueStart'], $attr['valueEnd'] - $attr['valueStart']);
+    }
+
+    /**
+     * The node and everything below it as plain data, for the editor's
+     * panels. Whitespace between nodes is left out.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return (new TreeData)->node($this);
+    }
+
     public function index(): int
     {
         return (int) array_search($this, $this->parent->children ?? [], true);
