@@ -253,7 +253,10 @@ Treat `@switch` like `@if`, with `@case` and `@default` as arms. This turns the 
 
 ### V2.2 Saving
 **Depends on:** V1.7, V2.1
-`src/Actions/SaveTemplate.php` — `handle(path, expectedVersion, newSource)`: resolves the path safely inside the template directory; refuses with `Conflict` when the file's current version differs; runs the syntax check (`Syntax::error`); backs up; writes atomically (temp file plus rename); returns the new version. `src/Actions/CopyPackageView.php` — **Copy to site**.
+- `src/Actions/SaveTemplate.php` — `handle(path, expectedVersion, newSource)`: finds the template among the site's (so the path can't lead elsewhere); under a lock of its own for that file, refuses with `Conflict` when the file's current version differs; refuses with `DoesNotCompile` when the new source has an error the old one didn't (`Syntax::brokenBy`); backs up; writes beside the file and renames over it, keeping its permissions; returns the new version. Source equal to the file is a no-op.
+- `src/Actions/CopyPackageView.php` — **Copy to site**: copies one of Sunrice's fallback views to its `copyTo` path; `CopyRefused` when the view has none or the site already has that template.
+- `src/Templates/Conflict.php` (carries the file's current version), `DoesNotCompile.php`, `CopyRefused.php`.
+- `SunriceBridge::backup()` gives a second save within the same second a backup of its own.
 **Done when:** tests cover conflict, syntax error (nothing written), backup created, path traversal refused, and a write from a second process between read and save.
 
 ### V2.3 HTTP API

@@ -124,17 +124,9 @@ final class Operations
             throw new ResultRejected("That would leave @{$stray[0]->name} with no loop around it.");
         }
 
-        $error = Syntax::error($out);
+        $error = Syntax::brokenBy($template->source, $out);
         if ($error !== null) {
-            if (Syntax::error($template->source) === null) {
-                throw new ResultRejected('That would leave a template that doesn\'t compile: '.$error.'.');
-            }
-            // The file had a problem before, such as a component this
-            // application doesn't have. Its PHP still has to be sound.
-            $error = Syntax::error($out, components: false);
-            if ($error !== null) {
-                throw new ResultRejected('The template doesn\'t compile: '.$error.'.');
-            }
+            throw new ResultRejected('That would leave a template that doesn\'t compile: '.$error.'.');
         }
 
         if ($focus === null || ($id = self::idIn($template->root, $focus)) === null) {
