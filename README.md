@@ -122,8 +122,10 @@ src/
     HtmlLexer.php      tags, comments and doctypes around them, with exact ranges
     TreeBuilder.php    the tree; strict about nesting, throws Unsupported otherwise
     Node.php           a tree node; owns its source text
-    Template.php       open(): tree, or Unsupported
+    Template.php       open(): tree, or Unsupported; version, find(id), toArray()
     Classifier.php     visual / field / label / expression / mixed / code
+    Rules.php          what may be done to a node
+    TreeData.php       the tree as plain data for the editor's panels
     Edit.php           the edits, and the directive seam rule
   Http/Controllers/    the editor's screen
   Support/             Access: who may use the editor; SunriceBridge: the one file that

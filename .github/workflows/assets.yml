@@ -28,6 +28,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -63,7 +64,14 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist package-lock.json docs/screenshots
+          git add dist package-lock.json
+          # A fresh screenshot is never byte-identical to the last one: keep
+          # it only when this pull request changes what the editor looks like.
+          if [ -n "$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- resources tests/Browser)" ] || ! git diff --cached --quiet -- dist; then
+              git add docs/screenshots
+          else
+              git checkout -- docs/screenshots
+          fi
           if git diff --cached --quiet; then
               echo "Nothing new was built."
           else

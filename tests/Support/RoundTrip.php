@@ -9,10 +9,10 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Sunrice\VisualEditor\Blade\Classifier;
 use Sunrice\VisualEditor\Blade\Edit;
 use Sunrice\VisualEditor\Blade\HtmlLexer;
 use Sunrice\VisualEditor\Blade\Node;
+use Sunrice\VisualEditor\Blade\Rules;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
 use Throwable;
@@ -82,28 +82,13 @@ final class RoundTrip
     }
 
     /**
-     * Selectable nodes that can be edited on their own: not the arms of a
-     * block (@case, @empty…), and nothing inside a code block.
+     * Nodes that can be moved, wrapped or deleted on their own.
      *
      * @return list<Node>
      */
     public static function editable(Template $template): array
     {
-        $classifier = new Classifier;
-
-        return array_values(array_filter($template->selectable(), function (Node $node) use ($classifier) {
-            if ($node->type === 'atom' && $node->kind === 'directive'
-                && (in_array($node->name, ['case', 'default', 'break'], true) || ($node->name === 'empty' && $node->args === null))) {
-                return false;
-            }
-            for ($up = $node->parent; $up !== null; $up = $up->parent) {
-                if ($up->type === 'block' && $classifier->classify($up) === 'code') {
-                    return false;
-                }
-            }
-
-            return true;
-        }));
+        return array_values(array_filter($template->selectable(), Rules::movable(...)));
     }
 
     /**

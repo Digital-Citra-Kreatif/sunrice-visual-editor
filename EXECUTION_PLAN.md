@@ -34,7 +34,7 @@ This plan turns `SPEC.md` into a working package. It follows the format of Sunri
 | Editor marks | Attribute `data-sve="<file>:<offset>"`; only in editor renders |
 | File identity | Path relative to `resources/views/sunrice/`, e.g. `partials/header.blade.php` |
 | File version | `sha1` of the file's bytes |
-| Node identity | The node's start byte offset in that version of the file |
+| Node identity | The node's start byte offset in that version of the file, as a string (`b<offset>` for an arm of a block, `root` for the root) |
 | Strict types | Every PHP file starts with `declare(strict_types=1);` |
 | Write operations | Single-purpose action classes in `src/Actions/` with a public `handle()`; controllers stay thin |
 
@@ -172,9 +172,10 @@ The spike left `src/Blade/` with: `BladeScanner`, `HtmlLexer`, `TreeBuilder`, `N
 ### V1.1 Public surface and JSON
 **Depends on:** V0.2
 **Files:**
-- `src/Blade/Template.php` — `open(string $source): self`, `version(): string`, `find(int $offset): ?Node`, `print(): string`, `toArray(): array`.
-- `src/Blade/Node.php` — `toArray()`: `id` (start offset), `type`, `kind` (from `Classifier`), `name`, `label` (tag plus first class, or the directive with shortened arguments), `attributes`, `text`, `expression`, `editable` flags (`move`, `delete`, `attributes`, `children`), `children`.
-**Done when:** `toArray()` of every fixture round-trips through `json_encode`, and every selectable node is found again by `find($id)`.
+- `src/Blade/Template.php` — `open(string $source): self`, `version(): string`, `find(string $id): ?Node`, `print(): string`, `toArray(): array`.
+- `src/Blade/Node.php` — `id()`: the start offset as a string; a branch starts where its block does, so its id is `b<offset>`, and the root's is `root`. `toArray()` (built by `TreeData`): `id`, `type`, `kind` (from `Classifier`), `name`, `label` (the tag with its id or first class; text and expressions shortened), `start`, `end`, `can` (`move`, `delete`, `insert`, `attributes`), and by type `attributes`, `text`, `expression`, `arguments`, `source`, `children`. Whitespace between nodes is left out; a code block is one piece of text without children.
+- `src/Blade/Rules.php` — what may be done to a node: selectable, movable, holds children, is an arm of its block. The panels ask before offering an action and the edits refuse what it forbids.
+**Done when:** `toArray()` of every fixture round-trips through `json_encode`, every id is unique, and every node is found again by `find($id)`.
 
 ### V1.2 Attributes
 **Depends on:** V1.1
