@@ -203,7 +203,9 @@ window.addEventListener('message', (event) => {
         return;
     }
 
-    if (message.type === 'mode') {
+    if (message.type === 'hello') {
+        ready();
+    } else if (message.type === 'mode') {
         mode = message.mode === 'browse' ? 'browse' : 'select';
     } else if (message.type === 'watch') {
         watch = { marks: message.watch.marks ?? [], files: message.watch.files ?? [] };

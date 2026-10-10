@@ -92,6 +92,15 @@ await step('says it is ready, with the page as a visitor has it and the manifest
     assert.deepEqual(ready.manifest.files.map((file) => file.path), ['show.blade.php', 'partials/item.blade.php', 'layouts/app.blade.php']);
 });
 
+await step('says so again when the editor asks who is there', async () => {
+    await forget();
+    await tell({ type: 'hello' });
+    const ready = await next('ready');
+
+    assert.equal(ready.url, '/page');
+    assert.equal(ready.manifest.files.length, 3);
+});
+
 await step('says what the pointer is over: the nearest marked element, its box and what is around it', async () => {
     await forget();
     await frame().locator('#word').hover();

@@ -211,6 +211,8 @@
 
 .sve-templates {
     display: grid;
+    /* A column that can be narrower than its longest row: long names are cut short, not the labels after them. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.125rem;
     margin: 0;
     padding: 0;
@@ -221,7 +223,9 @@
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
+    box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     padding: 0.375rem 0.5rem;
     border: 0;
     border-radius: calc(var(--radius) - 2px);
@@ -390,6 +394,9 @@
 
 .sve-canvas {
     grid-area: canvas;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     min-width: 0;
     min-height: 0;
     padding: 0.75rem;
@@ -399,8 +406,9 @@
 /* The frame and, above it, what the editor draws over the page. */
 .sve-stage {
     position: relative;
+    flex: 1 1 0;
+    min-height: 8rem;
     width: 100%;
-    height: 100%;
     overflow: hidden;
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -467,6 +475,229 @@
 
 .sve-outline--open .sve-outline__label {
     opacity: 0.75;
+}
+
+/* The code panel, under the page */
+
+.sve-code {
+    --sve-code-line: 1.25rem;
+    flex: 0 0 42%;
+    display: flex;
+    flex-direction: column;
+    min-height: 10rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+}
+
+.sve-code__bar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.5rem 0.375rem 0.75rem;
+    border-block-end: 1px solid var(--border);
+}
+
+.sve-code__name {
+    min-width: 0;
+    overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sve-code__space {
+    flex: 1;
+}
+
+.sve-code__bar .sve-button {
+    height: 1.625rem;
+}
+
+.sve-code__close {
+    width: 1.625rem;
+    height: 1.625rem;
+    border: 0;
+    border-radius: calc(var(--radius) - 2px);
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    font-size: 1.125rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.sve-code__close:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.sve-tag--changed {
+    border-color: currentColor;
+    color: var(--foreground);
+}
+
+.sve-code__trouble {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-block-end: 1px solid var(--border);
+    background: color-mix(in oklab, var(--destructive) 10%, transparent);
+    color: var(--foreground);
+}
+
+.sve-code__trouble p {
+    flex: 1;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.sve-code__trouble strong {
+    color: var(--destructive);
+}
+
+.sve-code__none {
+    padding: 0.75rem;
+}
+
+/* One scroller for the line numbers, the colours and the text field. */
+.sve-code__scroll {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    min-height: 0;
+    overflow: auto;
+    font: 0.75rem/var(--sve-code-line) ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    tab-size: 4;
+}
+
+.sve-code__lines {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    flex: none;
+    display: grid;
+    min-width: 2.75rem;
+    padding: 0.5rem 0.625rem 0.5rem 0.5rem;
+    border-inline-end: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted-foreground);
+    text-align: end;
+    user-select: none;
+}
+
+/* The colours and the field share one box: the colours give it its size. */
+.sve-code__text {
+    flex: 1 0 auto;
+    display: grid;
+    min-width: 0;
+}
+
+.sve-code__colours,
+.sve-code__field {
+    grid-area: 1 / 1;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    font: inherit;
+    letter-spacing: 0;
+    tab-size: inherit;
+    white-space: pre;
+}
+
+.sve-code__colours {
+    color: var(--foreground);
+    pointer-events: none;
+}
+
+.sve-code__field {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    resize: none;
+    outline: 0;
+    background: transparent;
+    color: transparent;
+    caret-color: var(--foreground);
+}
+
+.sve-code__field::selection {
+    background: color-mix(in oklab, var(--ring) 35%, transparent);
+    color: transparent;
+}
+
+.sve-code--comment {
+    color: var(--muted-foreground);
+    font-style: italic;
+}
+
+.sve-code--tag {
+    color: #1d6fb8;
+}
+
+.sve-code--attribute {
+    color: #7a5ab8;
+}
+
+.sve-code--string {
+    color: #2f7d4f;
+}
+
+.sve-code--echo,
+.sve-code--directive {
+    color: #c2410c;
+    font-weight: 600;
+}
+
+.sve-code--php {
+    color: #9a3412;
+}
+
+.dark .sve-code--tag {
+    color: #7cc0ff;
+}
+
+.dark .sve-code--attribute {
+    color: #c4a7ff;
+}
+
+.dark .sve-code--string {
+    color: #86d9a4;
+}
+
+.dark .sve-code--echo,
+.dark .sve-code--directive {
+    color: #fdba74;
+}
+
+.dark .sve-code--php {
+    color: #fed7aa;
+}
+
+.sve-button--wide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.sve-button--quiet[aria-pressed='true'] {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.sve-dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background: currentColor;
 }
 
 @media (max-width: 60rem) {

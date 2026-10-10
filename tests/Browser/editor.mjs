@@ -146,11 +146,83 @@ await step('show one of Sunrice\'s own views as read-only', async () => {
     await page.locator('.sve-note').getByText('one of Sunrice’s own views').waitFor();
 });
 
-await step('follow a missing page like any other: the error page is drawn by the site too', async () => {
+// --- The code panel --------------------------------------------------------------
+
+const code = page.locator('.sve-code__field');
+
+await step('open the footer as code, coloured and character for character', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await page.locator('.sve-panel--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
+    await openIs('partials/footer');
+    await page.getByRole('button', { name: 'Edit as code' }).click();
+    await code.waitFor();
+    const source = await code.inputValue();
+    if (!source.includes('<footer')) {
+        throw new Error('The field does not hold the footer');
+    }
+    if ((await page.locator('.sve-code__colours').textContent()) !== `${source}\n`) {
+        throw new Error('The colours are not the text');
+    }
+    if ((await page.locator('.sve-code__colours .sve-code--directive').count()) === 0) {
+        throw new Error('No directive is coloured');
+    }
+});
+
+await step('save a change to the footer and see it on the page', async () => {
+    await code.fill(`${await code.inputValue()}\n<p class="sve-browser-test">Edited in the code panel.</p>\n`);
+    await page.locator('.sve-code__bar').getByText('Not saved').waitFor();
+    await code.press('Control+s');
+    await frame.getByText('Edited in the code panel.').waitFor();
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+});
+
+await step('refuse code that doesn\'t compile, say why, and leave the site as it was', async () => {
+    const good = await code.inputValue();
+    await code.fill(`${good}\n@if ($neverClosed)\n`);
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.locator('.sve-code__trouble').getByText('doesn’t compile').waitFor();
+    // Nothing was written: the page still renders, with the last good footer.
+    const home = await page.request.get(`${base}/`);
+    if (home.status() !== 200 || !(await home.text()).includes('Edited in the code panel.')) {
+        throw new Error(`The homepage answered ${home.status()} after a refused save`);
+    }
+    await page.getByRole('button', { name: 'Revert' }).click();
+    await page.waitForFunction((expected) => document.querySelector('.sve-code__field')?.value === expected, good);
+});
+
+await step('put the footer back', async () => {
+    await code.fill((await code.inputValue()).replace('\n<p class="sve-browser-test">Edited in the code panel.</p>\n', ''));
+    await code.press('Control+s');
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+    await page.getByRole('button', { name: 'Hide the code' }).click();
+});
+
+await step('keep what is typed in the address field while a page is still arriving', async () => {
+    // The frame is sent off to a page, and before it has arrived something else is typed.
+    await open('/articles');
+    await page.fill('#sve-address', 'about');
+    await frame.getByRole('link', { name: 'Fifth post', exact: true }).waitFor();
+    await page.waitForTimeout(300);
+    if ((await page.inputValue('#sve-address')) !== 'about') {
+        throw new Error(`The field now says "${await page.inputValue('#sve-address')}"`);
+    }
+    await page.click('.sve-address button[type=submit]');
+    await addressIs('/about');
+    await frame.getByText('A page with a rich text body and no blocks.').waitFor();
+});
+
+await step('follow a missing page, or say that it can\'t be followed', async () => {
     await open('no-such-page-anywhere');
     await addressIs('/no-such-page-anywhere');
-    // Its templates, or word that it has none of the site's: either way the panel knows the page.
-    await page.locator('.sve-panel--left .sve-templates, .sve-panel--left .sve-empty:has-text("No template of the site")').first().waitFor();
+    // The site draws its error page with its own layout, so the panel lists that; a site
+    // without one of its own would get word that the page can't be followed. Either way
+    // the list is not the one of the page before, which had the page template in it.
+    await page.waitForFunction(() => {
+        const names = [...document.querySelectorAll('.sve-panel--left .sve-panel__body > .sve-templates .sve-template__name')].map((name) => name.textContent);
+
+        return !names.includes('show') && (names.length > 0 || document.querySelector('.sve-panel--left .sve-panel__body > .sve-empty') !== null);
+    });
 });
 
 await step('say so when what is in the frame is no page of the site', async () => {
