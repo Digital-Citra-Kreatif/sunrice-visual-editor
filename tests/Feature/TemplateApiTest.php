@@ -137,7 +137,7 @@ it('refuses operations made for another version of the file', function () {
     expect(File::get($this->footer))->toBe($theirs);
 });
 
-it('refuses an operation that can\'t be made, and says which', function (array $operations, int $index, string $message) {
+it('refuses an operation that can\'t be made, and says which', function (array $operations, ?int $index, string $message) {
     actingAsSuperAdmin();
     foreach ($operations as $i => $operation) {
         if ($operation['node'] === 'first') {
@@ -158,7 +158,46 @@ it('refuses an operation that can\'t be made, and says which', function (array $
     'an unknown operation, after a good one' => [[['type' => 'addClass', 'node' => 'first', 'class' => 'a'], ['type' => 'explode', 'node' => 'first']], 1, 'no operation "explode"'],
     'something missing' => [[['type' => 'addClass', 'node' => 'first']], 0, 'needs "class"'],
     'a snippet that doesn\'t nest' => [[['type' => 'insertAfter', 'node' => 'first', 'blade' => '<div>']], 0, 'never closed'],
-    'a result that doesn\'t compile' => [[['type' => 'insertAfter', 'node' => 'first', 'blade' => '@if ($a +*) x @endif']], 0, 'doesn\'t compile'],
+    // Refused for what the operations leave as a whole, not for one of them.
+    'a result that doesn\'t compile' => [[['type' => 'insertAfter', 'node' => 'first', 'blade' => '@if ($a +*) x @endif']], null, 'doesn\'t compile'],
+]);
+
+it('takes text exactly as it was sent', function () {
+    actingAsSuperAdmin();
+
+    // A blank line first, spaces last: Laravel would trim both from ordinary input.
+    $source = "\n<footer class=\"site-footer\">\n    <p>Text</p>\n</footer>\n  ";
+    putJson(SVE_API.'/'.SVE_FOOTER.'/source', ['version' => sha1($this->original), 'source' => $source])
+        ->assertOk()
+        ->assertJsonPath('template.source', $source);
+    expect(File::get($this->footer))->toBe($source);
+
+    // An empty value stays an empty value, and a snippet keeps its line breaks.
+    postJson(SVE_API.'/'.SVE_FOOTER.'/operations', [
+        'version' => sha1($source),
+        'operations' => [
+            ['type' => 'setAttribute', 'node' => firstElement($source), 'name' => 'data-empty', 'value' => ''],
+            ['type' => 'setAttribute', 'node' => firstElement($source), 'name' => 'hidden', 'value' => null],
+            ['type' => 'append', 'node' => firstElement($source), 'blade' => "<pre>\n  kept\n</pre>"],
+        ],
+    ])->assertOk();
+
+    expect(File::get($this->footer))->toContain('<footer class="site-footer" data-empty="" hidden>', "<pre>\n  kept\n</pre>");
+});
+
+it('refuses a body that is no JSON object', function (string $body) {
+    actingAsSuperAdmin();
+
+    $this->call('PUT', SVE_API.'/'.SVE_FOOTER.'/source', [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], $body)
+        ->assertStatus(422)
+        ->assertJsonPath('reason', 'invalid');
+
+    expect(File::get($this->footer))->toBe($this->original);
+})->with([
+    'nothing' => [''],
+    'not JSON' => ['version=abc&source=x'],
+    'a list' => ['["abc", "x"]'],
+    'a string' => ['"abc"'],
 ]);
 
 it('refuses a request that doesn\'t say what it has to', function (array $body, string $message) {

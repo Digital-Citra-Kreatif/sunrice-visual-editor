@@ -62,8 +62,9 @@ class TemplateController extends Controller
     public function operations(Request $request, SaveTemplate $save, string $path): JsonResponse
     {
         return $this->answer(function () use ($request, $save, $path) {
-            $version = $this->version($request);
-            $operations = $request->input('operations');
+            $body = $this->body($request);
+            $version = $this->version($body);
+            $operations = $body['operations'] ?? null;
             if (! is_array($operations) || $operations === [] || ! array_is_list($operations)) {
                 throw new InvalidRequest('"operations" has to be a list with at least one operation.');
             }
@@ -97,7 +98,8 @@ class TemplateController extends Controller
     public function source(Request $request, SaveTemplate $save, string $path): JsonResponse
     {
         return $this->answer(function () use ($request, $save, $path) {
-            $source = $request->input('source');
+            $body = $this->body($request);
+            $source = $body['source'] ?? null;
             if (! is_string($source)) {
                 throw new InvalidRequest('"source" has to be the template\'s text.');
             }
@@ -105,7 +107,7 @@ class TemplateController extends Controller
                 throw new InvalidRequest('That is too large to be a template.');
             }
 
-            $save->handle($path, $this->version($request), $source);
+            $save->handle($path, $this->version($body), $source);
 
             return ['template' => $this->templates->read($path)];
         });
@@ -117,9 +119,32 @@ class TemplateController extends Controller
         return $this->answer(fn () => ['template' => $this->templates->read($copy->handle($path))], 201);
     }
 
-    private function version(Request $request): string
+    /**
+     * The request's JSON, read from the body as it was sent.
+     *
+     * Not through $request->input(): Laravel trims the text it finds
+     * there and turns "" into null, and a template's leading blank line, a
+     * snippet's last newline and an empty attribute value all mean
+     * something here.
+     *
+     * @return array<array-key, mixed>
+     */
+    private function body(Request $request): array
     {
-        $version = $request->input('version');
+        $body = json_decode((string) $request->getContent(), true);
+        if (! is_array($body) || array_is_list($body)) {
+            throw new InvalidRequest('The request has to be a JSON object.');
+        }
+
+        return $body;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $body
+     */
+    private function version(array $body): string
+    {
+        $version = $body['version'] ?? null;
         if (! is_string($version) || $version === '') {
             throw new InvalidRequest('"version" has to be the version of the template the change was made for.');
         }
