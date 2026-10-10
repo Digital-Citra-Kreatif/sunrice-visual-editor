@@ -66,7 +66,7 @@ await step('refuse an address on another site', async () => {
 
 await step('open on the page named in the link', async () => {
     await page.goto(`${base}/cms/visual-editor?url=/articles`);
-    await frame.getByText('Fifth post').waitFor();
+    await frame.getByRole('link', { name: 'Fifth post', exact: true }).waitFor();
 });
 
 await step('take a screenshot', async () => {
