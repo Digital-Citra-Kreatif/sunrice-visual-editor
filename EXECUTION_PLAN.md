@@ -154,9 +154,9 @@ The package needs three things Sunrice has but does not publish. Each is asked f
 
 | | Needed | In Sunrice today | Proposed public API |
 | --- | --- | --- | --- |
-| C1 | Template directories and the template map (which view each collection and taxonomy uses) | `Sunrice\Mcp\Templates` | `Sunrice::templates()` returning a documented service |
-| C2 | Field definitions of a collection's blueprint, a listing page, a fieldset, a taxonomy and a global set, with fieldset includes expanded; the lists of collections, global sets and menus | Models and `BlueprintSchema`, undocumented | `Sunrice::schema()->collection($handle)` etc., returning plain arrays |
-| C3 | Adding MCP tools from a package | `SunriceServer::$tools` is a fixed list | `Sunrice::registerMcpTool(string $class)` |
+| C1 ([sunrice-cms#36](https://github.com/littleboy130491/sunrice-cms/issues/36)) | Template directories and the template map (which view each collection and taxonomy uses) | `Sunrice\Mcp\Templates` | `Sunrice::templates()` returning a documented service |
+| C2 ([#37](https://github.com/littleboy130491/sunrice-cms/issues/37)) | Field definitions of a collection's blueprint, a listing page, a fieldset, a taxonomy and a global set, with fieldset includes expanded; the lists of collections, global sets and menus | Models and `BlueprintSchema`, undocumented | `Sunrice::schema()->collection($handle)` etc., returning plain arrays |
+| C3 ([#38](https://github.com/littleboy130491/sunrice-cms/issues/38)) | Adding MCP tools from a package | `SunriceServer::$tools` is a fixed list | `Sunrice::registerMcpTool(string $class)` |
 
 **Files:**
 - `src/Support/SunriceBridge.php` — `templateDirectory()`, `themeDirectory()`, `packageViewDirectories()`, `templateMap()`, `syntaxError(string $blade)`, `backup(string $file, string $relative)`, `fields(string $kind, string $handle)`, `collections()`, `globals()`, `menus()`. The syntax check and the backup need nothing internal (Laravel's Blade compiler; the same backup location Sunrice uses). When Sunrice ships C1–C3, the bridge switches to them and nothing else changes.

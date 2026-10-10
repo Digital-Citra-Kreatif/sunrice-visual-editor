@@ -7,6 +7,7 @@ namespace Sunrice\VisualEditor\Support;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
+use Illuminate\View\FileViewFinder;
 use Sunrice\Fields\BlueprintSchema;
 use Sunrice\Mcp\Templates;
 use Sunrice\Models\Collection;
@@ -44,7 +45,8 @@ final class SunriceBridge
      */
     public static function packageViewDirectories(): array
     {
-        $hints = View::getFinder()->getHints();
+        $finder = View::getFinder();
+        $hints = $finder instanceof FileViewFinder ? $finder->getHints() : [];
 
         return array_values(array_filter((array) ($hints['sunrice'] ?? []), is_dir(...)));
     }
@@ -111,7 +113,7 @@ final class SunriceBridge
     /**
      * Field definitions with fieldset includes expanded (C2).
      *
-     * @param  'collection'|'listing'|'fieldset'|'taxonomy'|'global'  $kind
+     * @param  string  $kind  collection, listing, fieldset, taxonomy or global; anything else has no fields
      * @return list<array<string, mixed>> each with handle, type, label and, when set, config
      */
     public static function fields(string $kind, string $handle): array

@@ -18,6 +18,7 @@ jobs:
       matrix:
         php: ['8.3', '8.4']
 
+    # Each check runs even when an earlier one failed, so one run reports everything.
     steps:
       - uses: actions/checkout@v4
 
@@ -33,21 +34,25 @@ jobs:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
 
       - name: Lint
+        if: ${{ !cancelled() }}
         run: .github/run.sh lint composer lint
 
       - name: Analyse
+        if: ${{ !cancelled() }}
         run: .github/run.sh analyse composer analyse -- --no-progress --no-ansi
 
       - name: Test
+        if: ${{ !cancelled() }}
         run: .github/run.sh test composer test -- --colors=never
 
       - name: Round-trip test
+        if: ${{ !cancelled() }}
         run: .github/run.sh spike composer spike
 
       # The workbench is the site developers run by hand: build it and ask
       # it for the homepage, so `testbench serve` is known to work.
       - name: Workbench site
-        if: matrix.php == '8.4'
+        if: ${{ !cancelled() && matrix.php == '8.4' }}
         run: .github/run.sh workbench .github/workbench-smoke.sh
 
       # Job logs can't always be read where this package is developed;
