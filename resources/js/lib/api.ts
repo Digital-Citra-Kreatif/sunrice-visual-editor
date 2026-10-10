@@ -120,3 +120,8 @@ export function readTemplate(path: string, origin: 'site' | 'package'): Promise<
 export function copyToSite(path: string): Promise<TemplateData> {
     return request<{ template: TemplateData }>('POST', `templates/${pathInAddress(path)}/copy`, {}).then((answer) => answer.template);
 }
+
+/** Saves a template's source as written in the code panel: the template as it is then. */
+export function saveSource(path: string, version: string, source: string): Promise<TemplateData> {
+    return request<{ template: TemplateData }>('PUT', `templates/${pathInAddress(path)}/source`, { version, source }).then((answer) => answer.template);
+}

@@ -318,7 +318,9 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V3.4 Code panel
 **Depends on:** V3.3, V2.3
-CodeMirror with Blade/HTML highlighting for the open file; Save → `PUT …/source`; shows `syntax` and `conflict` errors; reloads the frame on success. This is how refused files and package copies are edited.
+- `resources/js/panels/CodePanel.tsx` — the open template as code, in a panel under the page (**Edit as code** in the Template panel). Save, or Ctrl/⌘+S → `PUT …/source`; on success the frame shows the page again. A refusal is shown above the code and nothing is written: `syntax` with the compiler's message, `conflict` with **Load the file as it is now**. Tab indents with the file's own indentation. One of Sunrice's views is shown read-only. Leaving a template, or the editor, with unsaved code asks first.
+- `resources/js/lib/highlight.ts` — colours for Blade and HTML: comments, echoes, directives with their brackets, PHP, tags, attributes and values. One pass, and the pieces joined are the source again.
+- **No CodeMirror.** The plan named it; this is a text field with the colours laid under it, character for character. It adds 7 kB to the script where CodeMirror would add a few hundred, has no dependency to keep up with, and keeps the browser's own undo, selection and find. What it lacks is search-and-replace, several cursors and folding. If those are missed, CodeMirror can take the panel's place behind the same props.
 **Done when:** editing the footer as code changes the page in the frame, and a syntax error is shown without writing.
 
 ### V3.5 Editor entry points

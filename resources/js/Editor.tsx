@@ -6,6 +6,7 @@ import { useBridge } from './lib/frame';
 import { pageOf, rememberPage } from './lib/memory';
 import { isAdminPath, sitePath } from './lib/path';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
+import { CodePanel } from './panels/CodePanel';
 import { TemplatePanel, type Loaded } from './panels/TemplatePanel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
 
@@ -49,6 +50,12 @@ export function Editor({ startPath }: Props) {
 
     const [open, setOpen] = useState<TemplateName | null>(null);
     const [template, setTemplate] = useState<Loaded<TemplateData>>({ state: 'idle' });
+    /** Bumped to read the open template from disk again. */
+    const [readings, setReadings] = useState(0);
+    const [coding, setCoding] = useState(false);
+    /** The open template's text as changed in the code panel and not saved; null when it is as on disk. */
+    const [draft, setDraft] = useState<string | null>(null);
+    const unsaved = draft !== null;
     const [all, setAll] = useState<TemplateInfo[] | null>(null);
     const [copying, setCopying] = useState(false);
 
@@ -67,8 +74,9 @@ export function Editor({ startPath }: Props) {
             setProblem(null);
             rememberPage(files.map((file) => `${file.origin}:${file.path}`), said.url);
 
-            // The template asked for; else the one that was open, if it is here too; else the page's own.
-            const still = open !== null && files.some((file) => sameTemplate(file, open));
+            // The template asked for; else the one that was open, if it is here too or has
+            // changes waiting to be saved; else the page's own.
+            const still = open !== null && (unsaved || files.some((file) => sameTemplate(file, open)));
             const own = pageTemplate(files);
             setOpen(wanted.current ?? (still ? open : own === null ? null : { path: own.path, origin: own.origin }));
             wanted.current = null;
@@ -165,6 +173,13 @@ export function Editor({ startPath }: Props) {
 
     /** Opens a template; one that isn't on this page brings the page it was last seen on. */
     const openTemplate = (name: TemplateName) => {
+        if (sameTemplate(open, name)) {
+            return;
+        }
+        if (unsaved && !window.confirm(`Leave ${open?.path ?? 'this template'} without saving what you changed in its code?`)) {
+            return;
+        }
+        setDraft(null);
         const here = page?.files.some((file) => sameTemplate(file, name)) ?? false;
         const seenOn = here ? null : pageOf(`${name.origin}:${name.path}`);
         if (seenOn !== null && seenOn !== page?.url) {
@@ -223,7 +238,29 @@ export function Editor({ startPath }: Props) {
         return () => {
             stale = true;
         };
-    }, [open?.path, open?.origin]);
+    }, [open?.path, open?.origin, readings]);
+
+    // Closing the tab with changes in the code panel: the browser asks first.
+    useEffect(() => {
+        if (!unsaved) {
+            return;
+        }
+        const ask = (event: BeforeUnloadEvent) => event.preventDefault();
+        window.addEventListener('beforeunload', ask);
+
+        return () => window.removeEventListener('beforeunload', ask);
+    }, [unsaved]);
+
+    /** The code panel wrote the file: show it as it is now, in the panels and on the page. */
+    const saved = (data: TemplateData) => {
+        setTemplate({ state: 'ready', data });
+        setDraft(null);
+        // Whether it opens as a tree may have changed with it.
+        setAll(null);
+        if (page !== null) {
+            show(page.url);
+        }
+    };
 
     const openFile = open === null ? null : (page?.files.find((file) => sameTemplate(file, open)) ?? null);
     const lit = hovered ?? pointed;
@@ -307,6 +344,19 @@ export function Editor({ startPath }: Props) {
                     <iframe ref={frame} className="sve-frame" src={firstAddress} title="Page being edited" onLoad={loaded} />
                     <Outlines outlines={outlines} />
                 </div>
+                {coding && template.state === 'ready' && (
+                    <CodePanel
+                        template={template.data}
+                        draft={draft}
+                        onDraft={setDraft}
+                        onSaved={saved}
+                        onReload={() => {
+                            setDraft(null);
+                            setReadings((count) => count + 1);
+                        }}
+                        onClose={() => setCoding(false)}
+                    />
+                )}
             </main>
 
             <TemplatePanel
@@ -316,6 +366,9 @@ export function Editor({ startPath }: Props) {
                 onPage={openFile !== null}
                 seenOn={open === null || openFile !== null ? null : pageOf(`${open.origin}:${open.path}`)}
                 copying={copying}
+                coding={coding}
+                unsaved={unsaved}
+                onCode={() => setCoding((on) => !on)}
                 onOpen={openTemplate}
                 onShowPage={(path) => {
                     wanted.current = open;

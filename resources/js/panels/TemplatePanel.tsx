@@ -15,13 +15,18 @@ type Props = {
     /** A page the open template was last seen on, when it isn't on this one. */
     seenOn: string | null;
     copying: boolean;
+    /** Whether the code panel is showing. */
+    coding: boolean;
+    /** Whether the code panel holds changes that are not saved. */
+    unsaved: boolean;
+    onCode(): void;
     onOpen(template: TemplateName): void;
     onShowPage(path: string): void;
     onCopy(path: string): void;
 };
 
 /** The right panel: the template that is open. */
-export function TemplatePanel({ open, template, page, onPage, seenOn, copying, onOpen, onShowPage, onCopy }: Props) {
+export function TemplatePanel({ open, template, page, onPage, seenOn, copying, coding, unsaved, onCode, onOpen, onShowPage, onCopy }: Props) {
     return (
         <Panel title="Template" side="right">
             {open === null ? (
@@ -48,7 +53,15 @@ export function TemplatePanel({ open, template, page, onPage, seenOn, copying, o
                             {template.error}
                         </p>
                     )}
-                    {template.state === 'ready' && <About template={template.data} onPage={onPage} seenOn={seenOn} copying={copying} onShowPage={onShowPage} onCopy={onCopy} />}
+                    {template.state === 'ready' && (
+                        <>
+                            <About template={template.data} onPage={onPage} seenOn={seenOn} copying={copying} onShowPage={onShowPage} onCopy={onCopy} />
+                            <button type="button" className="sve-button sve-button--quiet sve-button--wide" aria-pressed={coding} onClick={onCode}>
+                                {coding ? 'Hide the code' : template.data.editable ? 'Edit as code' : 'View the code'}
+                                {unsaved && <span className="sve-dot" title="Changes not saved" />}
+                            </button>
+                        </>
+                    )}
                 </>
             )}
         </Panel>
