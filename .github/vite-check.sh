@@ -68,12 +68,19 @@ done
 ! built | grep -q 'bg-lime-300' || fail "The built CSS changed without a build."
 
 step "The editor itself, in a browser, with the dev server running"
-(cd "$package" && npm ci --no-audit --no-fund)
-for attempt in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8091/cms/login && break; sleep 1; done
-BASE_URL=http://127.0.0.1:8091 node "$package/.github/vite/browser.mjs" | tee storage/logs/browser.log
-steps=$(grep -c '^ok' storage/logs/browser.log)
+# Sunrice's admin asked the site's dev server for its own script until sunrice-cms#41, and was
+# blank while one ran. On a Sunrice from before that there is no editor to open.
+if grep -q 'useHotFile' vendor/sunrice/cms/resources/views/app.blade.php; then
+    (cd "$package" && npm ci --no-audit --no-fund)
+    for attempt in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8091/cms/login && break; sleep 1; done
+    BASE_URL=http://127.0.0.1:8091 node "$package/.github/vite/browser.mjs" | tee storage/logs/browser.log
+    browser="In a browser with the dev server running: $(grep -c '^ok' storage/logs/browser.log) steps."
+else
+    browser="Not tried in a browser: this Sunrice's admin is blank while a dev server runs (sunrice-cms#41)."
+    echo "$browser"
+fi
 
 kill $vite $served 2>/dev/null || true
-summary="tailwindcss $(node -p "require('tailwindcss/package.json').version"), vite $(node -p "require('vite/package.json').version"). A class added in the editor: in the built CSS after a build, in the dev server's CSS without one. In a browser with the dev server running: $steps steps."
+summary="tailwindcss $(node -p "require('tailwindcss/package.json').version"), vite $(node -p "require('vite/package.json').version"). A class added in the editor: in the built CSS after a build, in the dev server's CSS without one. $browser"
 echo "$summary"
 [ -z "${GITHUB_ACTIONS:-}" ] || echo "::notice title=Vite and Tailwind::$summary"

@@ -11,7 +11,8 @@ cd "$site"
 touch database/database.sqlite
 
 composer config repositories.sunrice-cms vcs https://github.com/littleboy130491/sunrice-cms
-composer require sunrice/cms:dev-main --no-interaction --no-ansi
+# SUNRICE_REF tries a branch of Sunrice in place of main: "dev-some-branch as dev-main".
+composer require "sunrice/cms:${SUNRICE_REF:-dev-main}" --no-interaction --no-ansi
 # The user model needs Spatie's roles; Sunrice's installer says so.
 sed -i 's/use HasFactory, Notifiable;/use HasFactory, Notifiable, \\Spatie\\Permission\\Traits\\HasRoles;/' app/Models/User.php
 grep -q HasRoles app/Models/User.php
