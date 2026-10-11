@@ -267,6 +267,12 @@
     box-shadow: 0 0 0 1px var(--border);
 }
 
+/* The page's CSS is a preview of what a build would make. */
+.sve-bar__preview {
+    border-color: currentColor;
+    cursor: help;
+}
+
 /* What is shown beside the page: the left side, the code, the right side. */
 .sve-shown {
     flex: none;

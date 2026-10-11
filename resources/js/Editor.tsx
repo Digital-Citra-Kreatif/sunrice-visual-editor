@@ -53,7 +53,7 @@ function ShownIcon({ part }: { part: 'left' | 'code' | 'right' }) {
 }
 
 /** The page in the frame, as its bridge described it. `status` is what the server answered it with. */
-type Page = { url: string; title: string; files: ManifestFile[]; status: number };
+type Page = { url: string; title: string; files: ManifestFile[]; status: number; /** Its CSS is Tailwind's browser build: a preview of what a build would make. */ preview: boolean };
 
 /** How long a page gets to say it is ready after it has loaded. */
 const READY_WITHIN = 1500;
@@ -268,7 +268,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
             redrawing.current = false;
             setWaiting(null);
             const status = said.manifest.status ?? 200;
-            setPage({ url: said.url, title: said.title, files, status });
+            setPage({ url: said.url, title: said.title, files, status, preview: said.manifest.preview === true });
             // A change that compiled can still fail where the template is drawn: a variable that
             // isn't there, a collection that doesn't exist. No check before saving can know that.
             const before = statusBefore.current;
@@ -1364,6 +1364,12 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                         Browse
                     </button>
                 </div>
+
+                {page?.preview === true && (
+                    <span className="sve-tag sve-bar__preview" title="Tailwind's browser build is added to the page here, so a class shows before the CSS is built. Visitors get what the build makes: build to see the same on the site.">
+                        Preview CSS
+                    </span>
+                )}
 
                 <div className="sve-shown" role="group" aria-label="What is shown beside the page">
                     <button

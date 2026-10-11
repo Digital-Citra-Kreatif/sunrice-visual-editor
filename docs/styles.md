@@ -135,6 +135,27 @@ ran, the editor with it.
 and the site both use the built CSS (`public/build`), which does not have
 the new rule until `npm run build` has run again.
 
+**To see it in the editor before building, turn the preview on.**
+
+```
+SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW=true
+```
+
+Pages drawn for the editor, and no others, then also get Tailwind's own
+browser build, which writes a rule for any class the moment it is on the
+page. The top bar says **Preview CSS** while that is what you are looking
+at. Three things about it:
+
+- It is a preview. It reads your CSS entry file (`resources/css/app.css`)
+  for the theme, so your colours and fonts apply. It does not load
+  plugins, a `tailwind.config.js` or other files the entry imports. Where
+  those matter, what a build makes can differ.
+- Visitors never get it, and the site itself still lacks the rule until
+  you build.
+- It steps aside while a dev server is running, which serves the real CSS.
+  The script comes from jsDelivr; `tailwind.script` in the
+  [settings](installation.md#settings) can point at a copy of your own.
+
 **The layout opens as usual.** `@vite(…)` is one piece of code in the
 tree, like any directive the editor has no settings for. Tailwind finds
 classes in `resources/views/sunrice/` without being told where to look.

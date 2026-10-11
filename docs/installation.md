@@ -86,6 +86,9 @@ php artisan vendor:publish --tag=sunrice-visual-editor-config
 | `backups` | `true` | Keeps the previous version of every file the editor writes, in `storage/app/sunrice/template-backups/`. Leave it on: undo for people without the code permission depends on it. |
 | `theme_css` | `editor.css` | The file in `public/sunrice-theme/` that receives CSS rules for classes that have none yet. |
 | `widths` | Desktop 1280, Tablet 768, Mobile 390 | The widths the page can be shown at, and for each the `@media` condition a style for that width is written under when the site's own CSS has none that fits. |
+| `tailwind.preview` | `false` | For a site whose CSS is Tailwind built by Vite: adds Tailwind's browser build to pages drawn for the editor, so a class shows before the CSS is built again (`SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW`). See [Styles](styles.md#sites-that-build-their-css). |
+| `tailwind.entry` | `resources/css/app.css` | The site's CSS entry file, which the preview reads for the theme. |
+| `tailwind.script` | Tailwind's browser build on jsDelivr | Where the browser fetches the preview's script from. Point it at a copy of your own to work without the network. |
 | `paths.templates`, `paths.theme` | `null` | Where the site's templates and theme files are, if not in Sunrice's own places. |
 
 ## Updating

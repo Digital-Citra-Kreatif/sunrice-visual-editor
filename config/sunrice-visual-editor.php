@@ -66,6 +66,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tailwind preview
+    |--------------------------------------------------------------------------
+    |
+    | For a site whose CSS is Tailwind built by Vite. Tailwind writes a rule
+    | only for the classes it has found, so a class added in the editor has
+    | no style until the CSS is built again. With `preview` on, pages drawn
+    | for the editor (and no others) also get Tailwind's own browser build:
+    | any class shows at once.
+    |
+    | It is a preview: it reads `entry` for the site's theme and loads no
+    | plugins. It is left out while the site's Vite dev server is running,
+    | which serves the real CSS as it changes. `script` is fetched by the
+    | browser: point it at a copy of your own to work without the network.
+    |
+    */
+
+    'tailwind' => [
+        'preview' => env('SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW', false),
+        'entry' => 'resources/css/app.css',
+        'script' => 'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Paths
     |--------------------------------------------------------------------------
     |

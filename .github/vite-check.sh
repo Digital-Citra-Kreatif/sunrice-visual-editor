@@ -46,12 +46,23 @@ step "Built again: Tailwind found the class in the template the editor wrote"
 npm run build
 built | grep -q '\.bg-fuchsia-500' || fail "After a build the CSS still has no rule for bg-fuchsia-500."
 
+step "Neither built nor served: the preview shows a class in the editor, and not to a visitor"
+echo 'SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW=true' >> .env
+SVE_CLASS=pt-9 phpunit --filter test_a_class_is_added
+! built | grep -q '\.pt-9' || fail "The built CSS has a rule for pt-9 without a build."
+SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW=true phpunit --filter test_preview_
+php artisan serve --port=8091 --no-ansi > storage/logs/serve.log 2>&1 &
+served=$!
+trap 'kill $served 2>/dev/null || true' EXIT
+(cd "$package" && npm ci --no-audit --no-fund)
+for attempt in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8091/cms/login && break; sleep 1; done
+BASE_URL=http://127.0.0.1:8091 node "$package/.github/vite/preview.mjs" | tee storage/logs/preview.log
+previewed="The preview, neither built nor served: $(grep -c '^ok' storage/logs/preview.log) steps in a browser."
+
 step "With the dev server running, no build is needed"
 # Laravel's plugin won't start a dev server where CI is set, unless told that it is meant.
 LARAVEL_BYPASS_ENV_CHECK=1 node node_modules/vite/bin/vite.js > storage/logs/vite.log 2>&1 &
 vite=$!
-php artisan serve --port=8091 --no-ansi > storage/logs/serve.log 2>&1 &
-served=$!
 trap 'kill $vite $served 2>/dev/null || true' EXIT
 for attempt in $(seq 1 60); do [ -f public/hot ] && break; sleep 0.5; done
 [ -f public/hot ] || { tail -n 30 storage/logs/vite.log; fail "The dev server did not start."; }
@@ -71,8 +82,6 @@ step "The editor itself, in a browser, with the dev server running"
 # Sunrice's admin asked the site's dev server for its own script until sunrice-cms#41, and was
 # blank while one ran. On a Sunrice from before that there is no editor to open.
 if grep -q 'useHotFile' vendor/sunrice/cms/resources/views/app.blade.php; then
-    (cd "$package" && npm ci --no-audit --no-fund)
-    for attempt in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8091/cms/login && break; sleep 1; done
     BASE_URL=http://127.0.0.1:8091 node "$package/.github/vite/browser.mjs" | tee storage/logs/browser.log
     browser="In a browser with the dev server running: $(grep -c '^ok' storage/logs/browser.log) steps."
 else
@@ -81,6 +90,6 @@ else
 fi
 
 kill $vite $served 2>/dev/null || true
-summary="tailwindcss $(node -p "require('tailwindcss/package.json').version"), vite $(node -p "require('vite/package.json').version"). A class added in the editor: in the built CSS after a build, in the dev server's CSS without one. $browser"
+summary="tailwindcss $(node -p "require('tailwindcss/package.json').version"), vite $(node -p "require('vite/package.json').version"). A class added in the editor: in the built CSS after a build, in the dev server's CSS without one. $previewed $browser"
 echo "$summary"
 [ -z "${GITHUB_ACTIONS:-}" ] || echo "::notice title=Vite and Tailwind::$summary"

@@ -59,8 +59,9 @@ other page that uses the template.
   `public/sunrice-theme/`, up to 2 MB each. A site whose CSS is built
   (Tailwind through Vite) is styled with classes: with a dev server
   running they show at once, otherwise after a build
-  ([Styles](styles.md#sites-that-build-their-css)). The editor does not
-  build, and does not start a dev server.
+  ([Styles](styles.md#sites-that-build-their-css)). An opt-in preview
+  shows a new class in the editor before a build; it loads no Tailwind
+  plugins. The editor does not start a dev server.
 - Styles are written for a class. There is no styling by id or tag from the
   Style tab, and no inline `style` attribute written.
 - The Style tab writes the class's own rule. Rules that only mention the
