@@ -78,8 +78,14 @@ await step('say that a build is needed after a class is added, build from the ba
     await build.getByText('Build needed', { exact: true }).waitFor();
 
     // The site's own command: npm run build, with Vite and Tailwind.
+    const answered = page.waitForResponse((response) => response.url().endsWith('/api/build'), { timeout: 150000 });
     await build.click();
-    await page.getByText(/^Built in [\d.]+ seconds\.$/).waitFor({ timeout: 120000 });
+    const answer = await answered;
+    const built = await answer.json().catch(() => null);
+    if (built?.ok !== true) {
+        throw new Error(`The build answered ${answer.status()}: ${built?.message ?? 'nothing to read'}\n${String(built?.output ?? '').split('\n').slice(-4).join('\n')}`);
+    }
+    await page.getByText(/^Built in [\d.]+ seconds\.$/).waitFor();
     await build.getByText('Build', { exact: true }).waitFor();
     console.log(`     ${await page.getByText(/^Built in [\d.]+ seconds\.$/).textContent()}`);
 
