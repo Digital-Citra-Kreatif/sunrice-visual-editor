@@ -70,6 +70,9 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
 - A click on the page opens the template that drew what was clicked and
   puts the cursor on that element, in text that has been typed in since
   too. The element the cursor is in is outlined on the page.
+- **Fields** beside the code lists what can be read where the cursor is, in
+  text that is not saved yet too; a click writes it there, and the editor
+  offers a value's fields while it is typed.
 
 **Room for the page.**
 

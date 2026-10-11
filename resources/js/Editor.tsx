@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, wrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, changeStyles, copyToSite, linkStylesheet, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile, type TreeNode } from './lib/api';
+import { ApiError, applyOperations, changeStyles, copyToSite, fieldsAt, linkStylesheet, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type FieldsAt, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile, type TreeNode } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { asMedia, breakpoints, mediaFor, sameMedia } from './lib/media';
@@ -18,10 +18,11 @@ import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/
 import { boxesOf, findNode, rowFor, nodeAt } from './lib/tree';
 import { useSize } from './lib/size';
 import { activeWidth, layout, readWidths, viewOf, viewValue, type View } from './lib/widths';
-import { CodePanel, type CodePlace } from './panels/CodePanel';
+import { CodePanel, type CodePlace, type CodePut } from './panels/CodePanel';
 import { InsertPanel, type InsertTab } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
-import { Folds, Side } from './panels/Panel';
+import { FieldsList } from './panels/FieldsPanel';
+import { Folds, Panel, Side } from './panels/Panel';
 import { CssRules, LookOnly } from './panels/CssPanel';
 import { StyleFields } from './panels/StylePanel';
 import { SettingsPanel, type SettingsTab } from './panels/SettingsPanel';
@@ -612,14 +613,29 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
         }
     };
 
-    /** The code's cursor is in another node: that node is the selection, shown on the page. A moment after the cursor stops. */
+    /** Where the code's cursor is in the text as typed, in bytes, and in which template: what the fields beside the code are asked for. */
+    const [codeCursor, setCodeCursor] = useState<{ of: string; byte: number } | null>(null);
+    /** What can be read at the cursor, as last answered; while the next is asked it stays, most of it being the same. */
+    const [codeFields, setCodeFields] = useState<{ answer: FieldsAt | null; failed: string | null }>({ answer: null, failed: null });
+    const [fieldsTyped, setFieldsTyped] = useState('');
+    const [codePut, setCodePut] = useState<CodePut | null>(null);
+
+    /**
+     * The code's cursor is somewhere else. A moment after it stops: the
+     * node it is in is the selection, shown on the page, and the fields
+     * beside the code are those for where it is.
+     */
     const cursorWait = useRef<number | null>(null);
-    const cursorAt = (byte: number) => {
+    const cursorAt = (byte: number, now: number) => {
         if (cursorWait.current !== null) {
             window.clearTimeout(cursorWait.current);
         }
+        const of = lastRead.current === null ? null : historyKey(lastRead.current);
         cursorWait.current = window.setTimeout(() => {
             cursorWait.current = null;
+            if (of !== null) {
+                setCodeCursor((was) => (was !== null && was.of === of && was.byte === now ? was : { of, byte: now }));
+            }
             const node = nodeAt(treeNow.current, byte);
             if (node === null || node.type === 'root' || node.id === selectedNow.current || busyNow.current) {
                 return;
@@ -631,6 +647,30 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
             }
         }, 250);
     };
+
+    // What can be read where the cursor is, in the text as it is typed: asked a moment after the
+    // typing or the cursor stops, and only while the list that shows it is there to be seen.
+    const fieldsOf = codeOf !== null && codeOf.origin === 'site' && codeOf.editable && codeOf.source !== null ? codeOf : null;
+    const fieldsText = fieldsOf === null ? null : (drafts[historyKey(fieldsOf)] ?? fieldsOf.source);
+    const fieldsByte = fieldsOf !== null && codeCursor !== null && codeCursor.of === historyKey(fieldsOf) ? codeCursor.byte : 0;
+    const fieldsWanted = arranged.mode === 'code' && mayCode && template.state === 'ready' && fieldsOf !== null;
+    const fieldsShown = fieldsWanted && arranged.right && !isFolded(arranged, 'panel:Fields');
+    useEffect(() => {
+        if (!fieldsWanted || fieldsOf === null || fieldsText === null) {
+            return;
+        }
+        let stale = false;
+        const wait = window.setTimeout(() => {
+            fieldsAt(fieldsOf.path, fieldsText, fieldsByte)
+                .then((answer) => !stale && setCodeFields({ answer, failed: null }))
+                .catch((error: unknown) => !stale && setCodeFields((had) => ({ answer: had.answer, failed: message(error) })));
+        }, 300);
+
+        return () => {
+            stale = true;
+            window.clearTimeout(wait);
+        };
+    }, [fieldsWanted, fieldsOf?.path, fieldsText, fieldsByte]);
 
     const copy = (path: string) => {
         setCopying(true);
@@ -1505,6 +1545,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                         beside={arranged.mode === 'code'}
                         goTo={codePlace}
                         onCursor={cursorAt}
+                        put={codePut}
+                        fields={fieldsWanted ? (codeFields.answer?.variables ?? null) : null}
                         onSaved={saved}
                         onReload={() => {
                             setDraft(null, codeOf);
@@ -1518,6 +1560,34 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
             </main>
 
             <Side side="right" shown={arranged.right}>
+                {arranged.mode === 'code' && mayCode && (
+                    <Panel title="Fields" grow>
+                        <input className="sve-input sve-insert__find" type="search" value={fieldsTyped} onChange={(event) => setFieldsTyped(event.target.value)} placeholder="Find…" aria-label="Find a field or a variable" spellCheck={false} autoComplete="off" />
+                        <p className="sve-insert__where">
+                            {fieldsOf === null
+                                ? template.state === 'ready'
+                                    ? 'This is one of Sunrice’s own views: copy it to the site to write in it.'
+                                    : 'Open a template to see what it can read.'
+                                : codeFields.answer !== null && !codeFields.answer.exact
+                                  ? 'The code does not read as a whole just now, so this is what the template has anywhere in it.'
+                                  : 'What can be read where the cursor is. A click writes it there.'}
+                        </p>
+                        {fieldsShown && (
+                            <div className="sve-pick__list">
+                                <FieldsList
+                                    variables={codeFields.answer?.variables ?? null}
+                                    failed={codeFields.failed}
+                                    typed={fieldsTyped}
+                                    off={false}
+                                    onInsert={(blade) => {
+                                        asked.current++;
+                                        setCodePut({ blade, asked: asked.current });
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </Panel>
+                )}
                 {template.state === 'ready' && selectedNode !== null && (
                     <SettingsPanel
                         template={template.data}

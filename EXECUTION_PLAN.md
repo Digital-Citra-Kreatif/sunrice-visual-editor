@@ -764,12 +764,15 @@ A second way of working, chosen in the top bar: **Visual | Code** (`mode` in `li
 
 ### V8.4 Fields and variables at the cursor
 **Depends on:** V8.3
-- `Template::at(int $offset)` — the node a place in the text is in, and whether the place is inside it or beside it: what `Scope::at()` needs to be asked.
-- `POST templates/{path}/fields` with `{source, offset}`: the variables at that place in text that is not saved. The text is opened as a tree for this and nothing is written. When it does not open (a tag is still being typed), the answer is what the file is given and what every template has, and says that it is no more than that.
-- **Fields** beside the code editor: the same list as **Insert → Fields**, for the cursor. A click inserts at the cursor the Blade the picker writes, indented as the line is.
-- **Completion.** After `$name->`, `$name['` and `{{ `, the editor offers what that value has, from the same answer, with the guarded form written (`?->`, `?? ''`) as the picker writes it.
-- Needs `visual-editor.code`, as everything that types code does.
-**Done when:** in the hero block, with a line typed and not saved above the cursor, the list has `$block`'s fields and a variable set on that unsaved line; a click writes what the picker writes; completion after `$block->` lists the fieldset's fields (browser step, and `tests/Feature/FieldsApiTest.php` for the endpoint).
+**Status:** done.
+
+- `Template::at(int $offset)` — the place a position in the source is at, as places are said elsewhere: a node, and whether the position is inside it, after everything it holds, or where the node stands. A position in a tag, a directive's own line or a text is where that stands; between the arms of a block it is in the arm it comes after.
+- `Scope::here()` — what goes *inside* a node goes after everything that is there, so what the node's own children set (`@php($x = …)`) is above the place too. That was missing for the visual editor's **Inside** as well, and is there for both now. `Scope::anywhere()` and `Picker::anywhere()` say what a template has without its tree: what the file is given, and what every template has.
+- `POST templates/{path}/fields` with `{source, offset}` (`TemplateController::fieldsAt`) — the variables at a place in text that is not saved. The text is read and nothing else: not saved, not compiled, not run. A text that does not open as a tree is answered with `anywhere()` and `exact: false`. It takes `visual-editor.code` (`EditorAccess` now knows `:code`), as everything that types code does.
+- **Fields beside the code** (`Editor.tsx`): in Code mode the right side has a **Fields** panel, the same list as **Insert → Fields**, asked for where the cursor is in the text as typed, a moment after the typing or the cursor stops. A click writes at the cursor what the picker writes, every line after the first indented as the cursor's line is (`lib/completions.ts`, `indented`). Not shown to someone who may not edit code, nor for Sunrice's own views.
+- **Completion** (`lib/completions.ts`, `offersFor`; `@codemirror/autocomplete` in the editor): after `$entry->` or `$row['`, what that value has, each written whole and guarded as the picker writes it, in place of the variable and what was typed; after `{{ ` or `{!! `, everything at the place that can be printed, the place and the template before the site; after a `$` and the start of a name, the variables there. Nothing else is offered: no guesses at HTML or PHP.
+
+**Tests:** `tests/Unit/Blade/PlaceTest.php` (seventeen positions: in a tag, a text, an echo, a loop's own line, an arm, at the end). `tests/Feature/FieldsApiTest.php`: a variable set on a line that is not saved is there below it and not above; a loop only just typed gives its item inside and not beside or in its own line; half-typed text still answers; text with no tree answers with what the file is given and says so; who may ask. `tests/Frontend/completions.test.mjs`. Three steps of the browser check: the list at the cursor with a line typed above it; a field and a link written at the cursor by a click, the link's lines at the cursor's depth; offers while `$block->` is typed, narrowed by typing on, and the one chosen written. The designer's step: in Code mode no list of fields.
 
 ### V8.5 Tailwind preview without a build
 **Depends on:** V8.1

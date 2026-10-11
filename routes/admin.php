@@ -36,5 +36,7 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
     Route::put('templates/{path}/source', [TemplateController::class, 'source'])->where('path', $path)->middleware($edit)->name('templates.source');
     Route::post('templates/{path}/copy', [TemplateController::class, 'copy'])->where('path', $path)->middleware($edit)->name('templates.copy');
     Route::get('templates/{path}/fields', [TemplateController::class, 'fields'])->where('path', $path)->name('templates.fields');
+    // The same for a place in text that is not saved: asked while code is typed, by those who may type it.
+    Route::post('templates/{path}/fields', [TemplateController::class, 'fieldsAt'])->where('path', $path)->middleware(EditorAccess::class.':code')->name('templates.fields-at');
     Route::get('templates/{path}', [TemplateController::class, 'show'])->where('path', $path)->name('templates.show');
 });

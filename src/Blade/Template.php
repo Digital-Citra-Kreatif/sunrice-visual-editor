@@ -57,6 +57,54 @@ final class Template
     }
 
     /**
+     * The place a position in the source is at, as a place is said
+     * elsewhere: a node, and whether the position is inside it, after
+     * everything it holds, or where the node stands. A position inside a
+     * tag, a directive or a text is where that stands.
+     *
+     * @param  int  $offset  in bytes from the start of the source
+     * @return array{0: Node, 1: bool}
+     */
+    public function at(int $offset): array
+    {
+        $node = $this->root;
+        while (true) {
+            if ($node->type === 'block') {
+                // Between a block's arms there is nothing: a position is in the arm it comes after the start of.
+                $arm = $node->children[0] ?? null;
+                foreach ($node->children as $child) {
+                    $arm = $child->start < $offset ? $child : $arm;
+                }
+                if ($arm === null || $offset < $arm->start + strlen($arm->open)) {
+                    // In the arm's own line: where the arm stands, and the block when there is none.
+                    return [$arm ?? $node, false];
+                }
+                $node = $arm;
+            }
+            $into = null;
+            foreach ($node->children as $child) {
+                if ($offset <= $child->start) {
+                    // Before this one: what comes before it is above the place, and it is not.
+                    return [$child, false];
+                }
+                if ($offset < $child->end) {
+                    $into = $child;
+                    break;
+                }
+            }
+            if ($into === null) {
+                return [$node, true];
+            }
+            // What it holds begins after its opening tag or directive, and ends before what closes it.
+            $holds = in_array($into->type, ['element', 'block'], true);
+            if (! $holds || $offset < $into->start + strlen($into->open) || $offset > $into->end - strlen($into->close)) {
+                return [$into, false];
+            }
+            $node = $into;
+        }
+    }
+
+    /**
      * The template as plain data for the editor's panels.
      *
      * @return array{version: string, bytes: int, tree: array<string, mixed>}

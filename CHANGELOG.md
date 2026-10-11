@@ -16,7 +16,8 @@ it has been installed on a real project (see the end of
   outlines what each template drew; a click opens the template.
 - **Templates as code**: the source of a template in a code editor, under
   the page or, in Code mode, beside it, with templates as tabs that keep
-  unsaved text and a click on the page putting the cursor on that element.
+  unsaved text, a click on the page putting the cursor on that element, and
+  the fields at the cursor listed beside it and offered as they are typed.
   Saved only when it compiles and only onto the version that was opened.
 - **Templates as a tree**: layers, and settings for what is selected (tag,
   id, classes, attributes, text, echoes, conditions, loops, includes).

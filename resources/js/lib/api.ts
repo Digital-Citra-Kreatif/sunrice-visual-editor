@@ -225,6 +225,18 @@ export function listFields(path: string, version: string, node: string | null, i
     return request<{ variables: PickVariable[] }>('GET', `templates/${pathInAddress(path)}/fields?${query.toString()}`).then((answer) => answer.variables);
 }
 
+/** What can be read at a place in a template's text as it is typed: nothing is saved by asking. */
+export type FieldsAt = {
+    variables: PickVariable[];
+    /** False when the text does not open as a tree just now: the variables are those the template has anywhere. */
+    exact: boolean;
+    why: string | null;
+};
+
+export function fieldsAt(path: string, source: string, offset: number): Promise<FieldsAt> {
+    return request<FieldsAt>('POST', `templates/${pathInAddress(path)}/fields`, { source, offset });
+}
+
 /** A collection of the site, with the fields its entries have. */
 export type SiteCollection = { handle: string; title: string; single: boolean; fields: { handle: string; label: string; what: string; kind: string }[] };
 
