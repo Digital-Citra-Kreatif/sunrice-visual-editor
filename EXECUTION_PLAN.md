@@ -459,8 +459,28 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V5.3 Emitters
 **Depends on:** V5.1, V1.4
-`src/Fields/Emit.php` — field plus variable → fragment, per the table in `SPEC.md`, always guarded. Three shapes where it applies: inline echo, element (image, link), structure (condition, loop).
-**Done when:** every field type emits Blade that compiles and renders against workbench content with the field filled and empty.
+- `src/Fields/Reading.php` — a value as it is read: the code, its shape, and what can go wrong reading it. It is built from a variable, a field at a time (`Reading::of($entry)->field($cover)->field($alt)`), and guards each step: `?->` after anything that may be nothing (every field of a blueprint may be, and a template shared by two collections reads fields only one of them has), and `(… ?? null)` around what is read from an array before reading on. `printed()`, `looped()` and `asked()` write it for a text, a loop and a condition.
+- `src/Fields/Emit.php` — `inserts(reading, label, taken)`: the ways a value can be put into a template (`Insert`: a title, a kind, the Blade), the usual one first; `printed(reading)`: how it is written where a text goes, for a text control or an attribute.
+
+  | Value | Usual insert | Others |
+  | --- | --- | --- |
+  | text, number, select, an unknown value | `{{ $entry->get('summary') }}` | only when it is set |
+  | rich text | `{!! … !!}` | only when it is set |
+  | yes or no | `@if (…) @endif` | only when it is off |
+  | date | `{{ …?->translatedFormat('j F Y') }}`; the other forms are read on from it | only when it is set |
+  | link | `@if (($more = …) && ! empty($more['url'])) <a href… target when new_tab>label, or the URL</a> @endif` | only when it is set |
+  | file | `@if ($cover = …) <img src="{{ $cover->url('large') }}" alt="{{ $cover->alt }}"> @endif` | a link to the file; only when it is set |
+  | several files, entries, terms | a loop with an image, a linked title or a linked name for each | only when there are any |
+  | a select with several | `{{ implode(', ', …) }}` | a loop |
+  | repeater | a loop with a `<div>` for each row, holding every field of the row that can be shown on its own | only when there are any |
+  | flexible content | the loop that draws each block by its own template (`@includeFirst`) | only when there are any |
+  | a menu | `<ul>` with a linked item each | |
+  | group, entry, term, global set, collection, the page | none: its fields are picked from inside it | |
+
+- An entry is linked only when every collection it may be of has pages for its entries; a term only when its taxonomies have term pages (`SunriceBridge::taxonomies()` now says). Terms that are not a field's value (an entry's own, a term's children) are put in the page's language first (`resolveFor($locale)`), as Sunrice's templates do.
+- A value is held in a variable while it is shown, as Sunrice's own templates do (`@if ($cover = $entry->get('cover'))`), named after the field's label. A loop's item is named after one of them (`$photo` of Photos, `$article` of Related articles). Neither takes a name already in use at the place, nor one of Blade's or Sunrice's own (`$entry`, `$loop`, `$term`…): a loop over related entries that called each one `$entry` would leave the page with the last of them.
+- What is written is always something the tree holds and `Fragment` takes: it is inserted with the `insert` operation like anything else.
+**Done when:** every field type emits Blade that compiles and renders against workbench content with the field filled and empty (`tests/Feature/EmitRenderTest.php`: 287 pieces of Blade, every insert and every text of every field and of what is inside it, put into a template and drawn as pages: for a thing with everything, with what each has to draw; for a thing with nothing, where each has to draw nothing at all; and in the template two collections share, for a page that is no thing. `tests/Unit/Fields/EmitTest.php` and `tests/fixtures/emit/things.txt`: the Blade itself).
 
 ### V5.4 Fields panel
 **Depends on:** V5.2, V5.3, V4.3
