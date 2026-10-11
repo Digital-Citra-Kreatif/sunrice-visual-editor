@@ -1,14 +1,18 @@
 /**
  * The script in a page rendered for the editor's frame. It tells the
  * editor what the pointer is over and what was clicked, and measures what
- * the editor asks it to. It draws nothing and changes nothing on the page.
+ * the editor asks it to. It draws nothing on the page, and changes one
+ * thing about it: a stylesheet of the theme that the editor has changed is
+ * fetched again, so the page shows the file as it is now.
  */
 import {
     ATTRIBUTE,
     MANIFEST_ID,
     editorAddress,
+    isSheet,
     markValue,
     parseMark,
+    sheetAddress,
     shortcutOf,
     unwrap,
     visitorAddress,
@@ -19,6 +23,7 @@ import {
     type Measured,
     type Mode,
     type Rect,
+    type Sheet,
     type Target,
     type ToPage,
     type Watch,
@@ -210,6 +215,51 @@ document.addEventListener(
 
 window.addEventListener('pagehide', () => send({ type: 'leaving', url: visitorAddress(window.location.href) }));
 
+// --- Stylesheets ---------------------------------------------------------------
+
+/** A link that is being replaced by a newer one of the same file: gone once that one has loaded. */
+const OUTGOING = 'data-sve-outgoing';
+
+/**
+ * Shows each stylesheet of the theme the page links as the version it has
+ * now. A browser may keep showing the copy it has of a file whose address
+ * did not change; with the version in the address it can't. The new copy
+ * is fetched beside the old one, which goes when the new one is there: the
+ * page is never without its styles.
+ */
+function refreshSheets(sheets: Sheet[]): void {
+    const linked = new Set<string>();
+    for (const sheet of sheets) {
+        for (const link of Array.from(document.querySelectorAll<HTMLLinkElement>(`link[rel~="stylesheet"][href]:not([${OUTGOING}])`))) {
+            if (!isSheet(link.href, sheet, window.location.href)) {
+                continue;
+            }
+            linked.add(sheet.url);
+            const address = sheetAddress(link.href, sheet, window.location.href);
+            if (address === null) {
+                continue;
+            }
+            const fresh = link.cloneNode() as HTMLLinkElement;
+            fresh.href = address;
+            link.setAttribute(OUTGOING, '');
+            fresh.addEventListener('load', () => {
+                // Everything before it that was waiting to go: a link replaced twice in a row leaves two.
+                for (let before = fresh.previousElementSibling; before !== null && before.hasAttribute(OUTGOING); before = fresh.previousElementSibling) {
+                    before.remove();
+                }
+                reportSoon();
+            });
+            fresh.addEventListener('error', () => {
+                // The file could not be fetched: the page keeps what it had.
+                link.removeAttribute(OUTGOING);
+                fresh.remove();
+            });
+            link.after(fresh);
+        }
+    }
+    send({ type: 'styles', linked: [...linked] });
+}
+
 // --- What the editor asks ------------------------------------------------------
 
 window.addEventListener('message', (event) => {
@@ -228,6 +278,8 @@ window.addEventListener('message', (event) => {
     } else if (message.type === 'watch') {
         watch = { marks: message.watch.marks ?? [], files: message.watch.files ?? [] };
         reportSoon();
+    } else if (message.type === 'styles') {
+        refreshSheets(Array.isArray(message.sheets) ? message.sheets : []);
     } else if (message.type === 'reveal') {
         copiesOf(message.mark)[0]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         reportSoon();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Sunrice\VisualEditor\Http\Controllers\Api\InsertController;
 use Sunrice\VisualEditor\Http\Controllers\Api\SiteController;
+use Sunrice\VisualEditor\Http\Controllers\Api\StyleController;
 use Sunrice\VisualEditor\Http\Controllers\Api\TemplateController;
 use Sunrice\VisualEditor\Http\Controllers\EditorController;
 use Sunrice\VisualEditor\Http\Middleware\EditorAccess;
@@ -21,6 +22,12 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
 
     Route::get('inserts', InsertController::class)->name('inserts');
     Route::get('site', SiteController::class)->name('site');
+
+    // A stylesheet is named by its path inside the theme directory: …/api/styles/files/css/print.css
+    Route::get('styles', [StyleController::class, 'index'])->name('styles.index');
+    Route::post('styles/link', [StyleController::class, 'link'])->name('styles.link');
+    Route::post('styles/files/{path}/changes', [StyleController::class, 'changes'])->where('path', '.+\.css')->name('styles.changes');
+    Route::put('styles/files/{path}/source', [StyleController::class, 'source'])->where('path', '.+\.css')->name('styles.source');
 
     Route::get('templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::post('templates/{path}/operations', [TemplateController::class, 'operations'])->where('path', $path)->name('templates.operations');

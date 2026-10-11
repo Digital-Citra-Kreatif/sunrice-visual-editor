@@ -535,8 +535,22 @@ The same question as the Blade spike, for CSS: can a rule be found by selector a
 
 ### V6.2 CSS panel
 **Depends on:** V6.1, V4.2
-Shows the rule for the selection's first class from the theme CSS files as text; saves in place; creates the rule in `public/sunrice-theme/editor.css` when missing and offers to add the `<link>` to the layout.
-**Done when:** changing a declaration changes only that declaration in the file.
+**Status:** done.
+
+For a selected element, **Settings → CSS** shows the rules of the theme's stylesheets for one of its classes and changes them in place.
+
+- **Which files.** `Css\ThemeRepository`: every `*.css` under `public/sunrice-theme` (found by listing the directory, so a path can't lead elsewhere; up to 2 MB), and the editor's own stylesheet, `theme_css` in the config (`editor.css`), which may not exist yet.
+- **Which rules.** `Css\Styles::for($class)`: the rules one of whose selectors is the class itself (`Selector::forClass()` writes it as CSS does, `sm:flex` → `.sm\:flex`), then the rules that only mention it (`.card h2`, `.card:hover`), each with the at-rules it is inside, its line and its declarations. The first class of the element is shown; the others are a click away.
+- **Changes.** `Css\Changes::run($source, $changes)` is the one way a change from the editor reaches a CSS file: `set`, `rename`, `remove` (a declaration, named by the byte it starts at), `add` (to a rule), `rule` (a new one at the end). A list names places of one version of the file and is applied from the end of the file to its start, all or none; a refusal says which change (`CssRejected::$change`). `Stylesheet::withProperty()` is new for `rename`.
+- **Saving.** `Actions\SaveStylesheet`, as for a template: only onto the version the change was made for, the previous file kept in `storage/app/sunrice/template-backups/…/sunrice-theme/`, written in one step, a line in the activity log. The lock and the write are shared with `SaveTemplate` (`Support\Files`).
+- **A class without a rule** gets one in the editor's own stylesheet, which the first rule creates. When the page does not link that file, the panel says so and `Actions\LinkStylesheet` adds the link to the layout's `<head>`, after the stylesheets linked already and written as the starter writes its own (`@if (is_file(…)) <link … ?v={{ filemtime(…) }}> @endif`). That is a change to the layout like any other: saved through `SaveTemplate`, with its undo.
+- **API** (`Api\StyleController`): `GET styles?class=`, `POST styles/files/{path}/changes`, `PUT styles/files/{path}/source` (the whole text: undo and redo), `POST styles/link`. Refusals as for templates; both controllers answer through `Api\AnswersAsJson`.
+- **On the page.** A stylesheet change does not draw the page again. The editor tells the bridge the version of each stylesheet (`styles`); the bridge puts the version into the address of each `<link>` to it, fetches the new copy beside the old and drops the old once the new has loaded, and says which stylesheets the page links. A browser that would have kept its copy of an unchanged address can't.
+- **In the panel** (`panels/CssPanel.tsx`, `lib/styles.ts`): a row for each declaration, property and value each a field that saves when it is left; an empty row adds one, or several pasted as CSS writes them; `×` takes one out. Changes wait their turn, each made on the file as the one before left it, so typing on while one is being saved loses nothing. `↶ ↷` beside each file undo and redo its changes (per file, like templates; up to 600 KB, beyond which a file is not sent back to keep).
+
+**Tests:** `tests/Unit/Css/ChangesTest.php`, `SelectorTest.php`; `tests/Feature/StylesApiTest.php` (what is listed; a change changes one declaration and nothing else; the editor's stylesheet is made; conflicts, refusals, paths that lead elsewhere; undo; the link in the layout, and the page drawn with it; who may); `tests/Frontend/styles.test.mjs`; the bridge check (a stylesheet served as cacheable is still shown as it is now); six steps of the browser check, from a value changed on the page as it stands to a new rule linked from the layout.
+
+**Not in this task:** fields in place of typed CSS (V6.3), writing into a breakpoint's `@media` (V6.4), a rule added anywhere but the end of the editor's stylesheet, and elements whose classes Blade writes.
 
 ### V6.3 Style panel
 **Depends on:** V6.2

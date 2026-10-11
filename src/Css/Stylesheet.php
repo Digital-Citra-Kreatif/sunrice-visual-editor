@@ -91,16 +91,26 @@ final class Stylesheet
         return $this->checked($changed, fn (array $before) => self::replaced($before, $declaration->start, [$declaration->property, $value]), 'The value would not stay inside its declaration.');
     }
 
+    /** The file with one declaration's property named otherwise: its value stays. */
+    public function withProperty(Declaration $declaration, string $property): string
+    {
+        $property = self::property($property);
+        if (str_starts_with($property, '--') !== str_starts_with($declaration->property, '--')) {
+            // What a custom property may hold, another may not: the value is read by other rules.
+            self::value($declaration->value, custom: str_starts_with($property, '--'));
+        }
+        $changed = substr($this->source, 0, $declaration->start).$property.substr($this->source, $declaration->start + strlen($declaration->property));
+
+        return $this->checked($changed, fn (array $before) => self::replaced($before, $declaration->start, [$property, $declaration->value]), 'The property would not stay inside its declaration.');
+    }
+
     /** The file with a declaration added at the end of a rule's block, written as the ones before it are. */
     public function withDeclaration(Rule $rule, string $property, string $value): string
     {
         if ($rule->open === null) {
             throw new CssRejected('This rule has no block to put a declaration in.');
         }
-        $property = trim($property);
-        if (preg_match(self::PROPERTY, $property) !== 1) {
-            throw new CssRejected("\"{$property}\" is not the name of a property.");
-        }
+        $property = self::property($property);
         $value = self::value($value, custom: str_starts_with($property, '--'));
 
         $last = $rule->declarations === [] ? null : $rule->declarations[count($rule->declarations) - 1];
@@ -151,9 +161,9 @@ final class Stylesheet
     /**
      * The file with a new rule at its end.
      *
-     * @param  array<string, string>  $declarations  values by property
+     * @param  array<string, string>|list<array{0: string, 1: string}>  $declarations  values by property, or [property, value] pairs
      */
-    public function withRule(string $selector, array $declarations): string
+    public function withRule(string $selector, array $declarations = []): string
     {
         $selector = trim((string) preg_replace('/\s+/', ' ', $selector));
         if ($selector === '' || preg_match('/[{};]|\/\*/', $selector) === 1) {
@@ -165,11 +175,9 @@ final class Stylesheet
         $newline = $this->newline();
         $lines = '';
         $meant = [];
-        foreach ($declarations as $property => $value) {
-            $property = trim($property);
-            if (preg_match(self::PROPERTY, $property) !== 1) {
-                throw new CssRejected("\"{$property}\" is not the name of a property.");
-            }
+        foreach ($declarations as $key => $each) {
+            [$property, $value] = is_array($each) ? $each : [(string) $key, $each];
+            $property = self::property($property);
             $value = self::value($value, custom: str_starts_with($property, '--'));
             $lines .= '    '.$property.': '.$value.';'.$newline;
             $meant[] = [$property, $value];
@@ -188,6 +196,17 @@ final class Stylesheet
     }
 
     // --- Checking a change ----------------------------------------------------------
+
+    /** The name of a property as it will be written, or a refusal. */
+    private static function property(string $property): string
+    {
+        $property = trim($property);
+        if (preg_match(self::PROPERTY, $property) !== 1) {
+            throw new CssRejected($property === '' ? 'A declaration needs a property.' : "\"{$property}\" is not the name of a property.");
+        }
+
+        return $property;
+    }
 
     /**
      * A value as it will be written, or a refusal: it has to be whole on

@@ -21,8 +21,18 @@ const files = {
 
 // Every address the frame asked for, as the site would see it.
 const requested = [];
+// The theme's stylesheet: what it says now, and every address it was asked for by.
+let stylesheet = '#word { color: rgb(1, 2, 3); }';
+const sheetRequests = [];
 const server = createServer(async (request, response) => {
     const url = new URL(request.url, 'http://127.0.0.1');
+    if (url.pathname === '/sunrice-theme/app.css') {
+        sheetRequests.push(url.pathname + url.search);
+        // A browser may keep this for an hour: the same address would show the same file.
+        response.writeHead(200, { 'Content-Type': 'text/css; charset=utf-8', 'Cache-Control': 'max-age=3600' }).end(stylesheet);
+
+        return;
+    }
     const file = files[url.pathname];
     if (!file) {
         response.writeHead(404).end();
@@ -268,6 +278,63 @@ await step('leaves a link to another site as it is', async () => {
     await frame().locator('#away').click();
 
     assert.equal(await frame().locator('#away').getAttribute('href'), 'https://example.com/');
+});
+
+const links = () => frame().locator('link[rel="stylesheet"]').evaluateAll((all) => all.map((link) => new URL(link.href).pathname + new URL(link.href).search));
+const colorIs = async (expected) => {
+    const deadline = Date.now() + 3000;
+    for (;;) {
+        const color = await frame().locator('#word').evaluate((element) => getComputedStyle(element).color);
+        if (color === expected) {
+            return;
+        }
+        if (Date.now() > deadline) {
+            throw new Error(`The word is ${color}, not ${expected}`);
+        }
+        await page.waitForTimeout(25);
+    }
+};
+
+await step('shows a stylesheet of the theme as it is now, and says which of them the page links', async () => {
+    await page.goto(`${base}/editor`);
+    await next('ready');
+    await colorIs('rgb(1, 2, 3)');
+    assert.deepEqual(await links(), ['/sunrice-theme/app.css?v=1']);
+
+    // The file changes; its address in the page does not, and the browser may keep what it has.
+    stylesheet = '#word { color: rgb(4, 5, 6); }';
+    await forget();
+    await tell({ type: 'styles', sheets: [{ url: `${base}/sunrice-theme/app.css`, version: 'two' }, { url: `${base}/sunrice-theme/editor.css`, version: 'x' }] });
+
+    assert.deepEqual((await next('styles')).linked, [`${base}/sunrice-theme/app.css`]);
+    await colorIs('rgb(4, 5, 6)');
+    // One link, as before: what the page added to the address is kept.
+    assert.deepEqual(await links(), ['/sunrice-theme/app.css?v=1&sve-v=two']);
+    assert.equal(sheetRequests.at(-1), '/sunrice-theme/app.css?v=1&sve-v=two');
+});
+
+await step('fetches nothing for a version the page shows already', async () => {
+    const before = sheetRequests.length;
+    await forget();
+    await tell({ type: 'styles', sheets: [{ url: '/sunrice-theme/app.css', version: 'two' }] });
+    assert.deepEqual((await next('styles')).linked, ['/sunrice-theme/app.css']);
+    await page.waitForTimeout(150);
+
+    assert.equal(sheetRequests.length, before);
+    assert.deepEqual(await links(), ['/sunrice-theme/app.css?v=1&sve-v=two']);
+});
+
+await step('ends with the last of two versions told one right after the other', async () => {
+    stylesheet = '#word { color: rgb(7, 8, 9); }';
+    await tell({ type: 'styles', sheets: [{ url: '/sunrice-theme/app.css', version: 'three' }] });
+    await tell({ type: 'styles', sheets: [{ url: '/sunrice-theme/app.css', version: 'four' }] });
+
+    await colorIs('rgb(7, 8, 9)');
+    const deadline = Date.now() + 3000;
+    while ((await links()).length !== 1 && Date.now() < deadline) {
+        await page.waitForTimeout(25);
+    }
+    assert.deepEqual(await links(), ['/sunrice-theme/app.css?v=1&sve-v=four']);
 });
 
 await browser.close();

@@ -1556,6 +1556,200 @@ select.sve-input {
     background: currentColor;
 }
 
+/* CSS: the rules of the theme's stylesheets for a class of the selected element */
+
+.sve-settings__tabs {
+    margin-block-start: 0.75rem;
+}
+
+.sve-css {
+    display: grid;
+    gap: 0.75rem;
+    margin-block-start: 0.75rem;
+}
+
+.sve-css > .sve-note,
+.sve-css > .sve-empty {
+    margin: 0;
+}
+
+.sve-css__classes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.sve-css__class {
+    max-width: 100%;
+    padding: 0.0625rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--muted-foreground);
+    font: 0.75rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.sve-css__class[aria-pressed='true'] {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.sve-css__file {
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.sve-css__head {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+}
+
+.sve-css__path {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sve-css__history {
+    display: flex;
+    flex: none;
+    gap: 0.125rem;
+}
+
+.sve-css__step,
+.sve-declaration__add {
+    width: 1.375rem;
+    height: 1.375rem;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--radius) - 4px);
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.sve-css__step:hover:not(:disabled),
+.sve-declaration__add:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.sve-css__step:disabled,
+.sve-declaration__add:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.sve-css__others > summary {
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    cursor: pointer;
+}
+
+.sve-css__others > .sve-rule {
+    margin-block-start: 0.5rem;
+}
+
+.sve-css__others code,
+.sve-rule__hint code {
+    font: 0.6875rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sve-css__unlinked .sve-button {
+    width: 100%;
+}
+
+/* One rule: what it is inside, its selector, a row for each declaration, an empty row for the next */
+.sve-rule {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--card);
+}
+
+.sve-rule--new {
+    border-style: dashed;
+}
+
+.sve-rule__within {
+    overflow-wrap: anywhere;
+    color: var(--muted-foreground);
+    font: 0.6875rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sve-rule__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+    margin: 0 0 0.125rem;
+}
+
+.sve-rule__selector {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font: 600 0.75rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sve-rule__line,
+.sve-rule__hint {
+    flex: none;
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+}
+
+.sve-declaration {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr) 1.375rem;
+    align-items: center;
+    gap: 0.1875rem;
+}
+
+.sve-declaration .sve-input {
+    min-height: 1.5rem;
+    padding: 0.125rem 0.375rem;
+    font-size: 0.6875rem;
+}
+
+/* A declaration reads as text until it is pointed at or typed in. */
+.sve-declaration:not(.sve-declaration--new) .sve-input:not(:hover):not(:focus-visible) {
+    border-color: transparent;
+    background: transparent;
+}
+
+.sve-declaration--new .sve-input::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.7;
+}
+
+.sve-css__class:focus-visible,
+.sve-css__step:focus-visible,
+.sve-declaration__add:focus-visible,
+.sve-css__others > summary:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+}
+
 @media (max-width: 60rem) {
     .sve-shell {
         --sve-side: 13rem;

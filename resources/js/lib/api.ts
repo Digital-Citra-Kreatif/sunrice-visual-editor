@@ -234,3 +234,68 @@ export type Site = { collections: SiteCollection[]; taxonomies: { handle: string
 export function readSite(): Promise<Site> {
     return request<Site>('GET', 'site');
 }
+
+// --- The theme's stylesheets -----------------------------------------------------
+
+/** A CSS file of the theme. `exists` is false for the editor's own before its first rule. */
+export type ThemeFile = { path: string; url: string; version: string; exists: boolean; reason?: string | null };
+
+/** One `property: value` of a rule; `id` is where it starts in the file. */
+export type StyleDeclaration = { id: number; property: string; value: string };
+
+/** A rule that styles a class, or mentions it. */
+export type StyleRule = {
+    file: string;
+    /** Where it starts in the file. */
+    id: number;
+    selector: string;
+    /** The at-rules it is inside, outermost first: "@media (max-width: 760px)". */
+    within: string[];
+    /** One of its selectors is the class itself; otherwise it only mentions it (".card h2"). */
+    exact: boolean;
+    line: number;
+    declarations: StyleDeclaration[];
+};
+
+/** What the theme's stylesheets say about a class. */
+export type Styles = {
+    class: string | null;
+    /** The class as CSS writes it: ".card", ".sm\:flex". */
+    selector: string | null;
+    files: ThemeFile[];
+    rules: StyleRule[];
+    /** How many more rules there are than are listed. */
+    more: number;
+    /** Where a rule that does not exist yet is put; null when the site names no such file. */
+    own: ThemeFile | null;
+};
+
+/** One change to a stylesheet, as the server reads it (Css\Changes in PHP). */
+export type CssChange =
+    | { type: 'set'; declaration: number; value: string }
+    | { type: 'rename'; declaration: number; property: string }
+    | { type: 'remove'; declaration: number }
+    | { type: 'add'; rule: number; property: string; value: string }
+    | { type: 'rule'; selector: string; declarations?: [string, string][] };
+
+/** A stylesheet after it was written: its version, the file as it was before (null: too large to keep), and what the stylesheets say now. */
+export type StylesSaved = { file: { path: string; version: string }; before: string | null; styles: Styles };
+
+export function readStyles(ofClass: string | null): Promise<Styles> {
+    return request<{ styles: Styles }>('GET', `styles${ofClass === null ? '' : `?${new URLSearchParams({ class: ofClass }).toString()}`}`).then((answer) => answer.styles);
+}
+
+/** Changes rules of a stylesheet and saves it. */
+export function changeStyles(path: string, version: string, changes: CssChange[], ofClass: string | null): Promise<StylesSaved> {
+    return request<StylesSaved>('POST', `styles/files/${pathInAddress(path)}/changes`, { version, changes, ...(ofClass === null ? {} : { class: ofClass }) });
+}
+
+/** Saves a stylesheet's whole text: how a change to it is undone, and done again. */
+export function saveStylesheet(path: string, version: string, source: string, ofClass: string | null): Promise<StylesSaved> {
+    return request<StylesSaved>('PUT', `styles/files/${pathInAddress(path)}/source`, { version, source, ...(ofClass === null ? {} : { class: ofClass }) });
+}
+
+/** Links a stylesheet of the theme from a layout: the layout as it is then, and its text before. */
+export function linkStylesheet(template: string, version: string, stylesheet: string): Promise<{ template: TemplateData; before: string }> {
+    return request<{ template: TemplateData; before: string }>('POST', 'styles/link', { template, version, stylesheet });
+}

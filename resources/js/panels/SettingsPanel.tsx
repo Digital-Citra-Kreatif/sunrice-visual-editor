@@ -24,10 +24,17 @@ type Props = {
     refusals: number;
     /** What can be done to the node as a whole. */
     can: Record<Action | 'wrap', boolean>;
+    /** The rules of the theme's stylesheets for the node's classes, when it is an element; null for what has no classes. */
+    css: ReactNode | null;
+    /** Which of the two is shown for an element: its settings, or its CSS. */
+    tab: SettingsTab;
+    onTab(tab: SettingsTab): void;
     onApply(operations: Operation[]): void;
     onAct(action: Action): void;
     onDeselect(): void;
 };
+
+export type SettingsTab = 'settings' | 'css';
 
 const ACTIONS: { action: Action; label: string; title: string }[] = [
     { action: 'up', label: '↑', title: 'Move up, before what is above it (Alt+↑ in the layers)' },
@@ -61,7 +68,7 @@ const KINDS: Record<ReturnType<typeof kindOf>, string> = {
  * operation when it is left or Enter is pressed; the file is saved, the
  * page drawn again, and the node stays selected.
  */
-export function SettingsPanel({ template, node, fields, site, busy, locked, refusals, can, onApply, onAct, onDeselect }: Props) {
+export function SettingsPanel({ template, node, fields, site, busy, locked, refusals, can, css, tab, onTab, onApply, onAct, onDeselect }: Props) {
     const kind = kindOf(node);
     const off = busy || locked !== null || !template.editable;
     const send: Send = (operation, to = node) => onApply([{ ...operation, node: to.id } as Operation]);
@@ -113,7 +120,19 @@ export function SettingsPanel({ template, node, fields, site, busy, locked, refu
                 </select>
             </div>
 
+            {css !== null && (
+                <div className="sve-places sve-tabs sve-settings__tabs" role="group" aria-label="What is shown of it">
+                    <button type="button" className="sve-places__place" aria-pressed={tab === 'settings'} onClick={() => onTab('settings')} title="Its tag, classes and attributes">
+                        Settings
+                    </button>
+                    <button type="button" className="sve-places__place" aria-pressed={tab === 'css'} onClick={() => onTab('css')} title="The rules of the theme’s stylesheets for its classes">
+                        CSS
+                    </button>
+                </div>
+            )}
+
             {/* A new node, a new version of this one, or a change that was refused starts every control afresh. */}
+            {!(css !== null && tab === 'css') && (
             <div className="sve-settings" key={`${template.version}:${node.id}:${refusals}`}>
                 {tag !== null && component && tag.name === 'sunrice::entries' && <EntriesSettings tag={tag} site={site} off={off} onApply={onApply} />}
                 {tag !== null && component && tag.name === 'sunrice::terms' && <TermsSettings tag={tag} site={site} off={off} onApply={onApply} />}
@@ -130,6 +149,8 @@ export function SettingsPanel({ template, node, fields, site, busy, locked, refu
 
                 <SourceSettings template={template} node={node} off={off} send={send} always={kind === 'code'} />
             </div>
+            )}
+            {css !== null && tab === 'css' && css}
         </Panel>
     );
 }
@@ -584,7 +605,7 @@ type FieldProps = {
  * A text control that holds what is typed until it is left or Enter is
  * pressed, then hands it on if it changed. Escape puts back what was there.
  */
-function Field({ label, value, onCommit, disabled = false, mono = false, multiline = false, tall = false, bare = false, placeholder, hint }: FieldProps) {
+export function Field({ label, value, onCommit, disabled = false, mono = false, multiline = false, tall = false, bare = false, placeholder, hint }: FieldProps) {
     const [typed, setTyped] = useState(value);
     useEffect(() => setTyped(value), [value]);
 

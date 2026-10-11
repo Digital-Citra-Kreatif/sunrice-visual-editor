@@ -2,20 +2,23 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, copyToSite, listFields, listInserts, listTemplates, readSite, readTemplate, saveSource, type Insertable, type Operation, type PickVariable, type Site, type TemplateData, type TemplateInfo } from './lib/api';
+import { ApiError, applyOperations, changeStyles, copyToSite, linkStylesheet, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { pageOf, rememberPage } from './lib/memory';
 import { startRedraw, type Redraw } from './lib/redraw';
 import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
 import { isAdminPath, sitePath } from './lib/path';
+import { classesOf } from './lib/settings';
+import { layoutOf, resolve, sheetsOf, shiftedId, type StyleEdit } from './lib/styles';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { boxesOf, findNode, rowFor } from './lib/tree';
 import { CodePanel } from './panels/CodePanel';
 import { InsertPanel, type InsertTab } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Side } from './panels/Panel';
-import { SettingsPanel } from './panels/SettingsPanel';
+import { CssRules } from './panels/CssPanel';
+import { SettingsPanel, type SettingsTab } from './panels/SettingsPanel';
 import { TemplatePanel, type Loaded } from './panels/TemplatePanel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
 
@@ -43,6 +46,9 @@ const later = (after: number, run: () => void) => {
 
 /** The name a template's history goes by. */
 const historyKey = (template: { origin: string; path: string }) => `${template.origin}:${template.path}`;
+
+/** The name a stylesheet's history goes by. */
+const sheetKey = (path: string) => `theme:${path}`;
 
 const message = (error: unknown) => (error instanceof ApiError || error instanceof Error ? error.message : 'Something went wrong.');
 
@@ -125,6 +131,26 @@ export function Editor({ startPath }: Props) {
     /** Once the page is back, bring what is selected into view: it may be new, and anywhere. */
     const revealing = useRef(false);
 
+    /** For an element: its settings, or the rules of the stylesheets for its classes. */
+    const [settingsTab, setSettingsTab] = useState<SettingsTab>('settings');
+    /** The class whose rules are shown, when one was picked by hand. */
+    const [pickedClass, setPickedClass] = useState<string | null>(null);
+    /** What the theme's stylesheets say, about the class shown or about nothing in particular. */
+    const [styles, setStyles] = useState<Styles | null>(null);
+    const [stylesFailed, setStylesFailed] = useState<string | null>(null);
+    /** Bumped to read the stylesheets again. */
+    const [styleReadings, setStyleReadings] = useState(0);
+    /** The same, for the changes that wait their turn: each is made on the stylesheets as the one before it left them. */
+    const stylesNow = useRef<Styles | null>(null);
+    const classNow = useRef<string | null>(null);
+    const styleWork = useRef<Promise<void>>(Promise.resolve());
+    /** Undo and redo for each stylesheet changed since the editor was opened, by its path. Not state: a change reads what the one before it wrote. */
+    const sheetHistories = useRef<Record<string, History>>({});
+    const [, setSheetSteps] = useState(0);
+    /** The addresses of the stylesheets the page in the frame links; null until it has said. */
+    const [linked, setLinked] = useState<string[] | null>(null);
+    const [linking, setLinking] = useState(false);
+
     /** The left side lists what can be inserted, in place of the page's templates. */
     const [inserting, setInserting] = useState(false);
     const [insertTab, setInsertTab] = useState<InsertTab>('library');
@@ -201,6 +227,8 @@ export function Editor({ startPath }: Props) {
                 toSelect.current = { template: { path: file.path, origin: file.origin }, id };
                 openTemplate({ path: file.path, origin: file.origin });
             }
+        } else if (said.type === 'styles') {
+            setLinked(said.linked);
         } else if (said.type === 'key') {
             shortcuts.current(said.key);
         } else if (said.type === 'measured') {
@@ -222,6 +250,7 @@ export function Editor({ startPath }: Props) {
         setHovered(null);
         setMeasured(null);
         setHolding(false);
+        setLinked(null);
         // The address field shows where the frame is going, not what was being typed for the page before.
         setTyped(null);
     };
@@ -710,6 +739,144 @@ export function Editor({ startPath }: Props) {
         };
     }, []);
 
+    // --- The theme's stylesheets ------------------------------------------------------
+
+    /** The element whose classes the CSS tab is about, and the class of it whose rules are shown. */
+    const styled = template.state === 'ready' ? findNode(tree, selected) : null;
+    const classes = styled !== null && styled.type === 'element' ? classesOf(styled) : null;
+    const styleClass = classes === null || classes.length === 0 ? null : pickedClass !== null && classes.includes(pickedClass) ? pickedClass : classes[0];
+    /** What is asked of the stylesheets: about the class, while its rules are shown; otherwise only which there are. */
+    const askedClass = settingsTab === 'css' ? styleClass : null;
+    classNow.current = askedClass;
+
+    const takeStyles = (read: Styles) => {
+        if (read.class !== classNow.current) {
+            // An answer about a class that is no longer the one shown: ask about the one that is.
+            setStyleReadings((count) => count + 1);
+
+            return;
+        }
+        stylesNow.current = read;
+        setStyles(read);
+        setStylesFailed(null);
+    };
+
+    useEffect(() => {
+        let stale = false;
+        readStyles(askedClass)
+            .then((read) => !stale && takeStyles(read))
+            .catch((error: unknown) => !stale && setStylesFailed(message(error)));
+
+        return () => {
+            stale = true;
+        };
+    }, [askedClass, styleReadings]);
+
+    // The page shows the theme's stylesheets as they are now, and says which of them it links.
+    const sheets = useMemo(() => sheetsOf(styles), [styles]);
+    useEffect(() => {
+        if (page !== null && styles !== null) {
+            tell({ type: 'styles', sheets });
+        }
+    }, [page, sheets, tell]);
+
+    /** A stylesheet was written: its history gains the file as it was. */
+    const rememberSheet = (path: string, was: string, saved: StylesSaved, how: 'change' | 'undo' | 'redo') => {
+        const all = sheetHistories.current;
+        const history = all[sheetKey(path)];
+        if (saved.before === null) {
+            // Too large to keep copies of: nothing of it can be undone.
+            delete all[sheetKey(path)];
+        } else if (how === 'change' || history === undefined) {
+            all[sheetKey(path)] = recorded(history, { source: saved.before, selected: null }, was, saved.file.version);
+        } else {
+            const left = { source: saved.before, selected: null };
+            all[sheetKey(path)] = how === 'undo' ? undone(history, left, saved.file.version) : redone(history, left, saved.file.version);
+        }
+        setSheetSteps((count) => count + 1);
+    };
+
+    /** Runs when the changes before it are done: one stylesheet change at a time, each on the file as it is then. */
+    const inTurn = (work: (now: Styles) => Promise<void>) => {
+        const forClass = classNow.current;
+        styleWork.current = styleWork.current.then(async () => {
+            const now = stylesNow.current;
+            if (now === null || now.class !== forClass || classNow.current !== forClass) {
+                return;
+            }
+            try {
+                await work(now);
+                setNotice(null);
+            } catch (error: unknown) {
+                say('problem', message(error));
+                // The rows show the file again, not what was typed.
+                setRefusals((count) => count + 1);
+                if (error instanceof ApiError && error.reason === 'conflict') {
+                    setStyleReadings((count) => count + 1);
+                }
+            }
+        });
+    };
+
+    /** A change from the CSS tab: the file is saved, and the page shows it at once. */
+    const editStyle = (edit: StyleEdit) =>
+        inTurn(async (now) => {
+            const change = resolve(now, edit);
+            if (change !== null) {
+                const saved = await changeStyles(change.file.path, change.file.version, change.changes, now.class);
+                rememberSheet(change.file.path, change.file.version, saved, 'change');
+                takeStyles(saved.styles);
+            }
+        });
+
+    const sheetFile = (now: Styles | null, path: string): ThemeFile | null => now?.files.find((file) => file.path === path) ?? (now?.own?.path === path ? now.own : null);
+
+    /** Undo or redo in one stylesheet: saves it as it was a step back, or a step forward again. */
+    const travelSheet = (path: string, direction: 'undo' | 'redo') =>
+        inTurn(async (now) => {
+            const file = sheetFile(now, path);
+            const history = sheetHistories.current[sheetKey(path)];
+            const step = file === null ? null : direction === 'undo' ? undoStep(history, file.version) : redoStep(history, file.version);
+            if (file !== null && step !== null) {
+                const saved = await saveStylesheet(path, file.version, step.source, now.class);
+                rememberSheet(path, file.version, saved, direction);
+                takeStyles(saved.styles);
+            }
+        });
+
+    const sheetSteps = (path: string) => {
+        const file = sheetFile(styles, path);
+        const history = sheetHistories.current[sheetKey(path)];
+
+        return { undo: file !== null && canUndo(history, file.version), redo: file !== null && canRedo(history, file.version) };
+    };
+
+    /** Links a stylesheet from the page's layout, and draws the page again with it. */
+    const linkSheet = (stylesheet: string) => {
+        const layout = layoutOf(page?.files ?? null);
+        if (layout === null || linking) {
+            return;
+        }
+        setLinking(true);
+        readTemplate(layout.path, 'site')
+            .then((read) =>
+                linkStylesheet(layout.path, read.version, stylesheet).then(({ template: changed, before }) => {
+                    setHistories((all) => ({ ...all, [historyKey(changed)]: recorded(all[historyKey(changed)], { source: before, selected: null }, read.version, changed.version) }));
+                    if (sameTemplate(open, changed)) {
+                        // The layout is the open template: what is selected in it has moved down by the link.
+                        setTemplate({ state: 'ready', data: changed });
+                        setSelected(rowFor(changed.tree, shiftedId(selected, before, changed.source ?? before)));
+                        setPointedNode(null);
+                        setCollapsed(new Set());
+                    }
+                    say('done', `Linked ${stylesheet} from ${layout.path}.`);
+                    changedRedraw();
+                }),
+            )
+            .catch((error: unknown) => say('problem', message(error)))
+            .finally(() => setLinking(false));
+    };
+
     // --- What is shown on the page -------------------------------------------------
 
     /** The node under the pointer: a row of the layers, or an element of the open template on the page. */
@@ -981,6 +1148,28 @@ export function Editor({ startPath }: Props) {
                         refusals={refusals}
                         locked={unsaved ? codeUnsaved : null}
                         can={actionsFor(tree, selectedNode.id)}
+                        tab={settingsTab}
+                        onTab={setSettingsTab}
+                        css={
+                            selectedNode.type !== 'element' ? null : (
+                                <CssRules
+                                    // A change that was refused starts every row afresh.
+                                    key={`${selectedNode.id}:${refusals}`}
+                                    classes={classes}
+                                    chosen={styleClass}
+                                    onChoose={setPickedClass}
+                                    styles={styles}
+                                    failed={stylesFailed}
+                                    linked={linked}
+                                    layout={layoutOf(page?.files ?? null)}
+                                    linking={linking || unsaved}
+                                    can={sheetSteps}
+                                    onEdit={editStyle}
+                                    onTravel={travelSheet}
+                                    onLink={linkSheet}
+                                />
+                            )
+                        }
                         onApply={apply}
                         onAct={(action) => act(selectedNode.id, action)}
                         onDeselect={() => setSelected(null)}

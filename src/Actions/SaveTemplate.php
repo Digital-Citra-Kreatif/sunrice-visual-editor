@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Actions;
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\Compilers\BladeCompiler;
-use RuntimeException;
 use Sunrice\Activity\ActivityLogger;
 use Sunrice\VisualEditor\Blade\Syntax;
+use Sunrice\VisualEditor\Support\Files;
 use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\DoesNotCompile;
@@ -45,8 +44,7 @@ final class SaveTemplate
         $file = $this->templates->find($path);
 
         // One save at a time per file: the check and the write belong together.
-        $lock = $this->lock($file->file);
-        try {
+        return Files::locked($file->file, function () use ($file, $path, $expectedVersion, $newSource): string {
             clearstatcache(true, $file->file);
             $current = (string) file_get_contents($file->file);
             if (TemplateRepository::version($current) !== $expectedVersion) {
@@ -64,40 +62,14 @@ final class SaveTemplate
             if (config('sunrice-visual-editor.backups', true)) {
                 SunriceBridge::backup($file->file, $file->path);
             }
-            $this->replace($file->file, $newSource);
+            Files::replace($file->file, $newSource);
             $this->forgetCompiled($file);
 
             // Beside the content changes in Manage → Activity log.
             app(ActivityLogger::class)->record('updated', $file->path, ['note' => 'Visual editor'], 'template');
 
             return TemplateRepository::version($newSource);
-        } finally {
-            flock($lock, LOCK_UN);
-            fclose($lock);
-        }
-    }
-
-    /**
-     * Writes beside the file and renames over it, so the file is never
-     * half written.
-     */
-    private function replace(string $file, string $source): void
-    {
-        $temporary = dirname($file).'/.'.basename($file).'.'.bin2hex(random_bytes(6)).'.tmp';
-
-        if (file_put_contents($temporary, $source) !== strlen($source)) {
-            @unlink($temporary);
-            throw new RuntimeException("Could not write beside \"{$file}\". Is the directory writable?");
-        }
-        $permissions = @fileperms($file);
-        if ($permissions !== false) {
-            @chmod($temporary, $permissions & 0777);
-        }
-        if (! @rename($temporary, $file)) {
-            @unlink($temporary);
-            throw new RuntimeException("Could not replace \"{$file}\".");
-        }
-        clearstatcache(true, $file);
+        });
     }
 
     /**
@@ -127,24 +99,5 @@ final class SaveTemplate
                 @opcache_invalidate($compiled, true);
             }
         }
-    }
-
-    /**
-     * Waits for, and takes, the lock for a file. The lock is a file of its
-     * own, since the template itself is replaced by the save.
-     *
-     * @return resource
-     */
-    private function lock(string $file)
-    {
-        $directory = storage_path('framework/cache/sunrice-visual-editor');
-        File::ensureDirectoryExists($directory);
-
-        $lock = fopen($directory.'/'.sha1($file).'.lock', 'c');
-        if ($lock === false || ! flock($lock, LOCK_EX)) {
-            throw new RuntimeException('Could not lock the template for saving.');
-        }
-
-        return $lock;
     }
 }
