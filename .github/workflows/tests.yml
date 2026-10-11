@@ -73,3 +73,29 @@ jobs:
       - name: Report failures
         if: failure()
         run: .github/run.sh --report
+
+  # What docs/installation.md says, done on a new Laravel application with
+  # Sunrice, and the site checked as installed: the page is tried, not only read.
+  install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Composer takes the package from this checkout as a git repository.
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, sqlite3, pdo_sqlite, gd, intl
+          coverage: none
+
+      - name: Install on a new site
+        run: .github/run.sh install-check .github/install-check.sh
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+
+      - name: Report failures
+        if: failure()
+        run: .github/run.sh --report

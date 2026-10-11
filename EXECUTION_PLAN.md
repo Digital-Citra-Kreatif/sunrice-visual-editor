@@ -648,4 +648,24 @@ The README's "Using it" now points to these pages in place of saying the same mo
 **Tests:** `tests/Unit/DocsTest.php` keeps the pages from going stale where a test can tell: every link between the pages, to a file of the repository and to a heading resolves; every key of the config file is in the settings table; every operation the package takes is in the agents page; the three permissions are named as `Access` names them.
 
 ### V7.4 Release
-Changelog, version `0.1.0`, tag. Install it on one real client project on a staging copy and fix what that turns up before tagging.
+**Depends on:** V7.3
+**Status:** prepared; not tagged. Tagging waits for the install on a real project, which only someone with a client project can do.
+
+- `CHANGELOG.md` — 0.1.0: what it does, how it keeps files safe, the limits to know first. Marked "not tagged yet".
+- **The installation page, tried.** `.github/install-check.sh` makes a new Laravel application, installs Sunrice as its own page says (with starter templates and three demo articles), then does what `docs/installation.md` says with this checkout in place of `dev-main`: require, publish, sync the permissions (twice: Sunrice's sync used to fail the second time). It then checks:
+  - what Composer is given (`git archive`): the built script is in it, the tests and the workbench are not;
+  - where it is on: routes on `local`, none on `production`, there again with `SUNRICE_VISUAL_EDITOR=true`, none on `local` with `false`;
+  - the site as installed (`.github/install/InstalledTest.php`, copied into the new application and run on its own database): the script published and the three permissions made; a Super Admin opens the editor; a page is marked for the editor and for nobody else; someone without a permission is kept out; a designer adds a class and only that changes in the file, with a backup; a designer's code is refused and does not run; a declaration is changed in the theme's own CSS file and only its value's bytes differ;
+  - removing: `composer remove`, no routes left, Sunrice's commands still run.
+
+  It is the `install` job of the `tests` workflow, on every pull request.
+- **No version number in the files.** A Composer package's version is its tag; a number written into `composer.json` would only be able to disagree with it.
+
+**What a new application showed.** Nothing had to change in the package. The page had four things wrong before V7.3 was merged, found by reading it against the code; run for real, the steps held as written.
+
+**Left for the release itself** (for a person, in this order):
+
+1. Install it on a staging copy of one real client project (`docs/installation.md`), use it there for a day, and fix what that turns up. This is the step the plan asks for and nothing here could stand in for it: the package has only seen Sunrice's starter templates, and a real project has templates nobody wrote with an editor in mind.
+2. Decide the licence (open decision 4 in `SPEC.md`; Sunrice says MIT in its `composer.json`). Add a `LICENSE` file and `"license"` to `composer.json`. Until then the repository is public without one, which lets nobody else use it.
+3. Merge and release [sunrice-cms#39](https://github.com/littleboy130491/sunrice-cms/pull/39) and [#40](https://github.com/littleboy130491/sunrice-cms/pull/40). After #39, `src/Support/RegisteredPermissions.php` can go; after #40 the tools reach agents.
+4. Put the date on 0.1.0 in `CHANGELOG.md`, tag `v0.1.0`, and submit the repository to Packagist. The installation page's `composer config repositories…` line and `:dev-main` then come out.

@@ -5,12 +5,12 @@ declare(strict_types=1);
 use Sunrice\VisualEditor\Blade\Operation;
 use Sunrice\VisualEditor\Support\Access;
 
-/** The pages people read: the README and everything in docs/. */
+/** The pages people read: the README, the changelog and everything in docs/. */
 function pages(): array
 {
     $root = dirname(__DIR__, 2);
 
-    return [$root.'/README.md', ...glob($root.'/docs/*.md')];
+    return [$root.'/README.md', $root.'/CHANGELOG.md', ...glob($root.'/docs/*.md')];
 }
 
 /** A heading as GitHub makes an anchor of it. */

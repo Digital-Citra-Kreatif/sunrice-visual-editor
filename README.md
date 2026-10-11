@@ -20,7 +20,8 @@ writes the file back with nothing else disturbed.
 | [Limits](docs/limits.md) | what it does not do |
 
 What the package is meant to do is in [SPEC.md](SPEC.md); how it was built,
-task by task, is in [EXECUTION_PLAN.md](EXECUTION_PLAN.md).
+task by task, is in [EXECUTION_PLAN.md](EXECUTION_PLAN.md). What each version
+brought is in [CHANGELOG.md](CHANGELOG.md).
 
 ![The editor: the homepage in a frame, the templates that draw it listed on the left, the hero block outlined on the page](docs/screenshots/editor.png)
 
@@ -305,6 +306,14 @@ To look at the site the tests use, with the admin at `/cms` (sign in as
 
 ```bash
 composer serve     # builds the workbench (assets, templates, database, demo content) and serves it
+```
+
+To try the installation page on a new Laravel application (it makes one in
+a temporary directory, installs Sunrice and this checkout into it, checks
+the site as installed and removes the package again):
+
+```bash
+.github/install-check.sh
 ```
 
 Where Packagist and npm can't be reached but GitHub can, everything above
