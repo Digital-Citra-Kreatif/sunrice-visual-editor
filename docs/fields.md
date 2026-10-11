@@ -19,6 +19,24 @@ from a list; it writes the code.
 A value that came from a field says so: an echo of
 `$entry->get('cover')?->alt` is shown as **$entry › Cover › Alt text**.
 
+## In Code mode
+
+Beside the code there is a **Fields** panel with the same list, for where
+the cursor is. It reads the code as you have typed it, saved or not: a
+variable set on the line above is in the list a moment after you type the
+line.
+
+- A click on a field writes it at the cursor, the same Blade as in Visual
+  mode, indented as the line is.
+- While you type, the editor offers what a value has: after `$entry->` or
+  `$row['` the fields of that value, after `{{ ` everything there that can
+  be printed, after `$` the variables. Choosing one writes it whole, with
+  its `?->` and `?? ''`.
+- While the code does not read as a whole (a tag half typed), the list is
+  what the template has anywhere in it, and says so.
+
+This needs the [code permission](permissions.md).
+
 ## What is in the list
 
 The list is for one place in one template. It has three parts.

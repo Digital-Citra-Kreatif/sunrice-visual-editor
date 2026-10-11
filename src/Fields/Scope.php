@@ -50,10 +50,21 @@ final class Scope
      */
     public function at(TemplateFile $file, Template $template, ?Node $node, bool $inside = false): array
     {
-        $given = $this->given($file, $template);
+        $given = $this->given($file, $template->source);
         $here = $this->here($node, $inside, $given);
 
         return array_values([...array_reverse($here), ...array_diff_key($given, $here), ...$this->everywhere()]);
+    }
+
+    /**
+     * What a template has wherever in it one is, said without its tree: for
+     * a text that does not open as one, while it is being typed.
+     *
+     * @return list<Variable> what the file is given, then what every template has
+     */
+    public function anywhere(TemplateFile $file, string $source): array
+    {
+        return array_values([...$this->given($file, $source), ...$this->everywhere()]);
     }
 
     /**
@@ -93,6 +104,16 @@ final class Scope
                 foreach ($this->broughtBy($step, $shapes()) as $name => $variable) {
                     unset($here[$name]);
                     $here[$name] = $variable;
+                }
+            }
+        }
+        if ($inside) {
+            // What goes inside goes after everything that is there: what that sets is above it too.
+            $holder = $path === [] ? $node : $path[count($path) - 1];
+            foreach ($holder->children ?? [] as $within) {
+                foreach ($this->setBy($within, $shapes()) as $name => [$shape, $written]) {
+                    unset($here[$name]);
+                    $here[$name] = new Variable('$'.$name, $shape ?? Shape::of(Shape::VALUE), Variable::SET, 'Set above: '.$written, sure: false);
                 }
             }
         }
@@ -177,7 +198,7 @@ final class Scope
      *
      * @return array<string, Variable> by name
      */
-    private function given(TemplateFile $file, Template $template): array
+    private function given(TemplateFile $file, string $source): array
     {
         if (isset($this->given[$file->view])) {
             return $this->given[$file->view];
@@ -214,7 +235,7 @@ final class Scope
         }
 
         // What it reads and nothing above gives: from the templates that include it.
-        $needed = array_values(array_diff(Variables::needed($template->source), array_keys($given)));
+        $needed = array_values(array_diff(Variables::needed($source), array_keys($given)));
         $topLevel = $this->resolving === [];
         $passed = $needed === [] ? [] : $this->passed($file);
         foreach ($needed as $name) {

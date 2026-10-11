@@ -85,8 +85,8 @@ other page that uses the template.
 - A tab's undo and its unsaved text last as long as the editor is open:
   closing the browser tab asks first, and then they are gone.
 - The code editor has search and replace, undo of its own and several
-  cursors. It does not fold code, complete what is typed, or search across
-  files. Its script is fetched when code is first shown; when that fails,
+  cursors, and offers the CMS's fields while a variable is typed. It does
+  not fold code, complete HTML or PHP, or search across files. Its script is fetched when code is first shown; when that fails,
   the code is in a plain text field, which still saves.
 - The editor is for a desktop browser. It has been checked in Chromium;
   Firefox and Safari have not been tested.

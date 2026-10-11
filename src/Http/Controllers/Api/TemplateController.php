@@ -169,6 +169,39 @@ class TemplateController extends Controller
         });
     }
 
+    /**
+     * What can be read at a place in a template's text as it is being
+     * typed: nothing is saved and nothing is run, the text is only read.
+     *
+     * Body: {source, offset}, the offset in bytes. A text that does not
+     * open as a tree (a tag half typed) is answered with what the file is
+     * given and what every template has, and `exact` false.
+     */
+    public function fieldsAt(Request $request, Picker $picker, string $path): JsonResponse
+    {
+        return $this->answer(function () use ($request, $picker, $path) {
+            $body = $this->body($request);
+            $source = $body['source'] ?? null;
+            $offset = $body['offset'] ?? null;
+            if (! is_string($source) || strlen($source) > self::MAX_SOURCE) {
+                throw new InvalidRequest('"source" has to be the template\'s text.');
+            }
+            if (! is_int($offset) || $offset < 0) {
+                throw new InvalidRequest('"offset" has to be a place in the text, in bytes.');
+            }
+            $file = $this->templates->find($path);
+
+            try {
+                $template = Template::open($source);
+            } catch (Unsupported $e) {
+                return ['variables' => $picker->anywhere($file, $source), 'exact' => false, 'why' => $e->getMessage()];
+            }
+            [$node, $inside] = $template->at(min($offset, strlen($source)));
+
+            return ['variables' => $picker->at($file, $template, $node, $inside), 'exact' => true, 'why' => null];
+        });
+    }
+
     /** Copies one of Sunrice's fallback views into the site and answers with the new template. */
     public function copy(CopyPackageView $copy, string $path): JsonResponse
     {

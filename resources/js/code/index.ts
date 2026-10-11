@@ -8,6 +8,7 @@
  * tab that is come back to has its text, its undo, its cursor and where it
  * was scrolled to.
  */
+import { autocompletion, completionKeymap, type CompletionContext, type CompletionResult } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { bracketMatching, indentUnit } from '@codemirror/language';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
@@ -24,6 +25,8 @@ import {
     lineNumbers,
     rectangularSelection,
 } from '@codemirror/view';
+import type { PickVariable } from '../lib/api.ts';
+import { indented, offersFor } from '../lib/completions.ts';
 import { coloured, difference, indentOf, lineBreaksOf } from './text.ts';
 
 export type CodeEditorOptions = {
@@ -33,8 +36,12 @@ export type CodeEditorOptions = {
     onChange(text: string): void;
     /** Ctrl+S or ⌘S. */
     onSave(): void;
-    /** The cursor is somewhere else: where that is in the file as it was saved, counted in characters. */
-    onCursor?(place: number): void;
+    /**
+     * The cursor is somewhere else: where that is in the file as it was
+     * saved, and where it is in the text as it is now, both counted in
+     * characters.
+     */
+    onCursor?(saved: number, now: number): void;
 };
 
 /** A text to show: what is typed, and the file it is a change to. */
@@ -61,6 +68,10 @@ export type CodeEditor = {
     /** The file now holds this: places in the file are counted in it from here on. */
     setSaved(saved: string): void;
     setReadOnly(readOnly: boolean): void;
+    /** Puts Blade in at the cursor, in place of what is selected, indented as the line is. */
+    insert(blade: string): void;
+    /** What can be read where the cursor is: offered while a variable is typed. */
+    setFields(variables: PickVariable[]): void;
     /** Puts the cursor at a place of the file as saved, counted in characters, wherever that now is in the text; and the keyboard there too, when asked. */
     goTo(place: number, focus: boolean): void;
     focus(): void;
@@ -159,6 +170,13 @@ const look = EditorView.theme({
     '.cm-textfield': { border: '1px solid var(--border)', borderRadius: 'calc(var(--radius) - 2px)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: 'inherit' },
     '.cm-button': { border: '1px solid var(--border)', borderRadius: 'calc(var(--radius) - 2px)', backgroundImage: 'none', backgroundColor: 'var(--secondary)', color: 'var(--secondary-foreground)', fontSize: 'inherit' },
     '.cm-panel.cm-search [name=close]': { color: 'var(--muted-foreground)', cursor: 'pointer' },
+    // What is offered while a variable is typed.
+    '.cm-tooltip': { border: '1px solid var(--border)', borderRadius: 'calc(var(--radius) - 2px)', backgroundColor: 'var(--popover, var(--card))', color: 'var(--popover-foreground, var(--foreground))', boxShadow: '0 4px 16px rgb(0 0 0 / 0.12)' },
+    '.cm-tooltip.cm-tooltip-autocomplete > ul': { fontFamily: 'inherit', maxHeight: '16rem' },
+    '.cm-tooltip.cm-tooltip-autocomplete > ul > li': { padding: '0.1875rem 0.5rem' },
+    '.cm-tooltip-autocomplete ul li[aria-selected]': { backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' },
+    '.cm-completionLabel': { fontFamily: 'inherit' },
+    '.cm-completionDetail': { marginInlineStart: '0.75rem', color: 'var(--muted-foreground)', fontStyle: 'normal' },
 });
 
 export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEditor {
@@ -171,6 +189,22 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
         const { saved, changes } = state.field(since);
 
         return inFile(saved, changes.invertedDesc.mapPos(state.selection.main.head, -1), windows(state));
+    };
+
+    /** What can be read where the cursor is, as the panel beside the editor last heard. */
+    let fields: PickVariable[] = [];
+    const offer = (context: CompletionContext): CompletionResult | null => {
+        const line = context.state.doc.lineAt(context.pos);
+        const found = offersFor(line.text.slice(0, context.pos - line.from), fields);
+
+        return found === null
+            ? null
+            : {
+                  from: line.from + found.from,
+                  // Chosen here by what was typed, not by how alike the label and the typed text are.
+                  filter: false,
+                  options: found.offers.map(({ label, detail, insert }) => ({ label, detail, apply: insert })),
+              };
     };
 
     /** A text as the editor holds it, new: nothing typed, nothing to undo. */
@@ -193,6 +227,8 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
                 highlightActiveLine(),
                 highlightSelectionMatches(),
                 search({ top: true }),
+                // The CMS's fields, while a variable is typed. Nothing else is offered: no guesses at HTML or PHP.
+                autocompletion({ override: [offer], icons: false }),
                 indentUnit.of(indentOf(text)),
                 EditorState.tabSize.of(4),
                 colours,
@@ -211,6 +247,7 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
                         },
                     },
                     // Tab indents. Escape first, then Tab, moves on to the next control as usual.
+                    ...completionKeymap,
                     indentWithTab,
                     ...searchKeymap,
                     ...historyKeymap,
@@ -223,7 +260,7 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
                     // Only a cursor moved by whoever is in the editor: not one put somewhere by the editor itself,
                     // or by a browser settling its own selection while the keyboard is elsewhere.
                     if (update.selectionSet && !sent && update.view.hasFocus && options.onCursor !== undefined) {
-                        options.onCursor(cursorInSaved(update.state));
+                        options.onCursor(cursorInSaved(update.state), inFile(update.state.doc, update.state.selection.main.head, windows(update.state)));
                     }
                 }),
             ],
@@ -273,6 +310,15 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
             }
         },
         setReadOnly: (now) => view.dispatch({ effects: readOnly.reconfigure(EditorState.readOnly.of(now)) }),
+        insert: (blade) => {
+            const { main } = view.state.selection;
+            const line = view.state.doc.lineAt(main.from);
+            view.dispatch(view.state.replaceSelection(indented(blade, line.text.slice(0, main.from - line.from))), { scrollIntoView: true, userEvent: 'input' });
+            view.focus();
+        },
+        setFields: (variables) => {
+            fields = variables;
+        },
         goTo: (place, focus) => {
             const { saved, changes } = view.state.field(since);
             const position = changes.mapPos(inEditor(saved, place, windows(view.state)), 1);

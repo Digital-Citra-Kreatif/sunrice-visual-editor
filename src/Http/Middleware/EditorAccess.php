@@ -19,11 +19,19 @@ final class EditorAccess
 {
     public function handle(Request $request, Closure $next, string $needs = 'open'): Response
     {
-        $permission = $needs === 'edit' ? Access::EDIT : Access::OPEN;
+        $permission = match ($needs) {
+            'code' => Access::CODE,
+            'edit' => Access::EDIT,
+            default => Access::OPEN,
+        };
         if (! Access::may($request->user(config('sunrice.auth.guard')), $permission)) {
             return response()->json([
                 'reason' => 'forbidden',
-                'message' => $permission === Access::EDIT ? 'You may look at this in the visual editor, not change it.' : 'You may not use the visual editor.',
+                'message' => match ($permission) {
+                    Access::CODE => 'You may not edit template code in the visual editor.',
+                    Access::EDIT => 'You may look at this in the visual editor, not change it.',
+                    default => 'You may not use the visual editor.',
+                },
             ], 403);
         }
 

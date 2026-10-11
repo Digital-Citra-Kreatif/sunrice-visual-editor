@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use Illuminate\Testing\TestResponse;
+use Spatie\Permission\Models\Permission;
 use Sunrice\Models\Fieldset;
 use Sunrice\VisualEditor\Blade\Template;
+use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
 use Sunrice\VisualEditor\Tests\Support\WithEveryField;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
+
+use function Pest\Laravel\actingAs;
 
 uses(WithStarterSite::class, WithEveryField::class);
 
@@ -169,6 +174,88 @@ it('is for those who may use the editor only', function () {
     $this->actingAs(createUser(email: 'editor@example.com'), config('sunrice.auth.guard', 'web'));
 
     ($this->ask)('show.blade.php')->assertStatus(403);
+});
+
+// --- At a place in text that is not saved: what the code editor asks ----------------
+
+/** The answer for the place of "|" in a text for a template: the text is not the file's, and is not saved. */
+function askAt(string $path, string $marked): TestResponse
+{
+    return test()->postJson(route('sunrice.admin.visual-editor.api.templates.fields-at', ['path' => $path]), [
+        'source' => str_replace('|', '', $marked),
+        'offset' => (int) strpos($marked, '|'),
+    ]);
+}
+
+it('says what can be read at a place in text that is not saved, with what was typed above it', function () {
+    $hero = (string) file_get_contents($this->templates.'/blocks/hero.blade.php');
+    // A line typed above the heading, and the cursor after it.
+    $typed = str_replace('    <h1>', "    @php(\$kicker = \$block->heading)\n    |\n    <h1>", $hero);
+
+    $response = askAt('blocks/hero.blade.php', $typed)->assertOk()->assertJsonPath('exact', true);
+
+    expect(array_column($response->json('variables'), 'code'))->toBe(['$kicker', '$image', '$block', '$sunricePage', '$locale', "sunrice_global('footer')", "sunrice_global('site')", "sunrice_menu('main')"])
+        ->and(($this->variable)($response, '$kicker')['from'])->toBe('set')
+        ->and(($this->field)(($this->variable)($response, '$block'), 'heading')['expression'])->toBe('$block->heading')
+        // Nothing of it was written.
+        ->and(file_get_contents($this->templates.'/blocks/hero.blade.php'))->toBe($hero);
+
+    // Above that line it is not there yet.
+    expect(array_column(askAt('blocks/hero.blade.php', str_replace('    @php($kicker', '    |@php($kicker', str_replace('|', '', $typed)))->json('variables'), 'code'))->not->toContain('$kicker');
+});
+
+it('has a loop\'s item inside a loop that was only just typed, and not beside it', function () {
+    $loop = "<section>\n    @foreach (\$block->images ?? [] as \$photo)\n        INSIDE\n    @endforeach\n    AFTER\n</section>\n";
+
+    $inside = askAt('blocks/gallery.blade.php', str_replace('INSIDE', '|', $loop))->assertOk();
+    $after = askAt('blocks/gallery.blade.php', str_replace('AFTER', '|', $loop))->assertOk();
+    $line = askAt('blocks/gallery.blade.php', str_replace('as \$photo', 'as |\$photo', $loop))->assertOk();
+
+    expect(array_column($inside->json('variables'), 'code'))->toContain('$photo', '$block')
+        ->and(($this->variable)($inside, '$photo')['from'])->toBe('loop')
+        ->and(array_column($after->json('variables'), 'code'))->toContain('$block')->not->toContain('$photo')
+        // In the loop's own line the item is not there yet either.
+        ->and(array_column($line->json('variables'), 'code'))->not->toContain('$photo');
+});
+
+it('answers while something is only half typed', function (string $halfway) {
+    $response = askAt('blocks/hero.blade.php', $halfway)->assertOk();
+
+    expect(array_column($response->json('variables'), 'code'))->toContain('$block', '$sunricePage', "sunrice_global('site')");
+})->with([
+    'a loop that is not closed yet' => ["<section>\n    @foreach (\$block->images as \$item)\n        |\n</section>\n"],
+    'a condition half typed' => ["<section>\n    @if (\$block->heading |\n</section>\n"],
+    'a tag half typed' => ["<section>\n    <div class=\"|\n</section>\n"],
+    'an echo half typed' => ["<section>\n    {{ \$block->|\n</section>\n"],
+]);
+
+it('answers with what the file is given when the text does not open as a tree, and says it is no more', function () {
+    // A block that ends inside a tag: no tree holds that.
+    $source = (string) file_get_contents(__DIR__.'/../fixtures/edge/locked-block-closed-in-tag.blade.php');
+
+    $response = askAt('blocks/hero.blade.php', $source.'|')->assertOk()->assertJsonPath('exact', false);
+
+    expect($response->json('why'))->toBeString()->not->toBe('')
+        ->and(array_column($response->json('variables'), 'code'))->toContain('$block', '$sunricePage', "sunrice_global('site')");
+});
+
+it('is for those who may edit code, and reads only what it is sent', function () {
+    $source = "<p>|</p>\n";
+    askAt('blocks/nope.blade.php', $source)->assertNotFound();
+    test()->postJson(route('sunrice.admin.visual-editor.api.templates.fields-at', ['path' => 'blocks/hero.blade.php']), ['source' => '<p></p>'])->assertStatus(422)->assertJsonPath('reason', 'invalid');
+    test()->postJson(route('sunrice.admin.visual-editor.api.templates.fields-at', ['path' => 'blocks/hero.blade.php']), ['source' => '<p></p>', 'offset' => -1])->assertStatus(422);
+    test()->postJson(route('sunrice.admin.visual-editor.api.templates.fields-at', ['path' => 'blocks/hero.blade.php']), ['source' => ['x'], 'offset' => 0])->assertStatus(422);
+    // Past the end is the end.
+    test()->postJson(route('sunrice.admin.visual-editor.api.templates.fields-at', ['path' => 'blocks/hero.blade.php']), ['source' => '<p></p>', 'offset' => 5000])->assertOk();
+
+    foreach ([Access::OPEN, Access::EDIT] as $permission) {
+        $user = createUser(email: $permission.'@example.com');
+        foreach (['sunrice.access-admin', $permission] as $name) {
+            $user->givePermissionTo(Permission::findOrCreate($name, config('sunrice.auth.guard', 'web')));
+        }
+        actingAs($user, config('sunrice.auth.guard', 'web'));
+        askAt('blocks/hero.blade.php', $source)->assertForbidden()->assertJsonPath('reason', 'forbidden');
+    }
 });
 
 it('says what a value is asked for and compared as in a condition, and gone over in a loop', function () {

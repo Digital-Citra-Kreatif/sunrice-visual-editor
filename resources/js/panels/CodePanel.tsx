@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { CodeEditor } from '../code/index';
 import { byteOfIndex, indentOf, indexOfByte } from '../code/text';
-import { ApiError, saveSource, type TemplateData } from '../lib/api';
+import { ApiError, saveSource, type PickVariable, type TemplateData } from '../lib/api';
 import { codeEditorScript, type CodeEditorScript } from '../lib/codeEditor';
 import { highlight } from '../lib/highlight';
 import { sameTemplate, type TemplateName } from '../lib/templates';
@@ -31,9 +31,16 @@ type Props = {
     beside: boolean;
     /** A place of the open template the cursor is asked to go to: an element clicked on the page, or a layer. */
     goTo: CodePlace | null;
-    /** The cursor is somewhere else: where that is in the file as saved, in bytes as nodes are counted. */
-    onCursor(byte: number): void;
+    /** The cursor is somewhere else: where that is in the file as saved, and in the text as it is now, in bytes as nodes are counted. */
+    onCursor(saved: number, now: number): void;
+    /** Blade to put in at the cursor: a field chosen from the list beside the code. */
+    put: CodePut | null;
+    /** What can be read where the cursor is: offered while a variable is typed. */
+    fields: PickVariable[] | null;
 };
+
+/** Blade to put in at the cursor. `asked` tells one asking from the next for the same Blade. */
+export type CodePut = { blade: string; asked: number };
 
 export type CodeTab = TemplateName & { unsaved: boolean };
 
@@ -56,7 +63,7 @@ type Trouble = { kind: 'syntax' | 'conflict' | 'other'; message: string };
  * changed since it was read or when the text doesn't compile, and nothing
  * is written.
  */
-export function CodePanel({ template, current: opened, draft, onDraft, onSaved, mayCode, onReload, onClose, editorScript, tabs, onOpenTab, onCloseTab, beside, goTo, onCursor }: Props) {
+export function CodePanel({ template, current: opened, draft, onDraft, onSaved, mayCode, onReload, onClose, editorScript, tabs, onOpenTab, onCloseTab, beside, goTo, onCursor, put, fields }: Props) {
     // The code editor is a script of its own. Until it has come the panel waits a moment, then shows
     // the plain text field, and keeps to it: nobody has the field changed under their hands.
     const [script, setScript] = useState<CodeEditorScript | 'waiting' | 'none'>(editorScript === null ? 'none' : 'waiting');
@@ -183,6 +190,8 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
                     kept={tabs.map((tab) => `${tab.origin}:${tab.path}`)}
                     goTo={goTo !== null && sameTemplate(goTo, template) ? goTo : null}
                     onCursor={onCursor}
+                    put={put}
+                    fields={fields}
                 />
             )}
         </section>
@@ -206,7 +215,9 @@ type RichProps = CodeProps & {
     /** The names of the texts worth keeping: those of the open tabs. */
     kept: string[];
     goTo: CodePlace | null;
-    onCursor(byte: number): void;
+    onCursor(saved: number, now: number): void;
+    put: CodePut | null;
+    fields: PickVariable[] | null;
 };
 
 /**
@@ -214,7 +225,7 @@ type RichProps = CodeProps & {
  * its own, several cursors. One editor for as long as the panel is there;
  * it keeps each template's text as it was left while another is shown.
  */
-function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor }: RichProps) {
+function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, put, fields }: RichProps) {
     const holder = useRef<HTMLDivElement>(null);
     const editor = useRef<CodeEditor | null>(null);
     // The editor is made once and calls whatever the panel's functions are by then.
@@ -236,7 +247,7 @@ function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, 
                 calls.current.onText(now);
             },
             onSave: () => calls.current.onSave(),
-            onCursor: (place) => calls.current.onCursor(byteOfIndex(calls.current.saved, place)),
+            onCursor: (place, now) => calls.current.onCursor(byteOfIndex(calls.current.saved, place), byteOfIndex(shown.current.text, now)),
         });
         editor.current = made;
         shown.current = { name: null, text: '', saved: '', readOnly: true };
@@ -285,6 +296,17 @@ function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, 
             editor.current.goTo(indexOfByte(saved, goTo.byte), goTo.focus);
         }
     }, [script, name, saved, goTo?.asked]);
+
+    // A field chosen beside the code goes in at the cursor, once.
+    const done = useRef(0);
+    useEffect(() => {
+        if (put !== null && put.asked !== done.current && editor.current !== null && !readOnly) {
+            done.current = put.asked;
+            editor.current.insert(put.blade);
+        }
+    }, [script, put?.asked]);
+
+    useEffect(() => editor.current?.setFields(fields ?? []), [script, fields]);
 
     return <div ref={holder} className="sve-code__editor" />;
 }

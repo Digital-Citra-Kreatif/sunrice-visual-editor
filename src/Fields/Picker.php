@@ -33,7 +33,26 @@ final class Picker
      */
     public function at(TemplateFile $file, Template $template, ?Node $node, bool $inside = false): array
     {
-        $variables = $this->scope->at($file, $template, $node, $inside);
+        return $this->rows($this->scope->at($file, $template, $node, $inside));
+    }
+
+    /**
+     * The same for a text that does not open as a tree: what the file is
+     * given and what every template has, and nothing of the place.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function anywhere(TemplateFile $file, string $source): array
+    {
+        return $this->rows($this->scope->anywhere($file, $source));
+    }
+
+    /**
+     * @param  list<Variable>  $variables
+     * @return list<array<string, mixed>>
+     */
+    private function rows(array $variables): array
+    {
         $taken = array_values(array_filter(array_map(fn (Variable $variable) => $variable->name(), $variables)));
 
         return array_map(function (Variable $variable) use ($taken): array {

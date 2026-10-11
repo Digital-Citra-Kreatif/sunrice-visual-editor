@@ -1532,6 +1532,61 @@ await step('outline on the page the element the cursor is in', async () => {
     await outlineSettles('.hero .button');
 });
 
+const fieldsPanel = page.locator('.sve-side--right .sve-panel[aria-label="Fields"]');
+const fieldRow = (label) => fieldsPanel.locator('.sve-pick__pick', { has: page.locator('.sve-insertable__title', { hasText: new RegExp(`^${label}$`) }) });
+
+await step('list what can be read where the cursor is, with a line typed above it and not saved', async () => {
+    await frame.locator('.hero h1').click();
+    await cursorLineHas('<h1>{{ $block->heading }}</h1>');
+    await fieldRow('\\$block').first().waitFor();
+    if ((await fieldRow('\\$kicker').count()) !== 0) {
+        throw new Error('A variable nobody typed is listed');
+    }
+    await page.keyboard.press('End');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('@php($kicker = $block->heading)');
+    await page.keyboard.press('Enter');
+    // Set on the line above, in text that is in no file yet.
+    await fieldRow('\\$kicker').first().waitFor();
+    await fieldsPanel.getByText('What can be read where the cursor is.').waitFor();
+});
+
+await step('write a field at the cursor by a click, as the picker writes it and indented as the line is', async () => {
+    await fieldRow('Subheading').first().click();
+    await until('The field was not written at the cursor', async () => (await cursorLine()) === '    {{ $block->subheading }}' || (await cursorLine()));
+    // A link is more than one line: each lands at the cursor's depth.
+    await page.keyboard.press('Enter');
+    await fieldRow('Button').first().click();
+    const written = await codeText();
+    const link = written.slice(written.indexOf('    @if (($button = $block->button)'));
+    if (!/^ {4}@if \(\(\$button = \$block->button\) && ! empty\(\$button\['url'\]\)\)\n {8}<a href=.*\n {4}@endif\n/.test(link)) {
+        throw new Error(`The link was written as ${JSON.stringify(link.slice(0, 200))}`);
+    }
+});
+
+await step('offer what a variable has while it is typed, and write the one chosen', async () => {
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('{{ $block->');
+    const offered = page.locator('.cm-tooltip-autocomplete li');
+    await offered.first().waitFor();
+    if (!(await offered.allTextContents()).some((offer) => offer.startsWith('Heading')) || !(await offered.allTextContents()).some((offer) => offer.startsWith('Button › URL'))) {
+        throw new Error(`Offered: ${JSON.stringify(await offered.allTextContents())}`);
+    }
+    await page.keyboard.type('sub');
+    await until('The offers were not narrowed', async () => (await offered.count()) === 1 || (await offered.allTextContents()));
+    await page.keyboard.press('Enter');
+    await page.keyboard.type(' }}');
+    await until('The field was not written', async () => (await cursorLine()) === '    {{ $block->subheading }}' || (await cursorLine()));
+
+    // Back to the file as it is, by the editor's own undo.
+    for (let steps = 0; steps < 30 && (await codeText()) !== heroCode; steps++) {
+        await page.keyboard.press('Control+z');
+        await page.waitForTimeout(40);
+    }
+    await codeIs(heroCode);
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+});
+
 await step('close a tab, and be asked first when it has text that is not saved', async () => {
     await page.keyboard.press('End');
     await page.keyboard.type(' <!-- going -->');
@@ -1685,6 +1740,16 @@ await step('show them code and let them choose from lists, not type it', async (
         throw new Error('The code panel can be typed in');
     }
     await page.getByRole('button', { name: 'Hide the code' }).click();
+
+    // In Code mode too: the code to read, and no list of fields to write from.
+    await bar.getByRole('button', { name: 'Code', exact: true }).click();
+    await page.locator('.sve-code--beside .cm-editor').waitFor();
+    await page.locator('.sve-code__bar').getByText('Read-only').waitFor();
+    if ((await fieldsPanel.count()) !== 0) {
+        throw new Error('Someone who may not edit code is offered fields to write into it');
+    }
+    await bar.getByRole('button', { name: 'Visual', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('.sve-canvas--beside') === null);
 });
 
 await step('refuse code they paste, say why, and take what is no code', async () => {
