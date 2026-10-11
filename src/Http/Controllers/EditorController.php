@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use Sunrice\VisualEditor\Actions\Build;
+use Sunrice\VisualEditor\Rendering\TailwindPreview;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Support\Widths;
 use Sunrice\VisualEditor\VisualEditorServiceProvider;
@@ -28,7 +30,14 @@ class EditorController extends Controller
             // The code editor is a script of its own, fetched when code is first shown.
             'codeEditor' => asset(VisualEditorServiceProvider::asset('code-editor.js')),
             // What whoever opens it may do, for the screen to offer no more: the API decides for itself.
-            'can' => ['edit' => Access::may($user, Access::EDIT), 'code' => Access::may($user, Access::CODE)],
+            'can' => [
+                'edit' => Access::may($user, Access::EDIT),
+                'code' => Access::may($user, Access::CODE),
+                // Where the site has a build command, and for who may run it: the Build button.
+                'build' => Build::command() !== null && Access::may($user, Access::BUILD),
+            ],
+            // The site's own Vite dev server is running: it keeps the CSS up with the templates, and nothing needs building.
+            'devServer' => TailwindPreview::devServer(),
         ]);
     }
 

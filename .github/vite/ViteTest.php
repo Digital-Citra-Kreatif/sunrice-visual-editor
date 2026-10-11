@@ -70,6 +70,31 @@ class ViteTest extends TestCase
         $this->assertStringNotContainsString('@tailwindcss/browser', $visitor);
     }
 
+    public function test_build_the_site_s_command_is_run_from_the_editor_by_whoever_may(): void
+    {
+        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit']));
+        $this->postJson('/cms/visual-editor/api/build')->assertForbidden();
+
+        $this->actingAs($this->someone('builder@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit', 'visual-editor.build']));
+        $built = $this->postJson('/cms/visual-editor/api/build')->assertOk()->json();
+
+        $this->assertTrue($built['ok'], $built['message']."\n".$built['output']);
+        $this->assertSame(0, $built['code']);
+        // What Vite printed is there to read.
+        $this->assertStringContainsString('built in', $built['output']);
+    }
+
+    public function test_no_build_a_command_that_is_not_on_the_server_says_so(): void
+    {
+        $this->actingAs($this->someone('builder@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit', 'visual-editor.build']));
+        $built = $this->postJson('/cms/visual-editor/api/build')->assertOk()->json();
+
+        $this->assertFalse($built['ok']);
+        $this->assertSame(127, $built['code']);
+        $this->assertStringContainsString('a program it needs is not there', $built['message']);
+        $this->assertStringContainsString('no-such-build-command', $built['output']);
+    }
+
     /** Adds the class named in SVE_CLASS to the header's first element, through the editor, as a designer. It stays. */
     public function test_a_class_is_added_in_the_editor(): void
     {

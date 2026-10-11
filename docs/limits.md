@@ -62,6 +62,11 @@ other page that uses the template.
   ([Styles](styles.md#sites-that-build-their-css)). An opt-in preview
   shows a new class in the editor before a build; it loads no Tailwind
   plugins. The editor does not start a dev server.
+- **The Build button needs Node on the server**, and a command set for it.
+  It says **Build needed** only for changes made since the editor was
+  opened, and for templates: it does not compare the built files with the
+  templates. The request waits for the build to end.
+  ([Styles](styles.md#building-from-the-editor))
 - Styles are written for a class. There is no styling by id or tag from the
   Style tab, and no inline `style` attribute written.
 - The Style tab writes the class's own rule. Rules that only mention the
@@ -105,6 +110,9 @@ drawn.
   scripts, and the check has not had an independent security review. See
   [Permissions](permissions.md#what-you-should-know-before-giving-someone-edit).
 - Permissions are per person, not per template or per stylesheet.
+- `visual-editor.build` lets someone start the site's build command, which
+  runs as the web server's user. They can't change what the command is
+  ([Permissions](permissions.md#building)).
 
 ## AI agents
 

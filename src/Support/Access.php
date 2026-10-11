@@ -16,6 +16,13 @@ use Illuminate\Contracts\Auth\Authenticatable;
  *
  * Each includes the ones above it. Super Admins have all three, as they
  * have every permission. None of it holds while the package is off.
+ *
+ * And one apart from those, in none of them and holding none of them:
+ *
+ *   visual-editor.build  run the site's build command (config `build.command`)
+ *
+ * It runs a program on the server, which is no part of editing a template
+ * however much of one may be edited.
  */
 final class Access
 {
@@ -25,11 +32,14 @@ final class Access
 
     public const CODE = 'visual-editor.code';
 
+    public const BUILD = 'visual-editor.build';
+
     /** Each permission with the ones that include it. */
     private const INCLUDED_IN = [
         self::OPEN => [self::OPEN, self::EDIT, self::CODE],
         self::EDIT => [self::EDIT, self::CODE],
         self::CODE => [self::CODE],
+        self::BUILD => [self::BUILD],
     ];
 
     /** What Sunrice's role editor lists: each permission and what it says there. */
@@ -37,6 +47,7 @@ final class Access
         self::OPEN => 'Open the visual editor',
         self::EDIT => 'Change templates and styles in the visual editor',
         self::CODE => 'Edit template code in the visual editor',
+        self::BUILD => 'Run the site\'s build command from the visual editor',
     ];
 
     public static function enabled(): bool

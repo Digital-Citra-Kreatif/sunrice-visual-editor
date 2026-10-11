@@ -1,7 +1,9 @@
 # Permissions
 
-The editor has three permissions of its own. They are given to roles in
-Sunrice's admin (**Users → Roles**, under *Visual editor*), and exist after
+The editor has four permissions of its own: three for working on
+templates, each including the one before it, and one apart from them for
+running the site's build. They are given to roles in Sunrice's admin
+(**Users → Roles**, under *Visual editor*), and exist after
 `php artisan sunrice:sync-permissions` has run.
 
 | Permission | Name in the admin | Lets someone |
@@ -11,7 +13,17 @@ Sunrice's admin (**Users → Roles**, under *Visual editor*), and exist after
 | `visual-editor.code` | Edit template code in the visual editor | write Blade and PHP |
 
 Each includes the ones above it, so a role needs only the highest it should
-have. Super Admins have all three. The user also needs to get into the
+have.
+
+| Permission | Name in the admin | Lets someone |
+| --- | --- | --- |
+| `visual-editor.build` | Run the site's build command from the visual editor | press **Build**: run the one command the site's configuration names |
+
+None of the three includes this one, not even `code`, and it includes none
+of them: someone needs one of the three to be in the editor at all, and
+this one to build. [Building](#building) says why.
+
+Super Admins have all four. The user also needs to get into the
 admin at all (`sunrice.access-admin`). While the editor is
 [off](installation.md#where-it-is-on), none of them lets anyone do
 anything.
@@ -70,6 +82,26 @@ depend on the first.
 The second part looks at what Blade makes of the file, not at what was
 asked for. A request shaped in some way the first part has no rule for
 still has to get its PHP past the comparison.
+
+## Building
+
+On a site that builds its CSS, a class added to a template has no style
+for visitors until the build has run again. With a
+[build command](installation.md#settings) set, the editor's top bar has a
+**Build** button for people with `visual-editor.build`.
+
+It is a permission of its own because it starts a program on the server,
+which nothing else in the editor does:
+
+- **What runs is the command in the site's configuration**
+  (`build.command`), exactly. Nothing a request sends is part of it:
+  someone with the permission chooses when to build, never what is run.
+  Whoever can change the site's configuration or its `package.json`
+  decides that, and they can run code on the server already.
+- It runs as the web server's user, in the site's directory, one build at
+  a time, and is stopped after `build.timeout` seconds.
+- Every run is in the activity log, with who ran it and how it ended.
+- With no command set, the permission does nothing and there is no button.
 
 ## What you should know before giving someone `edit`
 

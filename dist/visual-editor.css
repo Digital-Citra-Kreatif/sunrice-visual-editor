@@ -267,6 +267,55 @@
     box-shadow: 0 0 0 1px var(--border);
 }
 
+/* How a build that failed went: over the page, until it is put away. */
+.sve-build {
+    position: absolute;
+    inset-inline: 0.75rem;
+    inset-block-start: 0.75rem;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    max-height: 70%;
+    border: 1px solid var(--destructive);
+    border-radius: var(--radius);
+    background: var(--card);
+    color: var(--foreground);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.sve-build__head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+}
+
+.sve-build__head strong {
+    flex: 1;
+    min-width: 0;
+    color: var(--destructive);
+    font-weight: 600;
+}
+
+.sve-build__took {
+    flex: none;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+}
+
+.sve-build__output {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    overflow: auto;
+    border-block-start: 1px solid var(--border);
+    font: 0.6875rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 /* The page's CSS is a preview of what a build would make. */
 .sve-bar__preview {
     border-color: currentColor;

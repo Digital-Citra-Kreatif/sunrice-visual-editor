@@ -133,7 +133,8 @@ ran, the editor with it.
 
 **Without a dev server, the class shows after a build.** The editor's frame
 and the site both use the built CSS (`public/build`), which does not have
-the new rule until `npm run build` has run again.
+the new rule until `npm run build` has run again: in your terminal, or
+[from the editor](#building-from-the-editor).
 
 **To see it in the editor before building, turn the preview on.**
 
@@ -155,6 +156,63 @@ at. Three things about it:
 - It steps aside while a dev server is running, which serves the real CSS.
   The script comes from jsDelivr; `tailwind.script` in the
   [settings](installation.md#settings) can point at a copy of your own.
+
+### Building from the editor
+
+On a server where nobody has a terminal open, the build can be started
+from the editor. Name the command:
+
+```
+SUNRICE_VISUAL_EDITOR_BUILD="npm run build"
+```
+
+and give `visual-editor.build` to the roles that should have it (Super
+Admins do; run `php artisan sunrice:sync-permissions` first if the
+permission is not listed yet). The top bar then has a **Build** button.
+
+- After a template is changed it reads **Build needed**: the built CSS may
+  lack what the change uses. That is said for changes made since the
+  editor was opened; the editor does not look into the built files.
+- A click runs the command in the site's directory and waits for it. When
+  it ends well the page is drawn again with the new CSS, and the bar says
+  how long the build took.
+- When it fails, what the command printed is shown under the bar: a
+  mistyped class in an `@apply`, a missing package. Nothing of the site
+  changes because of a failed build beyond what the command itself did.
+- While `npm run dev` is running the button stays quiet: the dev server
+  already serves the CSS as it is.
+
+Three things to know:
+
+- **Node has to be on the server.** Sunrice and the editor come built and
+  need no Node; a build does. The web server's user must find `npm` and
+  `node`, and the site's `node_modules` must be installed. Where any of
+  that is missing the button says that a program was not found, and what
+  the shell printed names it.
+- **The web server's path is often short.** The command gets the path the
+  web server's own process has. PHP-FPM usually runs with none, and the
+  shell then looks in a few system directories only: a Node installed
+  there (`/usr/bin`) is found, one installed for a user (nvm, Herd, a
+  version manager) is not. The command is a shell command, so it can say
+  where Node is:
+
+  ```
+  SUNRICE_VISUAL_EDITOR_BUILD="PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:/usr/bin:/bin npm run build"
+  ```
+
+  A full path to `npm` alone is not enough: `npm` starts `node` by name.
+- **The web server's user writes the build**, so it needs to be allowed to
+  write `public/build`.
+- **A build takes the time it takes.** The request waits for it, up to
+  `build.timeout` seconds (120). Where the web server or PHP stops a
+  request sooner than the build ends, raise their limits or build in a
+  terminal.
+
+Running the build takes a
+[permission of its own](permissions.md#building). The command is the one
+in the site's configuration and nothing else.
+
+### The layout
 
 **The layout opens as usual.** `@vite(…)` is one piece of code in the
 tree, like any directive the editor has no settings for. Tailwind finds

@@ -20,6 +20,7 @@ final class EditorAccess
     public function handle(Request $request, Closure $next, string $needs = 'open'): Response
     {
         $permission = match ($needs) {
+            'build' => Access::BUILD,
             'code' => Access::CODE,
             'edit' => Access::EDIT,
             default => Access::OPEN,
@@ -28,6 +29,7 @@ final class EditorAccess
             return response()->json([
                 'reason' => 'forbidden',
                 'message' => match ($permission) {
+                    Access::BUILD => 'You may not run the site\'s build from the visual editor.',
                     Access::CODE => 'You may not edit template code in the visual editor.',
                     Access::EDIT => 'You may look at this in the visual editor, not change it.',
                     default => 'You may not use the visual editor.',

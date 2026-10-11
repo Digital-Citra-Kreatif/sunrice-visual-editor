@@ -15,7 +15,7 @@ writes the file back with nothing else disturbed.
 | [How it works](docs/how-it-works.md) | lossless or code, what is checked before a save, how the page knows its templates |
 | [Fields and variables](docs/fields.md) | what the lists offer at each place, and the Blade a click writes |
 | [Styles](docs/styles.md) | the CSS and Style tabs, widths, sites that build their CSS |
-| [Permissions](docs/permissions.md) | open, edit, code; where the line is and how it is held |
+| [Permissions](docs/permissions.md) | open, edit, code, build; where the line is and how it is held |
 | [AI agents](docs/agents.md) | `get_template_tree` and `edit_template` |
 | [Limits](docs/limits.md) | what it does not do |
 
@@ -174,7 +174,10 @@ who may write code ([Permissions](docs/permissions.md)).
 A site that builds its CSS (Tailwind through Vite) is styled by its
 classes. With `npm run dev` running a class added in the editor shows at
 once; otherwise after a build, or before one with the preview turned on
-([Styles](docs/styles.md#sites-that-build-their-css)).
+([Styles](docs/styles.md#sites-that-build-their-css)). With a build
+command set, **Build** in the top bar runs it for whoever holds
+`visual-editor.build`, says **Build needed** once a template has changed,
+and shows what the command printed when it fails.
 
 ## Using it
 
@@ -185,7 +188,8 @@ this repository: [Installation](docs/installation.md).
 It is a development tool: on when `APP_ENV` is `local`, off otherwise, and
 `SUNRICE_VISUAL_EDITOR=true` turns it on for a staging copy. Who may open
 it, change things and write code is decided by three
-[permissions](docs/permissions.md) of its own.
+[permissions](docs/permissions.md) of its own, and who may run the site's
+build by a fourth.
 
 **Opening it.** *Visual editor* in the admin's sidebar, under Manage, or
 directly:
@@ -342,8 +346,9 @@ the site as installed and removes the package again):
 
 The same on a site whose CSS is Tailwind built by Vite (it needs Node and
 npm, and Chrome for its last part): a class added in the editor reaches the
-CSS by a build and by the dev server, and the editor is tried in a browser
-with the dev server running.
+CSS by a build, run by hand and from the editor's Build button, and by the
+dev server, and the editor is tried in a browser with the dev server
+running.
 
 ```bash
 .github/vite-check.sh

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, wrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, changeStyles, copyToSite, fieldsAt, linkStylesheet, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type FieldsAt, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile, type TreeNode } from './lib/api';
+import { ApiError, applyOperations, changeStyles, copyToSite, fieldsAt, linkStylesheet, runBuild, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type Built, type FieldsAt, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile, type TreeNode } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { asMedia, breakpoints, mediaFor, sameMedia } from './lib/media';
@@ -35,7 +35,9 @@ type Props = {
     /** The widths the page can be shown at (config `widths`). */
     widths?: unknown;
     /** What whoever opened the editor may do in it: change things, and write code. What the server lets them is the server's to say. */
-    can?: { edit?: boolean; code?: boolean };
+    can?: { edit?: boolean; code?: boolean; build?: boolean };
+    /** The site's own Vite dev server is running: it keeps the CSS up with the templates. */
+    devServer?: boolean;
     /** Where the code editor's script is fetched from, when code is first shown. */
     codeEditor?: string;
 };
@@ -87,9 +89,11 @@ const message = (error: unknown) => (error instanceof ApiError || error instance
  * tells this screen what the pointer is over. Everything drawn over the
  * page is drawn here, above the frame.
  */
-export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props) {
+export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServer }: Props) {
     const mayEdit = can?.edit !== false;
     const mayCode = mayEdit && can?.code !== false;
+    /** The site has a build command, and whoever is here may run it. */
+    const mayBuild = can?.build === true;
     // Two frames, one above the other. `frame` is the one that is seen and talked to. `spare`
     // is where the page is drawn again after a change, out of sight: when it is ready the
     // two change places, so the page is never seen to go and come back.
@@ -826,6 +830,35 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
         statusBefore.current = page?.status ?? null;
         redraw();
         setDrawn((count) => count + 1);
+        // On a site that builds its CSS, what was built is now behind the templates.
+        setBehind(true);
+    };
+
+    /** A template was changed since the site's CSS was last built from here: the built CSS may lack what the change needs. */
+    const [behind, setBehind] = useState(false);
+    const [building, setBuilding] = useState(false);
+    /** How the last build went, when it did not go well: shown until it is put away. */
+    const [buildFailed, setBuildFailed] = useState<Built | null>(null);
+    /** Runs the site's build command, and draws the page again with what it made. */
+    const build = () => {
+        if (building || !mayBuild) {
+            return;
+        }
+        setBuilding(true);
+        setBuildFailed(null);
+        runBuild()
+            .then((built) => {
+                if (!built.ok) {
+                    setBuildFailed(built);
+
+                    return;
+                }
+                setBehind(false);
+                say('done', `Built in ${built.seconds} seconds.`);
+                redraw();
+            })
+            .catch((error: unknown) => say('problem', message(error)))
+            .finally(() => setBuilding(false));
     };
 
     /**
@@ -1365,6 +1398,24 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                     </button>
                 </div>
 
+                {mayBuild && (
+                    <button
+                        type="button"
+                        className={`sve-button${behind && devServer !== true && !building ? '' : ' sve-button--quiet'} sve-bar__build`}
+                        disabled={building}
+                        onClick={build}
+                        title={
+                            devServer === true
+                                ? 'Run the site\'s build command. The dev server is running, so the page already has the CSS as it is now.'
+                                : behind
+                                  ? 'A template was changed since the last build: the site\'s built CSS may lack what it needs. Run the site\'s build command.'
+                                  : 'Run the site\'s build command'
+                        }
+                    >
+                        {building ? 'Building…' : behind && devServer !== true ? 'Build needed' : 'Build'}
+                    </button>
+                )}
+
                 {page?.preview === true && (
                     <span className="sve-tag sve-bar__preview" title="Tailwind's browser build is added to the page here, so a class shows before the CSS is built. Visitors get what the build makes: build to see the same on the site.">
                         Preview CSS
@@ -1511,6 +1562,18 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                         );
                     })}
                     <NoticeBar notice={notice} onDismiss={() => setNotice(null)} />
+                    {buildFailed !== null && (
+                        <section className="sve-build" role="alert" aria-label="The build">
+                            <header className="sve-build__head">
+                                <strong>{buildFailed.message}</strong>
+                                <span className="sve-build__took">{buildFailed.seconds} s</span>
+                                <button type="button" className="sve-notice__dismiss" onClick={() => setBuildFailed(null)} aria-label="Put this away" title="Put this away">
+                                    ×
+                                </button>
+                            </header>
+                            {buildFailed.output !== '' && <pre className="sve-build__output">{buildFailed.output}</pre>}
+                        </section>
+                    )}
                 </div>
                 {arranged.mode === 'code' && (
                     <div

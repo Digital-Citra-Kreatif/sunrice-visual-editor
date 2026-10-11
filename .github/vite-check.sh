@@ -46,7 +46,15 @@ step "Built again: Tailwind found the class in the template the editor wrote"
 npm run build
 built | grep -q '\.bg-fuchsia-500' || fail "After a build the CSS still has no rule for bg-fuchsia-500."
 
-step "Neither built nor served: the preview shows a class in the editor, and not to a visitor"
+step "Built from the editor: whoever may build runs the site's own command, and the class is in the CSS"
+echo 'SUNRICE_VISUAL_EDITOR_BUILD="npm run build"' >> .env
+SVE_CLASS=bg-teal-600 phpunit --filter test_a_class_is_added
+! built | grep -q 'bg-teal-600' || fail "The built CSS changed without a build."
+SUNRICE_VISUAL_EDITOR_BUILD="npm run build" phpunit --filter test_build_
+built | grep -q '\.bg-teal-600' || fail "After a build from the editor the CSS still has no rule for bg-teal-600."
+SUNRICE_VISUAL_EDITOR_BUILD="no-such-build-command --production" phpunit --filter test_no_build_
+
+step "Neither built nor served: the preview shows a class in the editor, and not to a visitor, until the Build button is used"
 echo 'SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW=true' >> .env
 SVE_CLASS=pt-9 phpunit --filter test_a_class_is_added
 ! built | grep -q '\.pt-9' || fail "The built CSS has a rule for pt-9 without a build."
@@ -57,7 +65,7 @@ trap 'kill $served 2>/dev/null || true' EXIT
 (cd "$package" && npm ci --no-audit --no-fund)
 for attempt in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8091/cms/login && break; sleep 1; done
 BASE_URL=http://127.0.0.1:8091 node "$package/.github/vite/preview.mjs" | tee storage/logs/preview.log
-previewed="The preview, neither built nor served: $(grep -c '^ok' storage/logs/preview.log) steps in a browser."
+previewed="The preview, neither built nor served, and then a build from the editor's bar: $(grep -c '^ok' storage/logs/preview.log) steps in a browser."
 
 step "With the dev server running, no build is needed"
 # Laravel's plugin won't start a dev server where CI is set, unless told that it is meant.
@@ -90,6 +98,6 @@ else
 fi
 
 kill $vite $served 2>/dev/null || true
-summary="tailwindcss $(node -p "require('tailwindcss/package.json').version"), vite $(node -p "require('vite/package.json').version"). A class added in the editor: in the built CSS after a build, in the dev server's CSS without one. $previewed $browser"
+summary="tailwindcss $(node -p "require('tailwindcss/package.json').version"), vite $(node -p "require('vite/package.json').version"). A class added in the editor: in the built CSS after a build, run by hand or from the editor; in the dev server's CSS without one. $previewed $browser"
 echo "$summary"
 [ -z "${GITHUB_ACTIONS:-}" ] || echo "::notice title=Vite and Tailwind::$summary"

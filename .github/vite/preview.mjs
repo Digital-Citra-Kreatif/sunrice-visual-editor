@@ -1,5 +1,6 @@
-// The Tailwind preview in a real browser: no dev server, and the CSS not
-// built since a class was added (.github/vite-check.sh sets that up).
+// The Tailwind preview in a real browser, and then the Build button: no dev
+// server, and the CSS not built since a class was added
+// (.github/vite-check.sh sets that up, with npm run build as the site's command).
 //
 //   BASE_URL=http://127.0.0.1:8091 node .github/vite/preview.mjs
 import { chromium } from 'playwright-core';
@@ -60,6 +61,41 @@ await step('give a visitor the built CSS and nothing else', async () => {
     await visitor.close();
     if (seen === '36px' || added !== 0) {
         throw new Error(`A visitor's header has ${seen} of top padding, and ${added} of the preview's elements`);
+    }
+});
+
+await step('say that a build is needed after a class is added, build from the bar, and give the visitor the style', async () => {
+    const build = page.locator('.sve-bar__build');
+    await build.getByText('Build', { exact: true }).waitFor();
+
+    await frame.locator('.site-header .brand').first().click();
+    await page.waitForFunction(() => document.querySelector('.sve-trail__here')?.textContent === 'partials/header');
+    await page.locator('.sve-layer[aria-selected="true"]').waitFor();
+    const settings = page.locator('.sve-side--right');
+    await settings.getByLabel('Add a class').fill('mt-px');
+    await settings.getByLabel('Add a class').press('Enter');
+    await frame.locator('.site-header .mt-px').first().waitFor();
+    await build.getByText('Build needed', { exact: true }).waitFor();
+
+    // The site's own command: npm run build, with Vite and Tailwind.
+    const answered = page.waitForResponse((response) => response.url().endsWith('/api/build'), { timeout: 150000 });
+    await build.click();
+    const answer = await answered;
+    const built = await answer.json().catch(() => null);
+    if (built?.ok !== true) {
+        throw new Error(`The build answered ${answer.status()}: ${built?.message ?? 'nothing to read'}\n${String(built?.output ?? '').split('\n').slice(-4).join('\n')}`);
+    }
+    await page.getByText(/^Built in [\d.]+ seconds\.$/).waitFor();
+    await build.getByText('Build', { exact: true }).waitFor();
+    console.log(`     ${await page.getByText(/^Built in [\d.]+ seconds\.$/).textContent()}`);
+
+    const visitor = await browser.newPage();
+    await visitor.goto(`${base}/demo`);
+    const top = await padding(visitor);
+    const margin = await visitor.locator('.site-header .mt-px').first().evaluate((element) => getComputedStyle(element).marginTop);
+    await visitor.close();
+    if (top !== '36px' || margin !== '1px') {
+        throw new Error(`After the build a visitor's header has ${top} of top padding, and what was given mt-px has a top margin of ${margin}`);
     }
 });
 

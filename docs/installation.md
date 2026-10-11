@@ -70,6 +70,10 @@ these in **Users → Roles**, under *Visual editor*:
 Each includes the ones above it. [Permissions](permissions.md) says exactly
 where the line between the last two is.
 
+A fourth stands apart from those: **Run the site's build command from the
+visual editor**. It does nothing until a [build command](#settings) is
+set, and none of the three above includes it.
+
 ## Settings
 
 Publish the config file to change any of these:
@@ -89,6 +93,8 @@ php artisan vendor:publish --tag=sunrice-visual-editor-config
 | `tailwind.preview` | `false` | For a site whose CSS is Tailwind built by Vite: adds Tailwind's browser build to pages drawn for the editor, so a class shows before the CSS is built again (`SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW`). See [Styles](styles.md#sites-that-build-their-css). |
 | `tailwind.entry` | `resources/css/app.css` | The site's CSS entry file, which the preview reads for the theme. |
 | `tailwind.script` | Tailwind's browser build on jsDelivr | Where the browser fetches the preview's script from. Point it at a copy of your own to work without the network. |
+| `build.command` | none | For a site that builds its CSS: the one command the editor's **Build** button runs, in the site's directory, such as `npm run build` (`SUNRICE_VISUAL_EDITOR_BUILD`). Without it there is no button. Node has to be installed on the server for that command. See [Styles](styles.md#building-from-the-editor). |
+| `build.timeout` | `120` | Seconds a build may take before it is stopped. |
 | `paths.templates`, `paths.theme` | `null` | Where the site's templates and theme files are, if not in Sunrice's own places. |
 
 ## Updating
@@ -106,7 +112,7 @@ composer remove sunrice/visual-editor
 rm -rf public/vendor/sunrice-visual-editor
 ```
 
-Nothing of the editor is in your templates or your database, apart from the
-three permissions, which Sunrice leaves in place and which do nothing
+Nothing of the editor is in your templates or your database, apart from its
+four permissions, which Sunrice leaves in place and which do nothing
 without the package. `public/sunrice-theme/editor.css`, if the editor made
 it, is yours: it holds CSS your pages use.

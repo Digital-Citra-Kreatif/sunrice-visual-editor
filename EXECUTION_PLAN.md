@@ -108,7 +108,7 @@ sunrice-visual-editor/
 
 Sizes are rough guesses for one developer working with coding agents. Phases 1 and 2 have no UI and can run alongside Phase 0. V5.1–V5.3 are backend only and can run alongside Phases 3 and 4.
 
-**Where it stands:** Phases 0 to 7 are done and merged, except the release itself (V7.4), which waits for an install on a real project. Phase 8 was added in October 2026 and is next. Where a task was built differently from what was first written here, its text below says what was built and why.
+**Where it stands:** Phases 0 to 7 are done and merged, except the release itself (V7.4), which waits for an install on a real project. Phase 8 (Code mode, and sites that build their CSS) was added in October 2026 and is done and merged too. Where a task was built differently from what was first written here, its text below says what was built and why.
 
 ---
 
@@ -787,14 +787,21 @@ A second way of working, chosen in the top bar: **Visual | Code** (`mode` in `li
 
 ### V8.6 Build
 **Depends on:** V8.1, V7.1
-- `config`: `build.command` (`null`: no button), `build.timeout` (120 seconds).
-- Permission `visual-editor.build`, on its own (`Access::BUILD`): not part of `code`, and no part of it.
-- `Actions\Build` — runs the configured command in the site's directory with Symfony's Process (which Laravel has), one at a time (the lock of `Support\Files`), stopped at the time limit. Answers with whether it ended well, how long it took and the end of what it printed. A command that can't be started says what was missing. A line in the activity log.
-- `POST {admin}/visual-editor/api/build`. Nothing in the request names a command.
-- **Build** in the top bar, there only when a command is set and the person may. After a template or a stylesheet is saved it reads **Build needed**, until a build ends well; not while a dev server is running. What the command printed opens under the bar when it fails.
+**Status:** done.
+
+- `config`: `build.command` (`null`: no button; `SUNRICE_VISUAL_EDITOR_BUILD`), `build.timeout` (120 seconds).
+- Permission `visual-editor.build` (`Access::BUILD`), on its own: `code` does not include it and it includes nothing. The route sits behind the editor's own middleware as every other does, so building takes one of the three permissions as well; `EditorAccess` knows `:build`.
+- `Actions\Build` — runs the configured command in the site's directory with Symfony's Process (which Laravel has), stopped at the time limit. One at a time: a lock file of its own, asked for without waiting, so a second click is told a build is running and does not queue behind it. Answers `{ok, seconds, output, code, message}`: `output` is what the command printed, without a terminal's colours, its last 8000 bytes when it is long. A line in the activity log either way. `BuildRefused` for a build that was not started: no command set, or one running.
+- **A program that is not there.** A shell ends with 127 both when `npm` itself is missing and when npm has no `vite` to start (the site's packages were never installed), so the answer says a program the build needs was not found, asks about Node and the site's npm packages, and leaves the name to what the shell printed. The first wording named the command's first word, which was wrong for the second case; trying it on a site without `node_modules` showed that.
+- **The path.** A process started from PHP gets the variables PHP lists for the request, and behind a web server those leave out `PATH`: under `php artisan serve` on CI the build found the runner's `npm` in the shell's default places and then no `node` for it. The command is now given the path and the home directory of the web server's own process when it has them. Where it has none (PHP-FPM as usually set up) a Node outside the system directories has to be named in the command, which is a shell command and can set `PATH` itself; `docs/styles.md` says how.
+- `POST {admin}/visual-editor/api/build` (`Api\BuildController`). Nothing in the request names a command, or is read at all. A build that fails is answered with 200 and `ok: false`; one that was not started with 422.
+- **Build** in the top bar (`Editor.tsx`), there only when a command is set and the person may (`can.build`). After a template is changed from the editor it reads **Build needed**, until a build ends well; not while the site's dev server is running (`devServer`, from `TailwindPreview::devServer()`), which leaves nothing to build. A build that ends well draws the page again and says how long it took. One that fails opens what the command printed under the bar, until it is put away.
+- **What Build needed does not know:** it is said for changes made since the editor was opened, and for templates. The editor does not compare the built files with the templates, so a change made yesterday, by someone else or by an agent, is not said. Looking at the age of `public/build/manifest.json` would say more, and would tie the editor to Vite's file layout; left for when someone misses it.
 - **Tools for agents:** none. An agent that may run commands has Sunrice's own tool for that.
-- `docs/installation.md` (the settings, the permission), `docs/styles.md`, `docs/permissions.md`, `docs/limits.md`.
-**Done when:** on the site of V8.1, a class added in the editor has no rule in the built CSS, **Build needed** shows, the button builds, the rule is there and the notice gone; with the command set to something that is not there, the button says so (Vite job, and `tests/Feature/BuildTest.php` with a command of the test's own).
+- `testbench.yaml` gives the demo site a build command that harms nothing (`php -v`), so the button is there to try.
+- `docs/installation.md` (the two settings, the permission), `docs/styles.md` (*Building from the editor*), `docs/permissions.md` (*Building*), `docs/limits.md`.
+
+**Tests:** `tests/Feature/BuildTest.php`, with commands of the test's own: a build that ends well, with what it printed and a line in the log; one that fails, with its output and without the colours; a program that is not there; one that takes too long, stopped; a second build refused while one runs; long output cut to its end; no command, no build and no button; nothing from the request run; who may (the permission alone opens nothing, `code` alone builds nothing); the path of the web server's process given to the command when PHP does not list it; the dev server said. `ProviderTest` and the install check: four permissions. Two steps of the browser check on the demo site: **Build needed** after a class is added, the build run and its time said, the selection kept; a failed build's output shown and put away (the answer of a failed build put in the request's place, since the demo's command can't fail). The designer has no button. The Vite job, on the new Laravel application with `npm run build` as its command: a class added through the editor is not in the built CSS; a designer is refused the build; someone with the permission builds, Vite's own output comes back, and the rule is in the CSS; a command that is not on the server says so; and in Chrome, a class added in **Settings** makes the bar say **Build needed**, the button builds, and a visitor's page then has the style.
 
 ### Later, not in this phase
 - Tailwind's class names offered in the class field of the Settings panel, from the site's theme.
