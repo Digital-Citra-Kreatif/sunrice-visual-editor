@@ -30,6 +30,15 @@ test('refuses any other site', () => {
     assert.equal(sitePath('http://site.test/', origin), null);
 });
 
+test('refuses what a browser would read as another site once it has dropped tabs and line breaks', () => {
+    assert.equal(sitePath('/\t/example.com', origin), null);
+    assert.equal(sitePath('/\n/example.com/x', origin), null);
+    assert.equal(sitePath('/\r/example.com', origin), null);
+    assert.equal(sitePath('/\\example.com', origin), null);
+    // A tab inside a path of the site is dropped like anywhere else, and the path stays the site's.
+    assert.equal(sitePath('/abo\tut', origin), '/about');
+});
+
 test('knows the admin from the site', () => {
     assert.equal(isAdminPath('/cms', '/cms'), true);
     assert.equal(isAdminPath('/cms/users?page=2', '/cms'), true);

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
@@ -288,6 +289,35 @@ it('lets someone who may not edit code rewrite what runs no code, and rearrange 
 
     expect(File::get($this->hero))->toBe($changed)->not->toBe($this->original);
 });
+
+it('checks a whole text against the version it replaces, not against what the file was a moment before', function (bool $aimedAtWhatComes) {
+    ($this->as)(Access::EDIT);
+    // Someone who may edit code takes the code out of the template while the other's text is being
+    // checked: here, the first time the check compiles anything.
+    $without = "<section class=\"block hero\">\n    <h1>Nothing runs here</h1>\n</section>\n";
+    $landed = false;
+    Blade::precompiler(function (string $blade) use (&$landed, $without): string {
+        if (! $landed) {
+            $landed = true;
+            File::put($this->hero, $without);
+        }
+
+        return $blade;
+    });
+    // The other's text keeps the code the template had, and says it is for whichever version.
+    $kept = str_replace('<h1>', '<p>Mine</p><h1>', $this->original);
+
+    putJson(SVE_HERO_API.'/source', ['version' => sha1($aimedAtWhatComes ? $without : $this->original), 'source' => $kept])
+        ->assertStatus(409)->assertJsonPath('reason', 'conflict');
+
+    // Their text is not written either way: the code taken out can't come back with it. Aimed at the
+    // version before, it meets the other's save; aimed at the one coming, it is turned away before
+    // anything is compared, while the file is still the one with the code.
+    expect(File::get($this->hero))->toBe($aimedAtWhatComes ? $this->original : $without);
+})->with([
+    'said to be for the version before' => [false],
+    'said to be for the version that is coming' => [true],
+])->after(fn () => File::put($this->hero, $this->original));
 
 // --- What the editor offers is not held back ---------------------------------------
 

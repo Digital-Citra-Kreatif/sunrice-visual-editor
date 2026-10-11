@@ -119,7 +119,13 @@ class TemplateController extends Controller
                 // has been before (an undo, a redo) or runs nothing the template does not run now.
                 $file = $this->templates->find($path);
                 if (! Backups::had($file, $source)) {
-                    $guard->source((string) file_get_contents($file->file), $source);
+                    // What the guard says holds for the text it compared with: that has to be the
+                    // version the save then replaces, or code taken out in between could come back.
+                    $before = (string) file_get_contents($file->file);
+                    if (TemplateRepository::version($before) !== $this->version($body)) {
+                        throw new Conflict($path, TemplateRepository::version($before));
+                    }
+                    $guard->source($before, $source);
                 }
             }
             $save->handle($path, $this->version($body), $source);

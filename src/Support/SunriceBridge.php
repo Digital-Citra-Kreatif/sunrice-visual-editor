@@ -119,7 +119,7 @@ final class SunriceBridge
         for ($n = 2; is_file($target); $n++) {
             $target = $place($now.'-'.$n);
         }
-        File::ensureDirectoryExists(dirname($target));
+        Files::directory(dirname($target));
         File::copy($file, $target);
 
         return $target;

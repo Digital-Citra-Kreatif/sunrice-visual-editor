@@ -231,6 +231,58 @@ await step('take the class off again', async () => {
     await frame.locator('.hero h1:not(.sve-browser-test)').waitFor();
 });
 
+await step('keep the panels to the template that is open when the answer to a change of another comes late', async () => {
+    await idle();
+    // The server takes its time over a change to the hero.
+    let answer = () => {};
+    const waited = new Promise((resolve) => {
+        answer = resolve;
+    });
+    await page.route(
+        '**/api/templates/**/operations',
+        async (route) => {
+            const response = await route.fetch();
+            await waited;
+            await route.fulfill({ response });
+        },
+        { times: 1 },
+    );
+    await settings.getByLabel('Add a class').fill('sve-late');
+    await settings.getByLabel('Add a class').press('Enter');
+
+    // Meanwhile the header is opened, and its layers are there.
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/header' }).click();
+    await openIs('partials/header');
+    await page.locator('.sve-layer__label', { hasText: 'header.site-header' }).first().waitFor();
+
+    answer();
+    // The change was made and the page shows it; the layers are still the header's.
+    await frame.locator('.hero h1.sve-late').waitFor();
+    await idle();
+    const labels = await page.locator('.sve-layer__label').allTextContents();
+    if (labels.some((label) => label.startsWith('h1')) || !labels.includes('header.site-header')) {
+        throw new Error(`The header is open, and the layers are ${JSON.stringify(labels.slice(0, 6))}`);
+    }
+
+    // A change to the header is taken, not turned away as made for another file.
+    await page.locator('.sve-layer__label', { hasText: 'header.site-header' }).first().click();
+    await settings.getByLabel('Add a class').fill('sve-late-too');
+    await settings.getByLabel('Add a class').press('Enter');
+    await frame.locator('header.site-header.sve-late-too').waitFor();
+    await idle();
+    await settings.getByLabel('Remove the class sve-late-too').click();
+    await frame.locator('header.site-header:not(.sve-late-too)').waitFor();
+
+    // The hero, opened again, is as the change left it, with the step to undo it.
+    await idle();
+    await frame.locator('.hero h1').click();
+    await openIs('blocks/hero');
+    await layerIs('h1.sve-late');
+    await settings.getByLabel('Remove the class sve-late').click();
+    await frame.locator('.hero h1:not(.sve-late)').waitFor();
+    await layerIs('h1');
+});
+
 await step('change what a field prints, and put it back', async () => {
     await idle();
     await page.locator('.sve-layer__pick').filter({ has: page.locator('.sve-layer__label', { hasText: /^\$block->subheading$/ }) }).click();

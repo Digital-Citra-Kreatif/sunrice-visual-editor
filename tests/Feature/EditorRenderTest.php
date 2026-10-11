@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 use Illuminate\Testing\TestResponse;
 use Spatie\Permission\Models\Permission;
 use Sunrice\VisualEditor\Actions\SaveTemplate;
@@ -170,6 +171,10 @@ it('shows a template as it is now, and keeps one marked copy of each', function 
 
     get('/?sve=1')->assertDontSee('sve-new-paragraph');
     $copies = count(File::files(EditorRender::directory()));
+    // Some minutes go by: nothing is drawing the page with these copies any more.
+    foreach (File::files(EditorRender::directory()) as $copy) {
+        touch($copy->getPathname(), time() - 300);
+    }
 
     app(SaveTemplate::class)->handle('partials/footer.blade.php', sha1(File::get($footer)), File::get($footer)."\n<p class=\"sve-new-paragraph\">New</p>\n");
 
@@ -177,6 +182,35 @@ it('shows a template as it is now, and keeps one marked copy of each', function 
     expect((string) $response->getContent())->toMatch('/<p data-sve="[0-9a-f]+:\d+" class="sve-new-paragraph">New<\/p>/')
         // The copy of the old footer went when the new one was made.
         ->and(count(File::files(EditorRender::directory())))->toBe($copies);
+});
+
+it('leaves alone what another page being drawn is writing, or is about to run', function () {
+    actingAsSuperAdmin();
+    $footer = $this->templates.'/partials/footer.blade.php';
+    get('/?sve=1')->assertOk();
+    $stem = EditorRender::directory().'/'.hash('xxh128', View::getFinder()->find('sunrice.partials.footer'));
+    $copy = collect(glob($stem.'-*.php'))->sole();
+
+    // The frames side by side are drawn again at once after a change, each compiling the changed
+    // footer: another request is halfway through writing the same copy.
+    app(SaveTemplate::class)->handle('partials/footer.blade.php', sha1(File::get($footer)), File::get($footer)."\n<p class=\"sve-new-paragraph\">New</p>\n");
+    get('/?sve=1')->assertOk();
+    $new = collect(glob($stem.'-*.php'))->reject(fn (string $file) => $file === $copy)->sole();
+    File::delete($new);
+    File::put($new.'.0a1b2c3d.tmp', 'half of it');
+
+    get('/?sve=1')->assertOk()->assertSee('sve-new-paragraph');
+
+    expect($new)->toBeFile()
+        // What the other request was writing is still there for it to finish with.
+        ->and($new.'.0a1b2c3d.tmp')->toBeFile()
+        // And so is the copy of the footer as it was: a page that began before the change may be about to run it.
+        ->and($copy)->toBeFile();
+
+    // The same page asked for again by three frames: the copy is there, and nothing is written or removed.
+    $files = collect(File::files(EditorRender::directory()))->map->getFilename()->sort()->values()->all();
+    get('/?sve=1')->assertOk();
+    expect(collect(File::files(EditorRender::directory()))->map->getFilename()->sort()->values()->all())->toBe($files);
 });
 
 it('renders a template the tree can\'t hold as it is, and says so in the manifest', function () {

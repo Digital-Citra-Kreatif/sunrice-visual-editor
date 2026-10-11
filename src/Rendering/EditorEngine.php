@@ -7,8 +7,10 @@ namespace Sunrice\VisualEditor\Rendering;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Engines\CompilerEngine;
+use RuntimeException;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
+use Sunrice\VisualEditor\Support\Files;
 use Sunrice\VisualEditor\Templates\TemplateFile;
 
 /**
@@ -25,6 +27,9 @@ final class EditorEngine extends CompilerEngine
 {
     /** Part of every marked copy's name: change it when what Marker writes changes. */
     private const VERSION = '1';
+
+    /** Seconds a copy of an earlier version of a template is left where it is: a page being drawn may still run it. */
+    private const KEEP = 60;
 
     /** @var array<string, string|null> the marked copy of each template rendered so far in this page; null for none */
     private array $copies = [];
@@ -121,16 +126,35 @@ final class EditorEngine extends CompilerEngine
         return $compiled.($open ? ' ?>' : '')."<?php /**PATH {$path} ENDPATH**/ ?>";
     }
 
-    /** Writes a copy in one step and removes the copies of earlier versions of the template. */
+    /**
+     * Writes a copy in one step, and removes the copies of earlier versions
+     * of the template.
+     *
+     * Several pages are drawn for the editor at once (its frames side by
+     * side, each drawn again after a change), so another request may be
+     * writing this same copy, or be about to run the copy of the version
+     * before. Neither is touched: not this version's files, and nothing
+     * younger than a minute.
+     */
     private function replace(string $stem, string $file, string $contents): void
     {
-        $this->files->ensureDirectoryExists($this->directory);
-        foreach (glob($stem.'-*') ?: [] as $old) {
-            @unlink($old);
-        }
+        Files::directory($this->directory);
 
         $temporary = $file.'.'.bin2hex(random_bytes(4)).'.tmp';
         $this->files->put($temporary, $contents);
-        rename($temporary, $file);
+        if (! @rename($temporary, $file)) {
+            @unlink($temporary);
+            // Another request may have put the same copy there meanwhile, which is as good.
+            if (! is_file($file)) {
+                throw new RuntimeException("Could not write the editor's copy of a template to \"{$this->directory}\". Is it writable?");
+            }
+        }
+
+        $name = substr($file, 0, (int) strrpos($file, '.'));
+        foreach (glob($stem.'-*') ?: [] as $old) {
+            if (! str_starts_with($old, $name.'.') && (int) @filemtime($old) < time() - self::KEEP) {
+                @unlink($old);
+            }
+        }
     }
 }

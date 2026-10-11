@@ -38,6 +38,11 @@ class EditorController extends Controller
         if (! is_string($url) || $url === '' || $url[0] !== '/' || str_starts_with($url, '//') || str_contains($url, '\\')) {
             return '/';
         }
+        // A browser drops tabs and line breaks from an address before reading it: "/<tab>/example.com"
+        // is "//example.com" to it, another site. No path of this site has a control character in it.
+        if (preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
+            return '/';
+        }
 
         $admin = '/'.trim((string) config('sunrice.admin.path', 'cms'), '/');
         $path = (string) parse_url($url, PHP_URL_PATH);

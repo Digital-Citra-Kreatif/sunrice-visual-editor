@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Actions;
 
-use Illuminate\Support\Facades\File;
 use RuntimeException;
 use Sunrice\Activity\ActivityLogger;
+use Sunrice\VisualEditor\Support\Files;
 use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\CopyRefused;
 use Sunrice\VisualEditor\Templates\TemplateNotFound;
@@ -36,18 +36,21 @@ final class CopyPackageView
         }
 
         $target = SunriceBridge::templateDirectory().'/'.$view->copyTo;
-        File::ensureDirectoryExists(dirname($target));
+        $source = file_get_contents($view->file);
+        if ($source === false) {
+            throw new RuntimeException("Could not read \"{$view->file}\".");
+        }
 
-        // "x": fails when the file is there, so two copies at once can't both win.
-        $handle = @fopen($target, 'x');
-        if ($handle === false) {
-            if (is_file($target)) {
+        // From the moment the file is there the site uses it in place of Sunrice's view, so it is
+        // never there half written: the check and the write under the lock a save takes, and the
+        // write in one step. A copy that fails leaves nothing, and can be asked for again.
+        Files::locked($target, function () use ($target, $source, $view): void {
+            clearstatcache(true, $target);
+            if (file_exists($target)) {
                 throw new CopyRefused("The site already has \"{$view->copyTo}\".");
             }
-            throw new RuntimeException("Could not create \"{$target}\". Is the directory writable?");
-        }
-        fwrite($handle, (string) file_get_contents($view->file));
-        fclose($handle);
+            Files::replace($target, $source);
+        });
 
         app(ActivityLogger::class)->record('created', $view->copyTo, ['note' => "Visual editor: copied from Sunrice's {$view->path}"], 'template');
 
