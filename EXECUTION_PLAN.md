@@ -716,12 +716,19 @@ What the editor does on a site with Laravel's Vite plugin and Tailwind 4, found 
 
 ### V8.2 A code editor in place of the text field
 **Depends on:** V8.1
-- `resources/js/code/` — the editor, with no React in it: `mount(parent, {text, readOnly, indent, onChange, onSave})` → `{text(), setText(), focus(), cursor(), setCursor(), destroy()}`. CodeMirror with line numbers, history, search and replace, several cursors, bracket matching, Tab indenting by what the file itself uses, Ctrl/⌘+S.
-- Colours from `lib/highlight.ts`, which knows Blade: its tokens become the editor's decorations. No language package.
-- `build.mjs` builds it into `dist/code-editor.js`; `EditorController` sends its address; `lib/codeEditor.ts` fetches it once, when first needed, with `import()`.
-- `panels/CodePanel.tsx` uses it where the text field was. Everything around it stays: Save, Revert, what a refused save says, read-only for those without `code`. While the script is on its way, or when it can't be fetched, the text field as it is today is what is shown: code can always be read and saved.
-- `package.json`: the six packages of §2.
-**Done when:** the browser check's steps for the code panel pass on the new editor, with new ones for search and replace and for undo; `dist/visual-editor.js` is no larger than before by more than the loader.
+**Status:** done.
+
+- `resources/js/code/index.ts` — the editor, with no React in it: `mount(parent, {text, readOnly, indent, label, onChange, onSave})` → `{text(), setText(), setReadOnly(), focus(), destroy()}`. CodeMirror with line numbers, undo of its own, search and replace (Ctrl/⌘+F), several cursors, bracket matching, Tab indenting by what the file itself uses, Ctrl/⌘+S. Its colours are the admin's own, so it follows light and dark.
+- **Colours from `lib/highlight.ts`**, which knows Blade: `code/text.ts` turns its tokens into stretches of the text, and the editor marks them with the classes the code panel already had. No language package, and `@codemirror/autocomplete` waits for V8.4, which is what uses it.
+- **A file keeps its line breaks.** The text field made every line break `\n` once something was typed (a browser's text field does). The editor writes `\r\n` in a file whose lines all end that way, and in a file that mixes the two treats `\r` as a character of the line, shown as one. Either way what is saved differs from the file only by what was typed.
+- `build.mjs` builds it into `dist/code-editor.js`: 331 KB, where the editor's own script is 108 KB. `EditorController` sends its address (`codeEditor`); `lib/codeEditor.ts` fetches it once with `import()`, the first time code is shown. The admin's other pages never fetch it.
+- `panels/CodePanel.tsx` — the bar, Save, Revert and what a refused save says are as they were. Under them is the code editor (`RichCode`), or the plain field of before (`PlainCode`) when the script has not come within three seconds or can't be fetched. Once the plain field is shown it stays: nobody has the field changed under their hands.
+- The editor can be asked from the element it is in (`element.sveCodeEditor`): it draws only the lines in view, so the browser check reads the text from the editor and not from the page.
+- `package.json`: `@codemirror/state`, `view`, `commands`, `search`, `language`.
+
+**Tests:** `tests/Frontend/code.test.mjs` (line breaks, indentation, where the colours are). The browser check's steps for the code panel on the new editor: the footer as the file has it, coloured and numbered; typed at the end and saved with Ctrl+S; find and replace, undone with the editor's undo; a refused save and Revert; a footer written with `\r\n` typed in and saved, with only what was typed different; the plain field when the script is kept from arriving, saving from there; read-only for the designer, who types and changes nothing. `EditorPageTest`: the address is sent, and the admin's own pages do not carry the script. The install check: the script is in what Composer is given and is published.
+
+**Where this was built** the npm registry can't be reached, so CodeMirror was bundled here from its source on GitHub to try it in a browser; the `dist/code-editor.js` that is committed is the one CI builds from the packages.
 
 ### V8.3 Code mode
 **Depends on:** V8.2

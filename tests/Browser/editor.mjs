@@ -1163,39 +1163,76 @@ await step('draw a template change in every frame, then put the stylesheet and t
 
 // --- The code panel --------------------------------------------------------------
 
-const code = page.locator('.sve-code__field');
+const code = page.locator('.sve-code__editor');
+/** The code editor's text, asked of the editor itself: it draws only the lines that are in view. */
+const codeText = () => code.evaluate((holder) => holder.sveCodeEditor.text());
+const onDisk = async (path) => (await (await page.request.get(`${base}/cms/visual-editor/api/templates/${path}`)).json()).template.source;
+const codeIs = async (expected) => {
+    for (let tries = 0; tries < 50 && (await codeText()) !== expected; tries++) {
+        await page.waitForTimeout(100);
+    }
+    if ((await codeText()) !== expected) {
+        throw new Error(`The editor holds ${JSON.stringify((await codeText()).slice(-90))}`);
+    }
+};
+const added = '<p class="sve-browser-test">Edited in the code panel.</p>';
+let footer = '';
 
-await step('open the footer as code, coloured and character for character', async () => {
+await step('open the footer as code in the code editor, coloured and character for character', async () => {
     await page.goto(`${base}/cms/visual-editor`);
     await page.waitForSelector('.sve-template');
     await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
     await openIs('partials/footer');
     await page.getByRole('button', { name: 'Edit as code' }).click();
-    await code.waitFor();
-    const source = await code.inputValue();
-    if (!source.includes('<footer')) {
-        throw new Error('The field does not hold the footer');
+    await code.locator('.cm-editor').waitFor();
+    footer = await codeText();
+    if (!footer.includes('<footer') || footer !== (await onDisk('partials/footer.blade.php'))) {
+        throw new Error('The editor does not hold the footer as the file has it');
     }
-    if ((await page.locator('.sve-code__colours').textContent()) !== `${source}\n`) {
-        throw new Error('The colours are not the text');
+    if ((await code.locator('.cm-content .sve-code--directive').count()) === 0 || (await code.locator('.cm-content .sve-code--tag').count()) === 0) {
+        throw new Error('Directives and tags are not coloured');
     }
-    if ((await page.locator('.sve-code__colours .sve-code--directive').count()) === 0) {
-        throw new Error('No directive is coloured');
+    if ((await code.locator('.cm-lineNumbers .cm-gutterElement').count()) < 5) {
+        throw new Error('The lines are not numbered');
     }
 });
 
-await step('save a change to the footer and see it on the page', async () => {
-    await code.fill(`${await code.inputValue()}\n<p class="sve-browser-test">Edited in the code panel.</p>\n`);
+await step('type at the end of the footer, save with Ctrl+S and see it on the page', async () => {
+    await code.evaluate((holder) => holder.sveCodeEditor.focus());
+    await page.keyboard.press('Control+End');
+    await page.keyboard.type(added);
+    await page.keyboard.press('Enter');
+    await codeIs(`${footer}${added}\n`);
     await page.locator('.sve-code__bar').getByText('Not saved').waitFor();
-    await code.press('Control+s');
+    await page.keyboard.press('Control+s');
     await frame.getByText('Edited in the code panel.').waitFor();
     await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
     await page.locator('.sve-notice--done', { hasText: 'Saved partials/footer.blade.php.' }).waitFor();
+    if ((await onDisk('partials/footer.blade.php')) !== `${footer}${added}\n`) {
+        throw new Error('The file is not what was typed');
+    }
+});
+
+await step('find and replace in the code, and undo it with the editor\'s own undo', async () => {
+    await page.keyboard.press('Control+f');
+    await code.locator('.cm-search input[name=search]').fill('Edited in the code panel.');
+    await code.locator('.cm-search input[name=replace]').fill('Changed by find and replace.');
+    await code.locator('.cm-search button[name=replaceAll]').click();
+    await codeIs(`${footer}${added.replace('Edited in the code panel.', 'Changed by find and replace.')}\n`);
+    await page.locator('.sve-code__bar').getByText('Not saved').waitFor();
+
+    await page.keyboard.press('Escape');
+    await code.evaluate((holder) => holder.sveCodeEditor.focus());
+    await page.keyboard.press('Control+z');
+    await codeIs(`${footer}${added}\n`);
+    // The text is the file's again: nothing is left to save.
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
 });
 
 await step('refuse code that doesn\'t compile, say why, and leave the site as it was', async () => {
-    const good = await code.inputValue();
-    await code.fill(`${good}\n@if ($neverClosed)\n`);
+    const good = await codeText();
+    await page.keyboard.press('Control+End');
+    await page.keyboard.type('@if ($neverClosed)');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.locator('.sve-code__trouble').getByText('doesn’t compile').waitFor();
     // Nothing was written: the page still renders, with the last good footer.
@@ -1204,13 +1241,87 @@ await step('refuse code that doesn\'t compile, say why, and leave the site as it
         throw new Error(`The homepage answered ${home.status()} after a refused save`);
     }
     await page.getByRole('button', { name: 'Revert' }).click();
-    await page.waitForFunction((expected) => document.querySelector('.sve-code__field')?.value === expected, good);
+    await codeIs(good);
 });
 
 await step('put the footer back', async () => {
-    await code.fill((await code.inputValue()).replace('\n<p class="sve-browser-test">Edited in the code panel.</p>\n', ''));
-    await code.press('Control+s');
+    await code.evaluate((holder, text) => {
+        holder.sveCodeEditor.setText(text);
+        holder.sveCodeEditor.focus();
+    }, footer);
+    await page.locator('.sve-code__bar').getByText('Not saved').waitFor();
+    await page.keyboard.press('Control+s');
     await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+    if ((await onDisk('partials/footer.blade.php')) !== footer) {
+        throw new Error('The footer is not as it was');
+    }
+    await page.getByRole('button', { name: 'Hide the code' }).click();
+});
+
+/** Writes a template through the editor's API, as the code panel's Save does: for setting up what can't be typed. */
+const write = (path, source) =>
+    page.evaluate(
+        async ([address, text]) => {
+            const token = decodeURIComponent(document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] ?? '');
+            const headers = { Accept: 'application/json', 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' };
+            const now = await (await fetch(address, { headers, credentials: 'same-origin' })).json();
+            const answer = await fetch(`${address}/source`, { method: 'PUT', headers, credentials: 'same-origin', body: JSON.stringify({ version: now.template.version, source: text }) });
+
+            return answer.status;
+        },
+        [`${base}/cms/visual-editor/api/templates/${path}`, source],
+    );
+
+await step('give a file written on Windows back with the line breaks it came with', async () => {
+    const windows = footer.replaceAll('\n', '\r\n');
+    if ((await write('partials/footer.blade.php', windows)) !== 200) {
+        throw new Error('The footer could not be written with other line breaks');
+    }
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
+    await openIs('partials/footer');
+    await page.getByRole('button', { name: 'Edit as code' }).click();
+    await code.locator('.cm-editor').waitFor();
+    await codeIs(windows);
+
+    await code.evaluate((holder) => holder.sveCodeEditor.focus());
+    await page.keyboard.press('Control+End');
+    await page.keyboard.type('<!-- typed -->');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Control+s');
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+    await page.locator('.sve-notice--done', { hasText: 'Saved partials/footer.blade.php.' }).waitFor();
+    // What was typed, a line break of the file's own kind after it, and not one other byte.
+    if ((await onDisk('partials/footer.blade.php')) !== `${windows}<!-- typed -->\r\n`) {
+        throw new Error('The file did not keep its line breaks');
+    }
+
+    if ((await write('partials/footer.blade.php', footer)) !== 200 || (await onDisk('partials/footer.blade.php')) !== footer) {
+        throw new Error('The footer is not as it was');
+    }
+});
+
+await step('show the code in a plain field when the code editor\'s script can\'t be fetched, and save from there', async () => {
+    await page.route('**/code-editor.js*', (route) => route.abort());
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
+    await openIs('partials/footer');
+    await page.getByRole('button', { name: 'Edit as code' }).click();
+    const field = page.locator('.sve-code__field');
+    await field.waitFor();
+    if ((await field.inputValue()) !== footer || (await page.locator('.sve-code__colours .sve-code--directive').count()) === 0) {
+        throw new Error('The plain field does not hold the footer, coloured');
+    }
+    await field.fill(`${footer}${added}\n`);
+    await field.press('Control+s');
+    await frame.getByText('Edited in the code panel.').waitFor();
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+    await field.fill(footer);
+    await field.press('Control+s');
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+    await page.unroute('**/code-editor.js*');
     await page.getByRole('button', { name: 'Hide the code' }).click();
 });
 
@@ -1298,7 +1409,15 @@ await step('show them code and let them choose from lists, not type it', async (
 
     // The template's code can be looked at, and that is all.
     await page.getByRole('button', { name: 'View the code' }).click();
-    if (!(await code.evaluate((field) => field.readOnly))) {
+    await code.locator('.cm-editor').waitFor();
+    await page.locator('.sve-code__bar').getByText('Read-only').waitFor();
+    const shown = await codeText();
+    await code.evaluate((holder) => holder.sveCodeEditor.focus());
+    await page.keyboard.type('typed by someone who may not');
+    await page.keyboard.press('Control+a');
+    await page.keyboard.press('Delete');
+    await page.waitForTimeout(200);
+    if ((await codeText()) !== shown || (await page.locator('.sve-code__bar').getByRole('button', { name: 'Save' }).count()) !== 0) {
         throw new Error('The code panel can be typed in');
     }
     await page.getByRole('button', { name: 'Hide the code' }).click();

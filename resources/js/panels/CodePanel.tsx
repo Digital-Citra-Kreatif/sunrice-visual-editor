@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import type { CodeEditor } from '../code/index';
+import { indentOf } from '../code/text';
 import { ApiError, saveSource, type TemplateData } from '../lib/api';
+import { codeEditorScript, type CodeEditorScript } from '../lib/codeEditor';
 import { highlight } from '../lib/highlight';
 
 type Props = {
@@ -14,16 +17,14 @@ type Props = {
     /** Read the file again as it is on disk, dropping what was typed. */
     onReload(): void;
     onClose(): void;
+    /** Where the code editor's script is fetched from; null for the plain text field alone. */
+    editorScript: string | null;
 };
 
+/** How long the code editor's script is waited for before the plain text field is shown in its place. */
+const WAIT = 3000;
+
 type Trouble = { kind: 'syntax' | 'conflict' | 'other'; message: string };
-
-/** What Tab puts in: the indentation the file itself uses, four spaces when it shows none. */
-function indentOf(source: string): string {
-    const match = /^(\t|[ ]{2,8})\S/m.exec(source);
-
-    return match === null ? '    ' : match[1];
-}
 
 /**
  * The open template as code. This is where a template the tree can't hold
@@ -33,8 +34,25 @@ function indentOf(source: string): string {
  * changed since it was read or when the text doesn't compile, and nothing
  * is written.
  */
-export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload, onClose }: Props) {
-    const area = useRef<HTMLTextAreaElement>(null);
+export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload, onClose, editorScript }: Props) {
+    // The code editor is a script of its own. Until it has come the panel waits a moment, then shows
+    // the plain text field, and keeps to it: nobody has the field changed under their hands.
+    const [script, setScript] = useState<CodeEditorScript | 'waiting' | 'none'>(editorScript === null ? 'none' : 'waiting');
+    useEffect(() => {
+        if (editorScript === null) {
+            return;
+        }
+        let over = false;
+        const late = window.setTimeout(() => !over && setScript((now) => (now === 'waiting' ? 'none' : now)), WAIT);
+        codeEditorScript(editorScript)
+            .then((fetched) => !over && setScript((now) => (now === 'waiting' ? fetched : now)))
+            .catch(() => !over && setScript((now) => (now === 'waiting' ? 'none' : now)));
+
+        return () => {
+            over = true;
+            window.clearTimeout(late);
+        };
+    }, [editorScript]);
     const [saving, setSaving] = useState(false);
     const [trouble, setTrouble] = useState<Trouble | null>(null);
 
@@ -42,8 +60,7 @@ export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload
     const text = draft ?? original;
     const changed = draft !== null && draft !== original;
     const readOnly = !template.editable || template.source === null || !mayCode;
-    const tokens = useMemo(() => highlight(text), [text]);
-    const lines = useMemo(() => text.split('\n').length, [text]);
+    const typed = (now: string) => onDraft(now === original ? null : now);
 
     // Another template, or this one read again: what was wrong with the last save is no longer the matter.
     useEffect(() => setTrouble(null), [template.path, template.origin, template.version]);
@@ -61,24 +78,6 @@ export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload
                 setTrouble({ kind, message: error instanceof Error ? error.message : 'The template could not be saved.' });
             })
             .finally(() => setSaving(false));
-    };
-
-    const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
-            event.preventDefault();
-            save();
-        } else if (event.key === 'Tab' && !event.shiftKey && !event.altKey && !event.metaKey && !event.ctrlKey && !readOnly) {
-            // Tab indents. Escape first, then Tab, moves on to the next control as usual.
-            event.preventDefault();
-            const field = event.currentTarget;
-            // insertText keeps the browser's own undo; setRangeText is for where it is gone.
-            if (!document.execCommand('insertText', false, indentOf(text))) {
-                field.setRangeText(indentOf(text), field.selectionStart, field.selectionEnd, 'end');
-                onDraft(field.value);
-            }
-        } else if (event.key === 'Escape') {
-            event.currentTarget.blur();
-        }
     };
 
     return (
@@ -119,40 +118,124 @@ export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload
 
             {template.source === null ? (
                 <p className="sve-empty sve-code__none">This file is not UTF-8 text and can’t be shown here. Save it as UTF-8 in a code editor first.</p>
+            ) : script === 'waiting' ? (
+                <div className="sve-code__scroll" aria-busy="true" />
+            ) : script === 'none' ? (
+                <PlainCode text={text} readOnly={readOnly} label={`Source of ${template.path}`} onText={typed} onSave={save} />
             ) : (
-                <div className="sve-code__scroll">
-                    <div className="sve-code__lines" aria-hidden="true">
-                        {Array.from({ length: lines }, (_, line) => (
-                            <span key={line}>{line + 1}</span>
-                        ))}
-                    </div>
-                    <div className="sve-code__text">
-                        {/* The colours lie under the text field, character for character; the field's own text is see-through. */}
-                        <pre className="sve-code__colours" aria-hidden="true">
-                            {tokens.map((token, index) => (
-                                <span key={index} className={token.kind === 'text' ? undefined : `sve-code--${token.kind}`}>
-                                    {token.text}
-                                </span>
-                            ))}
-                            {'\n'}
-                        </pre>
-                        <textarea
-                            ref={area}
-                            className="sve-code__field"
-                            value={text}
-                            readOnly={readOnly}
-                            onChange={(event) => onDraft(event.target.value === original ? null : event.target.value)}
-                            onKeyDown={keyDown}
-                            spellCheck={false}
-                            autoCapitalize="off"
-                            autoComplete="off"
-                            autoCorrect="off"
-                            wrap="off"
-                            aria-label={`Source of ${template.path}`}
-                        />
-                    </div>
-                </div>
+                <RichCode key={`${template.origin}:${template.path}`} script={script} text={text} readOnly={readOnly} label={`Source of ${template.path}`} onText={typed} onSave={save} />
             )}
         </section>
+    );
+}
+
+type CodeProps = {
+    text: string;
+    readOnly: boolean;
+    label: string;
+    onText(text: string): void;
+    onSave(): void;
+};
+
+/** The code in the code editor (CodeMirror): search and replace, undo of its own, several cursors. */
+function RichCode({ script, text, readOnly, label, onText, onSave }: CodeProps & { script: CodeEditorScript }) {
+    const holder = useRef<HTMLDivElement>(null);
+    const editor = useRef<CodeEditor | null>(null);
+    // The editor is made once and calls whatever the panel's functions are by then.
+    const calls = useRef({ onText, onSave });
+    calls.current = { onText, onSave };
+    /** The text as the editor last said it was: a text that differs from it came from outside (Revert, the file read again). */
+    const said = useRef(text);
+
+    useEffect(() => {
+        if (holder.current === null) {
+            return;
+        }
+        const made = script.mount(holder.current, {
+            text: said.current,
+            readOnly,
+            indent: indentOf(said.current),
+            label,
+            onChange: (now) => {
+                said.current = now;
+                calls.current.onText(now);
+            },
+            onSave: () => calls.current.onSave(),
+        });
+        editor.current = made;
+
+        return () => {
+            made.destroy();
+            editor.current = null;
+        };
+        // One editor for as long as the panel shows this template: its undo is its own.
+    }, [script]);
+
+    useEffect(() => {
+        if (text !== said.current) {
+            said.current = text;
+            editor.current?.setText(text);
+        }
+    }, [text]);
+    useEffect(() => editor.current?.setReadOnly(readOnly), [readOnly]);
+
+    return <div ref={holder} className="sve-code__editor" />;
+}
+
+/** The code in a plain text field, coloured: what is shown when the code editor's script is not there. */
+function PlainCode({ text, readOnly, label, onText, onSave }: CodeProps) {
+    const tokens = useMemo(() => highlight(text), [text]);
+    const lines = useMemo(() => text.split('\n').length, [text]);
+
+    const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+            event.preventDefault();
+            onSave();
+        } else if (event.key === 'Tab' && !event.shiftKey && !event.altKey && !event.metaKey && !event.ctrlKey && !readOnly) {
+            // Tab indents. Escape first, then Tab, moves on to the next control as usual.
+            event.preventDefault();
+            const field = event.currentTarget;
+            // insertText keeps the browser's own undo; setRangeText is for where it is gone.
+            if (!document.execCommand('insertText', false, indentOf(text))) {
+                field.setRangeText(indentOf(text), field.selectionStart, field.selectionEnd, 'end');
+                onText(field.value);
+            }
+        } else if (event.key === 'Escape') {
+            event.currentTarget.blur();
+        }
+    };
+
+    return (
+        <div className="sve-code__scroll">
+            <div className="sve-code__lines" aria-hidden="true">
+                {Array.from({ length: lines }, (_, line) => (
+                    <span key={line}>{line + 1}</span>
+                ))}
+            </div>
+            <div className="sve-code__text">
+                {/* The colours lie under the text field, character for character; the field's own text is see-through. */}
+                <pre className="sve-code__colours" aria-hidden="true">
+                    {tokens.map((token, index) => (
+                        <span key={index} className={token.kind === 'text' ? undefined : `sve-code--${token.kind}`}>
+                            {token.text}
+                        </span>
+                    ))}
+                    {'\n'}
+                </pre>
+                <textarea
+                    className="sve-code__field"
+                    value={text}
+                    readOnly={readOnly}
+                    onChange={(event) => onText(event.target.value)}
+                    onKeyDown={keyDown}
+                    spellCheck={false}
+                    autoCapitalize="off"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    wrap="off"
+                    aria-label={label}
+                />
+            </div>
+        </div>
     );
 }

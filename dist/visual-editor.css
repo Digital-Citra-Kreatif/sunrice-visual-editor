@@ -1518,6 +1518,17 @@ select.sve-input {
     padding: 0.75rem;
 }
 
+/* The code editor (CodeMirror) fills what is under the bar and scrolls by itself. Its own look is set where it is made (resources/js/code). */
+.sve-code__editor {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.sve-code__editor .cm-editor {
+    height: 100%;
+}
+
 /* One scroller for the line numbers, the colours and the text field. */
 .sve-code__scroll {
     flex: 1;

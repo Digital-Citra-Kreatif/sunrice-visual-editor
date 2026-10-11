@@ -34,6 +34,8 @@ type Props = {
     widths?: unknown;
     /** What whoever opened the editor may do in it: change things, and write code. What the server lets them is the server's to say. */
     can?: { edit?: boolean; code?: boolean };
+    /** Where the code editor's script is fetched from, when code is first shown. */
+    codeEditor?: string;
 };
 
 /** The page in the frame, as its bridge described it. `status` is what the server answered it with. */
@@ -71,7 +73,7 @@ const message = (error: unknown) => (error instanceof ApiError || error instance
  * tells this screen what the pointer is over. Everything drawn over the
  * page is drawn here, above the frame.
  */
-export function Editor({ startPath, widths: sentWidths, can }: Props) {
+export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props) {
     const mayEdit = can?.edit !== false;
     const mayCode = mayEdit && can?.code !== false;
     // Two frames, one above the other. `frame` is the one that is seen and talked to. `spare`
@@ -1282,6 +1284,7 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
                             setReadings((count) => count + 1);
                         }}
                         onClose={() => setCoding(false)}
+                        editorScript={typeof codeEditor === 'string' && codeEditor !== '' ? codeEditor : null}
                     />
                 )}
             </main>

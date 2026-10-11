@@ -1,4 +1,4 @@
-// Builds the editor's admin script and stylesheet, and the frame's bridge script, into dist/.
+// Builds the editor's admin script and stylesheet, the frame's bridge script and the code editor into dist/.
 //
 // The script runs inside the Sunrice admin and must use the admin's own
 // React (a second copy breaks hooks). JSX compiles to
@@ -76,6 +76,20 @@ await build({
     bundle: true,
     format: 'iife',
     target: 'es2020',
+    minify: true,
+    legalComments: 'none',
+    logLevel: 'info',
+});
+
+// The code editor (CodeMirror), fetched the first time code is shown: it is
+// larger than the rest of the editor together, and the admin does not carry
+// it on every page. No React in it.
+await build({
+    entryPoints: ['resources/js/code/index.ts'],
+    outfile: 'dist/code-editor.js',
+    bundle: true,
+    format: 'esm',
+    target: 'es2022',
     minify: true,
     legalComments: 'none',
     logLevel: 'info',

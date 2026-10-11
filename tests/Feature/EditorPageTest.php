@@ -48,6 +48,17 @@ it('says which widths the page can be shown at, as far as the setting holds widt
     get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('widths', []));
 });
 
+it('says where the code editor\'s script is, for the screen to fetch when code is first shown', function () {
+    actingAsSuperAdmin();
+
+    get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('codeEditor', fn (string $address) => str_starts_with($address, asset('vendor/sunrice-visual-editor/code-editor.js'))
+        // With a mark of the file as built, so a new build is fetched anew.
+        && preg_match('/\\?v=[0-9a-f]{10}$/', $address) === 1));
+
+    // And the admin's own pages do not carry it: it is no script of theirs.
+    expect((string) get('/cms')->getContent())->not->toContain('code-editor.js');
+});
+
 it('opens on the page named in the link, and only on pages of the site', function (string $url, string $expected) {
     actingAsSuperAdmin();
 
