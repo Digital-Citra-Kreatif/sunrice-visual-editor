@@ -124,7 +124,18 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
 **Permissions of its own**: who may open the editor, who may change things,
 who may write code (see *Who can use it* below).
 
-Not there yet: tools for AI agents.
+**Tools for AI agents**, on Sunrice's MCP server.
+
+- `get_template_tree` reads a template as the tree the editor shows, and
+  `edit_template` changes it by the same operations the editor's screen
+  sends: add a class, set a text, insert, move, wrap. An agent makes a small
+  checked change where `write_template` would rewrite the whole file.
+- Held to what the token's user may do in the editor: changing takes
+  `visual-editor.edit`, and Blade or PHP of the agent's own takes
+  `visual-editor.code`, by the same check as for a person.
+- They are offered to agents once Sunrice takes tools from packages
+  ([sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40));
+  on a Sunrice before that nothing is registered and nothing fails.
 A site that builds its CSS (Vite, Tailwind) is styled by its classes: the
 editor changes CSS files, not what a build makes of them.
 
@@ -346,6 +357,8 @@ src/
     Selector.php       the selector for a class, and whether a selector mentions it
     ThemeRepository.php  the CSS files in public/sunrice-theme, and the editor's own
     Styles.php         what the stylesheets say about a class, for the CSS tab
+  Guard/               what someone who may not edit code can't get into a template (CodeGuard)
+  Mcp/                 the tools for AI agents: get_template_tree, edit_template
   Templates/           the files the editor works with: the site's templates and Sunrice's views
   Insert/              Library: what the editor offers to insert, for this site
   Actions/             SaveTemplate: the only place a template is written; CopyPackageView

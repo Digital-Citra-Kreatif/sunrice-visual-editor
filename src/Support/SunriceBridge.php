@@ -7,6 +7,7 @@ namespace Sunrice\VisualEditor\Support;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
+use Laravel\Mcp\Server\Tool;
 use Sunrice\Fields\BlueprintSchema;
 use Sunrice\Fields\CustomField;
 use Sunrice\Fields\FieldRegistry;
@@ -17,6 +18,7 @@ use Sunrice\Models\Form;
 use Sunrice\Models\GlobalSet;
 use Sunrice\Models\Menu;
 use Sunrice\Models\Taxonomy;
+use Sunrice\Sunrice;
 
 /**
  * Everything the editor needs from Sunrice that Sunrice does not publish as
@@ -76,6 +78,27 @@ final class SunriceBridge
         }
 
         return $uses;
+    }
+
+    /**
+     * Adds tools to Sunrice's MCP server (C3), where Sunrice takes tools
+     * from packages: `Sunrice::registerMcpTool()` came with sunrice-cms#40.
+     * On a Sunrice before that, the tools are not offered to agents.
+     *
+     * @param  list<class-string>  $tools
+     * @return bool whether they were added
+     */
+    public static function registerMcpTools(array $tools): bool
+    {
+        $sunrice = app(Sunrice::class);
+        if (! class_exists(Tool::class) || ! method_exists($sunrice, 'registerMcpTool')) {
+            return false;
+        }
+        foreach ($tools as $tool) {
+            $sunrice->registerMcpTool($tool);
+        }
+
+        return true;
     }
 
     /**
