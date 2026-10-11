@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { editorAddress, isEditorAddress, markValue, shortcutOf, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
 import { ApiError, applyOperations, copyToSite, listInserts, listTemplates, readTemplate, saveSource, type Insertable, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { pageOf, rememberPage } from './lib/memory';
+import { startRedraw, type Redraw } from './lib/redraw';
 import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
 import { isAdminPath, sitePath } from './lib/path';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
@@ -28,6 +29,17 @@ type Page = { url: string; title: string; files: ManifestFile[]; status: number 
 
 /** How long a page gets to say it is ready after it has loaded. */
 const READY_WITHIN = 1500;
+/** A page drawn again out of sight: how long it gets to finish loading once it is ready, and to arrive at all. */
+const SETTLE_WITHIN = 250;
+const REDRAWN_WITHIN = 10000;
+/** How long the page that was replaced is kept, out of sight, before it is let go. */
+const LET_GO_AFTER = 400;
+
+const later = (after: number, run: () => void) => {
+    const timer = window.setTimeout(run, after);
+
+    return () => window.clearTimeout(timer);
+};
 
 /** The name a template's history goes by. */
 const historyKey = (template: { origin: string; path: string }) => `${template.origin}:${template.path}`;
@@ -45,7 +57,20 @@ const message = (error: unknown) => (error instanceof ApiError || error instance
  * page is drawn here, above the frame.
  */
 export function Editor({ startPath }: Props) {
-    const frame = useRef<HTMLIFrameElement>(null);
+    // Two frames, one above the other. `frame` is the one that is seen and talked to. `spare`
+    // is where the page is drawn again after a change, out of sight: when it is ready the
+    // two change places, so the page is never seen to go and come back.
+    const frames = [useRef<HTMLIFrameElement>(null), useRef<HTMLIFrameElement>(null)] as const;
+    const frame = useRef<HTMLIFrameElement | null>(null);
+    const spare = useRef<HTMLIFrameElement | null>(null);
+    /** Which of the two is seen: what their classes say. */
+    const [front, setFront] = useState<0 | 1>(0);
+    useLayoutEffect(() => {
+        frame.current = frames[0].current;
+        spare.current = frames[1].current;
+    }, []);
+    /** The page being drawn again in the spare frame, until it is shown or given up on. */
+    const drawing = useRef<Redraw | null>(null);
     // Set once: the frame is sent on to other pages by show(), not by rendering a new address.
     const [firstAddress] = useState(() => editorAddress(startPath, window.location.href) ?? '/?sve=1');
 
@@ -93,6 +118,10 @@ export function Editor({ startPath }: Props) {
     const shortcuts = useRef<(shortcut: Shortcut) => void>(() => {});
     /** The page in the frame is being drawn again, not left: what is known about it holds until it is back. */
     const redrawing = useRef(false);
+    /** While it is, and until the new page has measured what is asked of it, the boxes over the page stay as they were. */
+    const [holding, setHolding] = useState(false);
+    const held = useRef<Outline[]>([]);
+    const watching = useRef('');
     /** Once the page is back, bring what is selected into view: it may be new, and anywhere. */
     const revealing = useRef(false);
 
@@ -147,10 +176,13 @@ export function Editor({ startPath }: Props) {
             }
             setOpen(next);
         } else if (said.type === 'hover') {
-            setHovered(said.target?.mark ?? null);
+            if (!redrawing.current) {
+                setHovered(said.target?.mark ?? null);
+            }
         } else if (said.type === 'select') {
-            if (applying) {
-                // A change is being saved: what is selected next is for the tree that comes back.
+            if (applying || redrawing.current) {
+                // A change is being saved, or the page drawn again after one: what is on the
+                // page is the file as it was, and its elements are not those of the tree now.
                 return;
             }
             const { file: key, id } = said.target.mark;
@@ -172,6 +204,9 @@ export function Editor({ startPath }: Props) {
             shortcuts.current(said.key);
         } else if (said.type === 'measured') {
             setMeasured(said.measured);
+            if (!redrawing.current && JSON.stringify(said.measured.watch) === watching.current) {
+                setHolding(false);
+            }
         } else if (said.type === 'leaving') {
             if (!redrawing.current) {
                 leave();
@@ -185,6 +220,7 @@ export function Editor({ startPath }: Props) {
         setPage(null);
         setHovered(null);
         setMeasured(null);
+        setHolding(false);
         // The address field shows where the frame is going, not what was being typed for the page before.
         setTyped(null);
     };
@@ -196,26 +232,112 @@ export function Editor({ startPath }: Props) {
             return;
         }
         leave();
+        // A page being drawn again for the one that is now being left is not wanted any more.
+        drawing.current?.cancel();
+        drawing.current = null;
         frame.current.src = next;
     }, []);
 
     /**
      * Draws the page in the frame again, after a template changed. The
-     * panels keep what they show until the new page says what it is.
+     * panels keep what they show until the new page says what it is, and
+     * so does the frame: the page is drawn in the spare frame, scrolled
+     * to where the old one is, and the two then change places.
      */
     const redraw = () => {
-        const inFrame = frame.current?.contentWindow;
-        if (page === null || inFrame === null || inFrame === undefined) {
+        const shown = frame.current;
+        const next = spare.current;
+        const inFrame = shown?.contentWindow;
+        if (page === null || shown === null || inFrame === null || inFrame === undefined) {
+            return;
+        }
+        let href: string;
+        let at: { left: number; top: number };
+        try {
+            href = inFrame.location.href;
+            at = { left: inFrame.scrollX, top: inFrame.scrollY };
+        } catch {
+            show(page.url);
+
             return;
         }
         redrawing.current = true;
-        try {
+        setHolding(true);
+        drawing.current?.cancel();
+        if (next === null) {
             inFrame.location.reload();
+
+            return;
+        }
+
+        const mine = startRedraw({
+            settle: SETTLE_WITHIN,
+            giveUp: REDRAWN_WITHIN,
+            later,
+            show: () => {
+                try {
+                    next.contentWindow?.scrollTo({ ...at, behavior: 'instant' });
+                } catch {
+                    // Not a page of this site: it is shown from its top.
+                }
+                // Once it has been drawn where it was scrolled to.
+                window.requestAnimationFrame(() => {
+                    if (drawing.current !== mine) {
+                        return;
+                    }
+                    drawing.current = null;
+                    const hadKeys = document.activeElement === shown;
+                    frame.current = next;
+                    spare.current = shown;
+                    setFront((which) => (which === 0 ? 1 : 0));
+                    if (hadKeys) {
+                        // The keys went to the page: they go to the page still.
+                        next.focus();
+                    }
+                    later(LET_GO_AFTER, () => {
+                        if (spare.current === shown && drawing.current === null) {
+                            shown.src = 'about:blank';
+                        }
+                    });
+                    whenLoaded.current();
+                });
+            },
+            fail: () => {
+                // Nothing came of it: draw the page again where it is, as a browser does.
+                drawing.current = null;
+                next.src = 'about:blank';
+                inFrame.location.reload();
+            },
+        });
+        drawing.current = mine;
+        next.src = href;
+    };
+    /** Something loaded in the frame that is not seen. Emptying it is a load too, and not the page awaited. */
+    const spareLoaded = (loadedFrame: HTMLIFrameElement) => {
+        let empty = false;
+        try {
+            empty = loadedFrame.contentWindow?.location.href === 'about:blank';
         } catch {
-            redrawing.current = false;
-            show(page.url);
+            // Another site's page: one all the same.
+        }
+        if (loadedFrame === spare.current && !empty) {
+            drawing.current?.heard('load');
         }
     };
+    /** What to do when a page has arrived in the frame that is seen: as things are now. */
+    const whenLoaded = useRef(() => {});
+
+    // The page being drawn again says it is ready, to this window: the bridge listens only to the frame that is seen.
+    useEffect(() => {
+        const heard = (event: MessageEvent) => {
+            if (event.origin === window.location.origin && event.source === spare.current?.contentWindow && unwrap<FromPage>(event.data)?.type === 'ready') {
+                drawing.current?.heard('ready');
+            }
+        };
+        window.addEventListener('message', heard);
+
+        return () => window.removeEventListener('message', heard);
+    }, []);
 
     /** Where the frame is now; null when that is another site, whose address can't be read from here. */
     const addressInFrame = (): string | null => {
@@ -266,6 +388,7 @@ export function Editor({ startPath }: Props) {
                 setPage(null);
                 setHovered(null);
                 setMeasured(null);
+                setHolding(false);
                 redrawing.current = false;
                 if (statusBefore.current !== null) {
                     // It was a page of the editor's before the change, and is none now.
@@ -275,6 +398,8 @@ export function Editor({ startPath }: Props) {
             }
         }, READY_WITHIN);
     };
+
+    whenLoaded.current = loaded;
 
     const go = (event: FormEvent) => {
         event.preventDefault();
@@ -594,6 +719,8 @@ export function Editor({ startPath }: Props) {
         }
     }, [page]);
 
+    watching.current = JSON.stringify(watch);
+
     const selectedNode = findNode(tree, selected);
     const outlines: Outline[] = [];
     if (page !== null && measured !== null) {
@@ -617,6 +744,10 @@ export function Editor({ startPath }: Props) {
         if (lit !== null) {
             outlines.push({ id: `lit:${lit.id}`, kind: 'hover', label: nodeTitle(lit), rects: rectsOf(litBoxes.ids) });
         }
+    }
+
+    if (!holding) {
+        held.current = outlines;
     }
 
     const layersNote =
@@ -773,8 +904,19 @@ export function Editor({ startPath }: Props) {
 
             <main className={`sve-canvas sve-canvas--${mode}`}>
                 <div className="sve-stage">
-                    <iframe ref={frame} className="sve-frame" src={firstAddress} title="Page being edited" onLoad={loaded} />
-                    <Outlines outlines={outlines} />
+                    {frames.map((one, which) => (
+                        <iframe
+                            key={which}
+                            ref={one}
+                            className={which === front ? 'sve-frame' : 'sve-spare'}
+                            src={which === 0 ? firstAddress : undefined}
+                            title={which === front ? 'Page being edited' : undefined}
+                            aria-hidden={which === front ? undefined : true}
+                            tabIndex={which === front ? undefined : -1}
+                            onLoad={(event) => (event.currentTarget === frame.current ? loaded() : spareLoaded(event.currentTarget))}
+                        />
+                    ))}
+                    <Outlines outlines={holding ? held.current : outlines} />
                     <NoticeBar notice={notice} onDismiss={() => setNotice(null)} />
                 </div>
                 {coding && template.state === 'ready' && (

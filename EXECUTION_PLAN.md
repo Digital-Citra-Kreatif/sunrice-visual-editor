@@ -405,8 +405,13 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V4.6 Refresh without losing place
 **Depends on:** V4.2
-After an edit, reload the frame's document, restore scroll and selection, and avoid a flash (swap the document when the new one is ready).
-**Done when:** editing text mid-page keeps the viewport still. **Milestone M2.**
+- **Two frames.** The stage holds two frames, one over the other. One is seen (`iframe.sve-frame`); the other (`iframe.sve-spare`) is laid out at the same size and never seen. After a change the page is asked for again in the spare frame; when it is ready it is scrolled to where the old one is, and the two change places. The page is never seen to go, to be empty, or to jump to its top. It is still one request to the server for each change.
+- **When it is ready** (`lib/redraw.ts`). The new page says `ready` once its document is read, and the frame says `load` once its images are in. It is shown at `load`, or a quarter of a second after `ready` if `load` is slow in coming (one file from another site can hold it back for long). A page that says nothing for ten seconds is given up on, and the page is drawn again where it is, as before.
+- **Meanwhile** the old page stays as it is and takes no clicks for the editor: its elements are those of the file before the change. The boxes drawn over it stay too, until the new page has measured what is selected now, so they don't blink either.
+- The keys stay with the page when they were there: a Ctrl+Z pressed on the page can be followed by another.
+- What is not kept: how far something *inside* the page was scrolled (a list or a table with its own scrollbar), and what was typed into a form on the page.
+- Going to another page (the address field, a link when browsing, a template that is on another page) is not this: the frame that is seen goes there, as before.
+**Done when:** editing text mid-page keeps the viewport still (`tests/Browser/editor.mjs`: a change to the foot of the page with the page scrolled to it, looked at on every frame the browser draws; `tests/Frontend/redraw.test.mjs` for when a page is ready). **Milestone M2.**
 
 ---
 

@@ -477,6 +477,65 @@ await step('say so when a change breaks the page where it is drawn, and undo it 
     errors.length = errorsBefore;
 });
 
+await step('keep the page where it is scrolled to, never empty and its boxes in place, while a change is drawn', async () => {
+    // A window low enough that the foot of the page has to be scrolled to.
+    await page.setViewportSize({ width: 1440, height: 520 });
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    const last = frame.locator('.site-footer p').last();
+    await last.scrollIntoViewIfNeeded();
+    await last.click();
+    await openIs('partials/footer');
+    await layerIs('p');
+    await outlineIs('selected', 'p');
+    const before = await page.evaluate(() => document.querySelector('iframe.sve-frame').contentWindow.scrollY);
+    if (before < 100) {
+        throw new Error(`The page is scrolled to ${before}: the foot of it was to be out of sight at the top`);
+    }
+    // What is seen, at every frame the browser draws from here on.
+    await page.evaluate(() => {
+        document.querySelector('iframe.sve-frame').dataset.sveLookedAt = 'yes';
+        window.sveSeen = [];
+        const look = () => {
+            const seen = document.querySelector('iframe.sve-frame');
+            window.sveSeen.push({
+                frames: document.querySelectorAll('iframe.sve-frame').length,
+                scroll: seen?.contentWindow?.scrollY ?? null,
+                elements: seen?.contentDocument?.body?.childElementCount ?? 0,
+                boxes: document.querySelectorAll('.sve-outline--selected').length,
+            });
+            window.sveLooking = window.requestAnimationFrame(look);
+        };
+        look();
+    });
+    await settings.getByLabel('Add a class').fill('sve-browser-test');
+    await settings.getByLabel('Add a class').press('Enter');
+    await layerIs('p.sve-browser-test');
+    await frame.locator('.site-footer p.sve-browser-test').waitFor();
+    await outlineIs('selected', 'p.sve-browser-test');
+    const seen = await page.evaluate(() => {
+        window.cancelAnimationFrame(window.sveLooking);
+
+        return window.sveSeen;
+    });
+    const wrong = seen.find((look) => look.frames !== 1 || look.scroll === null || Math.abs(look.scroll - before) > 1 || look.elements === 0 || look.boxes === 0);
+    if (seen.length < 3 || wrong !== undefined) {
+        throw new Error(`Looked ${seen.length} times, the page scrolled to ${before}, and saw ${JSON.stringify(wrong ?? null)}`);
+    }
+    // The new page was drawn out of sight and put in the place of the old one: a page
+    // drawn again where it is being looked at goes to its top first, however briefly.
+    if (await page.evaluate(() => document.querySelector('iframe.sve-frame').dataset.sveLookedAt === 'yes')) {
+        throw new Error('The page was drawn again in the frame that was being looked at');
+    }
+    await outlineOver('selected', '.site-footer p.sve-browser-test');
+    await idle();
+    await settings.getByLabel('Remove the class sve-browser-test').click();
+    await frame.locator('.site-footer p:not(.sve-browser-test)').last().waitFor();
+    await layerIs('p');
+    await idle();
+    await page.setViewportSize({ width: 1440, height: 860 });
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');
