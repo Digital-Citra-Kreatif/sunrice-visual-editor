@@ -60,6 +60,8 @@ export function Editor({ startPath }: Props) {
     const [waiting, setWaiting] = useState<'loading' | 'unknown' | null>('loading');
     /** Whether the page in the frame has said it is one drawn for the editor, since it was last asked. */
     const answered = useRef(false);
+    /** The wait for that answer: one at a time, for the page that loaded last. */
+    const answerWait = useRef<number | null>(null);
     /** The address of the last page that was in the frame, to know the same page drawn again from another. */
     const lastPage = useRef<string | null>(null);
     /** A template to open once the page that is on its way has arrived. */
@@ -249,9 +251,16 @@ export function Editor({ startPath }: Props) {
         }
         // Whatever was said before may have come from the page that was here a moment ago:
         // ask the one that has loaded. A page drawn for the editor answers at once.
+        // The wait for the page before this one is over. Left running, it comes due while
+        // this page is still being asked, finds no answer yet and says the page is gone:
+        // a large page, read on the thread the timer runs on, is all that takes.
+        if (answerWait.current !== null) {
+            window.clearTimeout(answerWait.current);
+        }
         answered.current = false;
         tell({ type: 'hello' });
-        window.setTimeout(() => {
+        answerWait.current = window.setTimeout(() => {
+            answerWait.current = null;
             if (!answered.current && addressInFrame() === href) {
                 setWaiting('unknown');
                 setPage(null);
