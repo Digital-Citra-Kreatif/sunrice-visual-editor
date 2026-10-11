@@ -25,21 +25,8 @@ done
 echo "$(echo "$shipped" | grep -vc '/$') files"
 
 if [ -z "${INSTALL_SKIP_CREATE:-}" ]; then
-    step "A new Laravel application"
-    rm -rf "$site"
-    composer create-project laravel/laravel "$site" --no-interaction --prefer-dist --no-ansi
-    cd "$site"
-    touch database/database.sqlite
-
-    step "Sunrice, as its own installation page says"
-    composer config repositories.sunrice-cms vcs https://github.com/littleboy130491/sunrice-cms
-    composer require sunrice/cms:dev-main --no-interaction --no-ansi
-    # The user model needs Spatie's roles; Sunrice's installer says so.
-    sed -i 's/use HasFactory, Notifiable;/use HasFactory, Notifiable, \\Spatie\\Permission\\Traits\\HasRoles;/' app/Models/User.php
-    grep -q HasRoles app/Models/User.php
-    php artisan sunrice:install --no-user --no-ansi
-    php artisan vendor:publish --tag=sunrice-templates --no-ansi
-    php artisan sunrice:demo-content 3 --no-ansi
+    step "A new Laravel application, and Sunrice as its own installation page says"
+    "$package/.github/new-site.sh" "$site"
 fi
 cd "$site"
 
