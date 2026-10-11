@@ -12,6 +12,9 @@ use Sunrice\VisualEditor\Actions\CopyPackageView;
 use Sunrice\VisualEditor\Actions\SaveTemplate;
 use Sunrice\VisualEditor\Blade\EditRejected;
 use Sunrice\VisualEditor\Blade\Operations;
+use Sunrice\VisualEditor\Blade\Template;
+use Sunrice\VisualEditor\Blade\Unsupported;
+use Sunrice\VisualEditor\Fields\Picker;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\CopyRefused;
 use Sunrice\VisualEditor\Templates\DoesNotCompile;
@@ -110,6 +113,41 @@ class TemplateController extends Controller
             $save->handle($path, $this->version($body), $source);
 
             return ['template' => $this->templates->read($path)];
+        });
+    }
+
+    /**
+     * What can be read at a place in a template: the variables there,
+     * with their fields and the Blade a click on each writes.
+     *
+     * `?version=` the version the node's id is of; `?node=` the place
+     * (none: the template as a whole); `?inside=1` for something that
+     * goes into the node, not in its place.
+     */
+    public function fields(Request $request, Picker $picker, string $path): JsonResponse
+    {
+        return $this->answer(function () use ($request, $picker, $path) {
+            $file = $this->templates->find($path);
+            $source = (string) file_get_contents($file->file);
+            $version = $request->query('version');
+            if (! is_string($version) || $version === '') {
+                throw new InvalidRequest('"version" has to be the version of the template the place is in.');
+            }
+            if (TemplateRepository::version($source) !== $version) {
+                throw new Conflict($path, TemplateRepository::version($source));
+            }
+            try {
+                $template = Template::open($source);
+            } catch (Unsupported $e) {
+                throw new EditRejected('This template can only be edited as code: '.lcfirst($e->getMessage()).'.');
+            }
+            $id = $request->query('node');
+            $node = is_string($id) && $id !== '' ? $template->find($id) : null;
+            if (is_string($id) && $id !== '' && $node === null) {
+                throw new InvalidRequest('The template has no node "'.$id.'".');
+            }
+
+            return ['version' => $version, 'variables' => $picker->at($file, $template, $node, $request->boolean('inside'))];
         });
     }
 

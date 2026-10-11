@@ -972,6 +972,162 @@ textarea.sve-input {
     margin-block-start: 0.5rem;
 }
 
+/* --- The field picker: the CMS's fields and variables at a place ------------- */
+
+.sve-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sve-pick__variable + .sve-pick__variable {
+    margin-block-start: 0.375rem;
+}
+
+.sve-pick__row {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.sve-pick__opener {
+    flex: none;
+    width: 1.125rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--radius) - 4px);
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    font-size: 0.6875rem;
+    cursor: pointer;
+}
+
+span.sve-pick__opener {
+    cursor: default;
+}
+
+.sve-pick__pick {
+    flex: 1;
+    padding-inline: 0.25rem;
+}
+
+.sve-pick__pick--variable .sve-insertable__title {
+    font: 500 0.75rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sve-pick__about {
+    margin: 0 0 0.125rem;
+    padding-inline-start: 1.375rem;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+}
+
+.sve-pick__heading {
+    margin: 0.375rem 0 0.125rem;
+    color: var(--muted-foreground);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.sve-pick__note {
+    flex: none;
+    padding: 0 0.3125rem;
+    border-radius: 999px;
+    background: var(--muted);
+    color: var(--muted-foreground);
+    font-size: 0.625rem;
+    white-space: nowrap;
+}
+
+/* The other ways of inserting a value: there when its row is pointed at or it has the keyboard. */
+.sve-pick__row:not(:hover) .sve-pick__as:not(:focus) {
+    opacity: 0;
+}
+
+.sve-pick__as {
+    flex: none;
+    width: 3.25rem;
+    height: 1.375rem;
+    padding: 0 0.125rem;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 4px);
+    background: var(--card);
+    color: var(--muted-foreground);
+    font: inherit;
+    font-size: 0.6875rem;
+}
+
+/* "Use a field…" under a control of the Settings panel, and what a value is bound to. */
+.sve-bind {
+    margin-block-start: 0.25rem;
+}
+
+.sve-bind__open {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    font-size: 0.6875rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.sve-bind__open:hover:not(:disabled) {
+    color: var(--foreground);
+}
+
+.sve-bind__open:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.sve-bind__list {
+    display: grid;
+    gap: 0.25rem;
+    max-height: 14rem;
+    margin-block-start: 0.25rem;
+    padding: 0.375rem;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--card);
+}
+
+.sve-bound {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0 0 0.25rem;
+    min-width: 0;
+}
+
+.sve-chip--field {
+    padding-inline: 0.4375rem;
+    border-color: transparent;
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    font-family: inherit;
+}
+
+.sve-bound__what {
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+}
+
+.sve-attribute__field {
+    grid-column: 1 / -1;
+}
+
+.sve-attribute__field .sve-bind {
+    margin-block-start: 0;
+}
+
+.sve-pick__opener:focus-visible,
+.sve-pick__as:focus-visible,
+.sve-bind__open:focus-visible,
 .sve-places__place:focus-visible,
 .sve-insertable:focus-visible,
 .sve-paste > summary:focus-visible {

@@ -1,14 +1,18 @@
 import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from 'react';
-import type { Operation, TemplateData, TreeNode } from '../lib/api';
+import type { Operation, PickField, PickVariable, TemplateData, TreeNode } from '../lib/api';
+import { binding, boundTo, echoed } from '../lib/fields';
 import { WRAPPERS, type Action } from '../lib/move';
 import { argumentsOf, attribute, attributesOf, classesOf, headOf, joinInclude, joinLoop, sourceOf, splitInclude, splitLoop } from '../lib/settings';
 import { kindOf } from '../lib/tree';
+import { FieldChooser } from './FieldsPanel';
 import { nodeTitle } from './LayersPanel';
 import { Panel } from './Panel';
 
 type Props = {
     template: TemplateData;
     node: TreeNode;
+    /** What can be read at the node: the CMS's fields and variables. Null until it is known. */
+    fields: PickVariable[] | null;
     /** A change is on its way to the server: nothing else can be sent until it is back. */
     busy: boolean;
     /** Why nothing can be changed right now, when that is so. */
@@ -54,10 +58,17 @@ const KINDS: Record<ReturnType<typeof kindOf>, string> = {
  * operation when it is left or Enter is pressed; the file is saved, the
  * page drawn again, and the node stays selected.
  */
-export function SettingsPanel({ template, node, busy, locked, refusals, can, onApply, onAct, onDeselect }: Props) {
+export function SettingsPanel({ template, node, fields, busy, locked, refusals, can, onApply, onAct, onDeselect }: Props) {
     const kind = kindOf(node);
     const off = busy || locked !== null || !template.editable;
     const send: Send = (operation, to = node) => onApply([{ ...operation, node: to.id } as Operation]);
+    /** Fills a control from a field: the text, what an echo prints, or an attribute's value. */
+    const bind = (to: PickVariable | PickField, attribute: string | null = null) => {
+        const operations = binding(node, to, attribute);
+        if (operations.length > 0) {
+            onApply(operations);
+        }
+    };
 
     return (
         <Panel title="Settings" grow>
@@ -96,11 +107,14 @@ export function SettingsPanel({ template, node, busy, locked, refusals, can, onA
 
             {/* A new node, a new version of this one, or a change that was refused starts every control afresh. */}
             <div className="sve-settings" key={`${template.version}:${node.id}:${refusals}`}>
-                {node.can.attributes && <ElementSettings node={node} off={off} send={send} onApply={onApply} />}
+                {node.can.attributes && <ElementSettings node={node} fields={fields} off={off} send={send} bind={bind} onApply={onApply} />}
                 {node.type === 'text' && (
-                    <Field label="Text" value={typeof node.text === 'string' ? node.text : ''} multiline disabled={off} onCommit={(text) => send({ type: 'setText', text })} hint="Typed as text: markup or Blade here is shown, not run." />
+                    <>
+                        <Field label="Text" value={typeof node.text === 'string' ? node.text : ''} multiline disabled={off} onCommit={(text) => send({ type: 'setText', text })} hint="Typed as text: markup or Blade here is shown, not run." />
+                        <FieldChooser variables={fields} control="the text" disabled={off} onChoose={(to) => bind(to)} />
+                    </>
                 )}
-                {(kind === 'field' || kind === 'label' || kind === 'expression') && <EchoSettings node={node} off={off} send={send} />}
+                {(kind === 'field' || kind === 'label' || kind === 'expression') && <EchoSettings node={node} fields={fields} off={off} send={send} bind={bind} />}
                 {(node.type === 'block' || node.type === 'branch') && <BlockSettings node={node} off={off} send={send} />}
                 {node.type === 'atom' && node.atom === 'directive' && node.kind !== 'code' && typeof node.stray !== 'string' && <DirectiveSettings node={node} off={off} send={send} />}
 
@@ -115,7 +129,23 @@ type Change = Operation extends infer Each ? (Each extends Operation ? Omit<Each
 
 type Send = (operation: Change, to?: TreeNode) => void;
 
-function ElementSettings({ node, off, send, onApply }: { node: TreeNode; off: boolean; send: Send; onApply(operations: Operation[]): void }) {
+type Bind = (to: PickVariable | PickField, attribute?: string | null) => void;
+
+/** Says which of the CMS's fields a value is, when it is one: "$entry › Title". */
+function Bound({ fields, expression }: { fields: PickVariable[] | null; expression: string | null }) {
+    const found = boundTo(fields, expression);
+
+    return found === null ? null : (
+        <p className="sve-bound">
+            <span className="sve-chip sve-chip--field" title={found.value.code}>
+                {found.trail.join(' › ')}
+            </span>
+            <span className="sve-bound__what">{found.value.what}</span>
+        </p>
+    );
+}
+
+function ElementSettings({ node, fields, off, send, bind, onApply }: { node: TreeNode; fields: PickVariable[] | null; off: boolean; send: Send; bind: Bind; onApply(operations: Operation[]): void }) {
     const classes = classesOf(node);
     const id = attribute(node, 'id');
     const others = attributesOf(node).filter((each) => each.code || !(each.name === 'class' && classes !== null) && !(each.name === 'id' && !each.dynamic));
@@ -179,6 +209,10 @@ function ElementSettings({ node, off, send, onApply }: { node: TreeNode; off: bo
                             <button type="button" className="sve-attribute__remove" disabled={off} onClick={() => send({ type: 'removeAttribute', name: each.name })} aria-label={`Remove the attribute ${each.name}`} title="Remove">
                                 ×
                             </button>
+                            <div className="sve-attribute__field">
+                                <Bound fields={fields} expression={echoed(each.value)} />
+                                <FieldChooser variables={fields} control={each.name} disabled={off} onChoose={(to) => bind(to, each.name)} />
+                            </div>
                         </div>
                     ),
                 )}
@@ -202,13 +236,16 @@ function ElementSettings({ node, off, send, onApply }: { node: TreeNode; off: bo
     );
 }
 
-function EchoSettings({ node, off, send }: { node: TreeNode; off: boolean; send: Send }) {
+function EchoSettings({ node, fields, off, send, bind }: { node: TreeNode; fields: PickVariable[] | null; off: boolean; send: Send; bind: Bind }) {
     const raw = node.atom === 'raw_echo';
     const hint = useId();
+    const expression = typeof node.expression === 'string' ? node.expression : '';
 
     return (
         <>
-            <Field label="Prints" value={typeof node.expression === 'string' ? node.expression : ''} mono multiline disabled={off} onCommit={(expression) => send({ type: 'setExpression', expression })} hint="One PHP expression, such as $entry->title." />
+            <Bound fields={fields} expression={expression} />
+            <Field label="Prints" value={expression} mono multiline disabled={off} onCommit={(typed) => send({ type: 'setExpression', expression: typed })} hint="One PHP expression, such as $entry->title." />
+            <FieldChooser variables={fields} control="what it prints" disabled={off} onChoose={(to) => bind(to)} />
             <div className="sve-field">
                 <label className="sve-check">
                     <input type="checkbox" checked={raw} disabled={off} aria-describedby={`${hint}-hint`} onChange={(event) => send({ type: 'setEchoRaw', raw: event.target.checked })} />

@@ -304,13 +304,18 @@ await step('refuse pasted HTML that leaves a tag open, and keep it to be put rig
     }
 });
 
-await step('put the hero back', async () => {
+/** Writes the hero's file, as a code editor would. */
+const writeHero = async (source) => {
     const token = decodeURIComponent((await page.context().cookies()).find((cookie) => cookie.name === 'XSRF-TOKEN')?.value ?? '');
     const now = (await (await page.request.get(heroApi)).json()).template;
-    const put = await page.request.put(`${heroApi}/source`, { data: { version: now.version, source: hero.source }, headers: { Accept: 'application/json', 'X-XSRF-TOKEN': token } });
+    const put = await page.request.put(`${heroApi}/source`, { data: { version: now.version, source }, headers: { Accept: 'application/json', 'X-XSRF-TOKEN': token } });
     if (put.status() !== 200) {
-        throw new Error(`Putting the hero back answered ${put.status()}`);
+        throw new Error(`Writing the hero answered ${put.status()}`);
     }
+};
+
+await step('put the hero back', async () => {
+    await writeHero(hero.source);
     await inserting.getByRole('button', { name: 'Done' }).click();
     await page.getByRole('region', { name: 'Templates on this page' }).waitFor();
 });
@@ -534,6 +539,108 @@ await step('keep the page where it is scrolled to, never empty and its boxes in 
     await layerIs('p');
     await idle();
     await page.setViewportSize({ width: 1440, height: 860 });
+});
+
+// --- Fields --------------------------------------------------------------------------
+
+const picking = (label) => inserting.locator('.sve-pick__pick').filter({ has: page.locator('.sve-insertable__title', { hasText: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) }) });
+const tab = (name) => inserting.getByRole('group', { name: 'What to insert' }).getByRole('button', { name, exact: true });
+/** Fills the selected node's control from a field of the list under it. */
+const useField = async (control, field) => {
+    await idle();
+    await settings.getByRole('button', { name: `Use a field for ${control}` }).click();
+    await settings.getByRole('group', { name: `Fields for ${control}` }).locator('.sve-insertable').filter({ has: page.locator('.sve-insertable__title', { hasText: new RegExp(`^${field.replace(/[$]/g, '\\$&')}$`) }) }).click();
+};
+
+await step('build the hero from an empty file with clicks alone: elements, then the block\'s fields', async () => {
+    await writeHero('');
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    // An empty template draws nothing to click on: it is opened from the list of all templates.
+    await page.locator('.sve-side--left .sve-template', { hasText: 'blocks/hero' }).first().click();
+    await openIs('blocks/hero');
+    await page.locator('.sve-bar').getByRole('button', { name: 'Insert' }).click();
+
+    await insertable('Section').click();
+    await layerIs('section');
+    await idle();
+    await insertable('Heading').click();
+    await layerIs('h2');
+    // The heading's words become the block's heading.
+    await idle();
+    await layerRow('“Heading”').locator('.sve-layer__pick').click();
+    await useField('the text', '$block › Heading');
+    await layerIs('$block->heading');
+    await frame.locator('section > h2', { hasText: 'Templates you can see' }).waitFor();
+
+    // A paragraph after it, for the subheading.
+    await idle();
+    await layerRow('h2').locator('.sve-layer__pick').click();
+    await insertable('Paragraph').click();
+    await layerIs('p');
+    await idle();
+    await layerRow('“Text”').locator('.sve-layer__pick').click();
+    await useField('the text', '$block › Subheading');
+    await layerIs('$block->subheading');
+    await frame.locator('section > p', { hasText: 'This page is drawn by a layout' }).waitFor();
+
+    // The button, a link field, from the list of fields: a click writes the whole link.
+    await idle();
+    await layerRow('p').locator('.sve-layer__pick').click();
+    await tab('Fields').click();
+    await picking('Button').click();
+    await frame.locator('section > a[href="https://example.com/docs"]', { hasText: 'Read the docs' }).waitFor();
+
+    await heroIs([
+        '<section>',
+        '    <h2>{{ $block->heading }}</h2>',
+        '    <p>{{ $block->subheading }}</p>',
+        "    @if (($button = $block->button) && ! empty($button['url']))",
+        "        <a href=\"{{ $button['url'] }}\" @if (! empty($button['new_tab'])) target=\"_blank\" rel=\"noopener\" @endif>{{ $button['label'] ?: $button['url'] }}</a>",
+        '    @endif',
+        '</section>',
+    ].join('\n'));
+});
+
+await step('say which field a value is, and give an attribute a field\'s value', async () => {
+    await layerRow('$block->heading').locator('.sve-layer__pick').click();
+    await settings.locator('.sve-chip--field', { hasText: /^\$block › Heading$/ }).waitFor();
+
+    await layerRow('section').locator('.sve-layer__pick').click();
+    await idle();
+    await settings.getByLabel('Name of a new attribute').fill('title');
+    await settings.getByLabel('Value of the new attribute').fill('a title');
+    await settings.getByRole('button', { name: 'Add', exact: true }).click();
+    await frame.locator('section[title="a title"]').waitFor();
+    await useField('title', '$block › Heading');
+    await frame.locator('section[title="Templates you can see"]').waitFor();
+    await idle();
+    await settings.locator('.sve-attribute__field .sve-chip--field', { hasText: /^\$block › Heading$/ }).waitFor();
+});
+
+await step('find a menu by typing, insert it, and have its item to pick from inside its loop', async () => {
+    await layerRow('p').locator('.sve-layer__pick').click();
+    await idle();
+    await inserting.getByLabel('Find a field or a variable').fill('main menu');
+    await picking('Main menu').click();
+    await frame.locator('section > ul a', { hasText: 'Articles' }).waitFor();
+    await inserting.getByLabel('Find a field or a variable').fill('');
+    // Where the menu's loop stands there is no $item; inside it there is.
+    await idle();
+    const listed = () => inserting.locator('.sve-pick__list[aria-busy="false"]').waitFor();
+    await layerRow('li').locator('.sve-layer__pick').click();
+    await picking('$item').waitFor();
+    await picking('Label').waitFor();
+    await layerRow('ul').locator('.sve-layer__pick').click();
+    await page.waitForFunction(() => document.querySelector('.sve-insert__where code')?.textContent === 'ul');
+    await listed();
+    await picking('$block').waitFor();
+    if ((await picking('$item').count()) !== 0) {
+        throw new Error('The item of the loop is offered where the loop stands');
+    }
+    await writeHero(hero.source);
+    await inserting.getByRole('button', { name: 'Done' }).click();
+    await page.getByRole('region', { name: 'Templates on this page' }).waitFor();
 });
 
 // --- The code panel --------------------------------------------------------------

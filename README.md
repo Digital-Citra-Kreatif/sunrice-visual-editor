@@ -47,8 +47,21 @@ The first two milestones of three.
 - The page keeps its place after a change: it is drawn again out of sight and
   put in the place of the old one, scrolled to where that was.
 
-The third milestone is the field picker: choosing the CMS's fields and
-variables from a list in place of typing them.
+Under way, the third milestone: **the CMS's fields and variables, picked from
+a list in place of typed.**
+
+- **Insert → Fields** lists what can be read where the next thing goes: the
+  entry of the page with the fields of its collection, a block's fields, the
+  item of a loop, what a partial is passed, global sets and menus.
+- A click writes the Blade that suits the value: a text printed, rich text
+  printed as HTML, an image as an `<img>`, a link as an `<a>`, a list as a
+  loop, a yes-or-no as a condition. All of it draws without an error when the
+  field is empty, or is not there at all.
+- **Use a field…** under a text, an echo or an attribute in Settings fills it
+  from a field, and a value that is a field says which.
+
+Still to come in it: building a condition or a query for entries without
+typing.
 
 ## Using it
 

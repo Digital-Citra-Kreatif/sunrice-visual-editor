@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, copyToSite, listInserts, listTemplates, readTemplate, saveSource, type Insertable, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
+import { ApiError, applyOperations, copyToSite, listFields, listInserts, listTemplates, readTemplate, saveSource, type Insertable, type Operation, type PickVariable, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { pageOf, rememberPage } from './lib/memory';
@@ -12,7 +12,7 @@ import { isAdminPath, sitePath } from './lib/path';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { boxesOf, findNode, rowFor } from './lib/tree';
 import { CodePanel } from './panels/CodePanel';
-import { InsertPanel } from './panels/InsertPanel';
+import { InsertPanel, type InsertTab } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Side } from './panels/Panel';
 import { SettingsPanel } from './panels/SettingsPanel';
@@ -127,6 +127,7 @@ export function Editor({ startPath }: Props) {
 
     /** The left side lists what can be inserted, in place of the page's templates. */
     const [inserting, setInserting] = useState(false);
+    const [insertTab, setInsertTab] = useState<InsertTab>('library');
     const [inserts, setInserts] = useState<Loaded<Insertable[]>>({ state: 'idle' });
 
     /** The selected node of the open template, by its id in the tree. */
@@ -678,6 +679,24 @@ export function Editor({ startPath }: Props) {
         };
     }, [inserting]);
 
+    // What can be read at the selected node, for the Settings panel to fill a control from and to
+    // say which field a value is. Asked for each node selected; what is known of the last holds meanwhile.
+    const fieldsFor = template.state === 'ready' && template.data.editable && tree !== null && selected !== null && findNode(tree, selected) !== null ? `${template.data.path}\n${template.data.version}\n${selected}` : null;
+    const [fieldsHere, setFieldsHere] = useState<{ asked: string; variables: PickVariable[] } | null>(null);
+    useEffect(() => {
+        if (fieldsFor === null || template.state !== 'ready' || selected === null) {
+            return;
+        }
+        let stale = false;
+        listFields(template.data.path, template.data.version, selected, false)
+            .then((variables) => !stale && setFieldsHere({ asked: fieldsFor, variables }))
+            .catch(() => undefined);
+
+        return () => {
+            stale = true;
+        };
+    }, [fieldsFor]);
+
     // --- What is shown on the page -------------------------------------------------
 
     /** The node under the pointer: a row of the layers, or an element of the open template on the page. */
@@ -866,6 +885,9 @@ export function Editor({ startPath }: Props) {
             <Side side="left">
                 {inserting ? (
                     <InsertPanel
+                        template={template.state === 'ready' ? template.data : null}
+                        tab={insertTab}
+                        onTab={setInsertTab}
                         inserts={inserts.state === 'ready' ? inserts.data : null}
                         failed={inserts.state === 'failed' ? inserts.error : null}
                         tree={tree}
@@ -940,6 +962,7 @@ export function Editor({ startPath }: Props) {
                     <SettingsPanel
                         template={template.data}
                         node={selectedNode}
+                        fields={fieldsHere !== null && fieldsHere.asked === fieldsFor ? fieldsHere.variables : null}
                         busy={applying}
                         refusals={refusals}
                         locked={unsaved ? codeUnsaved : null}

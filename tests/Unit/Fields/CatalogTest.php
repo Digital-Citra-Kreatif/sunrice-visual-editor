@@ -126,7 +126,7 @@ it('lists what terms, blocks, globals, files, links, dates and menu items have',
     $handles = fn (Shape $shape) => array_map(fn (Members $members) => array_map(fn (Field $field) => $field->handle, $members->fields), $this->catalog->members($shape));
 
     expect($handles(Shape::term(['topics'])))->toBe([['name', 'url', 'slug', 'parent', 'children'], ['description']])
-        ->and($handles(Shape::block(['hero'])))->toBe([['type', 'key', 'id'], ['heading', 'subheading', 'button']])
+        ->and($handles(Shape::block(['hero'])))->toBe([['heading', 'subheading', 'button'], ['type', 'key', 'id']])
         ->and($handles(Shape::globals('site')))->toBe([['name']])
         ->and($handles(Shape::of(Shape::ASSET)))->toBe([['url:large', 'url:medium', 'url:thumbnail', 'url', 'alt', 'title', 'caption', 'width', 'height']])
         ->and($handles(Shape::of(Shape::LINK)))->toBe([['url', 'label', 'new_tab']])

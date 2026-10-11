@@ -24,5 +24,6 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
     Route::post('templates/{path}/operations', [TemplateController::class, 'operations'])->where('path', $path)->name('templates.operations');
     Route::put('templates/{path}/source', [TemplateController::class, 'source'])->where('path', $path)->name('templates.source');
     Route::post('templates/{path}/copy', [TemplateController::class, 'copy'])->where('path', $path)->name('templates.copy');
+    Route::get('templates/{path}/fields', [TemplateController::class, 'fields'])->where('path', $path)->name('templates.fields');
     Route::get('templates/{path}', [TemplateController::class, 'show'])->where('path', $path)->name('templates.show');
 });

@@ -51,11 +51,12 @@ final class Catalog
         return match ($shape->kind) {
             Shape::ENTRY => [new Members('Every entry', $this->ofEveryEntry()), ...$this->blueprints('collection', $shape->of)],
             Shape::TERM => [new Members('Every term', $this->ofEveryTerm($shape->of)), ...$this->blueprints('taxonomy', $shape->of)],
-            Shape::BLOCK => [new Members('Every block', [
+            // A block's own fields first: its type, key and id are seldom what is wanted.
+            Shape::BLOCK => [...$this->blueprints('fieldset', $shape->of), new Members('Every block', [
                 $this->builtIn('type', 'Block type', Shape::of(Shape::TEXT), '%s->type'),
                 $this->builtIn('key', 'Key', Shape::of(Shape::TEXT), '%s->key'),
                 $this->builtIn('id', 'ID', Shape::of(Shape::TEXT), '%s->id'),
-            ]), ...$this->blueprints('fieldset', $shape->of)],
+            ])],
             Shape::GLOBALS => $this->blueprints('global', $shape->of),
             Shape::COLLECTION => [new Members('Collection', [
                 $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->titleIn($locale)'),
