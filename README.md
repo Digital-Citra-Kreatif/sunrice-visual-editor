@@ -14,7 +14,9 @@ What the package will do is in [SPEC.md](SPEC.md); the order of work is in
 
 ## What works today
 
-The first milestone of three: **see a page's templates, click through them, edit them as code.**
+The first two milestones of three.
+
+**See a page's templates, click through them, edit them as code.**
 
 - Open any page of the site in the editor. The left panel lists the Blade
   files that draw it: layout, the page's own template, partials, blocks,
@@ -31,14 +33,22 @@ The first milestone of three: **see a page's templates, click through them, edit
   get a copy the site uses and you can edit.
 - Saves appear in the admin's activity log.
 
-Under way, the second milestone: changing a template without touching code.
-The **Layers** panel (the open template as a tree, selected from either the
-tree or the page), the **Settings** panel (tag, id, classes, attributes, text,
-what an echo prints, a condition, a loop, an include), **Insert** (elements,
-Blade structures, Sunrice's components, the site's partials, pasted HTML) and
-moving, duplicating, wrapping and deleting (by dragging a layer, by button or
-by key) are in, with undo and redo for all of it. A page that keeps its place
-after a change is not yet. The field picker is the third milestone.
+**Change a template without touching code.**
+
+- **Layers**: the open template as a tree. Select a node there or by clicking
+  it on the page.
+- **Settings**, for what is selected: tag, id, classes, attributes, text, what
+  an echo prints, a condition, a loop, an include.
+- **Insert**: elements, Blade structures, Sunrice's components, the site's
+  partials, pasted HTML.
+- Move, duplicate, wrap, unwrap and delete, by dragging a layer, by button or
+  by key.
+- **Undo** and **Redo** for all of it, for as long as the editor is open.
+- The page keeps its place after a change: it is drawn again out of sight and
+  put in the place of the old one, scrolled to where that was.
+
+The third milestone is the field picker: choosing the CMS's fields and
+variables from a list in place of typing them.
 
 ## Using it
 
@@ -176,14 +186,10 @@ To look at the site the tests use, with the admin at `/cms` (sign in as
 composer serve     # builds the workbench (assets, templates, database, demo content) and serves it
 ```
 
-Where Packagist isn't reachable, the round-trip report still runs from source
-checkouts, which `spike/bootstrap.php` loads when there is no `vendor/`:
-
-```bash
-git clone --depth 1 --branch v2.1.0 https://github.com/Stillat/blade-parser ../deps/blade-parser
-git clone --depth 1 --branch 13.x https://github.com/laravel/framework ../deps/framework
-php spike/run.php --check    # or SPIKE_DEPS=/path/to/deps php spike/run.php --check
-```
+Where Packagist and npm can't be reached but GitHub can, everything above
+still runs: the `ci/lock` branch of this repository holds a `composer.lock`
+that CI resolved, and a script that fetches each locked package from GitHub
+and installs `vendor/` from the copies. Its README says how.
 
 ## Layout
 

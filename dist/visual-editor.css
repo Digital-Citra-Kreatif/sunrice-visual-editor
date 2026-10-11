@@ -1004,11 +1004,21 @@ textarea.sve-input {
     background: #fff;
 }
 
-.sve-frame {
+.sve-frame,
+.sve-spare {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
     height: 100%;
     border: 0;
+}
+
+/* Where the page is drawn again after a change: laid out and painted at the
+   same size as the one above it, never seen and never in the pointer's way. */
+.sve-spare {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .sve-outlines {

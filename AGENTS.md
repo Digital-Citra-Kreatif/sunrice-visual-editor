@@ -40,3 +40,5 @@ BASE_URL=http://127.0.0.1:8000 npm run test:browser   # needs `composer serve` r
 ```
 
 CI rebuilds `dist/` on every pull request and commits it to the branch: pull before pushing again.
+
+Where Packagist and npm can't be reached but GitHub can, all of these still run locally, the browser check included: see the README of the `ci/lock` branch. Do that first; don't work from CI's answers alone.
