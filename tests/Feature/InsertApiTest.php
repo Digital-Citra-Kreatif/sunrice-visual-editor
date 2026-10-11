@@ -86,15 +86,31 @@ it('draws a page with each thing inserted into its template', function () {
         }
         File::put($file, $original);
 
-        postJson('/cms/visual-editor/api/templates/'.$path.'/operations', [
+        $response = postJson('/cms/visual-editor/api/templates/'.$path.'/operations', [
             'version' => sha1($original),
             'operations' => [['type' => 'append', 'node' => $article->id(), 'blade' => $insert['blade']]],
-        ])->assertOk();
+        ]);
+        if ($insert['id'] === 'blade.php') {
+            // This template has a @php(…) further up. Blade would take that for the start of the new block and
+            // show the code between the two as text: the block is refused here, with the reason.
+            $response->assertStatus(422)->assertJsonPath('reason', 'rejected');
+            expect($response->json('message'))->toContain('@php(…) above');
+
+            continue;
+        }
+        $response->assertOk();
 
         $response = get('/about');
         expect($response->getStatusCode())->toBe(200, $insert['id'].': '.substr(strip_tags((string) $response->getContent()), 0, 400));
         $drawn[$insert['id']] = (string) $response->getContent();
     }
+    // Where no @php(…) stands before it, a block of PHP goes in like the rest.
+    File::put($file, "<article>\n    <h1>{{ \$entry->title }}</h1>\n</article>\n");
+    postJson('/cms/visual-editor/api/templates/'.$path.'/operations', [
+        'version' => sha1(File::get($file)),
+        'operations' => [['type' => 'append', 'node' => Template::open(File::get($file))->elements()[0]->id(), 'blade' => "@php\n@endphp"]],
+    ])->assertOk();
+    get('/about')->assertOk();
     File::put($file, $original);
 
     expect(count($drawn))->toBeGreaterThan(45)

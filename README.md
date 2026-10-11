@@ -121,7 +121,10 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
   the end of a `@media` block that is there, else in a new block at the end
   of the file.
 
-Not there yet: permissions of its own, and tools for AI agents.
+**Permissions of its own**: who may open the editor, who may change things,
+who may write code (see *Who can use it* below).
+
+Not there yet: tools for AI agents.
 A site that builds its CSS (Vite, Tailwind) is styled by its classes: the
 editor changes CSS files, not what a build makes of them.
 
@@ -141,7 +144,24 @@ and off otherwise. `SUNRICE_VISUAL_EDITOR=true` turns it on elsewhere, such as
 a staging copy; `false` turns it off locally. When it is off, the package adds
 no routes and changes nothing about how pages render.
 
-**Who can use it.** Super Admins, for now. Permissions of its own come later.
+**Who can use it.** Three permissions, given to roles in Sunrice's admin
+(Users → Roles, under *Visual editor*). Each includes the ones before it;
+Super Admins have all three.
+
+| Permission | Lets someone |
+| --- | --- |
+| `visual-editor.open` | look: the page, its templates, their layers, their styles |
+| `visual-editor.edit` | change templates and stylesheets without writing code: elements, text, classes, fields from the lists, conditions and loops built from choices, CSS |
+| `visual-editor.code` | write code: the code panel, and Blade or PHP typed anywhere |
+
+Someone with `edit` and not `code` can't make a template run PHP it did not
+run before, whatever they send: every change is compiled by Laravel's own
+Blade compiler before it is saved, and refused if the result holds a piece of
+PHP that was not there and that the editor did not write itself. They can
+rearrange, copy and remove code that is already there, and add any HTML,
+scripts included: `edit` is for people you would let change the site's
+markup. Run `php artisan sunrice:sync-permissions` after installing, so the
+three exist.
 
 **Opening it.** *Visual editor* in the admin's sidebar, under Manage, or
 directly:

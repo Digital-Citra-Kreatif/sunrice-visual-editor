@@ -593,8 +593,23 @@ The page at several widths side by side; a style set at a width is written under
 
 ### V7.1 Permissions
 **Depends on:** M3
-Register `visual-editor.open`, `visual-editor.edit` and `visual-editor.code` with `Sunrice::registerPermission()`; `Access` checks them; without `code`, code nodes, expressions typed by hand, the code panel and Paste HTML are unavailable and the API refuses those operations.
-**Done when:** a role with `edit` but not `code` cannot get PHP into a template by any API route (tested per operation).
+**Status:** done.
+
+Three permissions, registered with `Sunrice::registerPermission()` under "Visual editor": `visual-editor.open`, `.edit`, `.code`. Each includes the ones before it (`Support\Access::may()`); Super Admins pass through Sunrice's own gate.
+
+- **Routes.** Reading takes `open`; everything that writes a file takes `edit` (`EditorAccess::class.':edit'`). The editor's page gets `can: {edit, code}` and offers no more than that: without `edit` everything is there to look at; without `code` the code panel shows and does not take typing, "As code" is gone, and controls that are typed code (what an echo prints, a condition, a loop's source, an include, an attribute written in Blade) are shown and not changed, with the lists beside them still to choose from.
+- **The line between `edit` and `code`** is drawn on the server, by `Guard\CodeGuard`, for operations and for whole texts alike: *the template runs no PHP afterwards that it did not run before, except code the editor writes itself.* Two checks, the second not relying on the first:
+  1. **What may be new.** Each operation is looked at for the code it brings. It counts only when it is exactly what the editor offers at that place: an insert from the picker (`Picker::at()` for that node) or from the Insert library; an expression the picker lists, or a text written out; an attribute bound to such an expression; a condition `condition()` in `lib/builders.ts` builds about a value at the place, compared with a plain value (`Guard\Literal`); a loop over a list at the place under a plain name; one of the four wrappers; for Sunrice's own components, plain values. What was typed counts for nothing.
+  2. **What is new.** `Guard\Compiled::islands()` compiles the template before and after with the application's Blade compiler and reads the result with PHP's tokenizer: each run of code between `<?php` and `?>` is a piece. Every piece after the change has to be one from before, or one that compiling what (1) counted gives. This is the check that holds whatever (1) or the rest of the package gets wrong: PHP that the compiler would not produce is not PHP the page runs.
+- Blade reads a template's text before PHP does, and takes a PHP tag, an echo or `@php` for its own wherever it stands, inside a quoted text too. So a "plain value" has none of `<?`, `?>`, `@`, `{{`, `}}`, `{!!`, `!!}` in it, nothing counted in (1) may hold `<?`, and a condition or loop that compiles to more than one piece of PHP is not counted.
+- **Whole texts** (`PUT …/source`) from someone without `code`: taken when they run nothing new (static edits, and code rearranged), or when the template was exactly that text within the last twelve hours (`Templates\Backups::had()`): their undo and redo.
+- **For everyone:** `Syntax::brokenBy()` now refuses a change that makes Blade pair a `@php(…)` with an `@endphp` further down. Blade compiles that to PHP that parses, runs none of the code between the two and prints it on the page. Found while testing the guard; the Insert library's "PHP" block did it in any template with a `@php(…)` above.
+- The Insert library leaves the "PHP" block out for those without `code`.
+- **A fault in Sunrice worked around.** `SyncPermissions` creates a package's permission again on every sync after the first and fails ([sunrice-cms#39](https://github.com/littleboy130491/sunrice-cms/pull/39) mends it). Until that is released, `Support\RegisteredPermissions` is the registry the sync is handed: the same, less the packages' permissions that exist. It is the one file besides `SunriceBridge` that touches Sunrice's internals.
+
+**Tests:** `tests/Feature/CodePermissionTest.php`, 226 tests: who may what; fifteen pieces of code against each operation that could carry one (inserted, as text, as an attribute, as a name, as an expression, a condition, a loop, a node rewritten, a wrapper, a whole text, a component's attribute): none runs, and each is refused or written as text; texts Blade would make something of inside a quoted value; and the other side: everything the Insert library and the picker offer goes through (every insert of every value at two places, every expression, conditions of every kind for every value, loops, wrappers, the Entries controls), and undo and redo. `tests/Unit/Guard/CompiledTest.php`: what compiles to which pieces; what is a plain value. Three steps of the browser check as a seeded *Designer* (`designer@example.com`).
+
+**Not in this task:** what `edit` allows is not narrowed further (no "may not add scripts"); permissions are per person, not per template.
 
 ### V7.2 MCP tools
 **Depends on:** V2.3, C3

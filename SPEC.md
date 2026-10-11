@@ -26,7 +26,7 @@ Today a developer writes the templates in a code editor while fields and content
 
 - The editor writes files that run PHP on the server, and those files live in the project's git repository. It is therefore a development tool: it is meant for a local or staging copy of the site, followed by a commit and a deploy.
 - `sunrice-visual-editor.enabled` turns it on. The default is on when `APP_ENV` is `local` and off otherwise; `SUNRICE_VISUAL_EDITOR=true` turns it on elsewhere.
-- In the first releases only Super Admins can open it. Its own permissions come later (see Permissions).
+- Who may open it, change things in it and write code in it is decided by its own permissions (see Permissions).
 - When it is off, the package registers no routes and changes nothing about how pages render.
 
 ### Files it reads and writes
@@ -118,8 +118,10 @@ Today a developer writes the templates in a code editor while fields and content
 
 ### Permissions
 
-- First releases: Super Admins only, and only while the package is enabled.
-- Later: permissions of its own, registered with Sunrice and assignable in the role editor: open the editor, edit visually, edit code. Code editing stays the highest, since it writes PHP.
+- Three permissions, registered with Sunrice and given to roles in its role editor: `visual-editor.open` (look), `visual-editor.edit` (change templates and stylesheets without writing code), `visual-editor.code` (write code). Each includes the ones before it. Super Admins have all three. None holds while the package is off.
+- Code editing is the highest, since it writes PHP. Someone who may edit and not edit code can never make a template run PHP that it did not run before, except code the editor itself writes for a field or a choice. This holds for every way of changing a template, and is checked on what Laravel's Blade compiler makes of the result, not on what was asked for.
+- Such a person may move, copy and take out code that is there, and may add any HTML.
+- Their undo and redo write the template as it was within the last twelve hours; no older version.
 
 ### AI agents
 

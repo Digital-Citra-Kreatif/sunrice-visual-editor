@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import type { ManifestFile } from '../bridge/protocol';
 import type { Styles } from '../lib/api';
 import { STYLE_GROUPS, declared, hexOf, shown, targetRule, type StyleControl } from '../lib/styleFields';
 import { appliesAt, mediaLabel, sameMedia } from '../lib/media';
 import type { StyleEdit } from '../lib/styles';
 import type { Width } from '../lib/widths';
-import { ClassChoice, NoClass, Unlinked } from './CssPanel';
+import { ClassChoice, LookOnly, NoClass, Unlinked } from './CssPanel';
 import { Field } from './SettingsPanel';
 
 type Props = {
@@ -44,6 +44,7 @@ export function StyleFields({ classes, chosen, onChoose, styles, failed, onPage,
     if (classes === null || classes.length === 0 || chosen === null) {
         return <NoClass classes={classes} />;
     }
+    const lookOnly = useContext(LookOnly);
     const known = styles !== null && styles.class === chosen ? styles : null;
     const at = known === null ? null : targetRule(known, media);
     const rule = known === null || at === null ? null : known.rules[at];
@@ -111,7 +112,7 @@ export function StyleFields({ classes, chosen, onChoose, styles, failed, onPage,
                                         group={group.title}
                                         value={declared(rule, control.property)}
                                         onPage={onPage?.[control.property] ?? null}
-                                        disabled={rule === null && writesTo === null}
+                                        disabled={lookOnly || (rule === null && writesTo === null)}
                                         onSet={(value) => onEdit({ kind: 'style', property: control.property, value, media })}
                                     />
                                 ))}

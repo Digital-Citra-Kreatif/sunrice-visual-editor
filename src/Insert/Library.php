@@ -34,15 +34,17 @@ final class Library
     public function __construct(private readonly TemplateRepository $templates) {}
 
     /**
-     * Everything, for this site as it is now.
+     * Everything, for this site as it is now; without `$code`, all but
+     * what only someone who may edit code can do anything with.
      *
      * @return list<array{id: string, group: string, title: string, hint: string, blade: string, keywords: string}>
      */
-    public function all(): array
+    public function all(bool $code = true): array
     {
         return [
             ...self::elements(),
-            ...self::blade(),
+            // A block of PHP is for those who may write it.
+            ...array_values(array_filter(self::blade(), fn (array $entry) => $code || $entry['id'] !== 'blade.php')),
             ...self::sunrice(SunriceBridge::collections(), SunriceBridge::taxonomies(), SunriceBridge::forms()),
             ...self::partials($this->templates->files()),
         ];

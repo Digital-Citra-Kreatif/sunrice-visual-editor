@@ -426,8 +426,8 @@ final class RoundTrip
         foreach (array_keys($codes()) as $i) {
             $node = $codes()[$i];
             $root = self::root($node);
-            self::edit('setCode', $node, '@php($sr = 1)');
-            $record('rewrite code', self::verify($root->print(), self::join($slice(0, $node->start), '@php($sr = 1)', $slice($node->end, $end))), self::where($node));
+            self::edit('setCode', $node, '@unset($sr)');
+            $record('rewrite code', self::verify($root->print(), self::join($slice(0, $node->start), '@unset($sr)', $slice($node->end, $end))), self::where($node));
         }
 
         $snippet = '<i class="sr-new">{{ $sr }}</i>';

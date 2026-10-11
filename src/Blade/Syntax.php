@@ -50,11 +50,40 @@ final class Syntax
     public static function brokenBy(string $before, string $after): ?string
     {
         $error = self::error($after);
-        if ($error === null || self::error($before) === null) {
+        if ($error === null) {
+            return self::strayTags($after) > self::strayTags($before)
+                ? 'Blade would take a @php(…) above for the start of this @php … @endphp block, and show the code between them as text. Write the one above as a block too, or this one without @endphp.'
+                : null;
+        }
+        if (self::error($before) === null) {
             return $error;
         }
 
         return self::error($after, components: false);
+    }
+
+    /**
+     * How often the text a compiled template shows has the start of a
+     * PHP tag in it ("<?") that PHP does not take for one. Blade pairs
+     * the first `@php` it finds with the next `@endphp`, whichever form
+     * the first was written in: a `@php($x = 1)` followed further down by
+     * a `@php … @endphp` block compiles to PHP that is valid, runs none of
+     * what is between them and prints it instead.
+     */
+    public static function strayTags(string $blade): int
+    {
+        try {
+            $count = 0;
+            foreach (token_get_all(self::compile($blade, true)) as $token) {
+                if (is_array($token) && $token[0] === T_INLINE_HTML) {
+                    $count += substr_count($token[1], '<?');
+                }
+            }
+
+            return $count;
+        } catch (Throwable) {
+            return 0;
+        }
     }
 
     private static function compile(string $blade, bool $components): string

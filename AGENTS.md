@@ -10,7 +10,8 @@
 - Every task ships tests. Before opening a PR run `composer test`, `composer lint`, `composer analyse`, `composer spike`, and for admin tasks `npm run typecheck && npm run test:frontend && npm run build`.
 - The round-trip test (`composer spike`) must stay green. Under `src/Blade/`, a template that prints back differently, or an edit that touches bytes it should not, is a bug however small.
 - The same holds for stylesheets under `src/Css/`: `composer spike:css` must stay green (`spike/css-fetch.sh` first, to include Bootstrap, Bulma and Pico), and after a change there `npm run test:css` asks a browser whether it reads the same rules.
-- Use Sunrice's public API only. `src/Support/SunriceBridge.php` is the one file allowed to touch Sunrice internals.
+- Use Sunrice's public API only. `src/Support/SunriceBridge.php` is the one file allowed to touch Sunrice internals (and `RegisteredPermissions.php` beside it, until sunrice-cms#39 is released).
+- Anything that lets a template be changed goes through `Guard\CodeGuard` for people without `visual-editor.code`. A new operation, or a new way of writing Blade for the person, needs a case in `tests/Feature/CodePermissionTest.php`: code sent through it must not run.
 - The editor never writes a file it could not read back exactly, and nothing of the editor is written into a template.
 - Update `docs/` when adding developer-facing API. Do commit the compiled admin script in `dist/`.
 
