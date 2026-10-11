@@ -7,6 +7,7 @@ namespace Sunrice\VisualEditor\Rendering;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Engines\CompilerEngine;
+use RuntimeException;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
 use Sunrice\VisualEditor\Templates\TemplateFile;
@@ -121,16 +122,28 @@ final class EditorEngine extends CompilerEngine
         return $compiled.($open ? ' ?>' : '')."<?php /**PATH {$path} ENDPATH**/ ?>";
     }
 
-    /** Writes a copy in one step and removes the copies of earlier versions of the template. */
+    /**
+     * Writes a copy in one step, then removes the copies of other versions of
+     * the template. Another render may be writing the same copy meanwhile:
+     * its temporary file and the copy itself are left alone.
+     */
     private function replace(string $stem, string $file, string $contents): void
     {
         $this->files->ensureDirectoryExists($this->directory);
-        foreach (glob($stem.'-*') ?: [] as $old) {
-            @unlink($old);
-        }
 
         $temporary = $file.'.'.bin2hex(random_bytes(4)).'.tmp';
         $this->files->put($temporary, $contents);
-        rename($temporary, $file);
+        if (! @rename($temporary, $file)) {
+            @unlink($temporary);
+            if (! is_file($file)) {
+                throw new RuntimeException("Could not write the marked copy {$file}.");
+            }
+        }
+
+        foreach (glob($stem.'-*') ?: [] as $old) {
+            if ($old !== $file && ! str_ends_with($old, '.tmp')) {
+                @unlink($old);
+            }
+        }
     }
 }

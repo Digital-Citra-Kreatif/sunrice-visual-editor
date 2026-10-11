@@ -179,6 +179,28 @@ it('shows a template as it is now, and keeps one marked copy of each', function 
         ->and(count(File::files(EditorRender::directory())))->toBe($copies);
 });
 
+it('leaves alone a copy another render is writing at the same time', function () {
+    actingAsSuperAdmin();
+    $footer = $this->templates.'/partials/footer.blade.php';
+    $stem = EditorRender::directory().'/'.hash('xxh128', $footer);
+
+    get('/?sve=1')->assertOk();
+    $old = glob($stem.'-*.php');
+    expect($old)->toHaveCount(1);
+
+    // Another render, half way through writing the footer's next copy.
+    $writing = $stem.'-'.str_repeat('0', 32).'.php.'.bin2hex(random_bytes(4)).'.tmp';
+    File::put($writing, '<?php // being written');
+
+    app(SaveTemplate::class)->handle('partials/footer.blade.php', sha1(File::get($footer)), File::get($footer)."\n<p class=\"sve-new-paragraph\">New</p>\n");
+    get('/?sve=1')->assertOk()->assertSee('sve-new-paragraph');
+
+    $copies = glob($stem.'-*.php');
+    expect($copies)->toHaveCount(1)
+        ->and($copies)->not->toContain($old[0])
+        ->and(File::exists($writing))->toBeTrue();
+});
+
 it('renders a template the tree can\'t hold as it is, and says so in the manifest', function () {
     actingAsSuperAdmin();
     // An @if closed inside a tag: Blade compiles it, the tree refuses it.
