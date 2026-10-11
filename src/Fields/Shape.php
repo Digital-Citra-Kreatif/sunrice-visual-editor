@@ -151,6 +151,20 @@ final class Shape
         };
     }
 
+    /**
+     * Exactly what it is, in one line: "list<entry(articles)>",
+     * "row{label, text, icon}", "block(hero|text)".
+     */
+    public function spell(): string
+    {
+        return match (true) {
+            $this->isList() => 'list<'.($this->item?->spell() ?? '?').'>',
+            $this->fields !== [] => $this->kind.'{'.implode(', ', array_map(fn (Field $field) => $field->handle, $this->fields)).'}',
+            $this->of !== [] => $this->kind.'('.implode('|', $this->of).')',
+            default => $this->kind,
+        };
+    }
+
     /** @return array<string, mixed> */
     public function toArray(): array
     {
