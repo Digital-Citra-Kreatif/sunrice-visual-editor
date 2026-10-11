@@ -33,7 +33,28 @@ it('makes each kind of change, and only it', function (array $change, string $ex
     'one added after one without a semicolon' => [['type' => 'add', 'rule' => ['.tile'], 'property' => 'color', 'value' => 'red'], str_replace('margin: 0 }', 'margin: 0; color: red }', SVE_SHEET)],
     'a rule added' => [['type' => 'rule', 'selector' => '.new', 'declarations' => [['color', 'red'], ['color', 'rgb(1 2 3)']]], SVE_SHEET."\n.new {\n    color: red;\n    color: rgb(1 2 3);\n}\n"],
     'an empty rule added' => [['type' => 'rule', 'selector' => '.new'], SVE_SHEET."\n.new {\n}\n"],
+    'a rule added in a new @media block' => [['type' => 'rule', 'selector' => '.tile', 'declarations' => [['margin', '1rem']], 'media' => '@media (max-width: 30em)'], SVE_SHEET."\n@media (max-width: 30em) {\n    .tile {\n        margin: 1rem;\n    }\n}\n"],
 ]);
+
+it('adds a rule to a block that is there', function () {
+    $block = Stylesheet::read(SVE_SHEET)->rules[2]->start;
+
+    expect(Changes::run(SVE_SHEET, [['type' => 'rule', 'selector' => '.tile', 'declarations' => [['margin', '1rem']], 'in' => $block]]))
+        ->toBe(str_replace("        padding: 2rem;\n    }\n}\n", "        padding: 2rem;\n    }\n    .tile {\n        margin: 1rem;\n    }\n}\n", SVE_SHEET));
+});
+
+it('adds rules to a block along with changes inside it and after it', function () {
+    $sheet = Stylesheet::read(SVE_SHEET);
+    $block = $sheet->rules[2];
+
+    expect(Changes::run(SVE_SHEET, [
+        ['type' => 'rule', 'selector' => '.one', 'in' => $block->start],
+        ['type' => 'set', 'declaration' => $block->rules[0]->declarations[0]->start, 'value' => '3rem'],
+        ['type' => 'rule', 'selector' => '.two', 'in' => $block->start, 'declarations' => [['top', '0']]],
+        ['type' => 'rule', 'selector' => '.last'],
+        ['type' => 'add', 'rule' => $block->rules[0]->start, 'property' => 'color', 'value' => 'blue'],
+    ]))->toEndWith("@media (min-width: 40em) {\n    .card {\n        padding: 3rem;\n        color: blue;\n    }\n    .one {\n    }\n    .two {\n        top: 0;\n    }\n}\n\n.last {\n}\n");
+});
 
 it('makes a list of changes that all name places of the same file, in whatever order they come', function (array $order) {
     $changes = [
@@ -77,7 +98,7 @@ it('changes rules nested in the rule it adds to', function () {
 
 it('refuses a list as a whole, and says which change it was', function (array $changes, int $which, string $why) {
     foreach ($changes as &$change) {
-        foreach (['declaration', 'rule'] as $key) {
+        foreach (['declaration', 'rule', 'in'] as $key) {
             if (is_array($change[$key] ?? null)) {
                 $change[$key] = cssPlace(SVE_SHEET, ...$change[$key]);
             }
@@ -109,6 +130,11 @@ it('refuses a list as a whole, and says which change it was', function (array $c
     'a selector that is none' => [[['type' => 'rule', 'selector' => '.a { } .b']], 0, 'not a selector'],
     'declarations that are no pairs' => [[['type' => 'rule', 'selector' => '.a', 'declarations' => [['color' => 'red']]]], 0, 'pairs'],
     'declarations of three' => [[['type' => 'rule', 'selector' => '.a', 'declarations' => [['color', 'red', 'x']]]], 0, 'pairs'],
+    'a block that is not there' => [[['type' => 'rule', 'selector' => '.a', 'in' => 3]], 0, 'no block there'],
+    'a block that is a rule, not a @media' => [[['type' => 'rule', 'selector' => '.a', 'in' => ['.card']]], 0, 'no block there'],
+    'a block that is there and a new one' => [[['type' => 'rule', 'selector' => '.a', 'in' => 0, 'media' => '@media print']], 0, 'not both'],
+    'a @media that is none' => [[['type' => 'rule', 'selector' => '.a', 'media' => '@supports (x)']], 0, 'does not start a @media block'],
+    'a @media that is no text' => [[['type' => 'rule', 'selector' => '.a', 'media' => ['print']]], 0, 'has to say its "media"'],
 ]);
 
 it('keeps a value a custom property may hold out of a property that may not', function () {

@@ -24,6 +24,7 @@ final class Styles
         $selector = $class === null ? null : Selector::forClass($class);
         $files = [];
         $rules = [];
+        $media = [];
         $more = 0;
 
         foreach ($this->theme->files() as $file) {
@@ -33,8 +34,14 @@ final class Styles
             if ($class === null || $selector === null || ! $readable) {
                 continue;
             }
+            $sheet = Stylesheet::read($source);
+            foreach ($sheet->rules as $rule) {
+                if ($rule->at() === 'media' && $rule->open !== null && $rule->close < strlen($source)) {
+                    $media[] = ['file' => $file->path, 'id' => $rule->start, 'prelude' => (string) preg_replace('/\s+/', ' ', $rule->prelude)];
+                }
+            }
             $found = [];
-            foreach (Stylesheet::read($source)->all() as $rule) {
+            foreach ($sheet->all() as $rule) {
                 if ($rule->open === null || $rule->isAt()) {
                     continue;
                 }
@@ -56,7 +63,7 @@ final class Styles
                     'file' => $file->path,
                     'id' => $rule->start,
                     'selector' => implode(', ', $rule->selectors()),
-                    'within' => $rule->within(),
+                    'within' => array_map(fn (string $around) => (string) preg_replace('/\s+/', ' ', $around), $rule->within()),
                     'exact' => $exact,
                     'line' => substr_count($source, "\n", 0, $rule->start) + 1,
                     'declarations' => array_map(fn (Declaration $each) => [
@@ -76,6 +83,8 @@ final class Styles
             'files' => $files,
             'rules' => $rules,
             'more' => $more,
+            // The @media blocks at the top of each stylesheet: where a rule for one width goes.
+            'media' => $media,
             // Where a rule that does not exist yet is put.
             'own' => $own === null ? null : $this->about($own, $own->source()),
         ];

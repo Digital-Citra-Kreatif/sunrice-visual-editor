@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
+import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, wrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
 import { ApiError, applyOperations, changeStyles, copyToSite, linkStylesheet, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
+import { asMedia, breakpoints, mediaFor, sameMedia } from './lib/media';
 import { pageOf, rememberPage } from './lib/memory';
 import { startRedraw, type Redraw } from './lib/redraw';
 import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
@@ -14,6 +15,8 @@ import { STYLE_PROPERTIES } from './lib/styleFields';
 import { layoutOf, resolve, sheetsOf, shiftedId, type StyleEdit } from './lib/styles';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { boxesOf, findNode, rowFor } from './lib/tree';
+import { useSize } from './lib/size';
+import { activeWidth, layout, readWidths, viewOf, viewValue, type View } from './lib/widths';
 import { CodePanel } from './panels/CodePanel';
 import { InsertPanel, type InsertTab } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
@@ -27,6 +30,8 @@ import { TemplatesPanel } from './panels/TemplatesPanel';
 type Props = {
     /** Path the editor opens on, e.g. "/" or "/about". */
     startPath: string;
+    /** The widths the page can be shown at (config `widths`). */
+    widths?: unknown;
 };
 
 /** The page in the frame, as its bridge described it. `status` is what the server answered it with. */
@@ -64,7 +69,7 @@ const message = (error: unknown) => (error instanceof ApiError || error instance
  * tells this screen what the pointer is over. Everything drawn over the
  * page is drawn here, above the frame.
  */
-export function Editor({ startPath }: Props) {
+export function Editor({ startPath, widths: sentWidths }: Props) {
     // Two frames, one above the other. `frame` is the one that is seen and talked to. `spare`
     // is where the page is drawn again after a change, out of sight: when it is ready the
     // two change places, so the page is never seen to go and come back.
@@ -132,6 +137,18 @@ export function Editor({ startPath }: Props) {
     const watching = useRef('');
     /** Once the page is back, bring what is selected into view: it may be new, and anywhere. */
     const revealing = useRef(false);
+
+    /** The widths the page can be shown at, and how it is shown now: as wide as the room, at one width, or at all of them side by side. */
+    const widths = useMemo(() => readWidths(sentWidths), [sentWidths]);
+    const [view, setView] = useState<View>({ kind: 'full' });
+    const room = useRef<HTMLDivElement>(null);
+    const roomSize = useSize(room);
+    /** The frames beside the one being edited, when the widths are side by side: the same page, to look at. */
+    const previews = useRef<(HTMLIFrameElement | null)[]>([]);
+    /** Goes up when a template changed: the frames beside draw the page again. */
+    const [drawn, setDrawn] = useState(0);
+    /** The @media condition the Style tab writes under, when it was picked by hand: for the width that was being edited then. */
+    const [pickedMedia, setPickedMedia] = useState<{ at: string; media: string | null } | null>(null);
 
     /** For an element: its settings, or the rules of the stylesheets for its classes. */
     const [settingsTab, setSettingsTab] = useState<SettingsTab>('settings');
@@ -490,6 +507,7 @@ export function Editor({ startPath }: Props) {
                 // The site uses the copy from now on: draw the page again and open it.
                 wanted.current = { path: made.path, origin: 'site' };
                 setAll(null);
+                setDrawn((count) => count + 1);
                 if (page !== null) {
                     show(page.url);
                 } else {
@@ -615,6 +633,7 @@ export function Editor({ startPath }: Props) {
     const changedRedraw = () => {
         statusBefore.current = page?.status ?? null;
         redraw();
+        setDrawn((count) => count + 1);
     };
 
     /**
@@ -787,6 +806,25 @@ export function Editor({ startPath }: Props) {
         }
     }, [page, sheets, tell]);
 
+    // The frames beside the one being edited show the same stylesheets, and the same page as it changes.
+    const sheetsNow = useRef(sheets);
+    sheetsNow.current = sheets;
+    const tellPreview = (preview: HTMLIFrameElement | null) => preview?.contentWindow?.postMessage(wrap({ type: 'styles', sheets: sheetsNow.current }), window.location.origin);
+    useEffect(() => {
+        previews.current.forEach(tellPreview);
+    }, [sheets]);
+    useEffect(() => {
+        if (drawn > 0) {
+            previews.current.forEach((preview) => {
+                try {
+                    preview?.contentWindow?.location.reload();
+                } catch {
+                    // Not a page of this site any more: it is shown anew with the next page.
+                }
+            });
+        }
+    }, [drawn]);
+
     /** A stylesheet was written: its history gains the file as it was. */
     const rememberSheet = (path: string, was: string, saved: StylesSaved, how: 'change' | 'undo' | 'redo') => {
         const all = sheetHistories.current;
@@ -924,6 +962,18 @@ export function Editor({ startPath }: Props) {
             }
         }
     }, [page]);
+
+    // The width being edited, and the @media condition a style set now is written under: one of the site's own that
+    // applies at that width, else the one the width is set up with, unless another was picked by hand.
+    const editedWidth = activeWidth(view, widths);
+    const points = useMemo(() => breakpoints(styles), [styles]);
+    const widthKey = editedWidth === null ? 'full' : `${editedWidth.name}:${editedWidth.width}`;
+    const usualMedia = editedWidth === null ? null : (mediaFor(points, editedWidth.width) ?? (editedWidth.media === null ? null : asMedia(editedWidth.media)));
+    const styleMedia = pickedMedia !== null && pickedMedia.at === widthKey ? pickedMedia.media : usualMedia;
+    /** What can be picked: every width, the site's own conditions, and the one this width is set up with. */
+    const mediaChoices = [...points, ...(usualMedia !== null && !points.some((each) => sameMedia(each, usualMedia)) ? [usualMedia] : [])];
+    const plan = layout(view, widths, roomSize ?? { width: 0, height: 0 });
+    const previewAddress = page === null ? undefined : (editorAddress(page.url, window.location.href) ?? undefined);
 
     // What the page has for the selected element, while the Style tab shows it: the first copy of it on the page.
     const styledMark = settingsTab === 'style' && openFile !== null && selectedBoxes.ids.length > 0 && !selectedBoxes.inside ? markValue({ file: openFile.key, id: selectedBoxes.ids[0] }) : null;
@@ -1063,6 +1113,18 @@ export function Editor({ startPath }: Props) {
                     <span aria-hidden="true">+</span> Insert
                 </button>
 
+                {widths.length > 0 && (
+                    <select className="sve-input sve-bar__width" value={viewValue(view)} onChange={(event) => setView(viewOf(event.target.value, widths, view))} aria-label="Width of the page" title="How wide the page is shown: styles set at a width are written for that width">
+                        <option value="full">Full width</option>
+                        {widths.map((each, at) => (
+                            <option key={at} value={`one:${at}`}>
+                                {each.name} · {each.width}
+                            </option>
+                        ))}
+                        {widths.length > 1 && <option value="all">Side by side</option>}
+                    </select>
+                )}
+
                 <div className="sve-modes" role="group" aria-label="What a click on the page does">
                     <button type="button" className="sve-modes__mode" aria-pressed={mode === 'select'} onClick={() => setMode('select')} title="A click on the page picks what was clicked">
                         Select
@@ -1120,20 +1182,63 @@ export function Editor({ startPath }: Props) {
             </Side>
 
             <main className={`sve-canvas sve-canvas--${mode}`}>
-                <div className="sve-stage">
-                    {frames.map((one, which) => (
-                        <iframe
-                            key={which}
-                            ref={one}
-                            className={which === front ? 'sve-frame' : 'sve-spare'}
-                            src={which === 0 ? firstAddress : undefined}
-                            title={which === front ? 'Page being edited' : undefined}
-                            aria-hidden={which === front ? undefined : true}
-                            tabIndex={which === front ? undefined : -1}
-                            onLoad={(event) => (event.currentTarget === frame.current ? loaded() : spareLoaded(event.currentTarget))}
-                        />
-                    ))}
-                    <Outlines outlines={holding ? held.current : outlines} />
+                <div className={`sve-widths sve-widths--${view.kind}`} ref={room}>
+                    {/* The frame being edited is always the first here, and the others keep their places: a frame that is
+                        moved in the document loads its page anew. Where each is shown is said by `order`. */}
+                    {plan.slots.map((slot, ordinal) => {
+                        const sized = slot.at !== null;
+                        const box = sized ? { width: slot.box, height: plan.boxHeight } : undefined;
+                        const life = sized ? { width: slot.width, height: plan.height, transform: plan.scale === 1 ? undefined : `scale(${plan.scale})` } : undefined;
+
+                        return (
+                            <div key={slot.active ? 'edited' : `beside-${ordinal}`} className={`sve-slot${slot.active ? ' sve-slot--edited' : ''}`} style={sized ? { order: slot.at ?? 0, width: slot.box } : undefined}>
+                                {sized && (
+                                    <header className="sve-slot__head">
+                                        <span className="sve-slot__name">{slot.name}</span>
+                                        <span className="sve-slot__width">{slot.width}</span>
+                                        {!slot.active && (
+                                            <button type="button" className="sve-slot__edit" onClick={() => setView({ kind: 'all', at: slot.at ?? 0 })} title={`Select and style at ${slot.width} pixels`}>
+                                                Edit here
+                                            </button>
+                                        )}
+                                        {slot.active && view.kind === 'all' && <span className="sve-slot__editing">Editing</span>}
+                                    </header>
+                                )}
+                                {slot.active ? (
+                                    <div className="sve-stage" style={box}>
+                                        {frames.map((one, which) => (
+                                            <iframe
+                                                key={which}
+                                                ref={one}
+                                                className={which === front ? 'sve-frame' : 'sve-spare'}
+                                                style={life}
+                                                src={which === 0 ? firstAddress : undefined}
+                                                title={which === front ? 'Page being edited' : undefined}
+                                                aria-hidden={which === front ? undefined : true}
+                                                tabIndex={which === front ? undefined : -1}
+                                                onLoad={(event) => (event.currentTarget === frame.current ? loaded() : spareLoaded(event.currentTarget))}
+                                            />
+                                        ))}
+                                        <Outlines outlines={holding ? held.current : outlines} scale={plan.scale} />
+                                    </div>
+                                ) : (
+                                    <div className="sve-stage sve-stage--beside" style={box}>
+                                        <iframe
+                                            ref={(element) => {
+                                                previews.current[ordinal - 1] = element;
+                                            }}
+                                            className="sve-beside"
+                                            style={life}
+                                            src={previewAddress}
+                                            title={`The page at ${slot.width} pixels`}
+                                            tabIndex={-1}
+                                            onLoad={(event) => tellPreview(event.currentTarget)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                     <NoticeBar notice={notice} onDismiss={() => setNotice(null)} />
                 </div>
                 {coding && template.state === 'ready' && (
@@ -1179,6 +1284,10 @@ export function Editor({ startPath }: Props) {
                                               styles={styles}
                                               failed={stylesFailed}
                                               onPage={onPage !== null && onPage.mark === styledMark ? onPage.values : null}
+                                              media={styleMedia}
+                                              mediaChoices={mediaChoices}
+                                              width={editedWidth}
+                                              onMedia={(media) => setPickedMedia({ at: widthKey, media })}
                                               linked={linked}
                                               layout={layoutOf(page?.files ?? null)}
                                               linking={linking || unsaved}

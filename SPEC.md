@@ -113,7 +113,8 @@ Today a developer writes the templates in a code editor while fields and content
 - First releases: classes are edited on the element, and a **CSS** panel shows and edits the rule for the selected element's first class in the theme's CSS files. A rule that does not exist yet is added to `public/sunrice-theme/editor.css`, which the layout must link.
 - CSS files are held to the same rule as Blade: a rule is changed in place and the rest of the file is untouched.
 - Sites that build their CSS (Tailwind, Vite) get class editing only; the build keeps running in the developer's terminal.
-- A style panel with fields for layout, spacing and typography, and side-by-side breakpoint frames, come after the first release.
+- A style panel has controls for layout, size, spacing, text, background and border; each reads and writes one declaration of the rule for a class.
+- The page can be shown at several widths side by side. One of the frames is edited; a style set while a width is edited is written under the `@media` condition for that width.
 
 ### Permissions
 

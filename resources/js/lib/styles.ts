@@ -4,6 +4,7 @@
  */
 import type { ManifestFile } from '../bridge/protocol';
 import type { CssChange, StyleRule, Styles, ThemeFile } from './api';
+import { sameMedia } from './media.ts';
 import { declaredAt, targetRule } from './styleFields.ts';
 
 /**
@@ -23,7 +24,7 @@ export type StyleEdit =
     /** A rule for the class itself, which has none yet: into the editor's own stylesheet. */
     | { kind: 'create'; property: string; value: string }
     /** A control of the Style tab as it now reads: what the class's own rule should say for a property. Emptied, it says nothing. */
-    | { kind: 'style'; property: string; value: string };
+    | { kind: 'style'; property: string; value: string; media?: string | null };
 
 /**
  * "color: red; margin: 0" → the declarations it holds, as typed or pasted
@@ -111,12 +112,13 @@ export function resolve(styles: Styles, edit: StyleEdit): { file: ThemeFile; cha
     }
 
     if (edit.kind === 'style') {
-        const at = targetRule(styles);
+        const media = edit.media ?? null;
+        const at = targetRule(styles, media);
         const value = edit.value.trim().replace(/;\s*$/, '');
         const target = at === null ? null : styles.rules[at];
         if (target === null || at === null) {
             // No rule yet: the first thing said makes it.
-            return value === '' ? null : resolve(styles, { kind: 'create', property: edit.property, value });
+            return value === '' ? null : media === null ? resolve(styles, { kind: 'create', property: edit.property, value }) : createFor(styles, media, edit.property, value);
         }
         const index = declaredAt(target, edit.property);
         if (index === -1) {
@@ -150,6 +152,26 @@ export function resolve(styles: Styles, edit: StyleEdit): { file: ThemeFile; cha
     }
 
     return typed === declaration.value ? null : { file, changes: [{ type: 'set', declaration: declaration.id, value: typed }] };
+}
+
+/**
+ * A new rule for the class at one width. It goes into the stylesheet the
+ * class's own rule is in, after that rule, so that it counts over it: at
+ * the end of a block for that width when one comes later in the file,
+ * else in a new block at the file's end. A class without a rule of its
+ * own gets it in the editor's stylesheet.
+ */
+function createFor(styles: Styles, media: string, property: string, value: string): { file: ThemeFile; changes: CssChange[] } | null {
+    const base = targetRule(styles);
+    const baseRule = base === null ? null : styles.rules[base];
+    const file = baseRule === null ? styles.own : fileOf(styles, baseRule);
+    if (file === null || styles.selector === null) {
+        return null;
+    }
+    const declarations: [string, string][] = [[property, value]];
+    const block = [...styles.media].reverse().find((each) => each.file === file.path && sameMedia(each.prelude, media) && (baseRule === null || each.id > baseRule.id));
+
+    return { file, changes: [block === undefined ? { type: 'rule', selector: styles.selector, declarations, media } : { type: 'rule', selector: styles.selector, declarations, in: block.id }] };
 }
 
 /** The rules as the panel lists them: by file, each with its place in the whole list. */

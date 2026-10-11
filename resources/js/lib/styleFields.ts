@@ -3,6 +3,7 @@
  * written, reading and writing the rule for a class.
  */
 import type { StyleRule, Styles } from './api';
+import { sameMedia } from './media.ts';
 
 export type StyleControl = {
     property: string;
@@ -83,14 +84,15 @@ export const STYLE_PROPERTIES: string[] = STYLE_GROUPS.flatMap((group) => group.
 
 /**
  * The rule the controls read and write, by its place in the list: the one
- * for the class itself, outside any @media. Where several are, the last,
- * since what it says counts over what the ones before it say. Null when
- * the class has no rule of its own yet.
+ * for the class itself, outside any @media or, for one width, directly
+ * inside that `media`. Where several are, the last, since what it says
+ * counts over what the ones before it say. Null when the class has no
+ * such rule yet.
  */
-export function targetRule(styles: Styles): number | null {
+export function targetRule(styles: Styles, media: string | null = null): number | null {
     let found: number | null = null;
     styles.rules.forEach((rule, at) => {
-        if (rule.exact && rule.within.length === 0) {
+        if (rule.exact && (media === null ? rule.within.length === 0 : rule.within.length === 1 && sameMedia(rule.within[0], media))) {
             found = at;
         }
     });

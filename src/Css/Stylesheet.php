@@ -159,11 +159,93 @@ final class Stylesheet
     }
 
     /**
-     * The file with a new rule at its end.
+     * The file with a new rule at its end; with `$media`, inside a new
+     * `@media` block of that kind there.
      *
      * @param  array<string, string>|list<array{0: string, 1: string}>  $declarations  values by property, or [property, value] pairs
+     * @param  string|null  $media  what the block starts with: "@media (max-width: 40em)"
      */
-    public function withRule(string $selector, array $declarations = []): string
+    public function withRule(string $selector, array $declarations = [], ?string $media = null): string
+    {
+        $selector = self::selector($selector);
+        $meant = self::declarations($declarations);
+        $newline = $this->newline();
+        if ($media !== null) {
+            $media = trim((string) preg_replace('/\s+/', ' ', $media));
+            if (preg_match('/^@media\s[^{};]+$/i', $media) !== 1 || str_contains($media, '/*')) {
+                throw new CssRejected('"'.$media.'" does not start a @media block.');
+            }
+        }
+
+        $ending = $this->source === '' || str_ends_with($this->source, $newline.$newline) ? '' : (str_ends_with($this->source, $newline) ? $newline : $newline.$newline);
+        $rule = self::written($selector, $meant, $media === null ? '' : '    ', $newline);
+        $changed = $this->source.$ending.($media === null ? $rule : $media.' {'.$newline.$rule.'}'.$newline);
+
+        $after = self::read($changed);
+        $last = $after->rules === [] ? null : $after->rules[count($after->rules) - 1];
+        $new = $media === null ? $last : ($last !== null && $last->prelude === $media && $last->declarations === [] && count($last->rules) === 1 ? $last->rules[0] : null);
+        if (count($after->all()) !== count($this->all()) + ($media === null ? 1 : 2) || ! self::is($new, $selector, $meant)) {
+            throw new CssRejected('The rule would not be read back as it was meant: the file above it may not be closed.');
+        }
+
+        return $changed;
+    }
+
+    /**
+     * The file with a new rule at the end of a block: of a `@media`, say.
+     *
+     * @param  array<string, string>|list<array{0: string, 1: string}>  $declarations
+     */
+    public function withRuleIn(Rule $block, string $selector, array $declarations = []): string
+    {
+        if ($block->open === null || $block->close >= $this->length) {
+            throw new CssRejected('That is no block a rule can be put into.');
+        }
+        $selector = self::selector($selector);
+        $meant = self::declarations($declarations);
+        $newline = $this->newline();
+
+        $inside = substr($this->source, $block->open + 1, $block->close - $block->open - 1);
+        if (str_contains($inside, "\n")) {
+            // One thing to a line: the new rule goes on lines of its own, indented as what is there.
+            $children = [...array_map(fn (Rule $rule) => $rule->start, $block->rules), ...array_map(fn (Declaration $each) => $each->start, $block->declarations)];
+            $indent = $children === [] ? $this->indentOf($block->start).'    ' : $this->indentOf(max($children));
+            $lineStart = (int) strrpos("\n".substr($this->source, 0, $block->close), "\n");
+            $ownLine = trim(substr($this->source, $lineStart, $block->close - $lineStart)) === '';
+            $at = $ownLine ? $lineStart : $block->close;
+            $piece = ($ownLine ? '' : $newline).self::written($selector, $meant, $indent, $newline).($ownLine ? '' : $this->indentOf($block->start));
+        } elseif ($inside !== '' && preg_match('/\s/', $inside) !== 1) {
+            // Written without a space to spare: so is the new rule.
+            $at = $block->close;
+            $piece = $selector.'{'.implode(';', array_map(fn (array $each) => $each[0].':'.$each[1], $meant)).'}';
+        } else {
+            $at = $block->close;
+            $piece = (str_ends_with($inside, ' ') || $inside === '' ? '' : ' ').($inside === '' ? ' ' : '').$selector.' { '.implode(' ', array_map(fn (array $each) => $each[0].': '.$each[1].';', $meant)).($meant === [] ? '' : ' ').'} ';
+        }
+        $changed = substr($this->source, 0, $at).$piece.substr($this->source, $at);
+
+        // Read back: the block has one rule more, its last, and everything else says what it said.
+        $after = self::read($changed);
+        $now = null;
+        foreach ($after->all() as $rule) {
+            if ($rule->start === $block->start && $rule->prelude === $block->prelude) {
+                $now = $rule;
+            }
+        }
+        $new = $now === null || $now->rules === [] ? null : $now->rules[count($now->rules) - 1];
+        $said = self::said($after);
+        $strip = fn (array $all): array => array_map(fn (array $rule) => [$rule[0], array_map(fn (array $each) => [$each[1], $each[2]], $rule[1])], $all);
+        $without = array_values(array_filter($after->all(), fn (Rule $rule) => $rule !== $new));
+        if ($now === null || count($now->rules) !== count($block->rules) + 1 || ! self::is($new, $selector, $meant) || count($said) !== count($this->all()) + 1
+            || $strip(array_map(fn (Rule $rule) => [$rule->prelude, array_map(fn (Declaration $each) => [$each->start, $each->property, $each->value], $rule->declarations)], $without)) !== $strip($this->says ??= self::said($this))) {
+            throw new CssRejected('The rule would not stay inside its block.');
+        }
+
+        return $changed;
+    }
+
+    /** A selector as it will be written, or a refusal. */
+    private static function selector(string $selector): string
     {
         $selector = trim((string) preg_replace('/\s+/', ' ', $selector));
         if ($selector === '' || preg_match('/[{};]|\/\*/', $selector) === 1) {
@@ -172,27 +254,54 @@ final class Stylesheet
         if (str_starts_with($selector, '@')) {
             throw new CssRejected('A new rule needs a selector: "'.$selector.'" is not one.');
         }
-        $newline = $this->newline();
-        $lines = '';
+
+        return $selector;
+    }
+
+    /**
+     * Declarations as they will be written, each checked, or a refusal.
+     *
+     * @param  array<string, string>|list<array{0: string, 1: string}>  $declarations
+     * @return list<array{0: string, 1: string}>
+     */
+    private static function declarations(array $declarations): array
+    {
         $meant = [];
         foreach ($declarations as $key => $each) {
             [$property, $value] = is_array($each) ? $each : [(string) $key, $each];
             $property = self::property($property);
-            $value = self::value($value, custom: str_starts_with($property, '--'));
-            $lines .= '    '.$property.': '.$value.';'.$newline;
-            $meant[] = [$property, $value];
-        }
-        $ending = $this->source === '' || str_ends_with($this->source, $newline.$newline) ? '' : (str_ends_with($this->source, $newline) ? $newline : $newline.$newline);
-        $changed = $this->source.$ending.$selector.' {'.$newline.$lines.'}'.$newline;
-
-        $after = self::read($changed)->all();
-        $new = $after === [] ? null : $after[count($after) - 1];
-        if (count($after) !== count($this->all()) + 1 || $new === null || $new->prelude !== $selector || $new->parent !== null
-            || array_map(fn (Declaration $each) => [$each->property, $each->value], $new->declarations) !== $meant) {
-            throw new CssRejected('The rule would not be read back as it was meant: the file above it may not be closed.');
+            $meant[] = [$property, self::value($value, custom: str_starts_with($property, '--'))];
         }
 
-        return $changed;
+        return $meant;
+    }
+
+    /**
+     * A rule written out, a declaration to a line.
+     *
+     * @param  list<array{0: string, 1: string}>  $declarations
+     */
+    private static function written(string $selector, array $declarations, string $indent, string $newline): string
+    {
+        // A step further in: a tab where the file steps in by tabs.
+        $step = str_contains($indent, "\t") ? "\t" : '    ';
+        $lines = '';
+        foreach ($declarations as [$property, $value]) {
+            $lines .= $indent.$step.$property.': '.$value.';'.$newline;
+        }
+
+        return $indent.$selector.' {'.$newline.$lines.$indent.'}'.$newline;
+    }
+
+    /**
+     * Whether a rule read back is the one that was meant.
+     *
+     * @param  list<array{0: string, 1: string}>  $declarations
+     */
+    private static function is(?Rule $rule, string $selector, array $declarations): bool
+    {
+        return $rule !== null && $rule->prelude === $selector && $rule->rules === []
+            && array_map(fn (Declaration $each) => [$each->property, $each->value], $rule->declarations) === $declarations;
     }
 
     // --- Checking a change ----------------------------------------------------------

@@ -48,6 +48,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Widths
+    |--------------------------------------------------------------------------
+    |
+    | The widths the editor shows the page at, one at a time or side by side.
+    | A style set while a width is being edited is written for that width:
+    | under the @media condition of the site's own CSS that applies there,
+    | or, when none does, under the `media` given here.
+    |
+    */
+
+    'widths' => [
+        ['name' => 'Desktop', 'width' => 1280],
+        ['name' => 'Tablet', 'width' => 768, 'media' => '(max-width: 1024px)'],
+        ['name' => 'Mobile', 'width' => 390, 'media' => '(max-width: 640px)'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Paths
     |--------------------------------------------------------------------------
     |

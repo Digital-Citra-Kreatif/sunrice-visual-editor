@@ -8,11 +8,11 @@ The question: can a rule be found in a stylesheet, and one declaration of it cha
 
 | File | Bytes | Rules | Declarations | In place | Read in |
 | --- | ---: | ---: | ---: | --- | ---: |
-| `bom-crlf.css` | 70 | 2 | 3 | 5/5 | 0.85 ms |
-| `edge.css` | 2,745 | 45 | 55 | 100/100 | 0.41 ms |
-| `nested.css` | 623 | 14 | 14 | 28/28 | 0.09 ms |
-| `starter.css` | 7,164 | 83 | 259 | 342/342 | 1.17 ms |
-| `starter.min.css` | 5,705 | 83 | 259 | 342/342 | 1.04 ms |
+| `bom-crlf.css` | 70 | 2 | 3 | 5/5 | 1.09 ms |
+| `edge.css` | 2,745 | 45 | 55 | 100/100 | 0.42 ms |
+| `nested.css` | 623 | 14 | 14 | 28/28 | 0.11 ms |
+| `starter.css` | 7,164 | 83 | 259 | 342/342 | 1.34 ms |
+| `starter.min.css` | 5,705 | 83 | 259 | 342/342 | 1.3 ms |
 | `unclosed.css` | 100 | 3 | 3 | 6/6 | 0.05 ms |
 
 | Change | Tried | Passed |
@@ -22,7 +22,8 @@ The question: can a rule be found in a stylesheet, and one declaration of it cha
 | refuse a value that breaks out | 895 | 895 |
 | add a declaration | 226 | 226 |
 | add a rule | 6 | 6 |
-| **Total** | 2,077 | 2,077 |
+| add a rule to a block | 18 | 18 |
+| **Total** | 2,095 | 2,095 |
 
 
 What the browser said of the same files and the same changes:
@@ -45,11 +46,11 @@ A library that parses CSS and writes it out again (sabberworm/php-css-parser 8.9
 | File | Bytes | Rules | Declarations | In place | Read in |
 | --- | ---: | ---: | ---: | --- | ---: |
 | `normalize.css/normalize.css` | 6,138 | 34 | 57 | 91/91 | 0.39 ms |
-| `pico/pico.css` | 92,121 | 410 | 1,350 | 1760/1760 | 10.9 ms |
-| `pico/pico.min.css` | 82,194 | 410 | 1,350 | 1760/1760 | 16.04 ms |
-| `bulma/bulma.css` | 763,189 | 4,501 | 10,283 | 14784/14784 | 115.14 ms |
-| `bootstrap/bootstrap.css` | 281,046 | 2,677 | 5,542 | 8219/8219 | 43.95 ms |
-| `bootstrap/bootstrap.min.css` | 232,803 | 2,677 | 5,542 | 8219/8219 | 58.52 ms |
+| `pico/pico.css` | 92,121 | 410 | 1,350 | 1760/1760 | 11.8 ms |
+| `pico/pico.min.css` | 82,194 | 410 | 1,350 | 1760/1760 | 20.42 ms |
+| `bulma/bulma.css` | 763,189 | 4,501 | 10,283 | 14784/14784 | 102.21 ms |
+| `bootstrap/bootstrap.css` | 281,046 | 2,677 | 5,542 | 8219/8219 | 42.65 ms |
+| `bootstrap/bootstrap.min.css` | 232,803 | 2,677 | 5,542 | 8219/8219 | 43.75 ms |
 
 | Change | Tried | Passed |
 | --- | ---: | ---: |
@@ -58,7 +59,8 @@ A library that parses CSS and writes it out again (sabberworm/php-css-parser 8.9
 | refuse a value that breaks out | 1,777 | 1,777 |
 | add a declaration | 1,034 | 1,034 |
 | add a rule | 6 | 6 |
-| **Total** | 4,931 | 4,931 |
+| add a rule to a block | 478 | 478 |
+| **Total** | 5,409 | 5,409 |
 
 
 What the browser said of the same files and the same changes:

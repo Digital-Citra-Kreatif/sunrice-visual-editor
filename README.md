@@ -14,7 +14,7 @@ What the package will do is in [SPEC.md](SPEC.md); the order of work is in
 
 ## What works today
 
-All three milestones of the plan's first part, and styles from the theme's CSS files.
+All three milestones of the plan's first part, and styles: the theme's CSS files, changed in place, at every width.
 
 **See a page's templates, click through them, edit them as code.**
 
@@ -100,9 +100,28 @@ All three milestones of the plan's first part, and styles from the theme's CSS f
 - Both tabs write the same file through the same changes: what one sets, the
   other shows.
 
-Not there yet: breakpoints (a rule inside a `@media` is changed in the CSS
-tab; the controls write the rule outside any), permissions of its own, and
-tools for AI agents.
+**Every width side by side, and a style for one of them.**
+
+![Desktop, tablet and mobile side by side; the Style tab writing under a @media condition](docs/screenshots/widths.png)
+
+- The **width** choice in the top bar shows the page as wide as there is
+  room, at one width (Desktop 1280, Tablet 768, Mobile 390), or at all of
+  them **side by side**, drawn at one scale. The widths are a setting
+  (`widths`).
+- Side by side, one frame is the one being edited: it takes the clicks and
+  carries the outlines. **Edit here** on another makes that one it, without
+  loading a page anew. The others follow every change.
+- A style set in the **Style** tab while a width is being edited is written
+  for that width: into the class's rule under the `@media` condition of the
+  site's own CSS that applies there, or, when the site has none, under the
+  one the width is set up with (`(max-width: 640px)` for Mobile). **For**
+  at the top of the tab says which, and can be set to another, or to every
+  width.
+- A rule for a width is put where it counts: after the class's own rule, at
+  the end of a `@media` block that is there, else in a new block at the end
+  of the file.
+
+Not there yet: permissions of its own, and tools for AI agents.
 A site that builds its CSS (Vite, Tailwind) is styled by its classes: the
 editor changes CSS files, not what a build makes of them.
 
@@ -214,8 +233,8 @@ Full numbers are in [spike/CSS_RESULTS.md](spike/CSS_RESULTS.md).
 
 | Stylesheets | Files | Rules | Declarations | Found in place | Changes passed |
 | --- | ---: | ---: | ---: | --- | ---: |
-| The starter theme, as written and minified, and edge cases | 6 | 230 | 593 | all | 2,077 of 2,077 |
-| normalize.css, Pico, Bulma, Bootstrap, as written and minified | 6 | 10,709 | 24,124 | all | 4,931 of 4,931 |
+| The starter theme, as written and minified, and edge cases | 6 | 230 | 593 | all | 2,095 of 2,095 |
+| normalize.css, Pico, Bulma, Bootstrap, as written and minified | 6 | 10,709 | 24,124 | all | 5,409 of 5,409 |
 
 - **A reader of our own, not a CSS library.** The CSS parser there is for PHP
   wrote none of these files back as it read them, and keeps no positions to

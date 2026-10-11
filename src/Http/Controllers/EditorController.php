@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\Widths;
 
 class EditorController extends Controller
 {
@@ -21,6 +22,7 @@ class EditorController extends Controller
 
         return Inertia::render('VisualEditor/Editor', [
             'startPath' => static::sitePath($request->query('url')),
+            'widths' => Widths::configured(),
         ]);
     }
 

@@ -266,6 +266,8 @@ export type Styles = {
     rules: StyleRule[];
     /** How many more rules there are than are listed. */
     more: number;
+    /** The @media blocks at the top of each stylesheet: `id` is where one starts in its file. */
+    media: { file: string; id: number; prelude: string }[];
     /** Where a rule that does not exist yet is put; null when the site names no such file. */
     own: ThemeFile | null;
 };
@@ -276,7 +278,8 @@ export type CssChange =
     | { type: 'rename'; declaration: number; property: string }
     | { type: 'remove'; declaration: number }
     | { type: 'add'; rule: number; property: string; value: string }
-    | { type: 'rule'; selector: string; declarations?: [string, string][] };
+    /** A new rule: at the end of the file, at the end of the block that starts at `in`, or in a new `media` block at the end of the file. */
+    | { type: 'rule'; selector: string; declarations?: [string, string][]; in?: number; media?: string };
 
 /** A stylesheet after it was written: its version, the file as it was before (null: too large to keep), and what the stylesheets say now. */
 export type StylesSaved = { file: { path: string; version: string }; before: string | null; styles: Styles };

@@ -16,6 +16,8 @@ namespace Sunrice\VisualEditor\Css;
  *   {type: "remove", declaration: 412}
  *   {type: "add",    rule: 398, property: "color", value: "red"}
  *   {type: "rule",   selector: ".card", declarations: [["color", "red"]]}
+ *   {type: "rule",   selector: ".card", in: 1024}                             at the end of the block that starts there
+ *   {type: "rule",   selector: ".card", media: "@media (max-width: 40em)"}    in a new block of that kind
  *
  * A rule and a declaration are named by where they start in the file, in
  * bytes, as the file was when the list was written: every change of a
@@ -73,7 +75,7 @@ final class Changes
             'set' => self::declaration($sheet, $change)->valueStart,
             'rename', 'remove' => self::declaration($sheet, $change)->start,
             'add' => self::after(self::rule($sheet, $change)),
-            'rule' => PHP_INT_MAX,
+            'rule' => isset($change['in']) ? self::block($sheet, $change)->close : PHP_INT_MAX,
             default => throw new CssRejected('"'.(is_string($change['type'] ?? null) ? $change['type'] : '').'" is not a kind of change: set, rename, remove, add or rule.'),
         };
     }
@@ -88,7 +90,9 @@ final class Changes
             'rename' => $sheet->withProperty(self::declaration($sheet, $change), self::text($change, 'property')),
             'remove' => $sheet->without(self::declaration($sheet, $change)),
             'add' => $sheet->withDeclaration(self::rule($sheet, $change), self::text($change, 'property'), self::text($change, 'value')),
-            default => $sheet->withRule(self::text($change, 'selector'), self::pairs($change['declarations'] ?? [])),
+            default => isset($change['in'])
+                ? $sheet->withRuleIn(self::block($sheet, $change), self::text($change, 'selector'), self::pairs($change['declarations'] ?? []))
+                : $sheet->withRule(self::text($change, 'selector'), self::pairs($change['declarations'] ?? []), isset($change['media']) ? self::text($change, 'media') : null),
         };
     }
 
@@ -134,6 +138,28 @@ final class Changes
         }
 
         throw new CssRejected('The stylesheet has no rule there: load it again.');
+    }
+
+    /**
+     * The block a new rule goes into: an at-rule that has one, such as a `@media`.
+     *
+     * @param  array<array-key, mixed>  $change
+     */
+    private static function block(Stylesheet $sheet, array $change): Rule
+    {
+        $at = $change['in'] ?? null;
+        if (isset($change['media'])) {
+            throw new CssRejected('A new rule goes into a block that is there ("in") or into a new one ("media"), not both.');
+        }
+        if (is_int($at)) {
+            foreach ($sheet->all() as $rule) {
+                if ($rule->start === $at && $rule->open !== null && $rule->isAt()) {
+                    return $rule;
+                }
+            }
+        }
+
+        throw new CssRejected('The stylesheet has no block there to put a rule into: load it again.');
     }
 
     /**
