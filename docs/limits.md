@@ -100,8 +100,9 @@ drawn.
 
 ## AI agents
 
-- The tools reach agents only on a Sunrice that takes tools from packages
+- The tools need a Sunrice from 11 October 2026 or later
   ([sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40)).
+  On an older one they are not offered, and nothing says so.
 - There is no tool for single CSS changes.
 
 ## Sunrice itself
@@ -117,9 +118,10 @@ drawn.
   file; `tests/Unit/Support/SunriceBridgeTest.php` is there to say so
   first.
 - `src/Support/RegisteredPermissions.php` works around a fault in Sunrice's
-  permission sync, and goes when
-  [sunrice-cms#39](https://github.com/littleboy130491/sunrice-cms/pull/39)
-  is released.
+  permission sync. Sunrice mended it on 11 October 2026
+  ([sunrice-cms#39](https://github.com/littleboy130491/sunrice-cms/pull/39));
+  the workaround stays for sites whose Sunrice is older, until Sunrice
+  tags a release this package can require.
 - It has been run on the starter site and on a demo site in this
   repository. **It has not yet been installed on a real client project.**
   Expect that to turn things up.

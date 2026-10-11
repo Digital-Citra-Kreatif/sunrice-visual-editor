@@ -266,6 +266,11 @@ it('offers its tools to Sunrice\'s server where Sunrice takes tools from package
         ->and(SunriceBridge::registerMcpTools(VisualEditorServiceProvider::mcpTools()))->toBe(method_exists(Sunrice::class, 'registerMcpTool'));
 });
 
+it('is on Sunrice\'s own server once the package has booted', function () {
+    // What the provider did when the application started, not what this test asks for.
+    expect(app(Sunrice::class)->mcpTools())->toContain(GetTemplateTree::class, EditTemplate::class);
+})->skip(fn () => ! method_exists(Sunrice::class, 'mcpTools'), 'This Sunrice is from before it took tools from packages (sunrice-cms#40).');
+
 it('leaves out of the tree what only a screen needs', function () {
     expect(Tree::compact([
         'id' => '12', 'type' => 'element', 'kind' => null, 'name' => 'a', 'label' => 'a.button', 'start' => 12, 'end' => 80,

@@ -613,7 +613,7 @@ Three permissions, registered with `Sunrice::registerPermission()` under "Visual
 
 ### V7.2 MCP tools
 **Depends on:** V2.3, C3
-**Status:** done here; reaches agents once [sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40) (C3) is released.
+**Status:** done. Sunrice merged [sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40) (C3) on 11 October 2026: on a Sunrice from that day on, the tools reach agents.
 
 Two tools for AI agents, so that an agent makes checked edits to a template in place of rewriting the file.
 
@@ -668,7 +668,7 @@ The README's "Using it" now points to these pages in place of saying the same mo
 
 1. Install it on a staging copy of one real client project (`docs/installation.md`), use it there for a day, and fix what that turns up. This is the step the plan asks for and nothing here could stand in for it: the package has only seen Sunrice's starter templates, and a real project has templates nobody wrote with an editor in mind.
 2. Decide the licence (open decision 4 in `SPEC.md`; Sunrice says MIT in its `composer.json`). Add a `LICENSE` file and `"license"` to `composer.json`. Until then the repository is public without one, which lets nobody else use it.
-3. Merge and release [sunrice-cms#39](https://github.com/littleboy130491/sunrice-cms/pull/39) and [#40](https://github.com/littleboy130491/sunrice-cms/pull/40). After #39, `src/Support/RegisteredPermissions.php` can go; after #40 the tools reach agents.
+3. ~~Merge sunrice-cms#39 and #40.~~ Merged on 11 October 2026. What they made unnecessary stays until Sunrice tags a release this package can require, since a site may still have a Sunrice from before: `src/Support/RegisteredPermissions.php`, and the check for `registerMcpTool()` in `SunriceBridge`. With a tag, both go and `composer.json` asks for that version.
 4. Put the date on 0.1.0 in `CHANGELOG.md`, tag `v0.1.0`, and submit the repository to Packagist. The installation page's `composer config repositories…` line and `:dev-main` then come out.
 
 ### After V7.4: five findings from a scan
@@ -681,3 +681,5 @@ A scan of the repository by an AI agent reported five things. Each was checked a
 - **A tab in the page's address** (`EditorController::sitePath()`): `?url=/<tab>/example.com` passed as a path of the site, and a browser drops the tab and reads `//example.com`. The frame was never sent there (`editorAddress()` checks where an address leads), but the **View page** link pointed there until the page had loaded. Control characters are refused, and the link is made from the address as the screen itself checked it.
 - **Pages drawn for the editor at once took each other's files away** (`EditorEngine::replace()`). Before writing its copy of a template, each request removed every file of that template's copies, which included the one another request was halfway through writing. Reported as low; it weighs more, since side by side the editor draws three frames at once after every change, each compiling the changed template. The checks here never saw it because `testbench serve` answers one request at a time. Eight requests at once, sixty times over, against a server with eight workers: 4 in 200 failed before (`rename(): No such file or directory`), none in 480 after. A copy's own files are now left alone, copies of earlier versions go once they are a minute old, and a directory two requests both find missing is made by one and found by the other (`Files::directory()`, also used for the lock and the backups).
 - **An answer that came late was shown as the open template** (`Editor.tsx`: a save, an undo, a change). With another template opened while the server was still answering, the panels showed the first template's tree under the second one's name, and the next change was refused as made for another file. The answer's history and the page are still taken; the panels take it only when it is for the template that is open. A step of the browser check holds an answer back, opens another template and lets it go; it fails on the screen as it was.
+
+**Sunrice's main moved while this was open.** sunrice-cms#39 and #40 were merged the same afternoon. Static analysis then failed on every branch of this package: the check that `Sunrice::registerMcpTool()` exists is always true against a Sunrice that has it. The check stays, for a site whose Sunrice is an older checkout (there is no tagged release to require), with a note for the analyser. `McpToolsTest` now also asks Sunrice itself whether the two tools are among those it offers.

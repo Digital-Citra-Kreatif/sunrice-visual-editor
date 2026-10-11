@@ -14,10 +14,11 @@ it will not.
 This package adds two tools that work on a template the way the editor's
 screen does: by naming a node and saying what to do to it.
 
-> **Not on a released Sunrice yet.** The tools are listed to agents once
-> Sunrice lets packages add tools to its server
+> **Needs a Sunrice from 11 October 2026 or later.** That is when Sunrice
+> began taking tools from packages
 > ([sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40)).
-> On a Sunrice without that, nothing is registered and nothing fails.
+> On a site whose Sunrice is older, nothing is registered and nothing
+> fails: `composer update sunrice/cms` brings the tools.
 
 ## `get_template_tree`
 
