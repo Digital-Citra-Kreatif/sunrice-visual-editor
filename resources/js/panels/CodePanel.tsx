@@ -9,6 +9,8 @@ type Props = {
     onDraft(draft: string | null): void;
     /** The file was written: here it is as it is now. */
     onSaved(template: TemplateData): void;
+    /** Whether whoever is editing may write code: without it the code is shown, not changed. */
+    mayCode: boolean;
     /** Read the file again as it is on disk, dropping what was typed. */
     onReload(): void;
     onClose(): void;
@@ -31,7 +33,7 @@ function indentOf(source: string): string {
  * changed since it was read or when the text doesn't compile, and nothing
  * is written.
  */
-export function CodePanel({ template, draft, onDraft, onSaved, onReload, onClose }: Props) {
+export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload, onClose }: Props) {
     const area = useRef<HTMLTextAreaElement>(null);
     const [saving, setSaving] = useState(false);
     const [trouble, setTrouble] = useState<Trouble | null>(null);
@@ -39,7 +41,7 @@ export function CodePanel({ template, draft, onDraft, onSaved, onReload, onClose
     const original = template.source ?? '';
     const text = draft ?? original;
     const changed = draft !== null && draft !== original;
-    const readOnly = !template.editable || template.source === null;
+    const readOnly = !template.editable || template.source === null || !mayCode;
     const tokens = useMemo(() => highlight(text), [text]);
     const lines = useMemo(() => text.split('\n').length, [text]);
 

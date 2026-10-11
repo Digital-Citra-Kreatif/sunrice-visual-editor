@@ -1210,6 +1210,76 @@ await step('take a screenshot', async () => {
     await page.screenshot({ path: 'docs/screenshots/editor.png' });
 });
 
+// --- Someone who may edit, and not write code --------------------------------------
+
+await step('sign in as the designer, who may change templates and not write code', async () => {
+    await page.context().clearCookies();
+    await page.goto(`${base}/cms/login`);
+    await page.fill('#email', 'designer@example.com');
+    await page.fill('#password', 'password');
+    await Promise.all([
+        page.waitForURL((url) => !url.pathname.endsWith('/login')),
+        page.click('button[type=submit]'),
+    ]);
+    await page.getByRole('link', { name: 'Visual editor' }).first().click();
+    await page.waitForSelector('.sve-template');
+    await frame.getByText('Templates you can see').waitFor();
+});
+
+await step('show them code and let them choose from lists, not type it', async () => {
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    await layerRow('$block->heading').locator('.sve-layer__pick').click();
+
+    // What the echo prints is written code: there to read. A field is chosen in its place.
+    if (!(await settings.getByLabel('Prints', { exact: true }).isDisabled())) {
+        throw new Error('What an echo prints can be typed by someone who may not edit code');
+    }
+    if ((await settings.locator('.sve-settings__source').count()) !== 0) {
+        throw new Error('The node is offered to be rewritten as code');
+    }
+    await settings.getByRole('button', { name: 'Use a field for what it prints' }).click();
+    await settings.getByLabel('Find a field').fill('subheading');
+    await settings.getByRole('group', { name: 'Fields for what it prints' }).getByRole('button').first().click();
+    await frame.locator('.hero h1', { hasText: 'This page is drawn by a layout' }).waitFor();
+    await idle();
+
+    // The template's code can be looked at, and that is all.
+    await page.getByRole('button', { name: 'View the code' }).click();
+    if (!(await code.evaluate((field) => field.readOnly))) {
+        throw new Error('The code panel can be typed in');
+    }
+    await page.getByRole('button', { name: 'Hide the code' }).click();
+});
+
+await step('refuse code they paste, say why, and take what is no code', async () => {
+    await page.locator('.sve-bar').getByRole('button', { name: 'Insert' }).click();
+    const paste = page.locator('.sve-paste');
+    await paste.locator('summary').click();
+    await paste.getByLabel('HTML or Blade to insert').fill('<p class="sve-pasted">{{ phpinfo() }}</p>');
+    await paste.getByRole('button', { name: 'Insert' }).click();
+    await page.locator('.sve-notice--problem').getByText('you may not edit code').waitFor();
+    if ((await frame.locator('.sve-pasted').count()) !== 0) {
+        throw new Error('What was refused is on the page');
+    }
+
+    await paste.getByLabel('HTML or Blade to insert').fill('<p class="sve-pasted">Just text</p>');
+    await paste.getByRole('button', { name: 'Insert' }).click();
+    await frame.locator('.sve-pasted', { hasText: 'Just text' }).waitFor();
+    await idle();
+
+    // Their undo works like anyone's: twice, back to the hero as it was.
+    await undo.click();
+    await frame.locator('.sve-pasted').waitFor({ state: 'detached' });
+    await idle();
+    await undo.click();
+    await frame.locator('.hero h1', { hasText: 'Templates you can see' }).waitFor();
+    await idle();
+    if ((await heroNow()) !== hero.source) {
+        throw new Error('The hero is not what it was');
+    }
+});
+
 await browser.close();
 
 if (errors.length > 0) {

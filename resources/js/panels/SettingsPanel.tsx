@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useId, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { Operation, PickField, PickVariable, Site, TemplateData, TreeNode } from '../lib/api';
 import { LIMITS, OPERATORS, condition, given, orders, readCondition, readWhere, takesValue, testLabel, testsFor, writeWhere, type Test, type Where } from '../lib/builders';
 import { binding, boundTo, echoed } from '../lib/fields';
@@ -24,6 +24,8 @@ type Props = {
     refusals: number;
     /** What can be done to the node as a whole. */
     can: Record<Action | 'wrap', boolean>;
+    /** Whether whoever is editing may write code. */
+    code: boolean;
     /** For an element: controls for the rule of one of its classes, and the rules of the theme's stylesheets for it. Null for what has no classes. */
     styling: { style: ReactNode; css: ReactNode } | null;
     /** Which is shown for an element: its settings, its style, or its CSS. */
@@ -68,7 +70,7 @@ const KINDS: Record<ReturnType<typeof kindOf>, string> = {
  * operation when it is left or Enter is pressed; the file is saved, the
  * page drawn again, and the node stays selected.
  */
-export function SettingsPanel({ template, node, fields, site, busy, locked, refusals, can, styling, tab, onTab, onApply, onAct, onDeselect }: Props) {
+export function SettingsPanel({ template, node, fields, site, busy, locked, refusals, can, code, styling, tab, onTab, onApply, onAct, onDeselect }: Props) {
     const kind = kindOf(node);
     const off = busy || locked !== null || !template.editable;
     const send: Send = (operation, to = node) => onApply([{ ...operation, node: to.id } as Operation]);
@@ -86,6 +88,7 @@ export function SettingsPanel({ template, node, fields, site, busy, locked, refu
     const component = tag !== null && typeof tag.stray !== 'string' && (tag.type === 'branch' || tag.atom === 'component');
 
     return (
+        <MayCode.Provider value={code}>
         <Panel title="Settings" grow>
             <div className="sve-selection__head">
                 <span className="sve-selection__kind">{KINDS[kind]}</span>
@@ -150,12 +153,13 @@ export function SettingsPanel({ template, node, fields, site, busy, locked, refu
                 {(node.type === 'block' || node.type === 'branch') && <BlockSettings node={node} fields={fields} off={off} send={send} />}
                 {node.type === 'atom' && node.atom === 'directive' && node.kind !== 'code' && typeof node.stray !== 'string' && <DirectiveSettings node={node} off={off} send={send} />}
 
-                <SourceSettings template={template} node={node} off={off} send={send} always={kind === 'code'} />
+                {(code || kind === 'code') && <SourceSettings template={template} node={node} off={off} send={send} always={kind === 'code'} />}
             </div>
             )}
             {styling !== null && tab === 'style' && styling.style}
             {styling !== null && tab === 'css' && styling.css}
         </Panel>
+        </MayCode.Provider>
     );
 }
 
@@ -193,6 +197,7 @@ type ElementProps = {
 };
 
 function ElementSettings({ node, component, fields, off, send, bind, onApply }: ElementProps) {
+    const code = useContext(MayCode);
     const classes = component ? null : classesOf(node);
     const id = component ? null : attribute(node, 'id');
     const others = attributesOf(node).filter((each) => component || each.code || !(each.name === 'class' && classes !== null) && !(each.name === 'id' && !each.dynamic));
@@ -243,13 +248,13 @@ function ElementSettings({ node, component, fields, off, send, bind, onApply }: 
                             <span className="sve-attribute__name" title={each.name}>
                                 {each.name}
                             </span>
-                            <Field
+                            <Field key={each.dynamic ? 'code' : 'text'}
                                 label={`Value of ${each.name}`}
                                 bare
+                                disabled={off || (each.dynamic && !code)}
                                 mono={each.dynamic}
                                 value={each.value ?? ''}
                                 placeholder={each.value === null ? 'no value' : ''}
-                                disabled={off}
                                 // What Blade prints stays Blade; plain text stays text.
                                 onCommit={(value) => send({ type: 'setAttribute', name: each.name, value, blade: each.dynamic })}
                             />
@@ -294,7 +299,7 @@ function EchoSettings({ node, fields, off, send, bind }: { node: TreeNode; field
     return (
         <>
             <Bound fields={fields} expression={expression} />
-            <Field label="Prints" value={expression} mono multiline disabled={off} onCommit={(typed) => send({ type: 'setExpression', expression: typed })} hint="One PHP expression, such as $entry->title." />
+            <CodeField label="Prints" value={expression} mono multiline disabled={off} onCommit={(typed) => send({ type: 'setExpression', expression: typed })} hint="One PHP expression, such as $entry->title." />
             <FieldChooser variables={fields} control="what it prints" disabled={off} onChoose={(to) => bind(to)} />
             <div className="sve-field">
                 <label className="sve-check">
@@ -320,7 +325,7 @@ function BlockSettings({ node, fields, off, send }: { node: TreeNode; fields: Pi
         return (
             <>
                 <Bound fields={fields} expression={loop.source} />
-                <Field label="Loop over" value={loop.source} mono multiline disabled={off} onCommit={(source) => send({ type: 'setArguments', arguments: joinLoop(source, loop.item) }, head)} hint="What to go through: $entries, $block->images." />
+                <CodeField label="Loop over" value={loop.source} mono multiline disabled={off} onCommit={(source) => send({ type: 'setArguments', arguments: joinLoop(source, loop.item) }, head)} hint="What to go through: $entries, $block->images." />
                 <FieldChooser
                     variables={fields}
                     control="what it loops over"
@@ -334,7 +339,7 @@ function BlockSettings({ node, fields, off, send }: { node: TreeNode; fields: Pi
         );
     }
     const label = kindOf(node) === 'condition' || ['if', 'elseif', 'unless', 'isset', 'empty'].includes(head.name) ? (head.name === 'case' ? 'When it is' : 'Shown when') : 'Between the brackets';
-    const written = <Field label={label} value={args} mono multiline disabled={off} onCommit={(value) => send({ type: 'setArguments', arguments: value }, head)} />;
+    const written = <CodeField label={label} value={args} mono multiline disabled={off} onCommit={(value) => send({ type: 'setArguments', arguments: value }, head)} />;
     if (!['if', 'elseif'].includes(head.name)) {
         return written;
     }
@@ -555,13 +560,13 @@ function DirectiveSettings({ node, off, send }: { node: TreeNode; off: boolean; 
     if (include !== null) {
         return (
             <>
-                <Field label="View" value={include.view} mono disabled={off} onCommit={(view) => send({ type: 'setArguments', arguments: joinInclude(view, include.data) })} hint="The partial to draw here: sunrice.partials.card." />
-                <Field label="Passes" value={include.data} mono multiline disabled={off} onCommit={(data) => send({ type: 'setArguments', arguments: joinInclude(include.view, data) })} hint="Data for it, as a PHP array: ['entry' => $entry]. May be empty." />
+                <CodeField label="View" value={include.view} mono disabled={off} onCommit={(view) => send({ type: 'setArguments', arguments: joinInclude(view, include.data) })} hint="The partial to draw here: sunrice.partials.card." />
+                <CodeField label="Passes" value={include.data} mono multiline disabled={off} onCommit={(data) => send({ type: 'setArguments', arguments: joinInclude(include.view, data) })} hint="Data for it, as a PHP array: ['entry' => $entry]. May be empty." />
             </>
         );
     }
 
-    return <Field label="Between the brackets" value={args} mono multiline disabled={off} onCommit={(value) => send({ type: 'setArguments', arguments: value })} />;
+    return <CodeField label="Between the brackets" value={args} mono multiline disabled={off} onCommit={(value) => send({ type: 'setArguments', arguments: value })} />;
 }
 
 /** The node as it is written, for changing what no control above covers. */
@@ -570,7 +575,7 @@ function SourceSettings({ template, node, off, send, always }: { template: Templ
     if (node.type === 'branch' || node.type === 'root') {
         return null;
     }
-    const field = <Field label="As written" value={source} mono multiline tall disabled={off || !node.can.move} onCommit={(code) => send({ type: 'setCode', code })} hint={node.can.move ? 'Changing this rewrites the node. It has to be Blade that stands on its own.' : 'This stays as it is: edit it in the template’s code.'} />;
+    const field = <CodeField label="As written" value={source} mono multiline tall disabled={off || !node.can.move} onCommit={(code) => send({ type: 'setCode', code })} hint={node.can.move ? 'Changing this rewrites the node. It has to be Blade that stands on its own.' : 'This stays as it is: edit it in the template’s code.'} />;
 
     return always ? (
         field
@@ -589,6 +594,16 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
             {children}
         </fieldset>
     );
+}
+
+/** Whether whoever is editing may write code: Blade and PHP typed by hand. Without it, code is chosen from lists. */
+const MayCode = createContext(true);
+
+/** A control that is typed code. Shown, and not changed, by someone who may not edit code. */
+function CodeField(props: FieldProps) {
+    const may = useContext(MayCode);
+
+    return <Field {...props} disabled={props.disabled === true || !may} hint={may ? props.hint : props.bare === true ? undefined : 'Written as code, which you may not edit. What can be chosen from a list is below.'} />;
 }
 
 type FieldProps = {

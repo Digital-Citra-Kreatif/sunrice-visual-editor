@@ -7,9 +7,12 @@ namespace Sunrice\VisualEditor;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\ServiceProvider;
 use Sunrice\Facades\Sunrice;
+use Sunrice\Permissions\PermissionRegistry;
+use Sunrice\Permissions\SyncPermissions;
 use Sunrice\VisualEditor\Fields\Catalog;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\RegisteredPermissions;
 
 class VisualEditorServiceProvider extends ServiceProvider
 {
@@ -22,6 +25,9 @@ class VisualEditorServiceProvider extends ServiceProvider
 
         // The site's blueprints are read once for a request, whoever asks.
         $this->app->scoped(Catalog::class);
+
+        // Sunrice's sync creates a package's permission a second time and fails (see RegisteredPermissions).
+        $this->app->when(SyncPermissions::class)->needs(PermissionRegistry::class)->give(RegisteredPermissions::class);
     }
 
     public function boot(): void
@@ -37,6 +43,11 @@ class VisualEditorServiceProvider extends ServiceProvider
         // Off: no routes, no admin script, nothing different about rendering.
         if (! Access::enabled()) {
             return;
+        }
+
+        // Roles are given these in Sunrice's admin; `sunrice:sync-permissions` creates them.
+        foreach (Access::LABELS as $permission => $label) {
+            Sunrice::registerPermission($permission, $label, 'Visual editor');
         }
 
         Sunrice::adminRoutes(fn () => $this->loadRoutesFrom(__DIR__.'/../routes/admin.php'));

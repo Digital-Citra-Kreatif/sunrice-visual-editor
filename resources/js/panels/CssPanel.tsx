@@ -1,8 +1,11 @@
-import { useState, type FocusEvent, type FormEvent } from 'react';
+import { createContext, useContext, useState, type FocusEvent, type FormEvent } from 'react';
 import type { ManifestFile } from '../bridge/protocol';
 import type { StyleRule, Styles, ThemeFile } from '../lib/api';
 import { byFile, hasOwnRule, typedDeclarations, type StyleEdit } from '../lib/styles';
 import { Field } from './SettingsPanel';
+
+/** Whether the rules are there to look at only: for someone who may open the editor and not change anything. */
+export const LookOnly = createContext(false);
 
 type Props = {
     /** The element's classes; null when Blade has a hand in them. */
@@ -37,6 +40,7 @@ export function CssRules({ classes, chosen, onChoose, styles, failed, linked, la
         return <NoClass classes={classes} />;
     }
 
+    const lookOnly = useContext(LookOnly);
     const known = styles !== null && styles.class === chosen ? styles : null;
     const groups = known === null ? [] : byFile(known);
     const own = known?.own ?? null;
@@ -76,7 +80,7 @@ export function CssRules({ classes, chosen, onChoose, styles, failed, linked, la
                     ))}
                     {known.more > 0 && <p className="sve-empty">And {known.more} more rules, not listed.</p>}
 
-                    {!hasOwnRule(known) && own !== null && (
+                    {!hasOwnRule(known) && own !== null && !lookOnly && (
                         <section className="sve-css__file" aria-label={`A new rule in ${own.path}`}>
                             {/* Shown with its own head only when it has no rules listed above. */}
                             {!groups.some((group) => group.file.path === own.path) && <FileHead file={own} linked can={can(own.path)} onTravel={onTravel} />}
@@ -126,6 +130,7 @@ type UnlinkedProps = { styles: Styles; linked: string[] | null; layout: Manifest
 
 /** A stylesheet that is there and has rules for the class, which the page does not show: says so, and links it. */
 export function Unlinked({ styles, linked, layout, linking, onLink }: UnlinkedProps) {
+    const off = useContext(LookOnly);
     if (linked === null) {
         return null;
     }
@@ -142,7 +147,7 @@ export function Unlinked({ styles, linked, layout, linking, onLink }: UnlinkedPr
                         {layout === null ? (
                             <p>Link it from the layout’s &lt;head&gt;, in the layout’s code.</p>
                         ) : (
-                            <button type="button" className="sve-button sve-button--quiet" disabled={linking} onClick={() => onLink(file.path)}>
+                            <button type="button" className="sve-button sve-button--quiet" disabled={off || linking} onClick={() => onLink(file.path)}>
                                 Link it from {layout.path.replace(/\.blade\.php$/, '')}
                             </button>
                         )}
@@ -153,6 +158,8 @@ export function Unlinked({ styles, linked, layout, linking, onLink }: UnlinkedPr
 }
 
 function FileHead({ file, linked, can, onTravel }: { file: ThemeFile; linked: boolean; can: { undo: boolean; redo: boolean }; onTravel(path: string, direction: 'undo' | 'redo'): void }) {
+    const off = useContext(LookOnly);
+
     return (
         <header className="sve-css__head">
             <h3 className="sve-css__path" title={`public/sunrice-theme/${file.path}`}>
@@ -160,10 +167,10 @@ function FileHead({ file, linked, can, onTravel }: { file: ThemeFile; linked: bo
             </h3>
             {!linked && <span className="sve-tag">Not linked</span>}
             <span className="sve-css__history" role="group" aria-label={`Undo and redo in ${file.path}`}>
-                <button type="button" className="sve-css__step" disabled={!can.undo} onClick={() => onTravel(file.path, 'undo')} title={`Undo the last change to ${file.path}`} aria-label={`Undo in ${file.path}`}>
+                <button type="button" className="sve-css__step" disabled={off || !can.undo} onClick={() => onTravel(file.path, 'undo')} title={`Undo the last change to ${file.path}`} aria-label={`Undo in ${file.path}`}>
                     ↶
                 </button>
-                <button type="button" className="sve-css__step" disabled={!can.redo} onClick={() => onTravel(file.path, 'redo')} title={`Redo what was undone in ${file.path}`} aria-label={`Redo in ${file.path}`}>
+                <button type="button" className="sve-css__step" disabled={off || !can.redo} onClick={() => onTravel(file.path, 'redo')} title={`Redo what was undone in ${file.path}`} aria-label={`Redo in ${file.path}`}>
                     ↷
                 </button>
             </span>
@@ -172,6 +179,7 @@ function FileHead({ file, linked, can, onTravel }: { file: ThemeFile; linked: bo
 }
 
 function RuleCard({ rule, at, onEdit }: { rule: StyleRule; at: number; onEdit(edit: StyleEdit): void }) {
+    const off = useContext(LookOnly);
     const name = `${rule.within.length > 0 ? `${rule.within.join(' ')} ` : ''}${rule.selector}`;
 
     return (
@@ -188,9 +196,9 @@ function RuleCard({ rule, at, onEdit }: { rule: StyleRule; at: number; onEdit(ed
             {/* By their place in the rule, not their place in the file: the place in the file moves with every change before it. */}
             {rule.declarations.map((declaration, index) => (
                 <div key={index} className="sve-declaration">
-                    <Field label={`Property ${index + 1} of ${name}`} bare mono value={declaration.property} onCommit={(property) => onEdit({ kind: 'property', rule: at, index, property })} />
-                    <Field label={`Value of ${declaration.property} in ${name}`} bare mono value={declaration.value} onCommit={(value) => onEdit({ kind: 'value', rule: at, index, value })} />
-                    <button type="button" className="sve-attribute__remove" onClick={() => onEdit({ kind: 'remove', rule: at, index })} aria-label={`Remove ${declaration.property} from ${name}`} title="Remove">
+                    <Field label={`Property ${index + 1} of ${name}`} bare mono value={declaration.property} disabled={off} onCommit={(property) => onEdit({ kind: 'property', rule: at, index, property })} />
+                    <Field label={`Value of ${declaration.property} in ${name}`} bare mono value={declaration.value} disabled={off} onCommit={(value) => onEdit({ kind: 'value', rule: at, index, value })} />
+                    <button type="button" className="sve-attribute__remove" disabled={off} onClick={() => onEdit({ kind: 'remove', rule: at, index })} aria-label={`Remove ${declaration.property} from ${name}`} title="Remove">
                         ×
                     </button>
                 </div>
@@ -206,6 +214,7 @@ function RuleCard({ rule, at, onEdit }: { rule: StyleRule; at: number; onEdit(ed
  * first field as CSS writes them: "color: red; margin: 0".
  */
 function NewRow({ label, onAdd }: { label: string; onAdd(property: string, value: string): void }) {
+    const off = useContext(LookOnly);
     const [property, setProperty] = useState('');
     const [value, setValue] = useState('');
     const add = () => {
@@ -225,11 +234,15 @@ function NewRow({ label, onAdd }: { label: string; onAdd(property: string, value
         }
     };
 
+    if (off) {
+        return null;
+    }
+
     return (
         <form className="sve-declaration sve-declaration--new" onSubmit={submit} onBlur={left}>
-            <input className="sve-input sve-input--mono" value={property} onChange={(event) => setProperty(event.target.value)} placeholder="property" aria-label={`New property for ${label}`} spellCheck={false} autoComplete="off" autoCapitalize="off" />
-            <input className="sve-input sve-input--mono" value={value} onChange={(event) => setValue(event.target.value)} placeholder="value" aria-label={`Value of the new property for ${label}`} spellCheck={false} autoComplete="off" autoCapitalize="off" />
-            <button type="submit" className="sve-declaration__add" disabled={typedDeclarations(property, value).length === 0} aria-label={`Add it to ${label}`} title="Add (Enter)">
+            <input className="sve-input sve-input--mono" value={property} onChange={(event) => setProperty(event.target.value)} placeholder="property" aria-label={`New property for ${label}`} disabled={off} spellCheck={false} autoComplete="off" autoCapitalize="off" />
+            <input className="sve-input sve-input--mono" value={value} onChange={(event) => setValue(event.target.value)} placeholder="value" aria-label={`Value of the new property for ${label}`} disabled={off} spellCheck={false} autoComplete="off" autoCapitalize="off" />
+            <button type="submit" className="sve-declaration__add" disabled={off || typedDeclarations(property, value).length === 0} aria-label={`Add it to ${label}`} title="Add (Enter)">
                 +
             </button>
         </form>

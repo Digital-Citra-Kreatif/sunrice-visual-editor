@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Sunrice\VisualEditor\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Sunrice\VisualEditor\Insert\Library;
+use Sunrice\VisualEditor\Support\Access;
 
 /**
  * What can be inserted into a template of this site: each a piece of
@@ -14,8 +16,8 @@ use Sunrice\VisualEditor\Insert\Library;
  */
 class InsertController extends Controller
 {
-    public function __invoke(Library $library): JsonResponse
+    public function __invoke(Request $request, Library $library): JsonResponse
     {
-        return response()->json(['inserts' => $library->all()]);
+        return response()->json(['inserts' => $library->all(code: Access::may($request->user(config('sunrice.auth.guard')), Access::CODE))]);
     }
 }

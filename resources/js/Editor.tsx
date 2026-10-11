@@ -21,7 +21,7 @@ import { CodePanel } from './panels/CodePanel';
 import { InsertPanel, type InsertTab } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Side } from './panels/Panel';
-import { CssRules } from './panels/CssPanel';
+import { CssRules, LookOnly } from './panels/CssPanel';
 import { StyleFields } from './panels/StylePanel';
 import { SettingsPanel, type SettingsTab } from './panels/SettingsPanel';
 import { TemplatePanel, type Loaded } from './panels/TemplatePanel';
@@ -32,6 +32,8 @@ type Props = {
     startPath: string;
     /** The widths the page can be shown at (config `widths`). */
     widths?: unknown;
+    /** What whoever opened the editor may do in it: change things, and write code. What the server lets them is the server's to say. */
+    can?: { edit?: boolean; code?: boolean };
 };
 
 /** The page in the frame, as its bridge described it. `status` is what the server answered it with. */
@@ -69,7 +71,9 @@ const message = (error: unknown) => (error instanceof ApiError || error instance
  * tells this screen what the pointer is over. Everything drawn over the
  * page is drawn here, above the frame.
  */
-export function Editor({ startPath, widths: sentWidths }: Props) {
+export function Editor({ startPath, widths: sentWidths, can }: Props) {
+    const mayEdit = can?.edit !== false;
+    const mayCode = mayEdit && can?.code !== false;
     // Two frames, one above the other. `frame` is the one that is seen and talked to. `spare`
     // is where the page is drawn again after a change, out of sight: when it is ready the
     // two change places, so the page is never seen to go and come back.
@@ -1030,7 +1034,9 @@ export function Editor({ startPath, widths: sentWidths }: Props) {
     const fixed =
         template.state !== 'ready'
             ? (layersNote ?? 'No template is open.')
-            : !template.data.editable
+            : !mayEdit
+              ? 'You may look at this template here, not change it.'
+              : !template.data.editable
               ? 'This is one of Sunrice’s own views: it can’t be changed here.'
               : tree === null
                 ? 'This template can only be edited as code.'
@@ -1244,6 +1250,7 @@ export function Editor({ startPath, widths: sentWidths }: Props) {
                 {coding && template.state === 'ready' && (
                     <CodePanel
                         template={template.data}
+                        mayCode={mayCode}
                         draft={draft}
                         onDraft={setDraft}
                         onSaved={saved}
@@ -1266,8 +1273,9 @@ export function Editor({ startPath, widths: sentWidths }: Props) {
                         site={site}
                         busy={applying}
                         refusals={refusals}
-                        locked={unsaved ? codeUnsaved : null}
+                        locked={!mayEdit ? 'You may look at this here, not change it.' : unsaved ? codeUnsaved : null}
                         can={actionsFor(tree, selectedNode.id)}
+                        code={mayCode}
                         tab={settingsTab}
                         onTab={setSettingsTab}
                         styling={
@@ -1275,6 +1283,7 @@ export function Editor({ startPath, widths: sentWidths }: Props) {
                                 ? null
                                 : {
                                       style: (
+                                          <LookOnly.Provider value={!mayEdit}>
                                           <StyleFields
                                               // A change that was refused starts every control afresh.
                                               key={`${selectedNode.id}:${refusals}`}
@@ -1294,8 +1303,10 @@ export function Editor({ startPath, widths: sentWidths }: Props) {
                                               onEdit={editStyle}
                                               onLink={linkSheet}
                                           />
+                                          </LookOnly.Provider>
                                       ),
                                       css: (
+                                          <LookOnly.Provider value={!mayEdit}>
                                           <CssRules
                                               key={`${selectedNode.id}:${refusals}`}
                                               classes={classes}
@@ -1311,6 +1322,7 @@ export function Editor({ startPath, widths: sentWidths }: Props) {
                                               onTravel={travelSheet}
                                               onLink={linkSheet}
                                           />
+                                          </LookOnly.Provider>
                                       ),
                                   }
                         }
@@ -1325,8 +1337,9 @@ export function Editor({ startPath, widths: sentWidths }: Props) {
                     page={page === null ? null : pageTemplate(page.files)}
                     onPage={openFile !== null}
                     seenOn={open === null || openFile !== null ? null : pageOf(`${open.origin}:${open.path}`)}
-                    copying={copying}
+                    copying={copying || !mayEdit}
                     coding={coding}
+                    mayCode={mayCode}
                     unsaved={unsaved}
                     grow={selectedNode === null}
                     onCode={() => setCoding((on) => !on)}

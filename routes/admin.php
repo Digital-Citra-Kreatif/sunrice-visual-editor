@@ -19,20 +19,22 @@ Route::get('visual-editor', [EditorController::class, 'show'])->name('visual-edi
 // slashes and all: …/api/templates/partials/header.blade.php
 Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(EditorAccess::class)->group(function () {
     $path = '.+\.blade\.php';
+    // What changes a file takes the permission to edit; whether it may bring code is the controller's to say.
+    $edit = EditorAccess::class.':edit';
 
     Route::get('inserts', InsertController::class)->name('inserts');
     Route::get('site', SiteController::class)->name('site');
 
     // A stylesheet is named by its path inside the theme directory: …/api/styles/files/css/print.css
     Route::get('styles', [StyleController::class, 'index'])->name('styles.index');
-    Route::post('styles/link', [StyleController::class, 'link'])->name('styles.link');
-    Route::post('styles/files/{path}/changes', [StyleController::class, 'changes'])->where('path', '.+\.css')->name('styles.changes');
-    Route::put('styles/files/{path}/source', [StyleController::class, 'source'])->where('path', '.+\.css')->name('styles.source');
+    Route::post('styles/link', [StyleController::class, 'link'])->middleware($edit)->name('styles.link');
+    Route::post('styles/files/{path}/changes', [StyleController::class, 'changes'])->where('path', '.+\.css')->middleware($edit)->name('styles.changes');
+    Route::put('styles/files/{path}/source', [StyleController::class, 'source'])->where('path', '.+\.css')->middleware($edit)->name('styles.source');
 
     Route::get('templates', [TemplateController::class, 'index'])->name('templates.index');
-    Route::post('templates/{path}/operations', [TemplateController::class, 'operations'])->where('path', $path)->name('templates.operations');
-    Route::put('templates/{path}/source', [TemplateController::class, 'source'])->where('path', $path)->name('templates.source');
-    Route::post('templates/{path}/copy', [TemplateController::class, 'copy'])->where('path', $path)->name('templates.copy');
+    Route::post('templates/{path}/operations', [TemplateController::class, 'operations'])->where('path', $path)->middleware($edit)->name('templates.operations');
+    Route::put('templates/{path}/source', [TemplateController::class, 'source'])->where('path', $path)->middleware($edit)->name('templates.source');
+    Route::post('templates/{path}/copy', [TemplateController::class, 'copy'])->where('path', $path)->middleware($edit)->name('templates.copy');
     Route::get('templates/{path}/fields', [TemplateController::class, 'fields'])->where('path', $path)->name('templates.fields');
     Route::get('templates/{path}', [TemplateController::class, 'show'])->where('path', $path)->name('templates.show');
 });

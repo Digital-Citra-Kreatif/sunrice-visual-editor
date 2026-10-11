@@ -14,6 +14,9 @@ use Sunrice\VisualEditor\Blade\Operations;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
 use Sunrice\VisualEditor\Fields\Picker;
+use Sunrice\VisualEditor\Guard\CodeGuard;
+use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Templates\Backups;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\TemplateFile;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
@@ -60,9 +63,9 @@ class TemplateController extends Controller
      *
      * Body: {version, operations: [{type, node, …}, …]}.
      */
-    public function operations(Request $request, SaveTemplate $save, string $path): JsonResponse
+    public function operations(Request $request, SaveTemplate $save, CodeGuard $guard, string $path): JsonResponse
     {
-        return $this->answer(function () use ($request, $save, $path) {
+        return $this->answer(function () use ($request, $save, $guard, $path) {
             $body = $this->body($request);
             $version = $this->version($body);
             $operations = $body['operations'] ?? null;
@@ -85,6 +88,9 @@ class TemplateController extends Controller
             }
 
             $applied = Operations::run($source, $operations);
+            if (! $this->mayCode($request)) {
+                $guard->operations($this->templates->find($path), $source, $operations, $applied->source);
+            }
             $save->handle($path, $version, $applied->source);
 
             return ['template' => $this->templates->read($path), 'focus' => $applied->focus];
@@ -96,9 +102,9 @@ class TemplateController extends Controller
      *
      * Body: {version, source}.
      */
-    public function source(Request $request, SaveTemplate $save, string $path): JsonResponse
+    public function source(Request $request, SaveTemplate $save, CodeGuard $guard, string $path): JsonResponse
     {
-        return $this->answer(function () use ($request, $save, $path) {
+        return $this->answer(function () use ($request, $save, $guard, $path) {
             $body = $this->body($request);
             $source = $body['source'] ?? null;
             if (! is_string($source)) {
@@ -108,6 +114,14 @@ class TemplateController extends Controller
                 throw new InvalidRequest('That is too large to be a template.');
             }
 
+            if (! $this->mayCode($request)) {
+                // Without the permission to edit code, a whole text is theirs to write when it is one the template
+                // has been before (an undo, a redo) or runs nothing the template does not run now.
+                $file = $this->templates->find($path);
+                if (! Backups::had($file, $source)) {
+                    $guard->source((string) file_get_contents($file->file), $source);
+                }
+            }
             $save->handle($path, $this->version($body), $source);
 
             return ['template' => $this->templates->read($path)];
@@ -153,6 +167,12 @@ class TemplateController extends Controller
     public function copy(CopyPackageView $copy, string $path): JsonResponse
     {
         return $this->answer(fn () => ['template' => $this->templates->read($copy->handle($path))], 201);
+    }
+
+    /** Whether whoever asks may edit code: put Blade and PHP of their own into a template. */
+    private function mayCode(Request $request): bool
+    {
+        return Access::may($request->user(config('sunrice.auth.guard')), Access::CODE);
     }
 
     private function origin(Request $request): string

@@ -18,11 +18,14 @@ class EditorController extends Controller
      */
     public function show(Request $request): Response
     {
-        abort_unless(Access::allowed($request->user(config('sunrice.auth.guard'))), 403);
+        $user = $request->user(config('sunrice.auth.guard'));
+        abort_unless(Access::allowed($user), 403);
 
         return Inertia::render('VisualEditor/Editor', [
             'startPath' => static::sitePath($request->query('url')),
             'widths' => Widths::configured(),
+            // What whoever opens it may do, for the screen to offer no more: the API decides for itself.
+            'can' => ['edit' => Access::may($user, Access::EDIT), 'code' => Access::may($user, Access::CODE)],
         ]);
     }
 

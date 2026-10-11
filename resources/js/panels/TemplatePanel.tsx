@@ -17,6 +17,8 @@ type Props = {
     copying: boolean;
     /** Whether the code panel is showing. */
     coding: boolean;
+    /** Whether whoever is editing may write code: without it the code is there to read, in a template that can't be changed here anyway. */
+    mayCode: boolean;
     /** Whether the code panel holds changes that are not saved. */
     unsaved: boolean;
     /** Takes the room beside other panels, when it is the only one on its side. */
@@ -28,7 +30,7 @@ type Props = {
 };
 
 /** The right panel: the template that is open. */
-export function TemplatePanel({ open, template, page, onPage, seenOn, copying, coding, unsaved, grow, onCode, onOpen, onShowPage, onCopy }: Props) {
+export function TemplatePanel({ open, template, page, onPage, seenOn, copying, coding, mayCode, unsaved, grow, onCode, onOpen, onShowPage, onCopy }: Props) {
     return (
         <Panel title="Template" grow={grow}>
             {open === null ? (
@@ -59,7 +61,7 @@ export function TemplatePanel({ open, template, page, onPage, seenOn, copying, c
                         <>
                             <About template={template.data} onPage={onPage} seenOn={seenOn} copying={copying} onShowPage={onShowPage} onCopy={onCopy} />
                             <button type="button" className="sve-button sve-button--quiet sve-button--wide" aria-pressed={coding} onClick={onCode}>
-                                {coding ? 'Hide the code' : template.data.editable ? 'Edit as code' : 'View the code'}
+                                {coding ? 'Hide the code' : template.data.editable && mayCode ? 'Edit as code' : 'View the code'}
                                 {unsaved && <span className="sve-dot" title="Changes not saved" />}
                             </button>
                         </>
