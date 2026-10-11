@@ -1221,8 +1221,16 @@ await step('show and hide the code from the bar, and fold a group of controls in
     const codeButton = bar.getByRole('button', { name: 'Code under the page' });
     await codeButton.click();
     await page.locator('.sve-code').waitFor();
+    // Long enough for the code editor to have come and shown the template.
+    await page.locator('.sve-code .cm-editor, .sve-code .sve-code__field').first().waitFor();
+    await page.waitForTimeout(400);
     await codeButton.click();
     await page.waitForFunction(() => document.querySelector('.sve-code') === null);
+    // Showing the code and hiding it selects nothing else.
+    const still = await page.evaluate(() => document.querySelector('.sve-layer[aria-selected="true"] .sve-layer__label')?.textContent ?? null);
+    if (still !== 'p.muted') {
+        throw new Error(`After the code was shown and hidden, ${still} is selected, in ${await page.evaluate(() => document.querySelector('.sve-trail__here')?.textContent)}`);
+    }
 
     await settings.getByRole('button', { name: 'Style', exact: true }).click();
     const spacing = settings.getByRole('group', { name: 'Spacing' });

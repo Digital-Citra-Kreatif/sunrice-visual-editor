@@ -220,7 +220,9 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
                     if (update.docChanged) {
                         options.onChange(written(update.state));
                     }
-                    if (update.selectionSet && !sent && options.onCursor !== undefined) {
+                    // Only a cursor moved by whoever is in the editor: not one put somewhere by the editor itself,
+                    // or by a browser settling its own selection while the keyboard is elsewhere.
+                    if (update.selectionSet && !sent && update.view.hasFocus && options.onCursor !== undefined) {
                         options.onCursor(cursorInSaved(update.state));
                     }
                 }),
