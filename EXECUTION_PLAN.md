@@ -494,8 +494,25 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V5.5 Conditions and loops
 **Depends on:** V5.4
-Builders that write the expression: a condition from a field (is set, equals, greater than), a loop from a list field, a collection query (`<x-sunrice::entries>`: collection, limit, order, filters) or a menu.
-**Done when:** a "latest three articles" loop and a menu loop are built without typing. **Milestone M3.**
+- **A condition built from choices** (`BlockSettings`, `lib/builders.ts`). On an `@if` or `@elseif`: **Ask about a field…** lists every value at the place; choosing one writes "it is set". The value then shows as a chip with a list of what can be asked of it, and a field for what to compare with where that is needed:
+
+  | Value | Can be asked |
+  | --- | --- |
+  | text, rich text | is set, is not set, is, is not, contains |
+  | number | is set, is not set, is, is not, is more than, is less than |
+  | yes or no | is on, is off |
+  | date | is set, is not set, is in the past, is in the future |
+  | list | has any, has none; a select with several values also: has |
+  | anything else | is set, is not set |
+
+  What is written is plain PHP (`$entry->get('price') > 100`, `! empty($step['label'])`), with the same care as the emitters. It is read back into the choices when it was written by them; a condition written by hand stays code, in the field below, and is never rewritten.
+- **A loop's source from a list** (`BlockSettings`): **Loop over a field…** lists what can be gone over at the loop (list fields, `$entries`, menus) and writes it as the loop's source, keeping the item's name. A loop whose source is one of those says which.
+- **Entries from choices** (`EntriesSettings`). On `<x-sunrice::entries>`: **From** (the collection), **In the order** (as the collection is set, newest or oldest first, by title, as ordered in the admin, by any field of the collection), **Show** (how many) or **In pages** with how many on each, and **Only those where**: filters of a field, a comparison and a value, written as the component's `where`. A `where` written another way is left as it is. `<x-sunrice::terms>` has **Of** (the taxonomy).
+- **A component's tag takes attribute edits** (`Rules::isComponentTag`, `Attributes`): `setAttribute` and `removeAttribute` work on the opening tag of a component, bound (`:limit="3"`) or plain, changing only the attribute named. The tree lists a component's attributes on its tag, and the Settings panel shows them under **What it is given**. A component is still not an element: it has no tag to rename, no classes of its own, and is not marked when the page is drawn for the editor.
+- `GET {admin}/visual-editor/api/site` → the collections with their fields, and the taxonomies, for those lists. The picker also says how each value is asked about, compared and gone over (`asked`, `compared`, `looped`).
+- **Insert → Elements → Entries** now calls each entry `$item`, not `$entry`: on an entry's page `$entry` is the page's own, and the loop left it the last of the list.
+- A menu loop needs nothing new: **Insert → Fields → The site → Main menu**.
+**Done when:** a "latest three articles" loop and a menu loop are built without typing (`tests/Browser/editor.mjs`: the entries of a collection inserted, three of them, ordered, from another collection and back, all from lists, with the tag then compared; a condition wrapped round it, asked of a field, turned round and compared; a menu inserted from the list. `tests/Frontend/builders.test.mjs`: every condition written is read back; `tests/Unit/Blade/ComponentAttributesTest.php`: attribute edits on every component of every fixture). **Milestone M3.**
 
 ---
 

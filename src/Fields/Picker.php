@@ -76,6 +76,11 @@ final class Picker
             'inserts' => array_map(fn (Insert $insert) => $insert->toArray(), $this->emit->inserts($reading, $label, $taken)),
             'print' => $this->emit->printed($reading)?->blade,
             'expression' => $this->emit->printed($reading) === null ? null : $reading->printed(),
+            // For a condition: whether there is anything, and the value to compare with another.
+            'asked' => $reading->asked(),
+            'compared' => $reading->loose ? '('.$reading->code.' ?? null)' : $reading->code,
+            // For a loop: what to go over; null for what is no list.
+            'looped' => $shape->isList() ? $reading->looped() : null,
         ];
     }
 

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, copyToSite, listFields, listInserts, listTemplates, readTemplate, saveSource, type Insertable, type Operation, type PickVariable, type TemplateData, type TemplateInfo } from './lib/api';
+import { ApiError, applyOperations, copyToSite, listFields, listInserts, listTemplates, readSite, readTemplate, saveSource, type Insertable, type Operation, type PickVariable, type Site, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { pageOf, rememberPage } from './lib/memory';
@@ -697,6 +697,19 @@ export function Editor({ startPath }: Props) {
         };
     }, [fieldsFor]);
 
+    // The site's collections and taxonomies, for the controls that choose one: asked once.
+    const [site, setSite] = useState<Site | null>(null);
+    useEffect(() => {
+        let stale = false;
+        readSite()
+            .then((read) => !stale && setSite(read))
+            .catch(() => undefined);
+
+        return () => {
+            stale = true;
+        };
+    }, []);
+
     // --- What is shown on the page -------------------------------------------------
 
     /** The node under the pointer: a row of the layers, or an element of the open template on the page. */
@@ -963,6 +976,7 @@ export function Editor({ startPath }: Props) {
                         template={template.data}
                         node={selectedNode}
                         fields={fieldsHere !== null && fieldsHere.asked === fieldsFor ? fieldsHere.variables : null}
+                        site={site}
                         busy={applying}
                         refusals={refusals}
                         locked={unsaved ? codeUnsaved : null}

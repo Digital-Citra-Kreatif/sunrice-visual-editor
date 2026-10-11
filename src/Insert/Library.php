@@ -124,10 +124,11 @@ final class Library
         [$collections, $taxonomies, $forms] = [array_filter($collections, $plain), array_filter($taxonomies, $plain), array_filter($forms, $plain)];
 
         foreach ($collections as $collection) {
-            $title = $collection['single'] ? '<h3><a href="{{ $entry->url }}">{{ $entry->title }}</a></h3>' : '<h3>{{ $entry->title }}</h3>';
+            // Each one is `$item`, not `$entry`: on an entry's page that is the page's own, and the loop would leave it the last of these.
+            $title = $collection['single'] ? '<h3><a href="{{ $item->url }}">{{ $item->title }}</a></h3>' : '<h3>{{ $item->title }}</h3>';
             $entries[] = $entry('entries.'.$collection['handle'], 'Entries: '.$collection['title'], '<x-sunrice::entries>', <<<BLADE
                 <x-sunrice::entries collection="{$collection['handle']}" :limit="6">
-                    @foreach (\$component->entries as \$entry)
+                    @foreach (\$component->entries as \$item)
                         <article>
                             {$title}
                         </article>

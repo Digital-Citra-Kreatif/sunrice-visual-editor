@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Sunrice\VisualEditor\Http\Controllers\Api\InsertController;
+use Sunrice\VisualEditor\Http\Controllers\Api\SiteController;
 use Sunrice\VisualEditor\Http\Controllers\Api\TemplateController;
 use Sunrice\VisualEditor\Http\Controllers\EditorController;
 use Sunrice\VisualEditor\Http\Middleware\EditorAccess;
@@ -19,6 +20,7 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
     $path = '.+\.blade\.php';
 
     Route::get('inserts', InsertController::class)->name('inserts');
+    Route::get('site', SiteController::class)->name('site');
 
     Route::get('templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::post('templates/{path}/operations', [TemplateController::class, 'operations'])->where('path', $path)->name('templates.operations');

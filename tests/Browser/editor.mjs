@@ -643,6 +643,79 @@ await step('find a menu by typing, insert it, and have its item to pick from ins
     await page.getByRole('region', { name: 'Templates on this page' }).waitFor();
 });
 
+await step('list the latest three articles, and show them on a condition, by choosing alone', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    await page.locator('.sve-bar').getByRole('button', { name: 'Insert' }).click();
+    await tab('Elements').click();
+    await insertable('Entries: Articles').click();
+    const shows = (count) => page.waitForFunction((wanted) => document.querySelector('iframe.sve-frame')?.contentDocument?.querySelectorAll('.hero article').length === wanted, count);
+    await shows(5);
+
+    // How many, and in which order: chosen, and written as what the component is given.
+    await idle();
+    await settings.getByLabel('Show', { exact: true }).selectOption('3');
+    await shows(3);
+    await idle();
+    await settings.getByLabel('In the order').selectOption('-title');
+    const listed = () => page.evaluate(() => [...(document.querySelector('iframe.sve-frame')?.contentDocument?.querySelectorAll('.hero article') ?? [])].map((article) => article.textContent.trim()).join(', '));
+    await page.waitForFunction(() => document.querySelector('iframe.sve-frame')?.contentDocument?.querySelector('.hero article')?.textContent.trim() === 'Third post').catch(async () => {
+        throw new Error(`The articles are ${await listed()}`);
+    });
+    if ((await listed()) !== 'Third post, Second post, Fourth post') {
+        throw new Error(`The articles are ${await listed()}`);
+    }
+    if (!(await heroNow()).includes('<x-sunrice::entries collection="articles" :limit="3" order-by="-title">')) {
+        throw new Error(`The component is not written as chosen:\n${await heroNow()}`);
+    }
+    await settings.getByLabel('From').selectOption('pages');
+    await frame.locator('.hero article', { hasText: 'About' }).waitFor();
+    await idle();
+    await settings.getByLabel('From').selectOption('articles');
+    await shows(3);
+
+    // Around it a condition, asked of a field from the list, then turned round.
+    await idle();
+    await settings.getByLabel('Wrap in').selectOption({ label: 'Condition' });
+    await layerIs('@if (true)');
+    await idle();
+    await settings.getByRole('button', { name: 'Use a field for the condition' }).click();
+    await settings.getByRole('group', { name: 'Fields for the condition' }).locator('.sve-insertable').filter({ has: page.locator('.sve-insertable__title', { hasText: /^\$block › Subheading$/ }) }).click();
+    await layerIs('@if ($block->subheading)');
+    await shows(3);
+    await idle();
+    await settings.getByLabel('What is asked of it').selectOption({ label: 'is not set' });
+    await layerIs('@if (! $block->subheading)');
+    await shows(0);
+    await idle();
+    await settings.getByLabel('What is asked of it').selectOption({ label: 'is' });
+    await layerIs("@if ($block->subheading == '')");
+    await idle();
+    await settings.getByLabel('Compared with').fill('Nothing the hero says');
+    await settings.getByLabel('Compared with').press('Enter');
+    await layerIs("@if ($block->subheading == 'Nothing the hero says')");
+    await idle();
+    await settings.getByLabel('What is asked of it').selectOption({ label: 'is set' });
+    await shows(3);
+
+    // And a menu, from the list of what the site has: no word typed.
+    await idle();
+    await layerRow('h1').locator('.sve-layer__pick').click();
+    await tab('Fields').click();
+    await picking('Main menu').click();
+    await frame.locator('.hero ul a', { hasText: 'Articles' }).waitFor();
+    await idle();
+    // The loop says what it goes over.
+    await layerRow("@foreach (sunrice_menu('main') as $item)").locator('.sve-layer__pick').click();
+    await settings.locator('.sve-chip--field', { hasText: /^Main menu$/ }).waitFor();
+
+    await writeHero(hero.source);
+    await inserting.getByRole('button', { name: 'Done' }).click();
+    await page.getByRole('region', { name: 'Templates on this page' }).waitFor();
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');

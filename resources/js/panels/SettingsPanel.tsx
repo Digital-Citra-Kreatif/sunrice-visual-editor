@@ -1,5 +1,6 @@
 import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from 'react';
-import type { Operation, PickField, PickVariable, TemplateData, TreeNode } from '../lib/api';
+import type { Operation, PickField, PickVariable, Site, TemplateData, TreeNode } from '../lib/api';
+import { LIMITS, OPERATORS, condition, given, orders, readCondition, readWhere, takesValue, testLabel, testsFor, writeWhere, type Test, type Where } from '../lib/builders';
 import { binding, boundTo, echoed } from '../lib/fields';
 import { WRAPPERS, type Action } from '../lib/move';
 import { argumentsOf, attribute, attributesOf, classesOf, headOf, joinInclude, joinLoop, sourceOf, splitInclude, splitLoop } from '../lib/settings';
@@ -13,6 +14,8 @@ type Props = {
     node: TreeNode;
     /** What can be read at the node: the CMS's fields and variables. Null until it is known. */
     fields: PickVariable[] | null;
+    /** The site's collections and taxonomies, for the controls that choose one. Null until it is known. */
+    site: Site | null;
     /** A change is on its way to the server: nothing else can be sent until it is back. */
     busy: boolean;
     /** Why nothing can be changed right now, when that is so. */
@@ -58,17 +61,22 @@ const KINDS: Record<ReturnType<typeof kindOf>, string> = {
  * operation when it is left or Enter is pressed; the file is saved, the
  * page drawn again, and the node stays selected.
  */
-export function SettingsPanel({ template, node, fields, busy, locked, refusals, can, onApply, onAct, onDeselect }: Props) {
+export function SettingsPanel({ template, node, fields, site, busy, locked, refusals, can, onApply, onAct, onDeselect }: Props) {
     const kind = kindOf(node);
     const off = busy || locked !== null || !template.editable;
     const send: Send = (operation, to = node) => onApply([{ ...operation, node: to.id } as Operation]);
     /** Fills a control from a field: the text, what an echo prints, or an attribute's value. */
-    const bind = (to: PickVariable | PickField, attribute: string | null = null) => {
-        const operations = binding(node, to, attribute);
+    const bind = (to: PickVariable | PickField, attribute: string | null = null, on: TreeNode = node) => {
+        const operations = binding(on, to, attribute);
         if (operations.length > 0) {
             onApply(operations);
         }
     };
+    // The tag whose attributes are changed: the element's own, or for a component (selected as
+    // a whole, or by its one arm) the tag it opens with, which holds what the component is given.
+    const head = headOf(node);
+    const tag = node.can.attributes ? node : head !== null && head.can.attributes ? head : null;
+    const component = tag !== null && typeof tag.stray !== 'string' && (tag.type === 'branch' || tag.atom === 'component');
 
     return (
         <Panel title="Settings" grow>
@@ -107,7 +115,9 @@ export function SettingsPanel({ template, node, fields, busy, locked, refusals, 
 
             {/* A new node, a new version of this one, or a change that was refused starts every control afresh. */}
             <div className="sve-settings" key={`${template.version}:${node.id}:${refusals}`}>
-                {node.can.attributes && <ElementSettings node={node} fields={fields} off={off} send={send} bind={bind} onApply={onApply} />}
+                {tag !== null && component && tag.name === 'sunrice::entries' && <EntriesSettings tag={tag} site={site} off={off} onApply={onApply} />}
+                {tag !== null && component && tag.name === 'sunrice::terms' && <TermsSettings tag={tag} site={site} off={off} onApply={onApply} />}
+                {tag !== null && <ElementSettings node={tag} component={component} fields={fields} off={off} send={(operation) => send(operation, tag)} bind={(to, attribute) => bind(to, attribute, tag)} onApply={onApply} />}
                 {node.type === 'text' && (
                     <>
                         <Field label="Text" value={typeof node.text === 'string' ? node.text : ''} multiline disabled={off} onCommit={(text) => send({ type: 'setText', text })} hint="Typed as text: markup or Blade here is shown, not run." />
@@ -115,7 +125,7 @@ export function SettingsPanel({ template, node, fields, busy, locked, refusals, 
                     </>
                 )}
                 {(kind === 'field' || kind === 'label' || kind === 'expression') && <EchoSettings node={node} fields={fields} off={off} send={send} bind={bind} />}
-                {(node.type === 'block' || node.type === 'branch') && <BlockSettings node={node} off={off} send={send} />}
+                {(node.type === 'block' || node.type === 'branch') && <BlockSettings node={node} fields={fields} off={off} send={send} />}
                 {node.type === 'atom' && node.atom === 'directive' && node.kind !== 'code' && typeof node.stray !== 'string' && <DirectiveSettings node={node} off={off} send={send} />}
 
                 <SourceSettings template={template} node={node} off={off} send={send} always={kind === 'code'} />
@@ -145,16 +155,28 @@ function Bound({ fields, expression }: { fields: PickVariable[] | null; expressi
     );
 }
 
-function ElementSettings({ node, fields, off, send, bind, onApply }: { node: TreeNode; fields: PickVariable[] | null; off: boolean; send: Send; bind: Bind; onApply(operations: Operation[]): void }) {
-    const classes = classesOf(node);
-    const id = attribute(node, 'id');
-    const others = attributesOf(node).filter((each) => each.code || !(each.name === 'class' && classes !== null) && !(each.name === 'id' && !each.dynamic));
+type ElementProps = {
+    /** The node whose tag it is: an element, or the opening tag of a component. */
+    node: TreeNode;
+    /** A component: it has no tag to rename, and its id and classes are attributes like the rest. */
+    component: boolean;
+    fields: PickVariable[] | null;
+    off: boolean;
+    send: Send;
+    bind: Bind;
+    onApply(operations: Operation[]): void;
+};
+
+function ElementSettings({ node, component, fields, off, send, bind, onApply }: ElementProps) {
+    const classes = component ? null : classesOf(node);
+    const id = component ? null : attribute(node, 'id');
+    const others = attributesOf(node).filter((each) => component || each.code || !(each.name === 'class' && classes !== null) && !(each.name === 'id' && !each.dynamic));
     const [adding, setAdding] = useState({ name: '', value: '' });
 
     return (
         <>
             {node.type === 'element' && <Field label="Tag" value={node.name} mono disabled={off} onCommit={(tag) => send({ type: 'setTag', tag })} />}
-            {(id === null || !id.dynamic) && <Field label="ID" value={id?.value ?? ''} mono disabled={off} onCommit={(value) => send({ type: 'setId', id: value })} />}
+            {!component && (id === null || !id.dynamic) && <Field label="ID" value={id?.value ?? ''} mono disabled={off} onCommit={(value) => send({ type: 'setId', id: value })} />}
 
             {classes !== null && (
                 <Group label="Classes">
@@ -182,8 +204,8 @@ function ElementSettings({ node, fields, off, send, bind, onApply }: { node: Tre
                 </Group>
             )}
 
-            <Group label="Attributes">
-                {others.length === 0 && <p className="sve-empty">None besides the above.</p>}
+            <Group label={component ? 'What it is given' : 'Attributes'}>
+                {others.length === 0 && <p className="sve-empty">{component ? 'Nothing.' : 'None besides the above.'}</p>}
                 {others.map((each, index) =>
                     each.code ? (
                         <div className="sve-attribute" key={`code:${index}`}>
@@ -209,10 +231,13 @@ function ElementSettings({ node, fields, off, send, bind, onApply }: { node: Tre
                             <button type="button" className="sve-attribute__remove" disabled={off} onClick={() => send({ type: 'removeAttribute', name: each.name })} aria-label={`Remove the attribute ${each.name}`} title="Remove">
                                 ×
                             </button>
-                            <div className="sve-attribute__field">
-                                <Bound fields={fields} expression={echoed(each.value)} />
-                                <FieldChooser variables={fields} control={each.name} disabled={off} onChoose={(to) => bind(to, each.name)} />
-                            </div>
+                            {/* What a component is given is PHP when it is bound (:limit="3"): not something a field is echoed into. */}
+                            {!component && (
+                                <div className="sve-attribute__field">
+                                    <Bound fields={fields} expression={echoed(each.value)} />
+                                    <FieldChooser variables={fields} control={each.name} disabled={off} onChoose={(to) => bind(to, each.name)} />
+                                </div>
+                            )}
                         </div>
                     ),
                 )}
@@ -259,7 +284,7 @@ function EchoSettings({ node, fields, off, send, bind }: { node: TreeNode; field
     );
 }
 
-function BlockSettings({ node, off, send }: { node: TreeNode; off: boolean; send: Send }) {
+function BlockSettings({ node, fields, off, send }: { node: TreeNode; fields: PickVariable[] | null; off: boolean; send: Send }) {
     const head = headOf(node);
     const args = argumentsOf(head);
     if (head === null || args === null) {
@@ -269,14 +294,231 @@ function BlockSettings({ node, off, send }: { node: TreeNode; off: boolean; send
     if (loop !== null) {
         return (
             <>
+                <Bound fields={fields} expression={loop.source} />
                 <Field label="Loop over" value={loop.source} mono multiline disabled={off} onCommit={(source) => send({ type: 'setArguments', arguments: joinLoop(source, loop.item) }, head)} hint="What to go through: $entries, $block->images." />
+                <FieldChooser
+                    variables={fields}
+                    control="what it loops over"
+                    label="Loop over a field…"
+                    offer={(found) => found.value.looped !== null}
+                    disabled={off}
+                    onChoose={(to) => to.looped !== null && send({ type: 'setArguments', arguments: joinLoop(to.looped, loop.item) }, head)}
+                />
                 <Field label="Each one as" value={loop.item} mono disabled={off} onCommit={(item) => send({ type: 'setArguments', arguments: joinLoop(loop.source, item) }, head)} hint="The name it has inside the loop: $entry." />
             </>
         );
     }
     const label = kindOf(node) === 'condition' || ['if', 'elseif', 'unless', 'isset', 'empty'].includes(head.name) ? (head.name === 'case' ? 'When it is' : 'Shown when') : 'Between the brackets';
+    const written = <Field label={label} value={args} mono multiline disabled={off} onCommit={(value) => send({ type: 'setArguments', arguments: value }, head)} />;
+    if (!['if', 'elseif'].includes(head.name)) {
+        return written;
+    }
 
-    return <Field label={label} value={args} mono multiline disabled={off} onCommit={(value) => send({ type: 'setArguments', arguments: value }, head)} />;
+    // A condition about one of the values at this place, built from choices. One written by hand stays as it is.
+    const asked = readCondition(fields, args);
+    const ask = (about: PickVariable | PickField, test: Test, typed = '') => send({ type: 'setArguments', arguments: condition(about, test, typed) }, head);
+
+    return (
+        <>
+            {asked !== null && (
+                <div className="sve-asked">
+                    <span className="sve-chip sve-chip--field" title={asked.found.value.code}>
+                        {asked.found.trail.join(' › ')}
+                    </span>
+                    <select className="sve-input sve-asked__test" value={asked.test} disabled={off} onChange={(event) => ask(asked.found.value, event.target.value as Test, asked.typed)} aria-label="What is asked of it">
+                        {testsFor(asked.found.value).map((test) => (
+                            <option key={test} value={test}>
+                                {testLabel(test, asked.found.value)}
+                            </option>
+                        ))}
+                    </select>
+                    {takesValue(asked.test) && <Field label="Compared with" bare value={asked.typed} placeholder="a text or a number" disabled={off} onCommit={(typed) => ask(asked.found.value, asked.test, typed)} />}
+                </div>
+            )}
+            <FieldChooser variables={fields} control="the condition" label={asked === null ? 'Ask about a field…' : 'Ask about another field…'} offer={() => true} disabled={off} onChoose={(to) => ask(to, 'set')} />
+            {written}
+        </>
+    );
+}
+
+/** A select that is one of a component's attributes: choosing writes it, the first choice takes it away. */
+function Choice({ label, value, options, disabled, hint, onChoose }: { label: string; value: string; options: { value: string; label: string }[]; disabled: boolean; hint?: string; onChoose(value: string): void }) {
+    const id = useId();
+    // What the tag says now is always among the choices, whatever it is.
+    const all = options.some((option) => option.value === value) ? options : [...options, { value, label: value }];
+
+    return (
+        <div className="sve-field">
+            <label className="sve-field__label" htmlFor={id}>
+                {label}
+            </label>
+            <select id={id} className="sve-input" value={value} disabled={disabled} onChange={(event) => onChoose(event.target.value)} aria-describedby={hint === undefined ? undefined : `${id}-hint`}>
+                {all.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+            {hint !== undefined && (
+                <small className="sve-field__hint" id={`${id}-hint`}>
+                    {hint}
+                </small>
+            )}
+        </div>
+    );
+}
+
+/**
+ * The operations that give a component something under a name, or take it
+ * away: bound (`:limit="3"`, read as PHP) or plain (`collection="articles"`).
+ * Whichever way it was written before, it is written one way after.
+ */
+function give(tag: TreeNode, name: string, value: string | null, bound: boolean): Operation[] {
+    const [write, other] = bound ? [`:${name}`, name] : [name, `:${name}`];
+    const has = (written: string) => attributesOf(tag).some((each) => !each.code && each.name === written);
+
+    return [
+        ...(has(other) ? [{ type: 'removeAttribute' as const, node: tag.id, name: other }] : []),
+        ...(value === null ? (has(write) ? [{ type: 'removeAttribute' as const, node: tag.id, name: write }] : []) : [{ type: 'setAttribute' as const, node: tag.id, name: write, value, blade: bound }]),
+    ];
+}
+
+/**
+ * `<x-sunrice::entries>`: which entries it finds, chosen from lists. The
+ * tag's attributes are what is written; they are listed as they are below.
+ */
+function EntriesSettings({ tag, site, off, onApply }: { tag: TreeNode; site: Site | null; off: boolean; onApply(operations: Operation[]): void }) {
+    const attributes = attributesOf(tag);
+    const collection = given(attributes, 'collection');
+    const limit = given(attributes, 'limit');
+    const paged = given(attributes, 'paginate');
+    const perPage = given(attributes, 'per-page');
+    const order = given(attributes, 'order-by');
+    const where = given(attributes, 'where');
+    const filters = where === null ? [] : where.bound ? readWhere(where.value) : null;
+    const [adding, setAdding] = useState<Where | null>(null);
+
+    const fields = site?.collections.find((each) => each.handle === collection?.value)?.fields ?? [];
+    const apply = (operations: Operation[]) => operations.length > 0 && onApply(operations);
+    const pages = paged !== null && paged.value !== 'false';
+    const amounts = LIMITS.map((amount) => ({ value: String(amount), label: String(amount) }));
+    // What entries can be filtered by: the collection's fields that hold one plain value.
+    const filterable = fields.filter((field) => ['text', 'number', 'bool', 'date', 'value'].includes(field.kind));
+    const writeFilters = (rows: Where[]) => apply(give(tag, 'where', writeWhere(rows), true));
+
+    return (
+        <Group label="Entries">
+            {collection !== null && collection.bound ? (
+                <p className="sve-field__hint">The collection is worked out when the page is drawn: {collection.value}</p>
+            ) : (
+                <Choice
+                    label="From"
+                    value={collection?.value ?? ''}
+                    options={(site?.collections ?? []).map((each) => ({ value: each.handle, label: each.title }))}
+                    disabled={off || site === null}
+                    onChoose={(handle) => apply(give(tag, 'collection', handle, false))}
+                />
+            )}
+            <Choice
+                label="In the order"
+                value={order?.value ?? ''}
+                options={orders(fields)}
+                disabled={off}
+                onChoose={(value) => apply(give(tag, 'order-by', value === '' ? null : value, false))}
+            />
+            {pages ? (
+                <Choice
+                    label="On each page"
+                    value={perPage?.value ?? ''}
+                    options={[{ value: '', label: 'As many as the collection is set to' }, ...amounts]}
+                    disabled={off}
+                    onChoose={(value) => apply(give(tag, 'per-page', value === '' ? null : value, true))}
+                />
+            ) : (
+                <Choice label="Show" value={limit?.value ?? ''} options={[{ value: '', label: 'All of them' }, ...amounts]} disabled={off} onChoose={(value) => apply(give(tag, 'limit', value === '' ? null : value, true))} />
+            )}
+            <div className="sve-field">
+                <label className="sve-check">
+                    <input
+                        type="checkbox"
+                        checked={pages}
+                        disabled={off}
+                        onChange={(event) => apply(event.target.checked ? [...give(tag, 'limit', null, true), ...give(tag, 'paginate', 'true', true)] : [...give(tag, 'paginate', null, true), ...give(tag, 'per-page', null, true)])}
+                    />
+                    In pages
+                </label>
+                <small className="sve-field__hint">On: a page of them at a time. Print {'{{ $component->entries->links() }}'} after the loop for the links to the other pages.</small>
+            </div>
+
+            <div className="sve-field">
+                <span className="sve-field__label">Only those where</span>
+                {filters === null ? (
+                    <p className="sve-field__hint">The filter is written by hand: change it under “where” below.</p>
+                ) : (
+                    <>
+                        {[...filters, ...(adding === null ? [] : [adding])].map((row, index) => {
+                            const isNew = index === filters.length;
+                            const change = (changed: Where) => {
+                                if (isNew) {
+                                    // Not written until it says what to compare with: an unfinished filter would find nothing.
+                                    if (changed.value.trim() === '') {
+                                        setAdding(changed);
+                                    } else {
+                                        setAdding(null);
+                                        writeFilters([...filters, changed]);
+                                    }
+                                } else {
+                                    writeFilters(filters.map((each, at) => (at === index ? changed : each)));
+                                }
+                            };
+
+                            return (
+                                <div className="sve-where" key={isNew ? 'new' : `${index}:${row.field}:${row.operator}:${row.value}`}>
+                                    <select className="sve-input" value={row.field} disabled={off} onChange={(event) => change({ ...row, field: event.target.value })} aria-label={`Filter ${index + 1}: the field`}>
+                                        {[...filterable.map((field) => ({ value: field.handle, label: field.label })), ...(filterable.some((field) => field.handle === row.field) ? [] : [{ value: row.field, label: row.field }])].map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select className="sve-input" value={row.operator} disabled={off} onChange={(event) => change({ ...row, operator: event.target.value })} aria-label={`Filter ${index + 1}: how it is compared`}>
+                                        {OPERATORS.map((each) => (
+                                            <option key={each.operator} value={each.operator}>
+                                                {each.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <Field label={`Filter ${index + 1}: compared with`} bare value={row.value} placeholder="a text or a number" disabled={off} onCommit={(value) => change({ ...row, value })} />
+                                    <button type="button" className="sve-attribute__remove" disabled={off} onClick={() => (isNew ? setAdding(null) : writeFilters(filters.filter((_, at) => at !== index)))} aria-label={`Remove filter ${index + 1}`} title="Remove">
+                                        ×
+                                    </button>
+                                </div>
+                            );
+                        })}
+                        {adding === null && (
+                            <button type="button" className="sve-bind__open" disabled={off || filterable.length === 0} onClick={() => setAdding({ field: filterable[0]?.handle ?? '', operator: '=', value: '' })}>
+                                {filterable.length === 0 ? 'The collection has no field to filter by.' : 'Add a filter…'}
+                            </button>
+                        )}
+                    </>
+                )}
+            </div>
+        </Group>
+    );
+}
+
+/** `<x-sunrice::terms>`: the taxonomy whose terms it lists. */
+function TermsSettings({ tag, site, off, onApply }: { tag: TreeNode; site: Site | null; off: boolean; onApply(operations: Operation[]): void }) {
+    const taxonomy = given(attributesOf(tag), 'taxonomy');
+    if (taxonomy !== null && taxonomy.bound) {
+        return null;
+    }
+
+    return (
+        <Group label="Terms">
+            <Choice label="Of" value={taxonomy?.value ?? ''} options={(site?.taxonomies ?? []).map((each) => ({ value: each.handle, label: each.title }))} disabled={off || site === null} onChoose={(handle) => onApply(give(tag, 'taxonomy', handle, false))} />
+        </Group>
+    );
 }
 
 function DirectiveSettings({ node, off, send }: { node: TreeNode; off: boolean; send: Send }) {

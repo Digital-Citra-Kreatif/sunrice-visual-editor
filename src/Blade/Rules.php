@@ -59,6 +59,18 @@ final class Rules
     }
 
     /**
+     * The opening tag of a Blade component, with or without an end tag:
+     * `<x-sunrice::entries collection="articles">`. Its attributes are what
+     * the component is given, and are changed like an element's. It is
+     * not an element: nothing is written into it that the component
+     * would be handed.
+     */
+    public static function isComponentTag(Node $node): bool
+    {
+        return $node->kind === 'component' && in_array($node->type, ['branch', 'atom'], true) && str_starts_with($node->open, '<x-');
+    }
+
+    /**
      * Holds a stray tag or directive somewhere inside. Its other half is
      * elsewhere in the file, so the node can't leave, be copied or go.
      */
