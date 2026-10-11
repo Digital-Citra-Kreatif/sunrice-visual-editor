@@ -23,7 +23,8 @@ type Props = {
     unsaved: boolean;
     /** Takes the room beside other panels, when it is the only one on its side. */
     grow: boolean;
-    onCode(): void;
+    /** Shows or hides the code under the page; null when the code is beside the page and stays. */
+    onCode: (() => void) | null;
     onOpen(template: TemplateName): void;
     onShowPage(path: string): void;
     onCopy(path: string): void;
@@ -60,10 +61,13 @@ export function TemplatePanel({ open, template, page, onPage, seenOn, copying, c
                     {template.state === 'ready' && (
                         <>
                             <About template={template.data} onPage={onPage} seenOn={seenOn} copying={copying} onShowPage={onShowPage} onCopy={onCopy} />
-                            <button type="button" className="sve-button sve-button--quiet sve-button--wide" aria-pressed={coding} onClick={onCode}>
-                                {coding ? 'Hide the code' : template.data.editable && mayCode ? 'Edit as code' : 'View the code'}
-                                {unsaved && <span className="sve-dot" title="Changes not saved" />}
-                            </button>
+                            {/* In Code mode the code is beside the page already: there is nothing to show or hide. */}
+                            {onCode !== null && (
+                                <button type="button" className="sve-button sve-button--quiet sve-button--wide" aria-pressed={coding} onClick={onCode}>
+                                    {coding ? 'Hide the code' : template.data.editable && mayCode ? 'Edit as code' : 'View the code'}
+                                    {unsaved && <span className="sve-dot" title="Changes not saved" />}
+                                </button>
+                            )}
                         </>
                     )}
                 </>

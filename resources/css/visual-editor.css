@@ -1595,7 +1595,7 @@ select.sve-input {
 }
 
 .sve-code__space {
-    flex: 1;
+    flex: 0 0 0;
 }
 
 .sve-code__bar .sve-button {
@@ -1648,6 +1648,144 @@ select.sve-input {
 
 .sve-code__none {
     padding: 0.75rem;
+}
+
+/* Code mode: the code beside the page, with a line between them that can be dragged. */
+.sve-canvas--beside {
+    flex-direction: row;
+    gap: 0;
+}
+
+.sve-canvas--beside > .sve-code {
+    order: 0;
+    flex: 0 0 calc(var(--sve-code-share, 0.5) * (100% - 0.75rem));
+    min-width: 0;
+    min-height: 0;
+}
+
+.sve-canvas--beside > .sve-divider {
+    order: 1;
+}
+
+.sve-canvas--beside > .sve-widths {
+    order: 2;
+    min-width: 0;
+}
+
+.sve-divider {
+    flex: 0 0 0.75rem;
+    position: relative;
+    cursor: col-resize;
+    touch-action: none;
+}
+
+.sve-divider::after {
+    content: '';
+    position: absolute;
+    inset-block: calc(50% - 1.25rem);
+    inset-inline: calc(50% - 1.5px);
+    border-radius: 999px;
+    background: var(--border);
+}
+
+.sve-divider:hover::after,
+.sve-divider:focus-visible::after,
+.sve-canvas--dividing > .sve-divider::after {
+    inset-block: 0.25rem;
+    background: var(--ring);
+}
+
+.sve-divider:focus-visible {
+    outline: 0;
+}
+
+/* While the line is dragged the page's frame lets the pointer pass: it would take it for itself. */
+.sve-canvas--dividing iframe {
+    pointer-events: none;
+}
+
+.sve-canvas--dividing {
+    cursor: col-resize;
+    user-select: none;
+}
+
+/* The templates open in the code, as tabs: each keeps what was typed in it. */
+.sve-tabs {
+    flex: 1 1 0;
+    display: flex;
+    gap: 0.125rem;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.sve-tab {
+    flex: none;
+    display: flex;
+    align-items: center;
+    border-radius: calc(var(--radius) - 2px);
+    color: var(--muted-foreground);
+}
+
+.sve-tab--open {
+    background: var(--muted);
+    color: var(--foreground);
+}
+
+.sve-tab__name {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.625rem;
+    padding-inline: 0.5rem;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    color: inherit;
+    font: 0.75rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    cursor: pointer;
+}
+
+.sve-tab--open .sve-tab__name {
+    font-weight: 600;
+}
+
+.sve-tab__name:hover {
+    color: var(--foreground);
+}
+
+/* Typed in and not saved. */
+.sve-tab__dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.sve-tab__close {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-inline-end: 0.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--radius) - 4px);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: 1;
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.sve-tab__close:hover {
+    background: var(--accent);
+    opacity: 1;
+}
+
+.sve-tab__name:focus-visible,
+.sve-tab__close:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
 }
 
 /* The code editor (CodeMirror) fills what is under the bar and scrolls by itself. Its own look is set where it is made (resources/js/code). */

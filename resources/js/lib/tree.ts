@@ -24,6 +24,23 @@ export function findNode(tree: TreeNode | null, id: string | null): TreeNode | n
     return null;
 }
 
+/**
+ * The innermost node that holds a place in the file, counted in bytes as
+ * nodes are; the root for a place between everything else. Null without a tree.
+ */
+export function nodeAt(tree: TreeNode | null, byte: number): TreeNode | null {
+    if (tree === null) {
+        return null;
+    }
+    for (const child of tree.children ?? []) {
+        if (byte >= child.start && byte < child.end) {
+            return nodeAt(child, byte);
+        }
+    }
+
+    return tree;
+}
+
 /** The nodes from the root down to a node, itself last; empty when it isn't in the tree. */
 export function pathTo(tree: TreeNode | null, id: string | null): TreeNode[] {
     if (tree === null || id === null) {

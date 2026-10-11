@@ -12,10 +12,22 @@ export type Layout = {
     right: boolean;
     /** The panels and sections that are folded to their titles, by name. */
     folded: string[];
+    /** Which way of working is chosen: on the page with the panels, or in the code beside the page. */
+    mode: 'visual' | 'code';
+    /** In Code mode, how much of the room between the sides the code takes: the page has the rest. */
+    share: number;
 };
 
-/** Everything shown, nothing folded: how the editor is the first time. */
-export const EVERYTHING: Layout = { left: true, right: true, folded: [] };
+/** Everything shown, nothing folded, working on the page: how the editor is the first time. */
+export const EVERYTHING: Layout = { left: true, right: true, folded: [], mode: 'visual', share: 0.5 };
+
+/** The least and the most of the room the code may take in Code mode: the page is never squeezed out, nor the code. */
+export const SHARES = [0.2, 0.8] as const;
+
+/** A share of the room as it may be: a number, and within what is allowed. */
+export function shareOf(wanted: unknown): number {
+    return typeof wanted === 'number' && Number.isFinite(wanted) ? Math.min(SHARES[1], Math.max(SHARES[0], wanted)) : EVERYTHING.share;
+}
 
 const KEY = 'sunrice-visual-editor:layout';
 
@@ -28,12 +40,14 @@ export function readLayout(store: Store = window.localStorage): Layout {
         if (typeof kept !== 'object' || kept === null || Array.isArray(kept)) {
             return EVERYTHING;
         }
-        const { left, right, folded } = kept as Record<string, unknown>;
+        const { left, right, folded, mode, share } = kept as Record<string, unknown>;
 
         return {
             left: left !== false,
             right: right !== false,
             folded: Array.isArray(folded) ? [...new Set(folded.filter((name): name is string => typeof name === 'string' && name !== ''))].slice(-MOST) : [],
+            mode: mode === 'code' ? 'code' : 'visual',
+            share: shareOf(share),
         };
     } catch {
         return EVERYTHING;

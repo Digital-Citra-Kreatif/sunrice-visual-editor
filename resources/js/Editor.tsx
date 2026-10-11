@@ -1,24 +1,24 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, wrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, changeStyles, copyToSite, linkStylesheet, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile } from './lib/api';
+import { ApiError, applyOperations, changeStyles, copyToSite, linkStylesheet, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile, type TreeNode } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { asMedia, breakpoints, mediaFor, sameMedia } from './lib/media';
 import { pageOf, rememberPage } from './lib/memory';
 import { startRedraw, type Redraw } from './lib/redraw';
 import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
-import { folding, isFolded, readLayout, siding, writeLayout } from './lib/layout';
+import { folding, isFolded, readLayout, shareOf, siding, writeLayout } from './lib/layout';
 import { isAdminPath, sitePath } from './lib/path';
 import { classesOf } from './lib/settings';
 import { STYLE_PROPERTIES } from './lib/styleFields';
 import { layoutOf, resolve, sheetsOf, shiftedId, type StyleEdit } from './lib/styles';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
-import { boxesOf, findNode, rowFor } from './lib/tree';
+import { boxesOf, findNode, rowFor, nodeAt } from './lib/tree';
 import { useSize } from './lib/size';
 import { activeWidth, layout, readWidths, viewOf, viewValue, type View } from './lib/widths';
-import { CodePanel } from './panels/CodePanel';
+import { CodePanel, type CodePlace } from './panels/CodePanel';
 import { InsertPanel, type InsertTab } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Folds, Side } from './panels/Panel';
@@ -135,6 +135,34 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
      */
     const openNow = useRef(open);
     openNow.current = open;
+    /** The code of each template as typed and not saved, by "origin:path": going to another template leaves it where it is. */
+    const [drafts, setDrafts] = useState<Record<string, string>>({});
+    /** The templates opened since the editor was, in the order they were: the tabs of the code. */
+    const [tabs, setTabs] = useState<TemplateName[]>([]);
+    /** A place in a template's code the cursor is asked to go to. */
+    const [codePlace, setCodePlace] = useState<CodePlace | null>(null);
+    const asked = useRef(0);
+    const draft = open === null ? null : (drafts[historyKey(open)] ?? null);
+    /** What is typed in a template's code and not saved; null when it is the file again, or was saved. */
+    const setDraft = (text: string | null, of: TemplateName | null = openNow.current) => {
+        if (of === null) {
+            return;
+        }
+        setDrafts((all) => {
+            const { [historyKey(of)]: had, ...others } = all;
+
+            return text === null ? (had === undefined ? all : others) : had === text ? all : { ...others, [historyKey(of)]: text };
+        });
+    };
+    /** The open template has code that is not saved: the panels wait for it. */
+    const unsaved = draft !== null;
+    const anyUnsaved = Object.keys(drafts).length > 0;
+    // A template that is opened is a tab from then on.
+    useEffect(() => {
+        if (open !== null) {
+            setTabs((all) => (all.some((tab) => sameTemplate(tab, open)) ? all : [...all, { path: open.path, origin: open.origin }]));
+        }
+    }, [open?.path, open?.origin]);
     const [template, setTemplate] = useState<Loaded<TemplateData>>({ state: 'idle' });
     /** Bumped to read the open template from disk again. */
     const [readings, setReadings] = useState(0);
@@ -144,8 +172,6 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
     useEffect(() => writeLayout(arranged), [arranged]);
     const folds = useMemo(() => ({ folded: new Set(arranged.folded), toggle: (name: string) => setArranged((now) => folding(now, name)) }), [arranged.folded]);
     /** The open template's text as changed in the code panel and not saved; null when it is as on disk. */
-    const [draft, setDraft] = useState<string | null>(null);
-    const unsaved = draft !== null;
     const [all, setAll] = useState<TemplateInfo[] | null>(null);
     const [copying, setCopying] = useState(false);
     /** A change from the Settings panel is on its way to the server. */
@@ -224,6 +250,15 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
 
     const tree = template.state === 'ready' ? template.data.tree : null;
     const openFile = open === null ? null : (page?.files.find((file) => sameTemplate(file, open)) ?? null);
+    // As they are when something that was waiting gets to look: the code's cursor is told of a moment late.
+    const treeNow = useRef(tree);
+    treeNow.current = tree;
+    const selectedNow = useRef(selected);
+    selectedNow.current = selected;
+    const openFileNow = useRef(openFile);
+    openFileNow.current = openFile;
+    const busyNow = useRef(false);
+    busyNow.current = applying;
 
     const tell = useBridge(frame, (said) => {
         if (said.type === 'ready') {
@@ -275,6 +310,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                 // An element of the open template: select it.
                 if (findNode(tree, id) !== null) {
                     setSelected(id);
+                    pointCode(file, findNode(tree, id));
                 }
             } else {
                 // An element of another template: open that one, and select the element once it is read.
@@ -511,16 +547,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
         if (sameTemplate(open, name)) {
             return;
         }
-        if (unsaved && !window.confirm(`Leave ${open?.path ?? 'this template'} without saving what you changed in its code?`)) {
-            toSelect.current = null;
-
-            return;
-        }
         if (toSelect.current !== null && !sameTemplate(toSelect.current.template, name)) {
             // An element clicked for a template that is no longer where the editor is going.
             toSelect.current = null;
         }
-        setDraft(null);
+        // What was typed in the code of the template being left stays with its tab.
         setSelected(null);
         setPointedNode(null);
         const here = page?.files.some((file) => sameTemplate(file, name)) ?? false;
@@ -530,6 +561,75 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
             show(seenOn);
         }
         setOpen(name);
+    };
+
+    // The code keeps showing the template it has while another is on its way: the editor stays as it
+    // is, with what each tab was left with, and is not made anew for every template opened.
+    const lastRead = useRef<TemplateData | null>(null);
+    if (template.state === 'ready') {
+        lastRead.current = template.data;
+    }
+    const codeOf = template.state === 'ready' ? template.data : template.state === 'loading' ? lastRead.current : null;
+
+    /** The room between the sides: the code and the page share it in Code mode. */
+    const canvas = useRef<HTMLElement>(null);
+    /** Dragging the line between the code and the page gives the one more room and the other less. */
+    const divide = (event: ReactPointerEvent<HTMLDivElement>) => {
+        const room = canvas.current?.getBoundingClientRect();
+        if (room === undefined || room.width === 0) {
+            return;
+        }
+        event.preventDefault();
+        const line = event.currentTarget;
+        line.setPointerCapture(event.pointerId);
+        // The page is in a frame, which would take the pointer for itself as it passes over.
+        canvas.current?.classList.add('sve-canvas--dividing');
+        const move = (moved: PointerEvent) => setArranged((now) => ({ ...now, share: shareOf((moved.clientX - room.left) / room.width) }));
+        const done = () => {
+            line.removeEventListener('pointermove', move);
+            canvas.current?.classList.remove('sve-canvas--dividing');
+        };
+        line.addEventListener('pointermove', move);
+        line.addEventListener('pointerup', done, { once: true });
+        line.addEventListener('pointercancel', done, { once: true });
+    };
+
+    /** Closes a tab: its template is no longer among those the code keeps, and what was typed in it goes. */
+    const closeTab = (name: TemplateName) => {
+        if (tabs.length < 2) {
+            return;
+        }
+        if (drafts[historyKey(name)] !== undefined && !window.confirm(`Close ${name.path} without saving what you changed in its code?`)) {
+            return;
+        }
+        const at = tabs.findIndex((tab) => sameTemplate(tab, name));
+        const left = tabs.filter((tab) => !sameTemplate(tab, name));
+        setDraft(null, name);
+        setTabs(left);
+        if (sameTemplate(open, name)) {
+            // The one beside it takes its place.
+            openTemplate(left[Math.min(Math.max(at, 0), left.length - 1)]);
+        }
+    };
+
+    /** The code's cursor is in another node: that node is the selection, shown on the page. A moment after the cursor stops. */
+    const cursorWait = useRef<number | null>(null);
+    const cursorAt = (byte: number) => {
+        if (cursorWait.current !== null) {
+            window.clearTimeout(cursorWait.current);
+        }
+        cursorWait.current = window.setTimeout(() => {
+            cursorWait.current = null;
+            const node = nodeAt(treeNow.current, byte);
+            if (node === null || node.type === 'root' || node.id === selectedNow.current || busyNow.current) {
+                return;
+            }
+            setSelected(node.id);
+            const [first] = boxesOf(treeNow.current, node.id).ids;
+            if (first !== undefined && openFileNow.current !== null) {
+                tell({ type: 'reveal', mark: { file: openFileNow.current.key, id: first } });
+            }
+        }, 250);
     };
 
     const copy = (path: string) => {
@@ -551,12 +651,28 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
             .finally(() => setCopying(false));
     };
 
+    /**
+     * Sends the code's cursor to a node of a template: what a click on the
+     * page, or on a layer, does to the code. In Code mode the keyboard goes
+     * there too; with the code under the page it stays where it is, on the
+     * page or the layers.
+     */
+    const pointCode = (of: TemplateName, node: TreeNode | null) => {
+        if (node !== null && node.type !== 'root') {
+            asked.current++;
+            setCodePlace({ path: of.path, origin: of.origin, byte: node.start, asked: asked.current, focus: arranged.mode === 'code' });
+        }
+    };
+
     /** Selects a layer and brings what shows it on the page into view. */
     const select = (id: string) => {
         if (applying) {
             return;
         }
         setSelected(id);
+        if (open !== null) {
+            pointCode(open, findNode(tree, id));
+        }
         const [first] = boxesOf(tree, id).ids;
         if (first !== undefined && openFile !== null) {
             tell({ type: 'reveal', mark: { file: openFile.key, id: first } });
@@ -602,6 +718,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                     toSelect.current = null;
                     if (findNode(data.tree, waitingFor.id) !== null) {
                         setSelected(waitingFor.id);
+                        pointCode(open, findNode(data.tree, waitingFor.id));
                     }
                 }
             })
@@ -629,22 +746,22 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
 
     // Closing the tab with changes in the code panel: the browser asks first.
     useEffect(() => {
-        if (!unsaved) {
+        if (!anyUnsaved) {
             return;
         }
         const ask = (event: BeforeUnloadEvent) => event.preventDefault();
         window.addEventListener('beforeunload', ask);
 
         return () => window.removeEventListener('beforeunload', ask);
-    }, [unsaved]);
+    }, [anyUnsaved]);
 
     /** The code panel wrote the file: show it as it is now, in the panels and on the page. */
     const saved = (data: TemplateData) => {
         remember(data);
         say('done', `Saved ${data.path}.`);
+        setDraft(null, data);
         if (sameTemplate(openNow.current, data)) {
             setTemplate({ state: 'ready', data });
-            setDraft(null);
             // The ids of the old tree mean nothing in the new one.
             setSelected(null);
             setCollapsed(new Set());
@@ -1113,7 +1230,13 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
             <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
 
             <header className="sve-bar">
-                <Sunrice.inertia.Link href={Sunrice.adminUrl()} className="sve-bar__back" title="Back to the admin">
+                <Sunrice.inertia.Link
+                    href={Sunrice.adminUrl()}
+                    className="sve-bar__back"
+                    title="Back to the admin"
+                    // The admin is left without the page being left, so the browser does not ask: this does.
+                    onBefore={() => !anyUnsaved || window.confirm('Leave the editor without saving what you changed in the code?')}
+                >
                     <span aria-hidden="true">←</span> Admin
                 </Sunrice.inertia.Link>
                 <strong className="sve-bar__title">Visual editor</strong>
@@ -1147,6 +1270,15 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                         </p>
                     )}
                 </form>
+
+                <div className="sve-modes" role="group" aria-label="How the template is worked on">
+                    <button type="button" className="sve-modes__mode" aria-pressed={arranged.mode === 'visual'} onClick={() => setArranged((now) => ({ ...now, mode: 'visual' }))} title="On the page, with layers and settings">
+                        Visual
+                    </button>
+                    <button type="button" className="sve-modes__mode" aria-pressed={arranged.mode === 'code'} onClick={() => setArranged((now) => ({ ...now, mode: 'code' }))} title="In the template's code, beside the page">
+                        Code
+                    </button>
+                </div>
 
                 <div className="sve-history" role="group" aria-label="Undo and redo">
                     <button type="button" className="sve-button sve-button--quiet" disabled={!undoable} onClick={() => travel('undo')} title="Undo the last change to this template (Ctrl+Z)">
@@ -1207,11 +1339,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                     <button
                         type="button"
                         className="sve-shown__part"
-                        aria-pressed={coding && template.state === 'ready'}
-                        disabled={template.state !== 'ready'}
+                        aria-pressed={(coding || arranged.mode === 'code') && template.state === 'ready'}
+                        disabled={template.state !== 'ready' || arranged.mode === 'code'}
                         onClick={() => setCoding((on) => !on)}
                         aria-label="Code under the page"
-                        title={template.state !== 'ready' ? 'Open a template to see its code' : coding ? 'Hide the code' : 'Show the code of the open template'}
+                        title={arranged.mode === 'code' ? 'In Code mode the code is beside the page' : template.state !== 'ready' ? 'Open a template to see its code' : coding ? 'Hide the code' : 'Show the code of the open template'}
                     >
                         <ShownIcon part="code" />
                     </button>
@@ -1274,7 +1406,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                 />
             </Side>
 
-            <main className={`sve-canvas sve-canvas--${mode}`}>
+            <main className={`sve-canvas sve-canvas--${mode}${arranged.mode === 'code' ? ' sve-canvas--beside' : ''}`} ref={canvas} style={arranged.mode === 'code' ? ({ '--sve-code-share': String(arranged.share) } as CSSProperties) : undefined}>
                 <div className={`sve-widths sve-widths--${view.kind}`} ref={room}>
                     {/* The frame being edited is always the first here, and the others keep their places: a frame that is
                         moved in the document loads its page anew. Where each is shown is said by `order`. */}
@@ -1334,15 +1466,48 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                     })}
                     <NoticeBar notice={notice} onDismiss={() => setNotice(null)} />
                 </div>
-                {coding && template.state === 'ready' && (
+                {arranged.mode === 'code' && (
+                    <div
+                        className="sve-divider"
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label="How the room is shared between the code and the page"
+                        aria-valuenow={Math.round(arranged.share * 100)}
+                        aria-valuemin={20}
+                        aria-valuemax={80}
+                        tabIndex={0}
+                        title="Drag to give the code more room, or less"
+                        onPointerDown={divide}
+                        onKeyDown={(event) => {
+                            const step = event.key === 'ArrowLeft' ? -0.05 : event.key === 'ArrowRight' ? 0.05 : 0;
+                            if (step !== 0) {
+                                event.preventDefault();
+                                setArranged((now) => ({ ...now, share: shareOf(now.share + step) }));
+                            }
+                        }}
+                    />
+                )}
+                {arranged.mode === 'code' && codeOf === null && (
+                    <section className="sve-code sve-code--beside" aria-label="Code">
+                        <p className="sve-empty sve-code__none">{template.state === 'failed' ? template.error : template.state === 'loading' ? 'Loading…' : 'Open a template to see its code.'}</p>
+                    </section>
+                )}
+                {(coding || arranged.mode === 'code') && codeOf !== null && (
                     <CodePanel
-                        template={template.data}
-                        mayCode={mayCode}
-                        draft={draft}
-                        onDraft={setDraft}
+                        template={codeOf}
+                        current={open}
+                        mayCode={mayCode && template.state === 'ready'}
+                        draft={drafts[historyKey(codeOf)] ?? null}
+                        onDraft={(text) => setDraft(text, codeOf)}
+                        tabs={tabs.map((tab) => ({ ...tab, unsaved: drafts[historyKey(tab)] !== undefined }))}
+                        onOpenTab={openTemplate}
+                        onCloseTab={closeTab}
+                        beside={arranged.mode === 'code'}
+                        goTo={codePlace}
+                        onCursor={cursorAt}
                         onSaved={saved}
                         onReload={() => {
-                            setDraft(null);
+                            setDraft(null, codeOf);
                             setSelected(null);
                             setReadings((count) => count + 1);
                         }}
@@ -1430,7 +1595,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                     mayCode={mayCode}
                     unsaved={unsaved}
                     grow={selectedNode === null}
-                    onCode={() => setCoding((on) => !on)}
+                    onCode={arranged.mode === 'code' ? null : () => setCoding((on) => !on)}
                     onOpen={openTemplate}
                     onShowPage={(path) => {
                         wanted.current = open;

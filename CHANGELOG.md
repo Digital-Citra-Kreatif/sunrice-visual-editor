@@ -14,8 +14,10 @@ it has been installed on a real project (see the end of
 - **A screen in the Sunrice admin** that shows a page of the site in a
   frame and lists the Blade files that draw it. Pointing at the page
   outlines what each template drew; a click opens the template.
-- **Templates as code**: the source of a template under the page, saved
-  only when it compiles and only onto the version that was opened.
+- **Templates as code**: the source of a template in a code editor, under
+  the page or, in Code mode, beside it, with templates as tabs that keep
+  unsaved text and a click on the page putting the cursor on that element.
+  Saved only when it compiles and only onto the version that was opened.
 - **Templates as a tree**: layers, and settings for what is selected (tag,
   id, classes, attributes, text, echoes, conditions, loops, includes).
   Insert elements, Blade structures, Sunrice's components, the site's

@@ -15,7 +15,8 @@ interface SunriceApi {
     registerPage(name: string, component: PageComponent): void;
     inertia: {
         router: { visit(url: string, options?: Record<string, unknown>): void };
-        Link: ReactNS.ComponentType<{ href: string; className?: string; title?: string; children?: ReactNS.ReactNode }>;
+        /** Inertia's link. `onBefore` answering false keeps the visit from being made. */
+        Link: ReactNS.ComponentType<{ href: string; className?: string; title?: string; onBefore?: () => boolean | void; children?: ReactNS.ReactNode }>;
         Head: ReactNS.ComponentType<{ title?: string; children?: ReactNS.ReactNode }>;
         usePage(): { props: Record<string, unknown> };
     };
