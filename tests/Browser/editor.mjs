@@ -25,6 +25,10 @@ const step = async (name, action) => {
     } catch (error) {
         // The first lines say what failed and what was being waited for.
         console.log(`FAIL ${name}\n     ${String(error.message).split('\n').slice(0, 7).join('\n     ')}\n     at ${page.url()}`);
+        // Something thrown on the page is often why: said here, since nothing after this is run.
+        for (const thrown of errors.slice(-5)) {
+            console.log(`     thrown on the page: ${thrown}`);
+        }
         await browser.close();
         process.exit(1);
     }
