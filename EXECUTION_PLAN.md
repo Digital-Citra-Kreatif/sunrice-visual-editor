@@ -698,14 +698,21 @@ Two things were decided before any of it was built:
 
 ### V8.1 Vite and Tailwind, as they are
 **Depends on:** V7.4
-What the editor does today on a site with Laravel's Vite plugin and Tailwind 4, found out and written down, before anything is built for it.
-- `.github/vite-check.sh`, a job beside `install`: a new Laravel application (which comes with Vite and Tailwind 4), Sunrice, the package; a layout that uses `@vite`. Then:
-  - a class Tailwind has no rule for yet (`bg-fuchsia-500`) is added to a template through the editor's API; `npm run build`; the built CSS has the rule. This is the path the Build button will take.
-  - with `npm run dev` running, a page drawn for the editor links the dev server, and the dev server's CSS has the rule without a build.
-  - the page drawn for the editor still carries its marks with `@vite` in the layout, and the layout opens as a tree with `@vite(…)` as one piece of code.
-- Whatever that turns up is mended here.
-- `docs/styles.md`: the section on sites that build their CSS, rewritten from what was found.
-**Done when:** the job passes, and the page says what works without the editor doing anything.
+**Status:** done.
+
+What the editor does on a site with Laravel's Vite plugin and Tailwind 4, found out on one before anything is built for it.
+
+- `.github/vite-check.sh`, the `vite` job beside `install`: a new Laravel application (which comes with Vite 8 and Tailwind 4), Sunrice, the package, and the layout given `@vite([...])`. `.github/new-site.sh` now makes the site for both checks. `.github/vite/ViteTest.php` runs inside the site, a few tests at a time between builds; `.github/vite/browser.mjs` drives the editor in Chrome.
+- **What it found, all of it without a change to the package:**
+  - *A build.* A class Tailwind had no rule for is added to the header through the editor's API. The built CSS does not have it; after `npm run build` it does. Tailwind finds classes in `resources/views/sunrice/` by itself.
+  - *The dev server.* With Vite running, a page drawn for the editor links the dev server and still carries its marks, and a second class added through the API is in the dev server's CSS within a moment, with no build.
+  - *The layout.* It opens as a tree, with `@vite(…)` as one piece of code.
+  - *In a browser, with the dev server running:* a class typed into **Settings** colours the element in the frame, and while Vite reloads the page on top of the editor drawing it again, the element stays selected and the page stays marked.
+- **What it found in Sunrice.** The admin was blank for as long as the site's dev server ran: its page asked that server for the admin's own script. Mended in [sunrice-cms#41](https://github.com/littleboy130491/sunrice-cms/pull/41) (one line: the admin looks for a hot file of its own). The browser part of the check was run against that branch and passed; on a Sunrice without it the check skips that part and says so, so it starts running by itself once #41 is merged.
+- The dev server will not start where `CI` is set unless `LARAVEL_BYPASS_ENV_CHECK=1` says it is meant; the check sets it.
+- `docs/styles.md`, *Sites that build their CSS*: rewritten from this. `docs/limits.md` and the README follow.
+
+**Not here:** anything that makes a class show without a dev server (V8.5), or builds (V8.6).
 
 ### V8.2 A code editor in place of the text field
 **Depends on:** V8.1

@@ -55,9 +55,12 @@ other page that uses the template.
 
 ## Styles
 
-- **Plain CSS files only**, in `public/sunrice-theme/`, up to 2 MB each. A
-  site whose CSS is built (Tailwind, Vite, Sass) gets class editing and
-  nothing else.
+- **The Style and CSS tabs are for plain CSS files**, in
+  `public/sunrice-theme/`, up to 2 MB each. A site whose CSS is built
+  (Tailwind through Vite) is styled with classes: with a dev server
+  running they show at once, otherwise after a build
+  ([Styles](styles.md#sites-that-build-their-css)). The editor does not
+  build, and does not start a dev server.
 - Styles are written for a class. There is no styling by id or tag from the
   Style tab, and no inline `style` attribute written.
 - The Style tab writes the class's own rule. Rules that only mention the

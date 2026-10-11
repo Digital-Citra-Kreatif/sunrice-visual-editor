@@ -113,10 +113,41 @@ written mobile first (`min-width`), set them up that way:
 
 ## Sites that build their CSS
 
-A site whose CSS is made by a build (Vite, Tailwind, Sass) is styled by its
-classes: add and remove them on the element in Settings, and let the build
-run in your terminal as before. The editor changes CSS files, not what a
-build makes from other files, and it would be wrong to edit a built file
-that the next build writes over.
+A new Laravel application takes its CSS from Vite, with Tailwind: the
+layout says `@vite(['resources/css/app.css', 'resources/js/app.js'])`, and
+Tailwind writes a rule for each class it finds in the site's files. A class
+added to a template has no style until Tailwind has seen it. What the
+editor does on such a site today, as tried on one (Tailwind 4, Vite 8, on
+every pull request):
+
+**With `npm run dev` running in your terminal, nothing else is needed.**
+The editor writes the real template file. Tailwind sees the new class and
+the dev server serves its rule; the page in the editor's frame shows it
+within a moment. Vite also reloads a page whose Blade file changed, and the
+editor stays in step with that: what was selected stays selected.
+
+This needs a Sunrice from after
+[sunrice-cms#41](https://github.com/littleboy130491/sunrice-cms/pull/41).
+Before it, Sunrice's admin was blank for as long as the site's dev server
+ran, the editor with it.
+
+**Without a dev server, the class shows after a build.** The editor's frame
+and the site both use the built CSS (`public/build`), which does not have
+the new rule until `npm run build` has run again.
+
+**The layout opens as usual.** `@vite(…)` is one piece of code in the
+tree, like any directive the editor has no settings for. Tailwind finds
+classes in `resources/views/sunrice/` without being told where to look.
+
+Two things to know:
+
+- A layout with `@vite` needs either a build or a running dev server.
+  With neither, Laravel can't draw the page at all. That is Laravel's
+  rule, not the editor's.
+- The Style and CSS tabs change CSS files in `public/sunrice-theme/`. They
+  have nothing to say about classes Tailwind generates. On such a site,
+  style with classes in **Settings**; a rule of your own still goes into a
+  CSS file there, and the editor will not edit a built file that the next
+  build writes over.
 
 See [Limits](limits.md#styles) for what the Style tab does not cover.

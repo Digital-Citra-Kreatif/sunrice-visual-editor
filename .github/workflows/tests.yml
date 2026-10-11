@@ -124,7 +124,6 @@ jobs:
       - name: Vite and Tailwind
         run: .github/run.sh vite-check .github/vite-check.sh
         env:
-          SUNRICE_REF: 'dev-fix/admin-with-site-dev-server as dev-main'
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
 
       - name: Report failures
