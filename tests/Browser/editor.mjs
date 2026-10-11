@@ -716,6 +716,176 @@ await step('list the latest three articles, and show them on a condition, by cho
     await page.getByRole('region', { name: 'Templates on this page' }).waitFor();
 });
 
+// --- CSS ---------------------------------------------------------------------------
+
+const css = page.locator('.sve-side--right .sve-css');
+const sheet = async (path) => {
+    const response = await page.request.get(`${base}/sunrice-theme/${path}`);
+
+    return response.ok() ? response.text() : null;
+};
+/** Waits until a stylesheet reads as expected, and says how it reads when it never does. */
+const sheetIs = async (path, expected) => {
+    let now = null;
+    for (let tries = 0; tries < 40; tries++) {
+        now = await sheet(path);
+        if (now === expected) {
+            return;
+        }
+        await page.waitForTimeout(100);
+    }
+    throw new Error(`${path} is not what it should be:\n${now === null ? '(not there)' : now.slice(-400)}`);
+};
+const styleOf = (selector, property) => frame.locator(selector).first().evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
+const styleIs = async (selector, property, expected) => {
+    for (let tries = 0; tries < 40; tries++) {
+        if ((await styleOf(selector, property)) === expected) {
+            return;
+        }
+        await page.waitForTimeout(100);
+    }
+    throw new Error(`${property} of ${selector} is ${await styleOf(selector, property)}, not ${expected}`);
+};
+const appCss = await sheet('app.css');
+const mutedRule = '.muted { color: var(--muted); }';
+
+await step('show the rule for an element\'s class, change one value, and see it on the page as it stands', async () => {
+    if (appCss === null || !appCss.includes(mutedRule)) {
+        throw new Error('The starter stylesheet is not the one this check knows');
+    }
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero p.muted').click();
+    await layerIs('p.muted');
+    await settings.getByRole('button', { name: 'CSS', exact: true }).click();
+    await css.getByRole('group', { name: '.muted', exact: true }).waitFor();
+    if ((await css.getByLabel('Value of color in .muted').inputValue()) !== 'var(--muted)') {
+        throw new Error('The rule does not show what the file says');
+    }
+
+    // The page in the frame is not drawn again for a stylesheet: this mark of it stays.
+    await frame.locator('body').evaluate((body) => body.setAttribute('data-test-same-page', '1'));
+    await css.getByLabel('Value of color in .muted').fill('rgb(1, 2, 3)');
+    await css.getByLabel('Value of color in .muted').press('Enter');
+    await sheetIs('app.css', appCss.replace(mutedRule, '.muted { color: rgb(1, 2, 3); }'));
+    await styleIs('.hero p.muted', 'color', 'rgb(1, 2, 3)');
+    await frame.locator('body[data-test-same-page]').waitFor();
+    await outlineOver('selected', '.hero p.muted');
+});
+
+await step('add declarations, one typed and two pasted, rename one and take one out', async () => {
+    await css.getByLabel('New property for .muted', { exact: true }).fill('font-style');
+    await css.getByLabel('Value of the new property for .muted').fill('italic');
+    await css.getByLabel('Value of the new property for .muted').press('Enter');
+    await styleIs('.hero p.muted', 'font-style', 'italic');
+    await css.getByLabel('New property for .muted', { exact: true }).fill('letter-spacing: 2px; text-transform: uppercase');
+    await css.getByLabel('New property for .muted', { exact: true }).press('Enter');
+    await styleIs('.hero p.muted', 'letter-spacing', '2px');
+    await styleIs('.hero p.muted', 'text-transform', 'uppercase');
+    await sheetIs('app.css', appCss.replace(mutedRule, '.muted { color: rgb(1, 2, 3); font-style: italic; letter-spacing: 2px; text-transform: uppercase; }'));
+
+    await css.getByLabel('Property 3 of .muted').fill('word-spacing');
+    await css.getByLabel('Property 3 of .muted').press('Enter');
+    await styleIs('.hero p.muted', 'word-spacing', '2px');
+    await css.getByLabel('Remove text-transform from .muted').click();
+    await styleIs('.hero p.muted', 'text-transform', 'none');
+    await sheetIs('app.css', appCss.replace(mutedRule, '.muted { color: rgb(1, 2, 3); font-style: italic; word-spacing: 2px; }'));
+    await mkdir('docs/screenshots', { recursive: true });
+    await page.screenshot({ path: 'docs/screenshots/css.png' });
+});
+
+await step('refuse a value that would break out of its rule, say why, and show the file again', async () => {
+    const before = await sheet('app.css');
+    await css.getByLabel('Value of color in .muted').fill('red; } body { display: none');
+    await css.getByLabel('Value of color in .muted').press('Enter');
+    await page.locator('.sve-notice--problem').getByText('not one value').waitFor();
+    await page.waitForFunction(() => document.querySelector('.sve-css [aria-label="Value of color in .muted"]')?.value === 'rgb(1, 2, 3)');
+    if ((await sheet('app.css')) !== before) {
+        throw new Error('The stylesheet was changed by a value that was refused');
+    }
+    await styleIs('body', 'display', 'block');
+});
+
+await step('undo every change to the stylesheet, back to the file as it was byte for byte, and redo one', async () => {
+    const undoCss = css.getByRole('button', { name: 'Undo in app.css' });
+    // Five changes were made; the one refused left nothing to undo.
+    const versions = new Set([await sheet('app.css')]);
+    for (let steps = 0; steps < 5; steps++) {
+        const before = await sheet('app.css');
+        await undoCss.click();
+        for (let tries = 0; tries < 40 && (await sheet('app.css')) === before; tries++) {
+            await page.waitForTimeout(100);
+        }
+        versions.add(await sheet('app.css'));
+    }
+    if (versions.size !== 6) {
+        throw new Error(`Five undos went through ${versions.size - 1} other versions of the file`);
+    }
+    await sheetIs('app.css', appCss);
+    await styleIs('.hero p.muted', 'font-style', 'normal');
+    await page.waitForFunction(() => document.querySelector('.sve-css [aria-label="Undo in app.css"]')?.disabled === true);
+
+    await css.getByRole('button', { name: 'Redo in app.css' }).click();
+    await sheetIs('app.css', appCss.replace(mutedRule, '.muted { color: rgb(1, 2, 3); }'));
+    await styleIs('.hero p.muted', 'color', 'rgb(1, 2, 3)');
+    await undoCss.click();
+    await sheetIs('app.css', appCss);
+    await frame.locator('body[data-test-same-page]').waitFor();
+});
+
+await step('write a rule for a class that has none into the editor\'s own stylesheet, and link it from the layout', async () => {
+    await settings.getByRole('button', { name: 'Settings', exact: true }).click();
+    await settings.getByLabel('Add a class').fill('sve-new');
+    await settings.getByLabel('Add a class').press('Enter');
+    await frame.locator('.hero p.muted.sve-new').waitFor();
+    await idle();
+    await settings.getByRole('button', { name: 'CSS', exact: true }).click();
+    await css.getByRole('button', { name: '.sve-new', exact: true }).click();
+    const fresh = css.getByRole('group', { name: 'A new rule for .sve-new' });
+    await fresh.getByText('no rule yet').waitFor();
+    await fresh.getByLabel('New property for .sve-new in editor.css', { exact: true }).fill('outline');
+    await fresh.getByLabel('Value of the new property for .sve-new in editor.css').fill('3px solid rgb(4, 5, 6)');
+    await fresh.getByLabel('Value of the new property for .sve-new in editor.css').press('Enter');
+    await sheetIs('editor.css', '.sve-new {\n    outline: 3px solid rgb(4, 5, 6);\n}\n');
+    await css.getByRole('group', { name: '.sve-new', exact: true }).waitFor();
+
+    // The page does not link that stylesheet yet: the panel says so, and links it.
+    await css.getByText('This page does not link').waitFor();
+    if ((await styleOf('.hero p.sve-new', 'outline-color')) === 'rgb(4, 5, 6)') {
+        throw new Error('The rule shows on a page that does not link its stylesheet');
+    }
+    await css.getByRole('button', { name: 'Link it from layouts/app' }).click();
+    await page.locator('.sve-notice').getByText('Linked editor.css from layouts/app.blade.php.').waitFor();
+    await styleIs('.hero p.sve-new', 'outline-color', 'rgb(4, 5, 6)');
+    await page.waitForFunction(() => document.querySelector('.sve-css__unlinked') === null);
+    // What was selected still is, and the rule is changed like any other.
+    await layerIs('p.muted');
+    await outlineOver('selected', '.hero p.sve-new');
+    await css.getByLabel('Value of outline in .sve-new').fill('1px dashed rgb(7, 8, 9)');
+    await css.getByLabel('Value of outline in .sve-new').press('Enter');
+    await styleIs('.hero p.sve-new', 'outline-color', 'rgb(7, 8, 9)');
+    await sheetIs('editor.css', '.sve-new {\n    outline: 1px dashed rgb(7, 8, 9);\n}\n');
+});
+
+await step('take the class and the link away again', async () => {
+    await settings.getByRole('button', { name: 'Settings', exact: true }).click();
+    await idle();
+    await settings.getByLabel('Remove the class sve-new').click();
+    await frame.locator('.hero p.muted:not(.sve-new)').waitFor();
+    await idle();
+
+    // The link was a change to the layout: its undo takes it out.
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'layouts/app' }).click();
+    await openIs('layouts/app');
+    await undo.click();
+    await idle();
+    const layout = (await (await page.request.get(`${base}/cms/visual-editor/api/templates/layouts/app.blade.php`)).json()).template.source;
+    if (layout.includes('editor.css')) {
+        throw new Error('The layout still links the editor\'s stylesheet');
+    }
+    await page.waitForFunction(() => document.querySelector('iframe.sve-frame')?.contentDocument?.querySelector('link[href*="editor.css"]') === null);
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');

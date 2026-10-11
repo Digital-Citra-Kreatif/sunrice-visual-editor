@@ -98,6 +98,8 @@ export type FromPage =
     | { type: 'measured'; measured: Measured; scroll: { x: number; y: number }; page: { width: number; height: number } }
     /** A key the editor acts on was pressed while the page had the keyboard. */
     | { type: 'key'; key: Shortcut }
+    /** Which of the stylesheets it was told of the page links, by the address each was given with. */
+    | { type: 'styles'; linked: string[] }
     | { type: 'leaving'; url: string };
 
 /** From the editor to the page. */
@@ -106,7 +108,47 @@ export type ToPage =
     | { type: 'hello' }
     | { type: 'mode'; mode: Mode }
     | { type: 'watch'; watch: Watch }
-    | { type: 'reveal'; mark: Mark };
+    | { type: 'reveal'; mark: Mark }
+    /** The theme's stylesheets as they are now: the page shows each it links as that version, and says which it links. */
+    | { type: 'styles'; sheets: Sheet[] };
+
+/** A stylesheet of the theme: where pages link it from, and the version it has. */
+export type Sheet = { url: string; version: string };
+
+/** In the address of a stylesheet shown as one version of it. */
+export const SHEET_VERSION = 'sve-v';
+
+/**
+ * The address a link to a stylesheet should have to show a version of it;
+ * null when the link is to another file, or shows that version already.
+ * The same file is the same path: what stands after "?" is the page's own
+ * way of asking for it afresh.
+ */
+export function sheetAddress(href: string, sheet: Sheet, base: string): string | null {
+    let at: URL;
+    let wanted: URL;
+    try {
+        at = new URL(href, base);
+        wanted = new URL(sheet.url, base);
+    } catch {
+        return null;
+    }
+    if (at.pathname !== wanted.pathname || at.searchParams.get(SHEET_VERSION) === sheet.version) {
+        return null;
+    }
+    at.searchParams.set(SHEET_VERSION, sheet.version);
+
+    return at.href;
+}
+
+/** Whether a link is to that stylesheet, whatever version of it. */
+export function isSheet(href: string, sheet: Sheet, base: string): boolean {
+    try {
+        return new URL(href, base).pathname === new URL(sheet.url, base).pathname;
+    } catch {
+        return false;
+    }
+}
 
 /** Every message is wrapped in this, so nobody else's is taken for one. */
 export type Envelope<T> = { sve: 1; message: T };

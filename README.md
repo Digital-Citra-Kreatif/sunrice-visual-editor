@@ -14,7 +14,7 @@ What the package will do is in [SPEC.md](SPEC.md); the order of work is in
 
 ## What works today
 
-All three milestones of the plan's first part.
+All three milestones of the plan's first part, and the first of the styles.
 
 **See a page's templates, click through them, edit them as code.**
 
@@ -63,9 +63,31 @@ All three milestones of the plan's first part.
 - `<x-sunrice::entries>` is set from lists: the collection, the order, how
   many, in pages or not, and filters.
 
-Not there yet: a panel for styles (the classes of an element can be changed,
-its CSS can't; the part that reads and changes a CSS file is written and
-tested, see below), permissions of its own, and tools for AI agents.
+**The CSS for a class, changed where it stands.**
+
+![The CSS tab: the rule for .muted in app.css, a row for each declaration](docs/screenshots/css.png)
+
+- **Settings → CSS**, for a selected element: the rules of the theme's
+  stylesheets (`public/sunrice-theme/*.css`) for one of its classes, a row
+  for each declaration. The rule for the class itself first, then the rules
+  that only mention it (`.card h2`), and under which `@media` each stands.
+- Change a value or a property, add a declaration, take one out: only that
+  declaration changes in the file. Its spacing, comments and every other
+  rule stay as written. Several declarations can be pasted into the empty
+  row as CSS writes them.
+- The page shows the change at once, without being drawn again.
+- A class without a rule gets one in `public/sunrice-theme/editor.css`, and
+  when the page does not link that file yet, one click links it from the
+  layout's `<head>`.
+- **↶ ↷** beside each stylesheet undo and redo its changes. Each save keeps
+  the previous file with the template backups and is in the activity log.
+- A value that would break out of its declaration is refused, and nothing is
+  written.
+
+Not there yet: fields for layout, spacing and type in place of typed CSS,
+breakpoints side by side, permissions of its own, and tools for AI agents.
+A site that builds its CSS (Vite, Tailwind) is styled by its classes: the
+editor changes CSS files, not what a build makes of them.
 
 ## Using it
 
@@ -260,10 +282,14 @@ src/
     Fragment.php       a snippet read into nodes
     Inert.php          typed text as text Blade won't run
     Seams.php          keeps directives readable where an edit joins two pieces
-  Css/               a stylesheet read for where things are in it, and changed in place
+  Css/               the theme's stylesheets, read for where things are in them and changed in place
     Stylesheet.php     the rules of a file; a value set, a declaration added or taken out, a rule added
     Rule.php           a rule: its selectors, its declarations, the at-rules it is inside
     Declaration.php    one `property: value`, with the place of each part
+    Changes.php        applies changes sent as plain data; all of a list or none
+    Selector.php       the selector for a class, and whether a selector mentions it
+    ThemeRepository.php  the CSS files in public/sunrice-theme, and the editor's own
+    Styles.php         what the stylesheets say about a class, for the CSS tab
   Templates/           the files the editor works with: the site's templates and Sunrice's views
   Insert/              Library: what the editor offers to insert, for this site
   Actions/             SaveTemplate: the only place a template is written; CopyPackageView
