@@ -1161,6 +1161,87 @@ await step('draw a template change in every frame, then put the stylesheet and t
     await outlineSettles('.card');
 });
 
+// --- Hiding and showing ----------------------------------------------------------
+
+const bar = page.locator('.sve-bar');
+const fold = (name) => page.locator('.sve-fold', { hasText: name }).first();
+const laidOut = () => page.evaluate(() => JSON.parse(localStorage.getItem('sunrice-visual-editor:layout') ?? 'null'));
+
+await step('fold a panel to its title and open it again, with what was in it as it was', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+
+    await fold('Layers').click();
+    await page.waitForFunction(() => document.querySelector('.sve-panel[aria-label="Layers"] .sve-panel__body')?.hidden === true);
+    if ((await fold('Layers').getAttribute('aria-expanded')) !== 'false' || !(await page.locator('.sve-template__name', { hasText: 'blocks/hero' }).first().isVisible())) {
+        throw new Error('Layers is not folded alone');
+    }
+    await fold('Layers').click();
+    await page.locator('.sve-layer[aria-selected="true"]').waitFor();
+    await layerIs('h1');
+});
+
+await step('hide the panels on both sides: the page takes their room, and the outline stays on its element', async () => {
+    const before = await widthIn(frame);
+    await bar.getByRole('button', { name: 'Panels on the right' }).click();
+    await bar.getByRole('button', { name: 'Panels on the left' }).click();
+    await until('The sides are still there', async () => (await page.locator('.sve-side:visible').count()) === 0 || (await page.locator('.sve-side:visible').count()));
+    await until('The page did not take the room', async () => (await widthIn(frame)) >= before + 400 || (await widthIn(frame)));
+    await outlineSettles('.hero h1');
+});
+
+await step('find the editor as it was left when it is opened again', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await frame.getByText('Templates you can see').waitFor();
+    if ((await page.locator('.sve-side:visible').count()) !== 0) {
+        throw new Error('A side that was hidden is shown again');
+    }
+    for (const side of ['left', 'right']) {
+        if ((await bar.getByRole('button', { name: `Panels on the ${side}` }).getAttribute('aria-pressed')) !== 'false') {
+            throw new Error(`The button for the ${side} side says it is shown`);
+        }
+    }
+});
+
+await step('bring the left side back by asking to insert something, and the right one from the bar', async () => {
+    await bar.getByRole('button', { name: 'Insert' }).click();
+    await page.locator('.sve-side--left .sve-panel[aria-label="Insert"]').waitFor();
+    await bar.getByRole('button', { name: 'Insert' }).click();
+    await page.locator('.sve-side--left .sve-panel[aria-label="Templates on this page"]').waitFor();
+    await bar.getByRole('button', { name: 'Panels on the right' }).click();
+    await page.locator('.sve-side--right').waitFor();
+});
+
+await step('show and hide the code from the bar, and fold a group of controls inside a panel', async () => {
+    await frame.locator('.hero .muted').click();
+    await layerIs('p.muted');
+    const codeButton = bar.getByRole('button', { name: 'Code under the page' });
+    await codeButton.click();
+    await page.locator('.sve-code').waitFor();
+    await codeButton.click();
+    await page.waitForFunction(() => document.querySelector('.sve-code') === null);
+
+    await settings.getByRole('button', { name: 'Style', exact: true }).click();
+    const spacing = settings.getByRole('group', { name: 'Spacing' });
+    await spacing.getByLabel('Spacing: Padding').waitFor();
+    await spacing.locator('.sve-fold').click();
+    await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="Spacing: Padding"]')?.closest('[hidden]') !== null);
+    if (!(await settings.getByRole('group', { name: 'Text' }).locator('input, select').first().isVisible())) {
+        throw new Error('Another group folded with it');
+    }
+    await spacing.locator('.sve-fold').click();
+    await spacing.getByLabel('Spacing: Padding').waitFor();
+    await settings.getByRole('button', { name: 'Settings', exact: true }).click();
+
+    // Everything is shown and open again, and that is what is remembered.
+    const kept = await laidOut();
+    if (kept === null || kept.left !== true || kept.right !== true || kept.folded.length !== 0) {
+        throw new Error(`The editor is left as ${JSON.stringify(kept)}`);
+    }
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__editor');

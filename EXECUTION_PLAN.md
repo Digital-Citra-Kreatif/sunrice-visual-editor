@@ -104,7 +104,7 @@ sunrice-visual-editor/
 | 5. Fields and variables | V5.1–V5.5 | V4.2 (V5.1–V5.3 can start after V1.7) | 2–3 weeks | **M3:** the field picker; the goal in `SPEC.md` is met |
 | 6. Styles | V6.1–V6.4 | V4.2 | 3+ weeks | CSS panel, then a style panel and breakpoints |
 | 7. Permissions, agents, release | V7.1–V7.4 | M3 | 1–2 weeks | Own permissions, MCP tools, docs, v0.1.0 |
-| 8. Code mode, and sites that build their CSS | V8.1–V8.6 | Phase 7 | 2–3 weeks | A real code editor beside the page with tabs and fields at the cursor; Tailwind through Vite: preview and build |
+| 8. Code mode, and sites that build their CSS | V8.1–V8.7 | Phase 7 | 2–3 weeks | A real code editor beside the page with tabs and fields at the cursor; Tailwind through Vite: preview and build |
 
 Sizes are rough guesses for one developer working with coding agents. Phases 1 and 2 have no UI and can run alongside Phase 0. V5.1–V5.3 are backend only and can run alongside Phases 3 and 4.
 
@@ -730,9 +730,24 @@ What the editor does on a site with Laravel's Vite plugin and Tailwind 4, found 
 
 **Where this was built** the npm registry can't be reached, so CodeMirror was bundled here from its source on GitHub to try it in a browser; the `dist/code-editor.js` that is committed is the one CI builds from the packages.
 
+### V8.7 Panels that hide and show
+**Depends on:** V8.2
+**Status:** done. Asked for while V8.2 was being built, and built straight after it, before Code mode, which is laid out with it.
+
+Everything beside the page can be put out of the way and brought back with one click (`SPEC.md`, *Room for the page*).
+
+- `lib/layout.ts` — how the editor is laid out for whoever uses it: which side is shown, which panels and sections are folded. Read from the browser's store when the editor opens and written when it changes; anything unreadable there is "everything shown".
+- `panels/Panel.tsx` — `Folds`, a context the editor fills from the layout, and `useFold(name)`. `Panel` has its title as a button that folds it to the title; `Group` (a fieldset of controls) and `Section` (a titled part of a list) fold the same way. What is folded is hidden, not taken away, so it keeps its state. A panel's button is named "Layers panel": a button inside a panel often has the panel's own name ("Settings", "Insert").
+- Folding everywhere there is a title: the five panels; the groups of **Settings** and **Style**; the kinds in **Insert**; the three origins in **Fields**.
+- **Three buttons in the top bar**, drawn as the editor with one part filled in: the panels on the left, the code under the page, the panels on the right. `aria-pressed` says what is shown. A hidden side's column is zero wide, and the page takes the room; the outlines follow, as they do when the window is resized.
+- **Insert** in the bar shows the left side and opens the Insert panel when either is out of sight, in place of switching inserting off.
+- No keys for it: every combination that would suit is the browser's own for something else.
+
+**Tests:** `tests/Frontend/layout.test.mjs` (folding, sides, what is remembered, a store with nonsense in it or none at all). Five steps of the browser check: a panel folded and opened with its selection kept; both sides hidden, the page wider by their room and the outline still on its element; the editor found as it was left after opening it again; the left side brought back by **Insert**; the code shown and hidden from the bar and a group of the Style tab folded alone.
+
 ### V8.3 Code mode
 **Depends on:** V8.2
-- **Visual | Code** in the top bar (`mode` in `lib/memory.ts`, kept per browser). In Code mode the left side keeps the templates of the page, the code editor takes the place of the layers and of the Settings side, and the page is beside it; the divider can be dragged.
+- **Visual | Code** in the top bar (kept per browser with the rest of the layout, `lib/layout.ts`). In Code mode the left side keeps the templates of the page, the code editor takes the place of the layers and of the Settings side, and the page is beside it; the divider can be dragged.
 - **Tabs** (`lib/tabs.ts`): the templates opened in this session, each with its text as typed, its cursor and its editor history. Opening a template from the list or from the page adds a tab or goes to it. A dot marks unsaved text; closing such a tab, or leaving the editor, asks. Visual mode shows the open tab's template as saved, and says when it has unsaved text in Code mode.
 - **Click to line.** A click on the page gives the template and the node's place in the saved file (the mark, as today). The cursor goes there; in text that has been typed in since, the place is carried through the changes (CodeMirror's `ChangeSet.mapPos`).
 - **Cursor to page.** The node the cursor is in is outlined on the page (the saved tree's node at that place, carried back the same way). Not while the text does not open as a tree.

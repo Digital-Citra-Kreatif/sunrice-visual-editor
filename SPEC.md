@@ -71,6 +71,15 @@ Today a developer writes the templates in a code editor while fields and content
 - Where an edit would put a directive directly against a letter or digit (`@else@endif`, `@elseText`), the editor adds one space so Blade still reads it.
 - Pasting HTML inserts it as nodes.
 
+### Room for the page
+
+- Everything beside the page can be put out of the way and brought back with one click, so the page, or the code, has the room when it is what is being looked at.
+- Every panel (Templates on this page, Layers, Insert, Settings, Template) folds to its title by a click on the title, and opens again the same way. So does every titled group inside a panel: the groups of controls in Settings and Style, the kinds of thing in Insert, where a field comes from in Fields.
+- Three buttons in the top bar show and hide the panels on the left, the code under the page, and the panels on the right. A side that is hidden gives its room to the page.
+- Asking for something that lives in a hidden or folded place brings the place back: **Insert** shows the left side.
+- The editor opens the way it was left: what is hidden and what is folded is remembered in the browser.
+- What is folded keeps its state: a list stays scrolled, a field half typed stays typed.
+
 ### Editing as code
 
 - The editor has two modes, chosen in the top bar: **Visual** (layers, settings, insert) and **Code**. Both work on the same files, show the same page and find the same templates.

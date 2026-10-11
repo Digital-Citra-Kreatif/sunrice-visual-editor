@@ -4,7 +4,7 @@ import { grouped, insertion, likelyPlace, matching, placesFor, type Place } from
 import { findNode } from '../lib/tree';
 import { FieldsList } from './FieldsPanel';
 import { nodeTitle } from './LayersPanel';
-import { Panel } from './Panel';
+import { Panel, Section } from './Panel';
 
 /** What the list shows: things to build with, or the CMS's fields and variables. */
 export type InsertTab = 'library' | 'fields';
@@ -141,8 +141,7 @@ export function InsertPanel({ template, tab, onTab, inserts, failed, tree, selec
                 <p className="sve-empty">Nothing matches “{typed.trim()}”. Any HTML or Blade can be pasted below.</p>
             ) : (
                 grouped(found).map(({ group, inserts: entries }) => (
-                    <section key={group} className="sve-insert__group" aria-label={group}>
-                        <h3 className="sve-insert__title">{group}</h3>
+                    <Section key={group} title={group} name={`insert:${group}`} className="sve-insert__group">
                         <ul className="sve-insertables">
                             {entries.map((entry) => (
                                 <li key={entry.id}>
@@ -153,7 +152,7 @@ export function InsertPanel({ template, tab, onTab, inserts, failed, tree, selec
                                 </li>
                             ))}
                         </ul>
-                    </section>
+                    </Section>
                 ))
             )}
 
