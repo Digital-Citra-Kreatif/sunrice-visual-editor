@@ -23,7 +23,8 @@ const step = async (name, action) => {
         await action();
         console.log(`ok   ${name}`);
     } catch (error) {
-        console.log(`FAIL ${name}\n     ${String(error.message).split('\n')[0]}\n     at ${page.url()}`);
+        // The first lines say what failed and what was being waited for.
+        console.log(`FAIL ${name}\n     ${String(error.message).split('\n').slice(0, 7).join('\n     ')}\n     at ${page.url()}`);
         await browser.close();
         process.exit(1);
     }
