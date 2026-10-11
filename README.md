@@ -64,7 +64,8 @@ All three milestones of the plan's first part.
   many, in pages or not, and filters.
 
 Not there yet: a panel for styles (the classes of an element can be changed,
-its CSS can't), permissions of its own, and tools for AI agents.
+its CSS can't; the part that reads and changes a CSS file is written and
+tested, see below), permissions of its own, and tools for AI agents.
 
 ## Using it
 
@@ -166,6 +167,31 @@ For every template:
   a syntax error, or an `@if` whose `@endif` sits inside a tag (the
   `locked-…` fixtures). Such a file is edited as code.
 
+## The same test for stylesheets
+
+Phase 6 changes CSS files the way the editor changes Blade files: one
+declaration, in place. Before building it, the same question was put to CSS.
+Full numbers are in [spike/CSS_RESULTS.md](spike/CSS_RESULTS.md).
+
+| Stylesheets | Files | Rules | Declarations | Found in place | Changes passed |
+| --- | ---: | ---: | ---: | --- | ---: |
+| The starter theme, as written and minified, and edge cases | 6 | 230 | 593 | all | 2,077 of 2,077 |
+| normalize.css, Pico, Bulma, Bootstrap, as written and minified | 6 | 10,709 | 24,124 | all | 4,931 of 4,931 |
+
+- **A reader of our own, not a CSS library.** The CSS parser there is for PHP
+  wrote none of these files back as it read them, and keeps no positions to
+  change a file at. `src/Css/Stylesheet.php` only finds where rules and
+  declarations are, and cuts into the text there.
+- **Checked against a browser.** Chromium was given the same files: every rule
+  it has is one the reader found, in the same order. Of 4,242 changes put to
+  it, 4,080 changed exactly the rule that was meant, as meant; the other 162
+  changed nothing for it, being of things it does not know (`*zoom`,
+  `::-moz-focus-inner`). None changed anything else.
+- **A value can't break out.** `red; } body { display: none` is refused, as is
+  anything that opens a quote, bracket or comment it doesn't close.
+- Only CSS: a Sass or Less source file is not read, and what `@import` brings
+  in is not followed.
+
 ## Not covered by the round-trip test
 
 - The check is on bytes and on compiling, not on rendered pages. The editor
@@ -182,6 +208,7 @@ For every template:
 composer install
 composer test      # Pest: the round-trip checks, the package, a seeded Sunrice site
 composer spike     # the round-trip report: adds Laravel's own views, rewrites spike/RESULTS.md
+composer spike:css # the same for stylesheets (spike/css-fetch.sh first adds Bootstrap, Bulma, Pico)
 composer lint      # Pint
 composer analyse   # Larastan
 
@@ -190,6 +217,7 @@ npm run typecheck
 npm run test:frontend
 npm run build          # resources/js and resources/css → dist/
 npm run test:bridge    # the frame's script in Chrome, against a fixture page
+npm run test:css       # the stylesheet reader's rules and changes, put to Chrome
 ```
 
 `dist/` is committed. On a pull request, CI rebuilds it and commits the
@@ -232,6 +260,10 @@ src/
     Fragment.php       a snippet read into nodes
     Inert.php          typed text as text Blade won't run
     Seams.php          keeps directives readable where an edit joins two pieces
+  Css/               a stylesheet read for where things are in it, and changed in place
+    Stylesheet.php     the rules of a file; a value set, a declaration added or taken out, a rule added
+    Rule.php           a rule: its selectors, its declarations, the at-rules it is inside
+    Declaration.php    one `property: value`, with the place of each part
   Templates/           the files the editor works with: the site's templates and Sunrice's views
   Insert/              Library: what the editor offers to insert, for this site
   Actions/             SaveTemplate: the only place a template is written; CopyPackageView
@@ -246,7 +278,7 @@ resources/js, css/   the editor UI (React from the Sunrice admin), built into di
                        Editor.tsx the screen, panels/ the columns beside the page,
                        canvas/ what is drawn over it, lib/ the API and the frame
 resources/js/bridge/ the script in a page shown in the editor's frame, built into dist/bridge.js
-spike/               the round-trip report and its results
+spike/               the round-trip reports (templates, stylesheets) and their results
 tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fixtures/ holds
                      sunrice-starter and sunrice-package (copied from sunrice-cms at 8c9794e) and edge
 workbench/           the Testbench app: user model, migrations, demo content

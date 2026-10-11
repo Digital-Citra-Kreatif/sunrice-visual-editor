@@ -1,0 +1,84 @@
+@charset "UTF-8";
+@import url("fonts.css") screen and (min-width: 40em);
+@import 'print.css' print;
+@layer reset, base, components;
+
+/* A comment with a brace { a semicolon ; and a colon : in it */
+:root {
+    --accent: #2563eb;
+    --empty:;
+    --json: { "a": [1, 2], "b": "x;y}" };
+    --font-stack: "Helvetica Neue", Arial, sans-serif;
+    --shadow: 0 1px 2px rgb(0 0 0 / 10%), 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+/* Text that holds what would end a declaration or a rule */
+.quote::before { content: "{"; }
+.quote::after { content: '}'; color: red }
+.semi::before { content: ";"; margin: 0; }
+.escaped::before { content: "say \"hi\"; ok"; padding: 0 }
+a[href$=".pdf"], a[title="a;b{c}"] { text-decoration: underline; }
+
+/* Addresses, with and without quotes */
+.icon { background: url(data:image/svg+xml;charset=utf8,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%3E%3C/svg%3E) no-repeat; width: 16px; }
+.photo { background-image: url("photo (1).jpg"); background-size: cover; }
+.font { src: url(a.woff2) format("woff2"), url( 'a.woff' ) format('woff'); }
+
+/* Selectors with escapes, as utility classes have */
+.sm\:flex { display: flex; }
+.w-1\/2 { width: 50%; }
+.\31 0px { width: 10px; }
+.hover\:bg-\[\#fff\]:hover { background: #fff; }
+
+/* Declarations written in every way */
+.spacing{margin:0;padding:0}
+.loose   {   margin  :  0   ;   padding : 0 ;   }
+.important { color: red !important; margin: 0!important; padding: 0 ! important }
+.hacks { *zoom: 1; _height: 1px; filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80000000', endColorstr='#80000000'); }
+.comments { /* before */ color: /* inside */ red; /* after */ margin: 0 /* at the end */; }
+.empty {}
+.blank { }
+.multi-line-value {
+    grid-template-areas:
+        "header header"
+        "sidebar main";
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+.calc { width: calc(100% - (2 * var(--gap, 1rem))); margin: max(1rem, min(5vw, 3rem)) }
+
+@font-face {
+    font-family: "Demo";
+    src: url("demo.woff2") format("woff2");
+    font-display: swap;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    50% { opacity: 0.5 }
+    to { transform: rotate(360deg); }
+}
+
+@media (min-width: 40em) and (max-width: 60em), print {
+    .card { padding: 2rem; }
+    @supports (display: grid) {
+        .card { display: grid; gap: 1rem; }
+    }
+}
+
+@supports not (display: grid) { .card { float: left } }
+
+@container sidebar (min-width: 20em) { .card { font-size: 1.25rem; } }
+
+@layer components {
+    .card { border: 1px solid; }
+    .card:is(:hover, :focus-within) > .title + p ~ span { color: blue; }
+}
+
+@page :first { margin: 1in; }
+
+.card, .tile,
+.panel > .card { border-radius: 8px; }
+
+.last-without-semicolon { color: red; margin: 0 }

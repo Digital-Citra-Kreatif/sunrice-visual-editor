@@ -1,0 +1,149 @@
+{
+ "browser": "chromium 141.0.7390.37",
+ "files": [
+  {
+   "file": "bom-crlf.css",
+   "mine": 2,
+   "browser": 2,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 8,
+   "right": 8,
+   "unseen": 0,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "edge.css",
+   "mine": 30,
+   "browser": 30,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 126,
+   "right": 119,
+   "unseen": 7,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "nested.css",
+   "mine": 10,
+   "browser": 10,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 32,
+   "right": 29,
+   "unseen": 3,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "starter.css",
+   "mine": 80,
+   "browser": 80,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 480,
+   "right": 473,
+   "unseen": 7,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "starter.min.css",
+   "mine": 80,
+   "browser": 80,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 480,
+   "right": 473,
+   "unseen": 7,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "unclosed.css",
+   "mine": 3,
+   "browser": 3,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 9,
+   "right": 9,
+   "unseen": 0,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "normalize.css/normalize.css",
+   "mine": 34,
+   "browser": 32,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 148,
+   "right": 135,
+   "unseen": 13,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "pico/pico.css",
+   "mine": 377,
+   "browser": 358,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 590,
+   "right": 547,
+   "unseen": 43,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "pico/pico.min.css",
+   "mine": 377,
+   "browser": 358,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 590,
+   "right": 547,
+   "unseen": 43,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "bulma/bulma.css",
+   "mine": 4231,
+   "browser": 4217,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 591,
+   "right": 586,
+   "unseen": 5,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "bootstrap/bootstrap.css",
+   "mine": 2556,
+   "browser": 2541,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 594,
+   "right": 577,
+   "unseen": 17,
+   "wrong": 0,
+   "examples": []
+  },
+  {
+   "file": "bootstrap/bootstrap.min.css",
+   "mine": 2556,
+   "browser": 2541,
+   "inOrder": true,
+   "unfound": 0,
+   "edits": 594,
+   "right": 577,
+   "unseen": 17,
+   "wrong": 0,
+   "examples": []
+  }
+ ]
+}
