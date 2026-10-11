@@ -14,7 +14,7 @@ What the package will do is in [SPEC.md](SPEC.md); the order of work is in
 
 ## What works today
 
-All three milestones of the plan's first part, and the first of the styles.
+All three milestones of the plan's first part, and styles from the theme's CSS files.
 
 **See a page's templates, click through them, edit them as code.**
 
@@ -84,8 +84,25 @@ All three milestones of the plan's first part, and the first of the styles.
 - A value that would break out of its declaration is refused, and nothing is
   written.
 
-Not there yet: fields for layout, spacing and type in place of typed CSS,
-breakpoints side by side, permissions of its own, and tools for AI agents.
+**The same rule, as controls.**
+
+![The Style tab: controls for layout, size, spacing, text, background and border](docs/screenshots/style.png)
+
+- **Settings → Style** has a control for each of the declarations most often
+  written: display and the flex and grid settings, width and height, margin
+  and padding, font, size, weight, alignment and colour, background, border,
+  radius and shadow.
+- Each control reads one declaration of the class's own rule and writes one.
+  What is typed is CSS (`1rem`, `0 auto`, `var(--accent)`); a colour can be
+  picked. Emptying a control takes its declaration out.
+- A control the rule says nothing for shows in grey what the page has for it
+  from elsewhere, so it is clear what there is to override.
+- Both tabs write the same file through the same changes: what one sets, the
+  other shows.
+
+Not there yet: breakpoints (a rule inside a `@media` is changed in the CSS
+tab; the controls write the rule outside any), permissions of its own, and
+tools for AI agents.
 A site that builds its CSS (Vite, Tailwind) is styled by its classes: the
 editor changes CSS files, not what a build makes of them.
 

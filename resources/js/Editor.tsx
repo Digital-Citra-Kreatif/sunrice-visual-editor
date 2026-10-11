@@ -10,6 +10,7 @@ import { startRedraw, type Redraw } from './lib/redraw';
 import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
 import { isAdminPath, sitePath } from './lib/path';
 import { classesOf } from './lib/settings';
+import { STYLE_PROPERTIES } from './lib/styleFields';
 import { layoutOf, resolve, sheetsOf, shiftedId, type StyleEdit } from './lib/styles';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { boxesOf, findNode, rowFor } from './lib/tree';
@@ -18,6 +19,7 @@ import { InsertPanel, type InsertTab } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Side } from './panels/Panel';
 import { CssRules } from './panels/CssPanel';
+import { StyleFields } from './panels/StylePanel';
 import { SettingsPanel, type SettingsTab } from './panels/SettingsPanel';
 import { TemplatePanel, type Loaded } from './panels/TemplatePanel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
@@ -150,6 +152,8 @@ export function Editor({ startPath }: Props) {
     /** The addresses of the stylesheets the page in the frame links; null until it has said. */
     const [linked, setLinked] = useState<string[] | null>(null);
     const [linking, setLinking] = useState(false);
+    /** What the page has for the properties the Style tab shows, for the element it was asked about. */
+    const [onPage, setOnPage] = useState<{ mark: string; values: Record<string, string> } | null>(null);
 
     /** The left side lists what can be inserted, in place of the page's templates. */
     const [inserting, setInserting] = useState(false);
@@ -229,6 +233,8 @@ export function Editor({ startPath }: Props) {
             }
         } else if (said.type === 'styles') {
             setLinked(said.linked);
+        } else if (said.type === 'computed') {
+            setOnPage(said.values === null ? null : { mark: markValue(said.mark), values: said.values });
         } else if (said.type === 'key') {
             shortcuts.current(said.key);
         } else if (said.type === 'measured') {
@@ -251,6 +257,7 @@ export function Editor({ startPath }: Props) {
         setMeasured(null);
         setHolding(false);
         setLinked(null);
+        setOnPage(null);
         // The address field shows where the frame is going, not what was being typed for the page before.
         setTyped(null);
     };
@@ -746,7 +753,7 @@ export function Editor({ startPath }: Props) {
     const classes = styled !== null && styled.type === 'element' ? classesOf(styled) : null;
     const styleClass = classes === null || classes.length === 0 ? null : pickedClass !== null && classes.includes(pickedClass) ? pickedClass : classes[0];
     /** What is asked of the stylesheets: about the class, while its rules are shown; otherwise only which there are. */
-    const askedClass = settingsTab === 'css' ? styleClass : null;
+    const askedClass = settingsTab === 'settings' ? null : styleClass;
     classNow.current = askedClass;
 
     const takeStyles = (read: Styles) => {
@@ -917,6 +924,14 @@ export function Editor({ startPath }: Props) {
             }
         }
     }, [page]);
+
+    // What the page has for the selected element, while the Style tab shows it: the first copy of it on the page.
+    const styledMark = settingsTab === 'style' && openFile !== null && selectedBoxes.ids.length > 0 && !selectedBoxes.inside ? markValue({ file: openFile.key, id: selectedBoxes.ids[0] }) : null;
+    useEffect(() => {
+        if (page !== null) {
+            tell({ type: 'computed', ask: styledMark === null || openFile === null ? null : { mark: { file: openFile.key, id: selectedBoxes.ids[0] }, properties: STYLE_PROPERTIES } });
+        }
+    }, [page, styledMark, tell]);
 
     watching.current = JSON.stringify(watch);
 
@@ -1150,25 +1165,45 @@ export function Editor({ startPath }: Props) {
                         can={actionsFor(tree, selectedNode.id)}
                         tab={settingsTab}
                         onTab={setSettingsTab}
-                        css={
-                            selectedNode.type !== 'element' ? null : (
-                                <CssRules
-                                    // A change that was refused starts every row afresh.
-                                    key={`${selectedNode.id}:${refusals}`}
-                                    classes={classes}
-                                    chosen={styleClass}
-                                    onChoose={setPickedClass}
-                                    styles={styles}
-                                    failed={stylesFailed}
-                                    linked={linked}
-                                    layout={layoutOf(page?.files ?? null)}
-                                    linking={linking || unsaved}
-                                    can={sheetSteps}
-                                    onEdit={editStyle}
-                                    onTravel={travelSheet}
-                                    onLink={linkSheet}
-                                />
-                            )
+                        styling={
+                            selectedNode.type !== 'element'
+                                ? null
+                                : {
+                                      style: (
+                                          <StyleFields
+                                              // A change that was refused starts every control afresh.
+                                              key={`${selectedNode.id}:${refusals}`}
+                                              classes={classes}
+                                              chosen={styleClass}
+                                              onChoose={setPickedClass}
+                                              styles={styles}
+                                              failed={stylesFailed}
+                                              onPage={onPage !== null && onPage.mark === styledMark ? onPage.values : null}
+                                              linked={linked}
+                                              layout={layoutOf(page?.files ?? null)}
+                                              linking={linking || unsaved}
+                                              onEdit={editStyle}
+                                              onLink={linkSheet}
+                                          />
+                                      ),
+                                      css: (
+                                          <CssRules
+                                              key={`${selectedNode.id}:${refusals}`}
+                                              classes={classes}
+                                              chosen={styleClass}
+                                              onChoose={setPickedClass}
+                                              styles={styles}
+                                              failed={stylesFailed}
+                                              linked={linked}
+                                              layout={layoutOf(page?.files ?? null)}
+                                              linking={linking || unsaved}
+                                              can={sheetSteps}
+                                              onEdit={editStyle}
+                                              onTravel={travelSheet}
+                                              onLink={linkSheet}
+                                          />
+                                      ),
+                                  }
                         }
                         onApply={apply}
                         onAct={(action) => act(selectedNode.id, action)}

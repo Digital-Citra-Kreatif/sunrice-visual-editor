@@ -886,6 +886,84 @@ await step('take the class and the link away again', async () => {
     await page.waitForFunction(() => document.querySelector('iframe.sve-frame')?.contentDocument?.querySelector('link[href*="editor.css"]') === null);
 });
 
+// --- Style -------------------------------------------------------------------------
+
+const style = page.locator('.sve-side--right .sve-style');
+const cardRule = '.card { border: 1px solid var(--line); border-radius: 12px; padding: 20px; }';
+const cardIs = (declarations) => sheetIs('app.css', appCss.replace(cardRule, `.card { ${declarations} }`));
+
+await step('show the rule for a class as controls: what it says, and in grey what the page has otherwise', async () => {
+    if (!appCss.includes(cardRule)) {
+        throw new Error('The starter stylesheet is not the one this check knows');
+    }
+    await page.goto(`${base}/cms/visual-editor?url=/articles`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.card').first().click({ position: { x: 3, y: 3 } });
+    await layerIs('li.card');
+    await settings.getByRole('button', { name: 'Style', exact: true }).click();
+    await style.getByText('Writes .card in app.css, line 59.').waitFor();
+
+    if ((await style.getByLabel('Spacing: Padding').inputValue()) !== '20px' || (await style.getByLabel('Border: Radius').inputValue()) !== '12px') {
+        throw new Error('The controls do not show what the rule says');
+    }
+    // Nothing set for these: the page says what the element has.
+    await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="Text: Size"]')?.getAttribute('placeholder') === '16px');
+    if ((await style.getByLabel('Text: Size').inputValue()) !== '' || !/^\(block|list-item\)$/.test(await style.getByLabel('Layout: Display').locator('option').first().textContent())) {
+        throw new Error('A control shows as set what the rule does not say');
+    }
+    // Controls for a flex container are not shown for what is none.
+    if ((await style.getByLabel('Layout: Direction').count()) !== 0) {
+        throw new Error('The direction of a flex container is offered for an element that is none');
+    }
+});
+
+await step('set one declaration from each kind of control, and see each on the page and in the file, nothing else changed', async () => {
+    await style.getByLabel('Layout: Display').selectOption('flex');
+    await styleIs('.card', 'display', 'flex');
+    await cardIs('border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex;');
+    // Now it is a flex container: its controls are there.
+    await style.getByLabel('Layout: Direction').selectOption('column');
+    await styleIs('.card', 'flex-direction', 'column');
+
+    await style.getByLabel('Spacing: Padding').fill('32px');
+    await style.getByLabel('Spacing: Padding').press('Enter');
+    await styleIs('.card', 'padding-top', '32px');
+
+    await style.getByLabel('Background: Colour', { exact: true }).fill('rgb(254, 243, 199)');
+    await style.getByLabel('Background: Colour', { exact: true }).press('Enter');
+    await styleIs('.card', 'background-color', 'rgb(254, 243, 199)');
+    // The picker starts from the colour that was typed.
+    await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="Pick Background: Colour"]')?.value === '#fef3c7');
+    await cardIs('border: 1px solid var(--line); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; background-color: rgb(254, 243, 199);');
+    await outlineOver('selected', '.card');
+    await mkdir('docs/screenshots', { recursive: true });
+    await page.screenshot({ path: 'docs/screenshots/style.png' });
+});
+
+await step('take a declaration out by emptying its control, and see the same rule in the CSS tab', async () => {
+    await style.getByLabel('Layout: Direction').selectOption('');
+    await style.getByLabel('Border: Radius').fill('');
+    await style.getByLabel('Border: Radius').press('Enter');
+    await styleIs('.card', 'border-top-left-radius', '0px');
+    await cardIs('border: 1px solid var(--line); padding: 32px; display: flex; background-color: rgb(254, 243, 199);');
+
+    await settings.getByRole('button', { name: 'CSS', exact: true }).click();
+    if ((await css.getByLabel('Value of background-color in .card', { exact: true }).inputValue()) !== 'rgb(254, 243, 199)') {
+        throw new Error('The CSS tab does not show what the Style tab wrote');
+    }
+    // Six changes, undone there: the file as it was.
+    for (let steps = 0; steps < 6; steps++) {
+        const before = await sheet('app.css');
+        await css.getByRole('button', { name: 'Undo in app.css' }).click();
+        for (let tries = 0; tries < 40 && (await sheet('app.css')) === before; tries++) {
+            await page.waitForTimeout(100);
+        }
+    }
+    await sheetIs('app.css', appCss);
+    await settings.getByRole('button', { name: 'Style', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="Spacing: Padding"]')?.value === '20px');
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');

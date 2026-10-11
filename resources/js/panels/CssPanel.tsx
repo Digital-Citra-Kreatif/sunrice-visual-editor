@@ -33,11 +33,8 @@ type Props = {
  * class without a rule gets one in the editor's own stylesheet.
  */
 export function CssRules({ classes, chosen, onChoose, styles, failed, linked, layout, linking, can, onEdit, onTravel, onLink }: Props) {
-    if (classes === null) {
-        return <p className="sve-empty">This element’s classes are written in Blade, so there is no one class to show the rules of. Its `class` is under Settings.</p>;
-    }
-    if (classes.length === 0 || chosen === null) {
-        return <p className="sve-empty">This element has no class. Give it one under Settings, and its rule can be written here.</p>;
+    if (classes === null || classes.length === 0 || chosen === null) {
+        return <NoClass classes={classes} />;
     }
 
     const known = styles !== null && styles.class === chosen ? styles : null;
@@ -47,13 +44,7 @@ export function CssRules({ classes, chosen, onChoose, styles, failed, linked, la
 
     return (
         <div className="sve-css">
-            <div className="sve-css__classes" role="group" aria-label="The class whose rules are shown">
-                {classes.map((name) => (
-                    <button key={name} type="button" className="sve-css__class" aria-pressed={name === chosen} onClick={() => onChoose(name)}>
-                        .{name}
-                    </button>
-                ))}
-            </div>
+            <ClassChoice classes={classes} chosen={chosen} onChoose={onChoose} />
 
             {known === null ? (
                 <p className="sve-empty">{failed ?? 'Reading the stylesheets…'}</p>
@@ -102,27 +93,62 @@ export function CssRules({ classes, chosen, onChoose, styles, failed, linked, la
                         </section>
                     )}
 
-                    {/* A stylesheet that is there and has rules for this class, which the page does not show. */}
-                    {linked !== null &&
-                        groups
-                            .filter(({ file }) => file.exists && !linked.includes(file.url))
-                            .map(({ file }) => (
-                                <div key={file.path} className="sve-note sve-css__unlinked">
-                                    <p>
-                                        This page does not link <code>{file.path}</code>, so its rules don’t show.
-                                    </p>
-                                    {layout === null ? (
-                                        <p>Link it from the layout’s &lt;head&gt;, in the layout’s code.</p>
-                                    ) : (
-                                        <button type="button" className="sve-button sve-button--quiet" disabled={linking} onClick={() => onLink(file.path)}>
-                                            Link it from {layout.path.replace(/\.blade\.php$/, '')}
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
+                    <Unlinked styles={known} linked={linked} layout={layout} linking={linking} onLink={onLink} />
                 </>
             )}
         </div>
+    );
+}
+
+/** Why there are no rules to show: the element has no class, or Blade writes its classes. */
+export function NoClass({ classes }: { classes: string[] | null }) {
+    return classes === null ? (
+        <p className="sve-empty sve-css__none">This element’s classes are written in Blade, so there is no one class to style it by. Its class is under Settings.</p>
+    ) : (
+        <p className="sve-empty sve-css__none">This element has no class. Give it one under Settings, and its rule can be written here.</p>
+    );
+}
+
+/** The element's classes, to choose the one whose rule is shown. */
+export function ClassChoice({ classes, chosen, onChoose }: { classes: string[]; chosen: string; onChoose(name: string): void }) {
+    return (
+        <div className="sve-css__classes" role="group" aria-label="The class whose rules are shown">
+            {classes.map((name) => (
+                <button key={name} type="button" className="sve-css__class" aria-pressed={name === chosen} onClick={() => onChoose(name)}>
+                    .{name}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+type UnlinkedProps = { styles: Styles; linked: string[] | null; layout: ManifestFile | null; linking: boolean; onLink(stylesheet: string): void };
+
+/** A stylesheet that is there and has rules for the class, which the page does not show: says so, and links it. */
+export function Unlinked({ styles, linked, layout, linking, onLink }: UnlinkedProps) {
+    if (linked === null) {
+        return null;
+    }
+
+    return (
+        <>
+            {byFile(styles)
+                .filter(({ file }) => file.exists && !linked.includes(file.url))
+                .map(({ file }) => (
+                    <div key={file.path} className="sve-note sve-css__unlinked">
+                        <p>
+                            This page does not link <code>{file.path}</code>, so its rules don’t show.
+                        </p>
+                        {layout === null ? (
+                            <p>Link it from the layout’s &lt;head&gt;, in the layout’s code.</p>
+                        ) : (
+                            <button type="button" className="sve-button sve-button--quiet" disabled={linking} onClick={() => onLink(file.path)}>
+                                Link it from {layout.path.replace(/\.blade\.php$/, '')}
+                            </button>
+                        )}
+                    </div>
+                ))}
+        </>
     );
 }
 

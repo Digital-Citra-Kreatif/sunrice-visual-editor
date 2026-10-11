@@ -554,7 +554,21 @@ For a selected element, **Settings → CSS** shows the rules of the theme's styl
 
 ### V6.3 Style panel
 **Depends on:** V6.2
-Fields for layout, size, spacing, typography, background and border, each reading and writing one declaration of the same rule.
+**Status:** done.
+
+**Settings → Style**: a control for each of the declarations most often written, in six groups (layout, size, spacing, text, background, border), each reading and writing one declaration of the rule for a class.
+
+- **Which rule.** `targetRule()`: the rule for the class itself outside any `@media`; where several are (one in `app.css`, one in `editor.css`), the last, whose word counts over the others'. The tab says which file and line it writes. A class without a rule gets one in the editor's own stylesheet from the first thing set (V6.2's `create`).
+- **The controls** (`lib/styleFields.ts`, `STYLE_GROUPS`) are data: a property, a label, a kind (`text`, `choice`, `colour`), and for some `when: 'flex' | 'grid'`, shown only for an element laid out so. Adding a control is adding a line there.
+- **Reading.** `declared()`: what the rule says for the property, the last time it says it. What is typed is CSS as the file would have it; nothing is parsed into numbers and units, so `clamp()`, `var()` and `calc()` are as good as `1rem`.
+- **Writing.** One edit, `{kind: 'style', property, value}`, resolved when its turn comes into V6.2's changes: `set` where the rule declares the property, `add` where it does not, `remove` when the control is emptied. Nothing new on the server.
+- **What the page has.** An empty control shows in grey what the element has for the property from elsewhere (another rule, the browser). The editor asks the bridge (`computed`, with the element and the properties); the bridge answers from `getComputedStyle`, and again whenever a stylesheet has been fetched anew. Not for what is short for many things at once (`border`, `box-shadow`, `background-image`).
+- **Colours** are typed, or picked: the picker starts from the colour set (or the page's) when it is a plain one, and hands the colour on when it is done with, not for every shade on the way.
+- The tabs are now **Settings · Style · CSS**; Style and CSS share the choice of class, the note about a stylesheet the page does not link, and the queue changes wait in.
+
+**Tests:** `tests/Frontend/styleFields.test.mjs` (the target rule, what a rule declares, when flex and grid controls show, colours, and each control's edit as changes); the bridge check (what the page has, said again after a stylesheet changed); three steps of the browser check (what is set and what the page has; one declaration from each kind of control, on the page and in the file with nothing else changed; emptying a control, the same rule in the CSS tab, and its undo back to the file as it was).
+
+**Not in this task:** a side of a margin or a padding on its own (the shorthand is typed whole), units as a separate choice, and rules inside `@media` (V6.4).
 
 ### V6.4 Breakpoints
 **Depends on:** V6.3

@@ -24,9 +24,9 @@ type Props = {
     refusals: number;
     /** What can be done to the node as a whole. */
     can: Record<Action | 'wrap', boolean>;
-    /** The rules of the theme's stylesheets for the node's classes, when it is an element; null for what has no classes. */
-    css: ReactNode | null;
-    /** Which of the two is shown for an element: its settings, or its CSS. */
+    /** For an element: controls for the rule of one of its classes, and the rules of the theme's stylesheets for it. Null for what has no classes. */
+    styling: { style: ReactNode; css: ReactNode } | null;
+    /** Which is shown for an element: its settings, its style, or its CSS. */
     tab: SettingsTab;
     onTab(tab: SettingsTab): void;
     onApply(operations: Operation[]): void;
@@ -34,7 +34,7 @@ type Props = {
     onDeselect(): void;
 };
 
-export type SettingsTab = 'settings' | 'css';
+export type SettingsTab = 'settings' | 'style' | 'css';
 
 const ACTIONS: { action: Action; label: string; title: string }[] = [
     { action: 'up', label: '↑', title: 'Move up, before what is above it (Alt+↑ in the layers)' },
@@ -68,7 +68,7 @@ const KINDS: Record<ReturnType<typeof kindOf>, string> = {
  * operation when it is left or Enter is pressed; the file is saved, the
  * page drawn again, and the node stays selected.
  */
-export function SettingsPanel({ template, node, fields, site, busy, locked, refusals, can, css, tab, onTab, onApply, onAct, onDeselect }: Props) {
+export function SettingsPanel({ template, node, fields, site, busy, locked, refusals, can, styling, tab, onTab, onApply, onAct, onDeselect }: Props) {
     const kind = kindOf(node);
     const off = busy || locked !== null || !template.editable;
     const send: Send = (operation, to = node) => onApply([{ ...operation, node: to.id } as Operation]);
@@ -120,10 +120,13 @@ export function SettingsPanel({ template, node, fields, site, busy, locked, refu
                 </select>
             </div>
 
-            {css !== null && (
-                <div className="sve-places sve-tabs sve-settings__tabs" role="group" aria-label="What is shown of it">
+            {styling !== null && (
+                <div className="sve-places sve-settings__tabs" role="group" aria-label="What is shown of it">
                     <button type="button" className="sve-places__place" aria-pressed={tab === 'settings'} onClick={() => onTab('settings')} title="Its tag, classes and attributes">
                         Settings
+                    </button>
+                    <button type="button" className="sve-places__place" aria-pressed={tab === 'style'} onClick={() => onTab('style')} title="Layout, spacing, text and colours, for one of its classes">
+                        Style
                     </button>
                     <button type="button" className="sve-places__place" aria-pressed={tab === 'css'} onClick={() => onTab('css')} title="The rules of the theme’s stylesheets for its classes">
                         CSS
@@ -132,7 +135,7 @@ export function SettingsPanel({ template, node, fields, site, busy, locked, refu
             )}
 
             {/* A new node, a new version of this one, or a change that was refused starts every control afresh. */}
-            {!(css !== null && tab === 'css') && (
+            {(styling === null || tab === 'settings') && (
             <div className="sve-settings" key={`${template.version}:${node.id}:${refusals}`}>
                 {tag !== null && component && tag.name === 'sunrice::entries' && <EntriesSettings tag={tag} site={site} off={off} onApply={onApply} />}
                 {tag !== null && component && tag.name === 'sunrice::terms' && <TermsSettings tag={tag} site={site} off={off} onApply={onApply} />}
@@ -150,7 +153,8 @@ export function SettingsPanel({ template, node, fields, site, busy, locked, refu
                 <SourceSettings template={template} node={node} off={off} send={send} always={kind === 'code'} />
             </div>
             )}
-            {css !== null && tab === 'css' && css}
+            {styling !== null && tab === 'style' && styling.style}
+            {styling !== null && tab === 'css' && styling.css}
         </Panel>
     );
 }
