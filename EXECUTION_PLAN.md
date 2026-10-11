@@ -419,8 +419,23 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V5.1 Field catalog
 **Depends on:** V0.4
-`src/Fields/Catalog.php` — for a collection, fieldset, taxonomy or global set: fields with `handle`, `label`, `type`, `multiple`, `children` (group, repeater, flexible's fieldsets). Plus built-ins per subject (entry: title, url, published_at, author, terms; term: name, url; asset: url sizes, alt).
-**Done when:** the catalog of the workbench structure matches its blueprints.
+- `src/Fields/Shape.php` — what a value in a template is: text, rich text, a number, yes-or-no, a date, a link, a file, an entry, a term, a group, a row of a repeater, a block, a global set, a menu item, a collection, a taxonomy, the page, a list of any of these, or a value nothing is known about. A shape names what it is made of (an entry *of the articles collection*) without holding it: an article can list related articles, so fields are looked up only as far as someone looks.
+- `src/Fields/Field.php` — something read from a value: `handle`, `label`, `type` (Sunrice's name for it), its shape, and how it is read from what has it (`from('$entry')` → `$entry->get('excerpt')`). `multiple()` and `children()` are read off the shape.
+- `src/Fields/Catalog.php`:
+  - `fields(subject, handle)` — the fields of a blueprint, for a collection's entries, its listing page, a fieldset, a taxonomy's terms or a global set. Each kind is read its own way:
+
+    | Fields of | Read as |
+    | --- | --- |
+    | an entry, a term | `$entry->get('handle')` |
+    | a block, a global set | `$block->handle`; `->get('handle')` when the handle can't be a property's name |
+    | a listing page | `$collection->archive('handle')` |
+    | a group, a row | `$row['handle']` |
+
+  - `members(shape)` — everything that can be read from a value of that shape, under a heading each: first what Sunrice gives every such value (an entry's title, URL, date, author, terms; a file's URL at each size the site makes, its alt text; a link's URL and label; a date in a few forms; a menu item's label, URL and children), then the fields of each blueprint it may be of. An entry of any collection lists every collection.
+  - A site's own field type (`CustomField`) counts as the built-in type it is made of; a type nobody knows is a plain value.
+- `SunriceBridge::fieldsets()` and `baseType()`.
+- `tests/Support/WithEveryField.php` — content with a field of every type on top of the starter site: a `things` collection with a listing page, a `topics` taxonomy, one thing with everything filled and one with nothing. V5.3 draws both.
+**Done when:** the catalog of the workbench structure matches its blueprints (`tests/Unit/Fields/CatalogTest.php`).
 
 ### V5.2 Scope
 **Depends on:** V5.1, V2.1

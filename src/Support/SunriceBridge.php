@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
 use Sunrice\Fields\BlueprintSchema;
+use Sunrice\Fields\CustomField;
+use Sunrice\Fields\FieldRegistry;
 use Sunrice\Mcp\Templates;
 use Sunrice\Models\Collection;
 use Sunrice\Models\Fieldset;
@@ -138,6 +140,32 @@ final class SunriceBridge
         return Taxonomy::query()->orderBy('title')->get()
             ->map(fn (Taxonomy $taxonomy) => ['handle' => (string) $taxonomy->handle, 'title' => (string) $taxonomy->title])
             ->values()->all();
+    }
+
+    /** @return list<array{handle: string, title: string}> */
+    public static function fieldsets(): array
+    {
+        return Fieldset::query()->orderBy('title')->get()
+            ->map(fn (Fieldset $fieldset) => ['handle' => (string) $fieldset->handle, 'title' => (string) $fieldset->title])
+            ->values()->all();
+    }
+
+    /**
+     * The built-in field type a type stores and hands to templates like:
+     * itself, or for a site's custom field the type it is built on.
+     */
+    public static function baseType(string $type): string
+    {
+        $registry = app(FieldRegistry::class);
+        for ($depth = 0; $depth < 5 && $registry->has($type); $depth++) {
+            $class = $registry->get($type)::class;
+            if (! is_subclass_of($class, CustomField::class)) {
+                break;
+            }
+            $type = $class::baseType();
+        }
+
+        return $type;
     }
 
     /** @return list<array{handle: string, title: string}> */

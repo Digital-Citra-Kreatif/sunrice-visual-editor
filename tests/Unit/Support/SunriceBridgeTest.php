@@ -71,7 +71,16 @@ it('lists collections, globals and menus', function () {
         ['handle' => 'site', 'title' => 'Site', 'group' => 'global'],
     ])->and(SunriceBridge::menus())->toBe([
         ['handle' => 'main', 'title' => 'Main menu'],
+    ])->and(SunriceBridge::fieldsets())->toBe([
+        ['handle' => 'gallery', 'title' => 'Gallery'],
+        ['handle' => 'hero', 'title' => 'Hero'],
+        ['handle' => 'text', 'title' => 'Text'],
     ]);
+});
+
+it('names the built-in type a field type is made of', function () {
+    expect(SunriceBridge::baseType('rich_text'))->toBe('rich_text')
+        ->and(SunriceBridge::baseType('no_such_type'))->toBe('no_such_type');
 });
 
 it('keeps a copy of a file before it is changed', function () {
