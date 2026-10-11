@@ -37,7 +37,7 @@ class InstalledTest extends TestCase
 
     public function test_the_admin_script_was_published_and_the_permissions_made(): void
     {
-        foreach (['visual-editor.js', 'visual-editor.css', 'bridge.js'] as $file) {
+        foreach (['visual-editor.js', 'visual-editor.css', 'bridge.js', 'code-editor.js'] as $file) {
             $this->assertFileExists(public_path('vendor/sunrice-visual-editor/'.$file));
         }
 
@@ -54,6 +54,8 @@ class InstalledTest extends TestCase
         $page = $this->get('/cms/visual-editor?url=/demo')->assertOk()->getContent();
         $this->assertStringContainsString('VisualEditor\/Editor', $page);
         $this->assertStringContainsString('vendor/sunrice-visual-editor/visual-editor.js', $page);
+        // Where the code editor's script will be fetched from, when code is first shown.
+        $this->assertStringContainsString('vendor\/sunrice-visual-editor\/code-editor.js', $page);
         $this->assertStringContainsString('Visual editor', $page);
     }
 

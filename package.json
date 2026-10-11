@@ -11,6 +11,11 @@
         "test:css": "php spike/css.php && node spike/css-browser.mjs"
     },
     "devDependencies": {
+        "@codemirror/commands": "^6.10.3",
+        "@codemirror/language": "^6.12.3",
+        "@codemirror/search": "^6.6.0",
+        "@codemirror/state": "^6.6.0",
+        "@codemirror/view": "^6.41.0",
         "@types/react": "^19.0.0",
         "@types/react-dom": "^19.0.0",
         "esbuild": "0.28.2",

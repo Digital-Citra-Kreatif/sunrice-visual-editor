@@ -82,8 +82,10 @@ other page that uses the template.
 - Dragging layers uses the browser's own drag and drop, which does not work
   by touch. The buttons and keys do the same.
 - Things are dragged in the Layers panel, not on the page itself.
-- The code panel is a plain editor with highlighting: no search and
-  replace, no folding, no completion.
+- The code editor has search and replace, undo of its own and several
+  cursors. It does not fold code, complete what is typed, or search across
+  files. Its script is fetched when code is first shown; when that fails,
+  the code is in a plain text field, which still saves.
 - The editor is for a desktop browser. It has been checked in Chromium;
   Firefox and Safari have not been tested.
 - The editor's own screen is in English only.

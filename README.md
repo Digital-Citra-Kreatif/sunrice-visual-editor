@@ -37,8 +37,9 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
 - Point at the page, or at a row, and the part that template draws is
   outlined with its name. Click either to open the template. One click goes
   back to the page's own template.
-- **Edit as code** opens the template's source under the page. Saving shows
-  the change on the page at once.
+- **Edit as code** opens the template's source under the page, in a code
+  editor: colours for Blade, search and replace, undo of its own. Saving
+  shows the change on the page at once.
 - A save is refused, and nothing is written, when the code doesn't compile or
   the file has changed on disk since it was opened. The previous version of
   every saved file is kept in `storage/app/sunrice/template-backups/`.
@@ -382,6 +383,7 @@ resources/js, css/   the editor UI (React from the Sunrice admin), built into di
                        Editor.tsx the screen, panels/ the columns beside the page,
                        canvas/ what is drawn over it, lib/ the API and the frame
 resources/js/bridge/ the script in a page shown in the editor's frame, built into dist/bridge.js
+resources/js/code/   the code editor (CodeMirror), built into dist/code-editor.js and fetched when code is first shown
 spike/               the round-trip reports (templates, stylesheets) and their results
 tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fixtures/ holds
                      sunrice-starter and sunrice-package (copied from sunrice-cms at 8c9794e) and edge

@@ -16,7 +16,7 @@ step() { printf '\n=== %s\n' "$1"; }
 
 step "What Composer will be given: the built script, and none of the tests"
 shipped=$(git archive --format=tar HEAD | tar -t)
-for needed in composer.json src/VisualEditorServiceProvider.php config/sunrice-visual-editor.php routes/admin.php dist/visual-editor.js dist/visual-editor.css dist/bridge.js docs/installation.md; do
+for needed in composer.json src/VisualEditorServiceProvider.php config/sunrice-visual-editor.php routes/admin.php dist/visual-editor.js dist/visual-editor.css dist/bridge.js dist/code-editor.js docs/installation.md; do
     echo "$shipped" | grep -qx "$needed" || { echo "Not in the archive: $needed"; exit 1; }
 done
 for kept_out in tests/ workbench/ spike/ node_modules/ resources/js/; do
