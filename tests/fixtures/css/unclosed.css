@@ -1,0 +1,4 @@
+.open { color: red;
+.inner { margin: 0 }
+/* the file ends before its blocks do */
+.last { padding: 0

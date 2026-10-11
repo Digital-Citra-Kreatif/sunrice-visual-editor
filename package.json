@@ -4,10 +4,11 @@
     "type": "module",
     "scripts": {
         "build": "node build.mjs",
-        "typecheck": "tsc --noEmit && node --check tests/Browser/editor.mjs && node --check tests/Browser/bridge.mjs",
+        "typecheck": "tsc --noEmit && node --check tests/Browser/editor.mjs && node --check tests/Browser/bridge.mjs && node --check spike/css-browser.mjs",
         "test:frontend": "node --experimental-strip-types --test \"tests/Frontend/*.test.mjs\"",
         "test:bridge": "node tests/Browser/bridge.mjs",
-        "test:browser": "node tests/Browser/editor.mjs"
+        "test:browser": "node tests/Browser/editor.mjs",
+        "test:css": "php spike/css.php && node spike/css-browser.mjs"
     },
     "devDependencies": {
         "@types/react": "^19.0.0",

@@ -9,6 +9,7 @@
 - No Composer or npm packages beyond `EXECUTION_PLAN.md` §2. If one seems needed, stop and explain why in the PR instead of adding it.
 - Every task ships tests. Before opening a PR run `composer test`, `composer lint`, `composer analyse`, `composer spike`, and for admin tasks `npm run typecheck && npm run test:frontend && npm run build`.
 - The round-trip test (`composer spike`) must stay green. Under `src/Blade/`, a template that prints back differently, or an edit that touches bytes it should not, is a bug however small.
+- The same holds for stylesheets under `src/Css/`: `composer spike:css` must stay green (`spike/css-fetch.sh` first, to include Bootstrap, Bulma and Pico), and after a change there `npm run test:css` asks a browser whether it reads the same rules.
 - Use Sunrice's public API only. `src/Support/SunriceBridge.php` is the one file allowed to touch Sunrice internals.
 - The editor never writes a file it could not read back exactly, and nothing of the editor is written into a template.
 - Update `docs/` when adding developer-facing API. Do commit the compiled admin script in `dist/`.
@@ -25,6 +26,7 @@
 ```bash
 composer test      # Pest
 composer spike     # round-trip report; rewrites spike/RESULTS.md
+composer spike:css # the same for stylesheets; rewrites spike/CSS_RESULTS.md
 composer lint      # Pint (test mode)
 composer format    # Pint (fix)
 composer analyse   # Larastan

@@ -1,0 +1,31 @@
+/* CSS nesting: rules and at-rules inside rules. */
+.card {
+    padding: 1rem;
+    color: var(--fg);
+
+    &:hover { color: blue; }
+    & > .title {
+        font-weight: 700;
+        a:hover { text-decoration: underline; }
+    }
+    .dark & { color: white; }
+
+    @media (min-width: 40em) {
+        padding: 2rem;
+        & .title { font-size: 2rem; }
+    }
+
+    margin: 0;
+}
+
+.hero {
+    h1 { margin: 0; }
+    @supports (display: grid) {
+        display: grid;
+        @media (min-width: 60em) { gap: 2rem; }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card { transition: none; &:hover { transform: none; } }
+}

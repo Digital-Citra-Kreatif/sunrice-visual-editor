@@ -56,7 +56,7 @@ A node is addressed as `{file, version, node}`. Offsets are only valid for one v
 
 **npm (admin script only, all dev dependencies):** `typescript`, `esbuild` (pinned to an exact version, so every build of `dist/` is the same), `@types/react`, `@types/react-dom`, `playwright-core` (the browser check; drives the Chrome already on the machine). Named here at first and not used, each for the reason given in its task: `@dnd-kit/core`, `@dnd-kit/sortable` (Layers panel, V4.4), `codemirror`, `@codemirror/lang-html`, `@codemirror/lang-css`, `@codemirror/lang-php` (code panel, V3.4). React, Inertia and the admin's UI components come from `window.Sunrice` and are never bundled.
 
-A CSS parser is deliberately not chosen yet: V6.1 decides it with a round-trip test.
+**No CSS parser.** V6.1 tried it: `sabberworm/php-css-parser` writes none of twelve stylesheets back as it read them (spacing, comments, the way values are written) and keeps no offsets, so a change through it rewrites the whole file. `src/Css/Stylesheet.php` finds rules and declarations by their place in the text instead, and passes every check of the CSS round-trip test (`spike/CSS_RESULTS.md`), Bootstrap and Bulma included.
 
 ---
 
@@ -520,8 +520,18 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V6.1 CSS round-trip test
 **Depends on:** —
-The same question as the Blade spike, for CSS: can a rule be found by selector and one declaration changed with nothing else touched, across `stubs/theme/app.css`, minified files, nested rules and media queries? Decide between a library and a small rule locator on the result.
-**Done when:** results are written up like `spike/RESULTS.md`, and the choice is recorded in §2.
+**Status:** done. The answer is a small rule locator of our own and no CSS library; numbers in `spike/CSS_RESULTS.md`.
+
+The same question as the Blade spike, for CSS: can a rule be found by selector and one declaration changed with nothing else touched?
+
+- `src/Css/Stylesheet.php` reads a CSS file for where things are in it: `Rule`s (style rules, at-rules with a block and without, rules nested in rules) and the `Declaration`s of each, with byte offsets. It is no CSS parser: it does not know what a property means. It minds what can hide a `;` or a brace: comments, quoted text, brackets, `url()` without quotes, escapes, custom properties whose value holds braces.
+- `styling('.card')` gives the rules one of whose selectors is exactly that, under any `@media` or the like; `Rule::within()` says under which.
+- Four changes, each a cut into the text: `withValue()`, `withDeclaration()` (written as the declarations before it are: on its own line with their indent, on the same line, minified), `without()` (with its line when the line was its own), `withRule()` (at the end of the file). The file's line endings and byte order mark stay.
+- After every change the file is read again, and the change is refused with `CssRejected` unless the file then says what it said before plus the one thing meant. A value has to be whole on its own: `red; } body { display: none` is refused, and so is an unclosed quote, bracket or comment, wherever in a file it would go.
+- `composer spike:css` (`spike/css.php`) runs every kind of change over the fixtures in `tests/fixtures/css/` (the starter theme as written and minified, edge cases, nested rules, a byte order mark with Windows line endings, a file that is never closed) and, when `spike/css-fetch.sh` has fetched them, over normalize.css, Pico, Bulma and Bootstrap as written and minified. `npm run test:css` (`spike/css-browser.mjs`) then puts the same files and the same changes to a browser: is every rule the browser has one that was found, in the same order, and after each change has exactly the rule meant changed for it?
+- It also tries the one maintained CSS library for PHP, `sabberworm/php-css-parser`: parse a file and write it out again. None of the files comes out as it went in, and the library keeps no offsets to cut at instead. A library is therefore not an option for changing a file in place (§2).
+
+**Tests:** `tests/Unit/Css/StylesheetTest.php`: what is read from the fixtures and where; each change on small cases written in every style; every declaration of every fixture set and taken out; the refusals. CI runs `composer spike:css` (with other people's stylesheets on PHP 8.4) and `npm run test:css`.
 
 ### V6.2 CSS panel
 **Depends on:** V6.1, V4.2

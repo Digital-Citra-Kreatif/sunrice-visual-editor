@@ -52,6 +52,7 @@
         "format": "pint",
         "analyse": "phpstan analyse --memory-limit=1G",
         "spike": "php spike/run.php --check",
+        "spike:css": "php spike/css.php --check",
         "workbench": [
             "@php vendor/bin/testbench workbench:create-sqlite-db",
             "@php vendor/bin/testbench workbench:build"
