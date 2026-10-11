@@ -64,7 +64,7 @@ it('adds nothing unless it is asked for', function () {
     config(['sunrice-visual-editor.tailwind.preview' => false]);
     $page = (string) get('/?sve=1')->assertOk()->getContent();
 
-    expect($page)->not->toContain('data-sve-preview')->and(previewSaid($page))->toBeFalse();
+    expect($page)->not->toContain('data-sve-preview')->and(previewSaid($page))->toBeNull();
     // And it is not asked for unless someone says so.
     expect((require __DIR__.'/../../config/sunrice-visual-editor.php')['tailwind']['preview'])->toBeFalse();
 });
@@ -75,7 +75,7 @@ it('stays out of the way of a dev server, which serves the real CSS', function (
 
     expect(TailwindPreview::devServer())->toBeTrue()
         ->and($page)->not->toContain('data-sve-preview')
-        ->and(previewSaid($page))->toBeFalse();
+        ->and(previewSaid($page))->toBeNull();
 });
 
 it('adds the browser build alone when the site has no such entry file', function () {
