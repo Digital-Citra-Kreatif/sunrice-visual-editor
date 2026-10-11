@@ -110,6 +110,13 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
     const wanted = useRef<TemplateName | null>(null);
 
     const [open, setOpen] = useState<TemplateName | null>(null);
+    /** The open template as last drawn, for a request answered after another one was opened. */
+    const openNow = useRef<TemplateName | null>(null);
+    useLayoutEffect(() => {
+        openNow.current = open;
+    }, [open]);
+    /** Whether a template is still the open one, when an answer about it comes. */
+    const stillOpen = (name: TemplateName) => sameTemplate(openNow.current, name);
     const [template, setTemplate] = useState<Loaded<TemplateData>>({ state: 'idle' });
     /** Bumped to read the open template from disk again. */
     const [readings, setReadings] = useState(0);
@@ -612,8 +619,12 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
     /** The code panel wrote the file: show it as it is now, in the panels and on the page. */
     const saved = (data: TemplateData) => {
         remember(data);
-        setTemplate({ state: 'ready', data });
         say('done', `Saved ${data.path}.`);
+        if (!stillOpen(data)) {
+            // Another template was opened while it was saved: the panels show that one.
+            return;
+        }
+        setTemplate({ state: 'ready', data });
         setDraft(null);
         // The ids of the old tree mean nothing in the new one.
         setSelected(null);
@@ -655,10 +666,15 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
             return;
         }
         const left = { source: template.data.source, selected };
+        const name = open;
         setApplying(true);
-        saveSource(open.path, now.version, step.source)
+        saveSource(name.path, now.version, step.source)
             .then((data) => {
                 setHistories((all) => ({ ...all, [historyKey(data)]: direction === 'undo' ? undone(history, left, data.version) : redone(history, left, data.version) }));
+                if (!stillOpen(name)) {
+                    // Another template was opened while it was saved: the panels show that one.
+                    return;
+                }
                 setTemplate({ state: 'ready', data });
                 setNotice(null);
                 setSelected(rowFor(data.tree, step.selected));
@@ -671,7 +687,7 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
             })
             .catch((error: unknown) => {
                 say('problem', message(error));
-                if (error instanceof ApiError && error.reason === 'conflict') {
+                if (error instanceof ApiError && error.reason === 'conflict' && stillOpen(name)) {
                     // The file has changed otherwise: read it again. Its history no longer applies.
                     setSelected(null);
                     setReadings((count) => count + 1);
@@ -690,11 +706,16 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
         if (open === null || template.state !== 'ready' || applying) {
             return Promise.resolve(false);
         }
+        const name = open;
         setApplying(true);
 
-        return applyOperations(open.path, template.data.version, operations)
+        return applyOperations(name.path, template.data.version, operations)
             .then(({ template: changed, focus }) => {
                 remember(changed);
+                if (!stillOpen(name)) {
+                    // Another template was opened while it was saved: the panels show that one.
+                    return true;
+                }
                 setTemplate({ state: 'ready', data: changed });
                 // The page shows that it worked. What was wrong with the change before it no longer is.
                 setNotice(null);
@@ -710,7 +731,7 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
             .catch((error: unknown) => {
                 say('problem', message(error));
                 setRefusals((count) => count + 1);
-                if (error instanceof ApiError && error.reason === 'conflict') {
+                if (error instanceof ApiError && error.reason === 'conflict' && stillOpen(name)) {
                     // The file is not what the panels show any more: read it again.
                     setSelected(null);
                     setReadings((count) => count + 1);
