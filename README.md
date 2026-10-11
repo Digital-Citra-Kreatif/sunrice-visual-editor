@@ -150,8 +150,10 @@ who may write code ([Permissions](docs/permissions.md)).
   packages
   ([sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40));
   on an older one nothing is registered and nothing fails.
-A site that builds its CSS (Vite, Tailwind) is styled by its classes: the
-editor changes CSS files, not what a build makes of them.
+A site that builds its CSS (Tailwind through Vite) is styled by its
+classes. With `npm run dev` running a class added in the editor shows at
+once; otherwise after a build
+([Styles](docs/styles.md#sites-that-build-their-css)).
 
 ## Using it
 
@@ -315,6 +317,15 @@ the site as installed and removes the package again):
 
 ```bash
 .github/install-check.sh
+```
+
+The same on a site whose CSS is Tailwind built by Vite (it needs Node and
+npm, and Chrome for its last part): a class added in the editor reaches the
+CSS by a build and by the dev server, and the editor is tried in a browser
+with the dev server running.
+
+```bash
+.github/vite-check.sh
 ```
 
 Where Packagist and npm can't be reached but GitHub can, everything above

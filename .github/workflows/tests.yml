@@ -99,3 +99,33 @@ jobs:
       - name: Report failures
         if: failure()
         run: .github/run.sh --report
+
+  # A site whose CSS is Tailwind built by Vite, as a new Laravel application
+  # is set up: a class added in the editor reaches the CSS, by a build and by
+  # the dev server, and the editor works in a browser with the dev server running.
+  vite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, sqlite3, pdo_sqlite, gd, intl
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Vite and Tailwind
+        run: .github/run.sh vite-check .github/vite-check.sh
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+
+      - name: Report failures
+        if: failure()
+        run: .github/run.sh --report
