@@ -572,7 +572,20 @@ For a selected element, **Settings → CSS** shows the rules of the theme's styl
 
 ### V6.4 Breakpoints
 **Depends on:** V6.3
-Frames at several widths side by side; editing in a frame writes into that width's media query.
+**Status:** done.
+
+The page at several widths side by side; a style set at a width is written under the `@media` condition for it.
+
+- **Widths** are a setting (`widths`: Desktop 1280, Tablet 768 with `(max-width: 1024px)`, Mobile 390 with `(max-width: 640px)`), read through `Support\Widths`, which keeps what can be used of whatever the setting holds. The editor's page gets them as a prop.
+- **The view** (`lib/widths.ts`): as wide as the room (as before), one width, or all side by side. `layout()` gives each frame its width in the page's own pixels and the size it is shown at; frames side by side share one scale. A frame is as large as its page and drawn smaller with a CSS transform; the outlines are measured in the page's pixels and multiplied by the scale, so their labels stay readable.
+- **One frame is edited, the others are looked at.** The edited frame is the pair that was there before (the page and its spare), with the bridge, the outlines and the swap after a change. The frames beside it show the same address; they draw the page again after a template change and are told of the stylesheets like the edited one, and what they say is not listened to. **Edit here** makes another width the edited one by handing the widths around: no frame moves in the document or loads anew (a frame that is moved does), `order` says where each is shown.
+- **Which `@media`.** `lib/media.ts`: `widthRange()` reads a condition as a range of widths, or as none when it is about anything else (print, a colour scheme, a list). `breakpoints()` are the width conditions the theme's stylesheets use (`Styles` now lists the `@media` blocks at the top of each file); `mediaFor()` picks, for a width, the one for the fewest widths that applies. When none does, the width's own `media` from the setting. **For** in the Style tab shows it and lets another be chosen, or every width.
+- **Writing.** The Style tab's edit carries the condition. With a rule for the class directly inside such a block, it is changed like any other. Without one, the first thing set makes it (`createFor()`): in the stylesheet the class's own rule is in and after that rule, so that it counts over it: at the end of a block for the condition that comes later in the file (`{type: "rule", in: <block>}`, `Stylesheet::withRuleIn()`), else in a new block at the file's end (`{type: "rule", media: "@media …"}`, `withRule(…, $media)`). Both are read back and refused unless the file says what it said before plus the one rule, inside its block.
+- What the page has (the grey values) is asked again by the bridge when the frame changes width.
+
+**Tests:** `tests/Unit/Css/StylesheetTest.php` (a rule added to every block of every fixture, and only there; each way of writing a block; refusals) and `ChangesTest.php`; `tests/Feature/StylesApiTest.php` (the blocks listed; a rule into a block, and into a new one) and `EditorPageTest.php` (the setting); `tests/Frontend/widths.test.mjs` (the layout, conditions as ranges, which applies, where a rule for a width goes); the bridge check (the page's values said again at another width); five steps of the browser check: one width, side by side, a style for narrow pages that shows there and nowhere else, another width edited without a page loading, a template change drawn in every frame.
+
+**Not in this task:** the frames beside are not scrolled along with the edited one; a condition that is a list (`…, print`) or about more than width is not offered; a rule inside a block inside a block is changed in the CSS tab only.
 
 ---
 

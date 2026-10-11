@@ -73,6 +73,32 @@ it('says which at-rules a rule is inside', function () {
     expect($rules->where('exact', true)->pluck('within')->all())->toBe([[], ['@media (max-width: 760px)']]);
 });
 
+it('lists the @media blocks of each stylesheet, for a rule that is for one width', function () {
+    actingAsSuperAdmin();
+
+    $media = getJson(SVE_STYLES.'?class=card')->json('styles.media');
+
+    expect(array_column($media, 'prelude'))->toBe(['@media (prefers-color-scheme: dark)', '@media (max-width: 760px)', '@media (prefers-color-scheme: dark)'])
+        ->and($media[1])->toMatchArray(['file' => 'app.css', 'id' => strpos($this->original, '@media (max-width: 760px)')]);
+});
+
+it('puts a rule for one width into the block for it, or into a new one', function () {
+    actingAsSuperAdmin();
+    $block = strpos($this->original, '@media (max-width: 760px)');
+
+    $rules = collect(($this->change)([['type' => 'rule', 'selector' => '.card', 'declarations' => [['padding', '12px']], 'in' => $block]], ['class' => 'card'])->assertOk()->json('styles.rules'));
+    expect($rules->where('exact', true)->pluck('within')->all())->toBe([['@media (max-width: 760px)'], []])
+        ->and($rules[0]['declarations'][0]['value'])->toBe('12px');
+    $inBlock = File::get($this->css);
+    expect($inBlock)->toBe(str_replace("background: none; }\n}\n", "background: none; }\n    .card {\n        padding: 12px;\n    }\n}\n", $this->original))
+        ->not->toBe($this->original);
+
+    ($this->change)([['type' => 'rule', 'selector' => '.card', 'declarations' => [['padding', '40px']], 'media' => '@media (min-width: 1200px)']])->assertOk();
+    expect(File::get($this->css))->toBe($inBlock."\n@media (min-width: 1200px) {\n    .card {\n        padding: 40px;\n    }\n}\n");
+
+    ($this->change)([['type' => 'rule', 'selector' => '.card', 'in' => ($this->at)('.card')]])->assertStatus(422)->assertJsonPath('reason', 'rejected')->assertJsonPath('change', 0);
+});
+
 it('finds the rules for a class that CSS writes with escapes', function () {
     actingAsSuperAdmin();
     File::append($this->css, "\n.sm\\:flex { display: flex; }\n");

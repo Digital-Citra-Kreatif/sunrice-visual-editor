@@ -224,6 +224,25 @@ foreach ($corpora as $key => [$title, $files]) {
             }
         }
 
+        // A rule added to a block (a @media, say): one piece put in, at the end of that block.
+        foreach (sampled(array_values(array_filter($withBlock, fn (Rule $rule) => $rule->isAt() && $rule->close < strlen($source)))) as $block) {
+            $where = substr($block->prelude, 0, 50);
+            try {
+                $out = $sheet->withRuleIn($block, '.sve-probe', [['--sve-probe', '1']]);
+                [$prefix, $suffix] = common($source, $out);
+                $put = substr($out, $prefix, strlen($out) - $prefix - $suffix);
+                $error = match (true) {
+                    strlen($out) !== strlen($source) + strlen($put) => 'bytes were taken away',
+                    ! str_contains($put, '.sve-probe') || trim(str_replace(['.sve-probe', '--sve-probe', ':', '1', ';', '{', '}'], '', $put)) !== '' => 'more than the rule was put in: '.json_encode($put),
+                    $prefix <= $block->open || $prefix > $block->close => 'it was put outside the block',
+                    default => null,
+                };
+                $record('add a rule to a block', $error, $where);
+            } catch (CssRejected $e) {
+                $record('add a rule to a block', $e->getMessage(), $where);
+            }
+        }
+
         // A rule added at the end: the file as it was, then the rule.
         try {
             $out = $sheet->withRule('.sve-probe', ['color' => 'red', 'margin' => '0']);

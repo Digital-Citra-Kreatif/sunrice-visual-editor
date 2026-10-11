@@ -263,6 +263,64 @@ it('adds a rule at the end of the file', function (string $source, string $expec
     'Windows lines' => [".a { color: red; }\r\n", ".a { color: red; }\r\n\r\n.tile > .title {\r\n    color: red;\r\n    margin: 0;\r\n}\r\n"],
 ]);
 
+it('adds a rule inside a new @media block at the end of the file', function () {
+    expect(Stylesheet::read(".a { color: red; }\n")->withRule('.new', [['color', 'blue']], " @media  (max-width:\n 760px) "))
+        ->toBe(".a { color: red; }\n\n@media (max-width: 760px) {\n    .new {\n        color: blue;\n    }\n}\n")
+        ->and(Stylesheet::read('')->withRule('.new', [], '@media print'))->toBe("@media print {\n    .new {\n    }\n}\n")
+        ->and(Stylesheet::read(".a {}\r\n")->withRule('.new', ['top' => '0'], '@media print'))->toBe(".a {}\r\n\r\n@media print {\r\n    .new {\r\n        top: 0;\r\n    }\r\n}\r\n");
+});
+
+it('refuses a @media block that is none', function (string $media) {
+    expect(fn () => Stylesheet::read('.a { color: red; }')->withRule('.new', [], $media))->toThrow(CssRejected::class, 'does not start a @media block');
+})->with(['@media', 'print', '@supports (display: grid)', '@import "x.css"', '@media print { } .x', '@media print; .x', '@media (a) /* c */', '']);
+
+it('adds a rule at the end of a block, written as what is in it', function (string $source, string $expected) {
+    $sheet = Stylesheet::read($source);
+    $block = array_values(array_filter($sheet->all(), fn (Rule $rule) => $rule->isAt()))[0];
+
+    expect($sheet->withRuleIn($block, ' .new ', [['color', 'blue'], ['margin', '0']]))->toBe($expected);
+})->with([
+    'a rule to a line' => ["@media (max-width: 40em) {\n    .a { color: red; }\n    .b {\n        margin: 0;\n    }\n}\n.z { top: 0 }\n", "@media (max-width: 40em) {\n    .a { color: red; }\n    .b {\n        margin: 0;\n    }\n    .new {\n        color: blue;\n        margin: 0;\n    }\n}\n.z { top: 0 }\n"],
+    'indented with tabs' => ["@media print {\n\t.a { color: red; }\n}\n", "@media print {\n\t.a { color: red; }\n\t.new {\n\t\tcolor: blue;\n\t\tmargin: 0;\n\t}\n}\n"],
+    'Windows lines' => ["@media print {\r\n    .a { color: red; }\r\n}\r\n", "@media print {\r\n    .a { color: red; }\r\n    .new {\r\n        color: blue;\r\n        margin: 0;\r\n    }\r\n}\r\n"],
+    'an empty block over lines' => ["@media print {\n}\n", "@media print {\n    .new {\n        color: blue;\n        margin: 0;\n    }\n}\n"],
+    'an empty block' => ['@media print {}', '@media print { .new { color: blue; margin: 0; } }'],
+    'on one line' => ["@media print { .a { color: red } }\n.z{}", "@media print { .a { color: red } .new { color: blue; margin: 0; } }\n.z{}"],
+    'minified' => ['@media print{.a{color:red}}.z{top:0}', '@media print{.a{color:red}.new{color:blue;margin:0}}.z{top:0}'],
+    'its end on the line of its last rule' => ["@media print {\n  .a { color: red; } }\n", "@media print {\n  .a { color: red; } \n  .new {\n      color: blue;\n      margin: 0;\n  }\n}\n"],
+    'a block nested in a rule' => [".card {\n    color: red;\n    @media print {\n        color: blue;\n    }\n}\n", ".card {\n    color: red;\n    @media print {\n        color: blue;\n        .new {\n            color: blue;\n            margin: 0;\n        }\n    }\n}\n"],
+]);
+
+it('adds a rule to every block of a stylesheet, and only there', function (string $name) {
+    $sheet = Stylesheet::read(cssFixture($name));
+    $all = $sheet->all();
+    expect($all)->not->toBeEmpty();
+
+    foreach ($all as $index => $block) {
+        if ($block->open === null || ! $block->isAt() || $block->close >= strlen($sheet->source)) {
+            continue;
+        }
+        $after = Stylesheet::read($sheet->withRuleIn($block, '.probe', [['--probe', '1']]))->all();
+        $inside = count(iterator_to_array($block->walk(), false));
+
+        expect(count($after))->toBe(count($all) + 1)
+            ->and($after[$index + $inside]->prelude)->toBe('.probe')
+            ->and($after[$index + $inside]->parent?->prelude)->toBe($block->prelude)
+            ->and(array_map(fn (Rule $rule) => $rule->prelude, [...array_slice($after, 0, $index + $inside), ...array_slice($after, $index + $inside + 1)]))->toBe(array_map(fn (Rule $rule) => $rule->prelude, $all));
+    }
+})->with('stylesheets');
+
+it('refuses a rule for what is no block, or what would not stay in it', function () {
+    $sheet = Stylesheet::read("@import 'a.css';\n@media print {\n    .a { color: red; }\n}\n");
+    $open = Stylesheet::read("@media print {\n    .a { color: red; }\n");
+
+    expect(fn () => $sheet->withRuleIn($sheet->rules[0], '.new'))->toThrow(CssRejected::class, 'no block')
+        ->and(fn () => $open->withRuleIn($open->rules[0], '.new'))->toThrow(CssRejected::class, 'no block')
+        ->and(fn () => $sheet->withRuleIn($sheet->rules[1], '.new } .x'))->toThrow(CssRejected::class, 'not a selector')
+        ->and(fn () => $sheet->withRuleIn($sheet->rules[1], '.new', [['color', 'red; } } body { display: none']]))->toThrow(CssRejected::class, 'not one value')
+        ->and(fn () => $sheet->withRuleIn($sheet->rules[1], '.new', [['co lor', 'red']]))->toThrow(CssRejected::class, 'not the name of a property');
+});
+
 it('keeps the byte order mark and the line endings of a file it changes', function () {
     $source = cssFixture('bom-crlf.css');
     $sheet = Stylesheet::read($source);

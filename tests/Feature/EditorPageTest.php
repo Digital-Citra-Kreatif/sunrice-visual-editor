@@ -20,6 +20,34 @@ it('shows the editor to a Super Admin', function () {
             ->where('startPath', '/'));
 });
 
+it('says which widths the page can be shown at, as far as the setting holds widths', function () {
+    actingAsSuperAdmin();
+
+    get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('widths', [
+        ['name' => 'Desktop', 'width' => 1280, 'media' => null],
+        ['name' => 'Tablet', 'width' => 768, 'media' => '(max-width: 1024px)'],
+        ['name' => 'Mobile', 'width' => 390, 'media' => '(max-width: 640px)'],
+    ]));
+
+    config(['sunrice-visual-editor.widths' => [
+        ['name' => ' Wide ', 'width' => '1600', 'media' => '@media (min-width: 1400px)'],
+        ['name' => 'Breaks out', 'width' => 500, 'media' => '(max-width: 1px) { } body { display: none'],
+        ['name' => 'Not in brackets', 'width' => 500, 'media' => 'print'],
+        ['name' => 'Too narrow', 'width' => 20],
+        ['name' => '', 'width' => 500],
+        ['width' => 500],
+        'nonsense',
+    ]]);
+    get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('widths', [
+        ['name' => 'Wide', 'width' => 1600, 'media' => '(min-width: 1400px)'],
+        ['name' => 'Breaks out', 'width' => 500, 'media' => null],
+        ['name' => 'Not in brackets', 'width' => 500, 'media' => null],
+    ]));
+
+    config(['sunrice-visual-editor.widths' => 'none']);
+    get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('widths', []));
+});
+
 it('opens on the page named in the link, and only on pages of the site', function (string $url, string $expected) {
     actingAsSuperAdmin();
 

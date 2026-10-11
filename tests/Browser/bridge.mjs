@@ -353,6 +353,19 @@ await step('says what the page has for an element, and says so again once a styl
     assert.equal(again.values.display, 'inline-block');
 });
 
+await step('says what the page has again when the page is shown at another width', async () => {
+    stylesheet = '#word { color: rgb(10, 11, 12); } @media (max-width: 500px) { #word { color: rgb(20, 21, 22); } }';
+    await tell({ type: 'styles', sheets: [{ url: '/sunrice-theme/app.css', version: 'six' }] });
+    await tell({ type: 'computed', ask: { mark: { file: 'cccccccccc', id: '60' }, properties: ['color'] } });
+    await next('computed', (message) => message.values?.color === 'rgb(10, 11, 12)');
+
+    await forget();
+    await page.evaluate(() => { document.querySelector('iframe').style.width = '400px'; });
+    await next('computed', (message) => message.values?.color === 'rgb(20, 21, 22)');
+    await page.evaluate(() => { document.querySelector('iframe').style.width = ''; });
+    await next('computed', (message) => message.values?.color === 'rgb(10, 11, 12)');
+});
+
 await step('says an element is not there, and nothing once nothing is asked', async () => {
     await forget();
     await tell({ type: 'computed', ask: { mark: { file: 'cccccccccc', id: '999' }, properties: ['color'] } });

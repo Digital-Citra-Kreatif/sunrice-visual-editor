@@ -964,6 +964,146 @@ await step('take a declaration out by emptying its control, and see the same rul
     await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="Spacing: Padding"]')?.value === '20px');
 });
 
+// --- Widths ------------------------------------------------------------------------
+
+const widthChoice = page.getByLabel('Width of the page');
+const widthIn = (frameLocator) => frameLocator.locator('html').evaluate(() => window.innerWidth);
+const beside = (nth) => page.frameLocator(`iframe.sve-beside >> nth=${nth}`);
+const until = async (what, check) => {
+    let last;
+    for (let tries = 0; tries < 50; tries++) {
+        last = await check();
+        if (last === true) {
+            return;
+        }
+        await page.waitForTimeout(100);
+    }
+    throw new Error(`${what}: ${JSON.stringify(last)}`);
+};
+
+await step('show the page at one width: its frame is that wide, and what is selected stays outlined', async () => {
+    // The card is still selected, on the articles page.
+    await widthChoice.selectOption({ label: 'Mobile · 390' });
+    await until('The frame is not 390 wide', async () => (await widthIn(frame)) === 390 || (await widthIn(frame)));
+    // The page as a phone has it: the menu is folded away.
+    await styleIs('.site-menu', 'display', 'none');
+    await layerIs('li.card');
+    await until('The outline is not on the card', async () => {
+        try {
+            await outlineOver('selected', '.card');
+
+            return true;
+        } catch (error) {
+            return error.message;
+        }
+    });
+});
+
+await step('show every width side by side, each frame at its own, and edit in the one that is picked', async () => {
+    await widthChoice.selectOption({ label: 'Side by side' });
+    await page.locator('.sve-slot__editing').waitFor();
+    await until('The frames are not at their widths', async () => {
+        const at = [await widthIn(frame), await widthIn(beside(0)), await widthIn(beside(1))];
+
+        return (at[0] === 390 && at[1] === 1280 && at[2] === 768) || at;
+    });
+    // Drawn at one scale, in the order of their widths.
+    const boxes = await page.locator('.sve-slot').evaluateAll((slots) => slots.map((slot) => ({ name: slot.querySelector('.sve-slot__name').textContent, left: slot.getBoundingClientRect().left, width: slot.getBoundingClientRect().width })));
+    const ordered = [...boxes].sort((a, b) => a.left - b.left);
+    if (ordered.map((box) => box.name).join() !== 'Desktop,Tablet,Mobile' || Math.abs(ordered[0].width / ordered[2].width - 1280 / 390) > 0.05) {
+        throw new Error(`The frames are laid out as ${JSON.stringify(ordered)}`);
+    }
+    await beside(0).locator('.card').first().waitFor();
+    await beside(1).locator('.card').first().waitFor();
+});
+
+await step('write a style set at a width under the @media for it: it shows at that width and at no other', async () => {
+    const forWidths = style.getByLabel('The widths it is set for');
+    await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="The widths it is set for"]')?.value === '@media (max-width: 760px)');
+    await style.getByText('has no rule under (max-width: 760px) yet').waitFor();
+    // Nothing is set for this width: the control shows what the page has, from the rule for every width.
+    await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="Spacing: Padding"]')?.getAttribute('placeholder') === '20px');
+
+    await style.getByLabel('Spacing: Padding').fill('6px');
+    await style.getByLabel('Spacing: Padding').press('Enter');
+    await sheetIs('app.css', `${appCss}\n@media (max-width: 760px) {\n    .card {\n        padding: 6px;\n    }\n}\n`);
+    await styleIs('.card', 'padding-top', '6px');
+    await style.getByText('Writes .card under (max-width: 760px) in app.css').waitFor();
+    // The frames beside have the new stylesheet too, and at their widths it says nothing new.
+    await until('The other widths do not show the stylesheet as it is now', async () => {
+        const versions = [];
+        for (const one of [frame, beside(0), beside(1)]) {
+            versions.push(await one.locator('link[rel="stylesheet"][href*="app.css"]').first().evaluate((link) => new URL(link.href).searchParams.get('sve-v')));
+        }
+
+        return (versions[0] !== null && versions.every((version) => version === versions[0])) || versions;
+    });
+    for (const nth of [0, 1]) {
+        const padding = await beside(nth).locator('.card').first().evaluate((element) => getComputedStyle(element).paddingTop);
+        if (padding !== '20px') {
+            throw new Error(`At another width the card's padding is ${padding}`);
+        }
+    }
+    await mkdir('docs/screenshots', { recursive: true });
+    await page.screenshot({ path: 'docs/screenshots/widths.png' });
+
+    // A second thing set goes into the same rule.
+    await style.getByLabel('Border: Radius').fill('4px');
+    await style.getByLabel('Border: Radius').press('Enter');
+    await sheetIs('app.css', `${appCss}\n@media (max-width: 760px) {\n    .card {\n        padding: 6px;\n        border-radius: 4px;\n    }\n}\n`);
+
+    // For every width, by choice: the rule outside any @media, as before.
+    await forWidths.selectOption({ label: 'Every width' });
+    await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="Spacing: Padding"]')?.value === '20px');
+    await style.getByText('Set for every width, though the page is shown at 390 pixels.').waitFor();
+});
+
+await step('edit at another of the widths: the frames keep their pages, and styles are for every width again', async () => {
+    await beside(0).locator('body').evaluate((body) => body.setAttribute('data-test-same-page', '1'));
+    await page.locator('.sve-slot', { hasText: 'Desktop' }).getByRole('button', { name: 'Edit here' }).click();
+    await until('The frames did not change widths', async () => {
+        const at = [await widthIn(frame), await widthIn(beside(0)), await widthIn(beside(1))];
+
+        return (at[0] === 1280 && at[1] === 768 && at[2] === 390) || at;
+    });
+    // The frame that was at the side is the same page, now narrower: nothing was loaded anew.
+    await beside(0).locator('body[data-test-same-page]').waitFor();
+    await layerIs('li.card');
+    await page.waitForFunction(() => document.querySelector('.sve-style [aria-label="The widths it is set for"]')?.value === '');
+    await style.getByText('Writes .card in app.css, line 59.').waitFor();
+    if ((await styleOf('.card', 'padding-top')) !== '20px' || (await beside(1).locator('.card').first().evaluate((element) => getComputedStyle(element).paddingTop)) !== '6px') {
+        throw new Error('The rule for narrow pages does not show where it should, or shows where it should not');
+    }
+});
+
+await step('draw a template change in every frame, then put the stylesheet and the view back', async () => {
+    await settings.getByRole('button', { name: 'Settings', exact: true }).click();
+    await settings.getByLabel('Add a class').fill('sve-browser-test');
+    await settings.getByLabel('Add a class').press('Enter');
+    for (const one of [frame, beside(0), beside(1)]) {
+        await one.locator('.card.sve-browser-test').first().waitFor();
+    }
+    await idle();
+    await settings.getByLabel('Remove the class sve-browser-test').click();
+    for (const one of [frame, beside(0), beside(1)]) {
+        await one.locator('.card:not(.sve-browser-test)').first().waitFor();
+    }
+    await idle();
+
+    await settings.getByRole('button', { name: 'CSS', exact: true }).click();
+    for (let steps = 0; steps < 2; steps++) {
+        const before = await sheet('app.css');
+        await css.getByRole('button', { name: 'Undo in app.css' }).click();
+        for (let tries = 0; tries < 40 && (await sheet('app.css')) === before; tries++) {
+            await page.waitForTimeout(100);
+        }
+    }
+    await sheetIs('app.css', appCss);
+    await widthChoice.selectOption({ label: 'Full width' });
+    await page.waitForFunction(() => document.querySelectorAll('iframe.sve-beside').length === 0 && document.querySelector('.sve-slot__head') === null);
+    await outlineOver('selected', '.card');
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');

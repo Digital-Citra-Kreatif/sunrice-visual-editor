@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 import type { ManifestFile } from '../bridge/protocol';
 import type { Styles } from '../lib/api';
 import { STYLE_GROUPS, declared, hexOf, shown, targetRule, type StyleControl } from '../lib/styleFields';
+import { appliesAt, mediaLabel, sameMedia } from '../lib/media';
 import type { StyleEdit } from '../lib/styles';
+import type { Width } from '../lib/widths';
 import { ClassChoice, NoClass, Unlinked } from './CssPanel';
 import { Field } from './SettingsPanel';
 
@@ -17,6 +19,13 @@ type Props = {
     failed: string | null;
     /** What the page has for each property, for the element as it is drawn; null when that is not known. */
     onPage: Record<string, string> | null;
+    /** The @media condition the controls write under; null for the rule outside any, which is for every width. */
+    media: string | null;
+    /** The conditions there are to choose from, besides every width. */
+    mediaChoices: string[];
+    /** The width the page is being edited at; null when it is as wide as the room. */
+    width: Width | null;
+    onMedia(media: string | null): void;
     linked: string[] | null;
     layout: ManifestFile | null;
     linking: boolean;
@@ -31,13 +40,17 @@ type Props = {
  * written in the file. An empty control shows, in grey, what the page has
  * for it from elsewhere. The CSS tab shows the same rule, and the others.
  */
-export function StyleFields({ classes, chosen, onChoose, styles, failed, onPage, linked, layout, linking, onEdit, onLink }: Props) {
+export function StyleFields({ classes, chosen, onChoose, styles, failed, onPage, media, mediaChoices, width, onMedia, linked, layout, linking, onEdit, onLink }: Props) {
     if (classes === null || classes.length === 0 || chosen === null) {
         return <NoClass classes={classes} />;
     }
     const known = styles !== null && styles.class === chosen ? styles : null;
-    const at = known === null ? null : targetRule(known);
+    const at = known === null ? null : targetRule(known, media);
     const rule = known === null || at === null ? null : known.rules[at];
+    const choices = media !== null && !mediaChoices.some((each) => sameMedia(each, media)) ? [...mediaChoices, media] : mediaChoices;
+    /** Where the first thing set goes when there is no rule yet: the stylesheet the class's own rule is in, else the editor's. */
+    const base = known === null ? null : targetRule(known);
+    const writesTo = known === null ? null : media !== null && base !== null ? known.rules[base].file : (known.own?.path ?? null);
 
     return (
         <div className="sve-css sve-style">
@@ -47,14 +60,37 @@ export function StyleFields({ classes, chosen, onChoose, styles, failed, onPage,
                 <p className="sve-empty">{failed ?? 'Reading the stylesheets…'}</p>
             ) : (
                 <>
+                    {(choices.length > 0 || width !== null) && (
+                        <label className="sve-style__for">
+                            <span className="sve-style__label">For</span>
+                            <select className="sve-input" value={media ?? ''} onChange={(event) => onMedia(event.target.value === '' ? null : event.target.value)} aria-label="The widths it is set for">
+                                <option value="">Every width</option>
+                                {choices.map((each) => (
+                                    <option key={each} value={each}>
+                                        {mediaLabel(each)}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                    )}
+                    {width !== null && media !== null && !appliesAt(media, width.width) && <p className="sve-style__target sve-style__target--off">That does not apply at {width.width} pixels, the width being edited: what is set will not show here.</p>}
+                    {width !== null && media === null && <p className="sve-style__target">Set for every width, though the page is shown at {width.width} pixels.</p>}
+
                     <p className="sve-style__target">
                         {rule !== null ? (
                             <>
-                                Writes <code>{known.selector}</code> in <code>{rule.file}</code>, line {rule.line}.
+                                Writes <code>{known.selector}</code>
+                                {media !== null && (
+                                    <>
+                                        {' '}
+                                        under <code>{mediaLabel(media)}</code>
+                                    </>
+                                )}{' '}
+                                in <code>{rule.file}</code>, line {rule.line}.
                             </>
-                        ) : known.own !== null ? (
+                        ) : writesTo !== null ? (
                             <>
-                                <code>{known.selector}</code> has no rule yet. The first thing set here writes one into <code>{known.own.path}</code>.
+                                <code>{known.selector}</code> has no rule {media === null ? 'yet' : <>under <code>{mediaLabel(media)}</code> yet</>}. The first thing set here writes one into <code>{writesTo}</code>.
                             </>
                         ) : (
                             <>
@@ -75,8 +111,8 @@ export function StyleFields({ classes, chosen, onChoose, styles, failed, onPage,
                                         group={group.title}
                                         value={declared(rule, control.property)}
                                         onPage={onPage?.[control.property] ?? null}
-                                        disabled={rule === null && known.own === null}
-                                        onSet={(value) => onEdit({ kind: 'style', property: control.property, value })}
+                                        disabled={rule === null && writesTo === null}
+                                        onSet={(value) => onEdit({ kind: 'style', property: control.property, value, media })}
                                     />
                                 ))}
                         </fieldset>

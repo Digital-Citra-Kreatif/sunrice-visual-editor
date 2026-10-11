@@ -304,7 +304,11 @@ window.addEventListener('message', (event) => {
 
 // Whatever moves the boxes: scrolling (of anything, hence capture), resizing, late images and fonts.
 window.addEventListener('scroll', reportSoon, true);
-window.addEventListener('resize', reportSoon);
+window.addEventListener('resize', () => {
+    reportSoon();
+    // At another width the page has other values: other @media blocks apply.
+    window.requestAnimationFrame(reportComputed);
+});
 window.addEventListener('load', reportSoon);
 if ('ResizeObserver' in window) {
     new ResizeObserver(reportSoon).observe(document.documentElement);
