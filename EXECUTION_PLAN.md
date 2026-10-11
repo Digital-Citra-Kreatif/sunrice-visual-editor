@@ -613,7 +613,19 @@ Three permissions, registered with `Sunrice::registerPermission()` under "Visual
 
 ### V7.2 MCP tools
 **Depends on:** V2.3, C3
-`get_template_tree` and `edit_template` (operations), so agents make checked edits. Needs C3 in Sunrice.
+**Status:** done here; reaches agents once [sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40) (C3) is released.
+
+Two tools for AI agents, so that an agent makes checked edits to a template in place of rewriting the file.
+
+- `get_template_tree` (`Mcp\GetTemplateTree`, read-only). Without a path: the templates, and whether each opens as a tree. With one: its version and its tree, as `Mcp\Tree::compact()` gives it: every node with its id, what it holds and what may be done to it, without what only a screen needs. Takes `visual-editor.open`.
+- `edit_template` (`Mcp\EditTemplate`): a path, the version it was read at, and a list of the operations of V1.7. Applied all or none through the same three steps as the editor's API: `Operations::run`, `CodeGuard` for a user without `visual-editor.code`, `SaveTemplate`. Answers with the new version, the tree and the node to go on from; a refusal says why, and which operation. Takes `visual-editor.edit`, and nothing where the site keeps agents from templates (`sunrice.mcp.templates`).
+- The tools extend laravel/mcp's `Tool`, which Sunrice requires. They run as the token's user, so what they write is in the activity log under that user with the source "ai", as for Sunrice's own tools.
+- **Registration.** `SunriceBridge::registerMcpTools()` calls `Sunrice::registerMcpTool()` when Sunrice has it. That method is C3, asked for in V0.4 and now written as sunrice-cms#40. On a Sunrice without it the tools are there and tested, and not listed to agents.
+- Like the editor itself, the tools exist only where the editor is on (local by default).
+
+**Tests:** `tests/Feature/McpToolsTest.php`, 22 tests against a server of the test's own holding the two tools: the list and the tree; one change that changes one thing; several together and going on from the answer; a version that is not the file's; all or none; what does not compile; templates that are not the site's; each permission; code only for a user who may edit code; the site's switch; every operation named in the tool's description.
+
+**Not in this task:** tools for stylesheets (`Css\Changes` would be the same pattern), and a tool for what the picker lists at a node.
 
 ### V7.3 Docs
 `docs/installation.md`, `docs/how-it-works.md` (lossless or code, what is refused and why, the editor render), `docs/fields.md`, `docs/limits.md`.

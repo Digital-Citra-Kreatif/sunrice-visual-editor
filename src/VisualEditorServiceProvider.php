@@ -11,8 +11,11 @@ use Sunrice\Permissions\PermissionRegistry;
 use Sunrice\Permissions\SyncPermissions;
 use Sunrice\VisualEditor\Fields\Catalog;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
+use Sunrice\VisualEditor\Mcp\EditTemplate;
+use Sunrice\VisualEditor\Mcp\GetTemplateTree;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Support\RegisteredPermissions;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 
 class VisualEditorServiceProvider extends ServiceProvider
 {
@@ -60,6 +63,9 @@ class VisualEditorServiceProvider extends ServiceProvider
             EditorRender::class,
         ]]);
 
+        // Tools for AI agents, on Sunrice's MCP server.
+        SunriceBridge::registerMcpTools(self::mcpTools());
+
         Sunrice::registerAdminScript(self::asset('visual-editor.js'));
         Sunrice::registerAdminStyle(self::asset('visual-editor.css'));
 
@@ -70,6 +76,17 @@ class VisualEditorServiceProvider extends ServiceProvider
             group: 'Manage',
             can: fn (?Authenticatable $user): bool => Access::allowed($user),
         );
+    }
+
+    /**
+     * The tools the package has for AI agents: a template read as a tree,
+     * and changed by operations on it.
+     *
+     * @return list<class-string>
+     */
+    public static function mcpTools(): array
+    {
+        return [GetTemplateTree::class, EditTemplate::class];
     }
 
     /**
