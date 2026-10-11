@@ -7,8 +7,20 @@ and no second file beside it. A developer can keep editing the same file in a
 code editor. The editor reads a Blade file into a tree, changes one thing, and
 writes the file back with nothing else disturbed.
 
-What the package will do is in [SPEC.md](SPEC.md); the order of work is in
-[EXECUTION_PLAN.md](EXECUTION_PLAN.md).
+## Documentation
+
+| | |
+| --- | --- |
+| [Installation](docs/installation.md) | requiring it, turning it on, settings, updating |
+| [How it works](docs/how-it-works.md) | lossless or code, what is checked before a save, how the page knows its templates |
+| [Fields and variables](docs/fields.md) | what the lists offer at each place, and the Blade a click writes |
+| [Styles](docs/styles.md) | the CSS and Style tabs, widths, sites that build their CSS |
+| [Permissions](docs/permissions.md) | open, edit, code; where the line is and how it is held |
+| [AI agents](docs/agents.md) | `get_template_tree` and `edit_template` |
+| [Limits](docs/limits.md) | what it does not do |
+
+What the package is meant to do is in [SPEC.md](SPEC.md); how it was built,
+task by task, is in [EXECUTION_PLAN.md](EXECUTION_PLAN.md).
 
 ![The editor: the homepage in a frame, the templates that draw it listed on the left, the hero block outlined on the page](docs/screenshots/editor.png)
 
@@ -122,7 +134,7 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
   of the file.
 
 **Permissions of its own**: who may open the editor, who may change things,
-who may write code (see *Who can use it* below).
+who may write code ([Permissions](docs/permissions.md)).
 
 **Tools for AI agents**, on Sunrice's MCP server.
 
@@ -142,37 +154,13 @@ editor changes CSS files, not what a build makes of them.
 ## Using it
 
 The package is not on Packagist yet. To try it, run the demo site from this
-repository (`composer serve`, below), or require it from this repository in a
-Sunrice site and publish its script:
+repository (`composer serve`, below), or install it in a Sunrice site from
+this repository: [Installation](docs/installation.md).
 
-```bash
-php artisan vendor:publish --tag=sunrice-visual-editor-assets
-```
-
-**Where it runs.** The editor writes Blade files, which run PHP on the server
-and belong in the project's git repository. It is on when `APP_ENV` is `local`
-and off otherwise. `SUNRICE_VISUAL_EDITOR=true` turns it on elsewhere, such as
-a staging copy; `false` turns it off locally. When it is off, the package adds
-no routes and changes nothing about how pages render.
-
-**Who can use it.** Three permissions, given to roles in Sunrice's admin
-(Users → Roles, under *Visual editor*). Each includes the ones before it;
-Super Admins have all three.
-
-| Permission | Lets someone |
-| --- | --- |
-| `visual-editor.open` | look: the page, its templates, their layers, their styles |
-| `visual-editor.edit` | change templates and stylesheets without writing code: elements, text, classes, fields from the lists, conditions and loops built from choices, CSS |
-| `visual-editor.code` | write code: the code panel, and Blade or PHP typed anywhere |
-
-Someone with `edit` and not `code` can't make a template run PHP it did not
-run before, whatever they send: every change is compiled by Laravel's own
-Blade compiler before it is saved, and refused if the result holds a piece of
-PHP that was not there and that the editor did not write itself. They can
-rearrange, copy and remove code that is already there, and add any HTML,
-scripts included: `edit` is for people you would let change the site's
-markup. Run `php artisan sunrice:sync-permissions` after installing, so the
-three exist.
+It is a development tool: on when `APP_ENV` is `local`, off otherwise, and
+`SUNRICE_VISUAL_EDITOR=true` turns it on for a staging copy. Who may open
+it, change things and write code is decided by three
+[permissions](docs/permissions.md) of its own.
 
 **Opening it.** *Visual editor* in the admin's sidebar, under Manage, or
 directly:

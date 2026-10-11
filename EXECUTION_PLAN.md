@@ -107,7 +107,7 @@ sunrice-visual-editor/
 
 Sizes are rough guesses for one developer working with coding agents. Phases 1 and 2 have no UI and can run alongside Phase 0. V5.1–V5.3 are backend only and can run alongside Phases 3 and 4.
 
-**Where it stands:** Phases 0 to 3 are done and merged, which is milestone M1. Phase 4 is next. Where a task was built differently from what was first written here, its text below says what was built and why.
+**Where it stands:** Phases 0 to 6 are done and merged, and of Phase 7 everything but the release (V7.4), which waits for an install on a real project. Where a task was built differently from what was first written here, its text below says what was built and why.
 
 ---
 
@@ -628,7 +628,24 @@ Two tools for AI agents, so that an agent makes checked edits to a template in p
 **Not in this task:** tools for stylesheets (`Css\Changes` would be the same pattern), and a tool for what the picker lists at a node.
 
 ### V7.3 Docs
-`docs/installation.md`, `docs/how-it-works.md` (lossless or code, what is refused and why, the editor render), `docs/fields.md`, `docs/limits.md`.
+**Depends on:** V7.1, V7.2
+**Status:** done.
+
+Seven pages in `docs/`, written for someone installing the package on a site, and linked from the README:
+
+- `installation.md` — requiring it from GitHub, publishing the admin script, the permissions, where it is on, every setting, updating, removing.
+- `how-it-works.md` — lossless or code, the tree, operations, what is checked before a file is written and in which order, what a save can't know, the editor render, undo, the two round-trip tests.
+- `fields.md` — what the lists hold at a place and where that comes from, the Blade a click writes for each kind of value, conditions, entries.
+- `styles.md` — which files, the CSS and Style tabs, a class without a rule, widths and `@media`, what is refused, sites that build their CSS.
+- `permissions.md` — the three permissions, why code is separate, what `edit` can and can't do, how the line is held, and what to know before giving someone `edit`.
+- `agents.md` — the two MCP tools, the operations, what is checked, who may.
+- `limits.md` — what the editor does not do, by area.
+
+The plan named four pages. Styles, permissions and agents got their own, since each is what one kind of reader comes for, and the other pages link to them.
+
+The README's "Using it" now points to these pages in place of saying the same more briefly.
+
+**Tests:** `tests/Unit/DocsTest.php` keeps the pages from going stale where a test can tell: every link between the pages, to a file of the repository and to a heading resolves; every key of the config file is in the settings table; every operation the package takes is in the agents page; the three permissions are named as `Access` names them.
 
 ### V7.4 Release
 Changelog, version `0.1.0`, tag. Install it on one real client project on a staging copy and fix what that turns up before tagging.
