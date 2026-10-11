@@ -14,6 +14,7 @@
 - Anything that lets a template be changed goes through `Guard\CodeGuard` for people without `visual-editor.code`. A new operation, or a new way of writing Blade for the person, needs a case in `tests/Feature/CodePermissionTest.php`: code sent through it must not run.
 - The editor never writes a file it could not read back exactly, and nothing of the editor is written into a template.
 - Update `docs/` when adding developer-facing API. Do commit the compiled admin script in `dist/`.
+- `docs/installation.md` is tried on a new Laravel application by `.github/install-check.sh` (the `install` job). A change to how the package is installed, published or turned on changes the page and that script together.
 
 ## Conventions
 
