@@ -746,13 +746,21 @@ Everything beside the page can be put out of the way and brought back with one c
 **Tests:** `tests/Frontend/layout.test.mjs` (folding, sides, what is remembered, a store with nonsense in it or none at all). Five steps of the browser check: a panel folded and opened with its selection kept; both sides hidden, the page wider by their room and the outline still on its element; the editor found as it was left after opening it again; the left side brought back by **Insert**; the code shown and hidden from the bar and a group of the Style tab folded alone.
 
 ### V8.3 Code mode
-**Depends on:** V8.2
-- **Visual | Code** in the top bar (kept per browser with the rest of the layout, `lib/layout.ts`). In Code mode the left side keeps the templates of the page, the code editor takes the place of the layers and of the Settings side, and the page is beside it; the divider can be dragged.
-- **Tabs** (`lib/tabs.ts`): the templates opened in this session, each with its text as typed, its cursor and its editor history. Opening a template from the list or from the page adds a tab or goes to it. A dot marks unsaved text; closing such a tab, or leaving the editor, asks. Visual mode shows the open tab's template as saved, and says when it has unsaved text in Code mode.
-- **Click to line.** A click on the page gives the template and the node's place in the saved file (the mark, as today). The cursor goes there; in text that has been typed in since, the place is carried through the changes (CodeMirror's `ChangeSet.mapPos`).
-- **Cursor to page.** The node the cursor is in is outlined on the page (the saved tree's node at that place, carried back the same way). Not while the text does not open as a tree.
-- **Save** writes one tab; the others keep their text. A conflict (the file changed on disk) offers the file as it is now, as today.
-**Done when:** a browser step edits the page's template, opens the header from the page with the cursor on the clicked element, saves the header, goes back and finds the first text still there, unsaved.
+**Depends on:** V8.2, V8.7
+**Status:** done.
+
+A second way of working, chosen in the top bar: **Visual | Code** (`mode` in `lib/layout.ts`, kept with the rest of the layout).
+
+- **The code beside the page.** In Code mode the code panel stands left of the page at its full height and is always there; the line between them is dragged, or moved with the arrow keys, to give the code a fifth to four fifths of the room (`share`). The sides and their panels stay as they are, to show or hide as in Visual mode: the templates of the page on the left, the selection's settings on the right.
+- **Tabs.** Every template opened since the editor was is a tab in the code panel's bar, in both modes. What is typed in a template's code and not saved is kept per template (`drafts` in `Editor.tsx`), so opening another no longer asks whether to throw it away: the tab shows a dot, and the text is there on coming back. Closing a tab with such text asks first; leaving the editor with any asks, as before.
+- **One editor, a text per tab** (`code/index.ts`, `show(name, …)`): a text that is left is put aside with its undo, its cursor and where it was scrolled to, and is the same on coming back. The panel stays in place while another template is being read, showing the one before read-only for that moment, so the editor is not made anew for every template.
+- **Click to line.** A click on the page, or on a layer, sends the cursor to that node's place in the file (`CodePlace`: the node's first byte). The editor keeps, for each text, the file as saved and every change since (`since`), and carries the place through them (`ChangeSet.mapPos`): with a line typed above and not saved, the cursor still lands on the element. In Code mode the keyboard goes to the code too; with the code under the page it stays on the page.
+- **Cursor to page.** A moment after the cursor stops in another node, that node is the selection: outlined on the page, marked in the layers, its settings on the right (`lib/tree.ts`, `nodeAt`). Places go back through the same changes.
+- `code/text.ts` — `indexOfByte`, `byteOfIndex` (nodes count bytes, the editor characters), `difference` (the one change between two texts, for a text that comes with no record of how it was typed).
+
+**Fixed on the way:** with the code open, going to another template while one had unsaved code threw that code away after a confirm. Now it stays with its template.
+
+**Tests:** `tests/Frontend/code.test.mjs` (bytes and characters, the one change between two texts, the node at a place), `layout.test.mjs` (the mode and the share). Eight steps of the browser check: the code beside the page with the open template as a tab; a click on the page opening the template as a tab with the cursor on the element; text left unsaved in one tab while another is saved, and found as it was; a place clicked on the page found under a line typed above it; the editor's undo in a tab that was left; the element under the cursor outlined on the page; a tab closed, with a question first when it has unsaved text; the line dragged, kept when the editor is opened again, and moved by a key.
 
 ### V8.4 Fields and variables at the cursor
 **Depends on:** V8.3

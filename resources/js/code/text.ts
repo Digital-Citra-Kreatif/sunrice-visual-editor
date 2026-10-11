@@ -57,3 +57,47 @@ export function coloured(text: string): Coloured[] {
 
     return found;
 }
+
+/**
+ * A place in a text counted in characters, from where it is counted in
+ * bytes: a node of a template says where it is in bytes of the file.
+ * Past the end is the end.
+ */
+export function indexOfByte(text: string, byte: number): number {
+    let bytes = 0;
+    let index = 0;
+    for (const character of text) {
+        if (bytes >= byte) {
+            break;
+        }
+        const point = character.codePointAt(0) ?? 0;
+        bytes += point < 0x80 ? 1 : point < 0x800 ? 2 : point < 0x10000 ? 3 : 4;
+        index += character.length;
+    }
+
+    return index;
+}
+
+/** The same the other way: how many bytes of a text come before a place counted in characters. */
+export function byteOfIndex(text: string, index: number): number {
+    return new TextEncoder().encode(text.slice(0, Math.max(0, index))).length;
+}
+
+/**
+ * The one change that turns a text into another: what is between the start
+ * they share and the end they share. Good for carrying a place across when
+ * nothing better is known of how the one became the other.
+ */
+export function difference(before: string, after: string): { from: number; to: number; insert: string } {
+    const most = Math.min(before.length, after.length);
+    let start = 0;
+    while (start < most && before[start] === after[start]) {
+        start++;
+    }
+    let end = 0;
+    while (end < most - start && before[before.length - 1 - end] === after[after.length - 1 - end]) {
+        end++;
+    }
+
+    return { from: start, to: before.length - end, insert: after.slice(start, after.length - end) };
+}

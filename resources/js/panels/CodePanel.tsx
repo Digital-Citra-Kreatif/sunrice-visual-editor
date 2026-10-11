@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { CodeEditor } from '../code/index';
-import { indentOf } from '../code/text';
+import { byteOfIndex, indentOf, indexOfByte } from '../code/text';
 import { ApiError, saveSource, type TemplateData } from '../lib/api';
 import { codeEditorScript, type CodeEditorScript } from '../lib/codeEditor';
 import { highlight } from '../lib/highlight';
+import { sameTemplate, type TemplateName } from '../lib/templates';
 
 type Props = {
+    /** The template whose code is shown. While another is being read, it is still the one before. */
     template: TemplateData;
+    /** The template that is open: the one whose tab is marked. */
+    current: TemplateName | null;
     /** The text as it is being edited; null when nothing has been changed. */
     draft: string | null;
     onDraft(draft: string | null): void;
@@ -19,7 +23,25 @@ type Props = {
     onClose(): void;
     /** Where the code editor's script is fetched from; null for the plain text field alone. */
     editorScript: string | null;
+    /** The templates opened since the editor was: each keeps its text as typed. The open one is among them. */
+    tabs: CodeTab[];
+    onOpenTab(name: TemplateName): void;
+    onCloseTab(name: TemplateName): void;
+    /** Whether the code is beside the page (Code mode) and not under it: it is then always there, with nothing to close. */
+    beside: boolean;
+    /** A place of the open template the cursor is asked to go to: an element clicked on the page, or a layer. */
+    goTo: CodePlace | null;
+    /** The cursor is somewhere else: where that is in the file as saved, in bytes as nodes are counted. */
+    onCursor(byte: number): void;
 };
+
+export type CodeTab = TemplateName & { unsaved: boolean };
+
+/** A place in a template's file as saved, in bytes. `asked` tells one asking from the next for the same place. */
+export type CodePlace = TemplateName & { byte: number; asked: number; focus: boolean };
+
+/** A template's path as a tab says it: without what every one of them ends with. */
+const tabName = (path: string) => path.replace(/\.blade\.php$/, '');
 
 /** How long the code editor's script is waited for before the plain text field is shown in its place. */
 const WAIT = 3000;
@@ -34,7 +56,7 @@ type Trouble = { kind: 'syntax' | 'conflict' | 'other'; message: string };
  * changed since it was read or when the text doesn't compile, and nothing
  * is written.
  */
-export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload, onClose, editorScript }: Props) {
+export function CodePanel({ template, current: opened, draft, onDraft, onSaved, mayCode, onReload, onClose, editorScript, tabs, onOpenTab, onCloseTab, beside, goTo, onCursor }: Props) {
     // The code editor is a script of its own. Until it has come the panel waits a moment, then shows
     // the plain text field, and keeps to it: nobody has the field changed under their hands.
     const [script, setScript] = useState<CodeEditorScript | 'waiting' | 'none'>(editorScript === null ? 'none' : 'waiting');
@@ -55,6 +77,9 @@ export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload
     }, [editorScript]);
     const [saving, setSaving] = useState(false);
     const [trouble, setTrouble] = useState<Trouble | null>(null);
+    // The open template's tab is in sight, however many there are.
+    const openTab = useRef<HTMLSpanElement>(null);
+    useEffect(() => openTab.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' }), [template.path, template.origin, tabs.length]);
 
     const original = template.source ?? '';
     const text = draft ?? original;
@@ -81,9 +106,27 @@ export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload
     };
 
     return (
-        <section className="sve-code" aria-label={`Code of ${template.path}`}>
+        <section className={`sve-code${beside ? ' sve-code--beside' : ''}`} aria-label={`Code of ${template.path}`}>
             <header className="sve-code__bar">
-                <strong className="sve-code__name">{template.path}</strong>
+                <div className="sve-tabs" role="tablist" aria-label="Open templates">
+                    {tabs.map((tab) => {
+                        const current = sameTemplate(tab, opened ?? template);
+
+                        return (
+                            <span key={`${tab.origin}:${tab.path}`} className={`sve-tab${current ? ' sve-tab--open' : ''}`} ref={current ? openTab : undefined}>
+                                <button type="button" role="tab" className="sve-tab__name" aria-selected={current} onClick={() => onOpenTab(tab)} title={tab.unsaved ? `${tab.path}: not saved` : tab.path}>
+                                    {tabName(tab.path)}
+                                    {tab.unsaved && <span className="sve-tab__dot" aria-label="not saved" />}
+                                </button>
+                                {tabs.length > 1 && (
+                                    <button type="button" className="sve-tab__close" onClick={() => onCloseTab(tab)} aria-label={`Close ${tab.path}`} title="Close">
+                                        ×
+                                    </button>
+                                )}
+                            </span>
+                        );
+                    })}
+                </div>
                 {readOnly ? <span className="sve-tag">Read-only</span> : changed && <span className="sve-tag sve-tag--changed">Not saved</span>}
                 <span className="sve-code__space" />
                 {!readOnly && (
@@ -96,9 +139,11 @@ export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload
                         </button>
                     </>
                 )}
-                <button type="button" className="sve-code__close" onClick={onClose} aria-label="Close the code panel" title="Close">
-                    ×
-                </button>
+                {!beside && (
+                    <button type="button" className="sve-code__close" onClick={onClose} aria-label="Close the code panel" title="Close">
+                        ×
+                    </button>
+                )}
             </header>
 
             {trouble !== null && (
@@ -123,7 +168,19 @@ export function CodePanel({ template, draft, onDraft, onSaved, mayCode, onReload
             ) : script === 'none' ? (
                 <PlainCode text={text} readOnly={readOnly} label={`Source of ${template.path}`} onText={typed} onSave={save} />
             ) : (
-                <RichCode key={`${template.origin}:${template.path}`} script={script} text={text} readOnly={readOnly} label={`Source of ${template.path}`} onText={typed} onSave={save} />
+                <RichCode
+                    script={script}
+                    name={`${template.origin}:${template.path}`}
+                    text={text}
+                    saved={original}
+                    readOnly={readOnly}
+                    label="Source of the open template"
+                    onText={typed}
+                    onSave={save}
+                    kept={tabs.map((tab) => `${tab.origin}:${tab.path}`)}
+                    goTo={goTo !== null && sameTemplate(goTo, template) ? goTo : null}
+                    onCursor={onCursor}
+                />
             )}
         </section>
     );
@@ -137,47 +194,94 @@ type CodeProps = {
     onSave(): void;
 };
 
-/** The code in the code editor (CodeMirror): search and replace, undo of its own, several cursors. */
-function RichCode({ script, text, readOnly, label, onText, onSave }: CodeProps & { script: CodeEditorScript }) {
+type RichProps = CodeProps & {
+    script: CodeEditorScript;
+    /** What the text is kept under while another is shown: the template it is of. */
+    name: string;
+    /** The file as saved, which `text` is a change to. */
+    saved: string;
+    /** The names of the texts worth keeping: those of the open tabs. */
+    kept: string[];
+    goTo: CodePlace | null;
+    onCursor(byte: number): void;
+};
+
+/**
+ * The code in the code editor (CodeMirror): search and replace, undo of
+ * its own, several cursors. One editor for as long as the panel is there;
+ * it keeps each template's text as it was left while another is shown.
+ */
+function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor }: RichProps) {
     const holder = useRef<HTMLDivElement>(null);
     const editor = useRef<CodeEditor | null>(null);
     // The editor is made once and calls whatever the panel's functions are by then.
-    const calls = useRef({ onText, onSave });
-    calls.current = { onText, onSave };
-    /** The text as the editor last said it was: a text that differs from it came from outside (Revert, the file read again). */
-    const said = useRef(text);
+    const calls = useRef({ onText, onSave, onCursor, saved });
+    calls.current = { onText, onSave, onCursor, saved };
+    /** What the editor shows: under which name, and the text as the editor last said it was. */
+    const shown = useRef<{ name: string | null; text: string; saved: string; readOnly: boolean }>({ name: null, text: '', saved: '', readOnly: true });
+    const went = useRef(0);
+    const before = useRef(kept);
 
     useEffect(() => {
         if (holder.current === null) {
             return;
         }
         const made = script.mount(holder.current, {
-            text: said.current,
-            readOnly,
-            indent: indentOf(said.current),
             label,
             onChange: (now) => {
-                said.current = now;
+                shown.current.text = now;
                 calls.current.onText(now);
             },
             onSave: () => calls.current.onSave(),
+            onCursor: (place) => calls.current.onCursor(byteOfIndex(calls.current.saved, place)),
         });
         editor.current = made;
+        shown.current = { name: null, text: '', saved: '', readOnly: true };
 
         return () => {
             made.destroy();
             editor.current = null;
         };
-        // One editor for as long as the panel shows this template: its undo is its own.
     }, [script]);
 
+    // Another template: its text as it was left. The same one: only what came from outside
+    // the editor (Revert, the file read again, a save) is told to it.
     useEffect(() => {
-        if (text !== said.current) {
-            said.current = text;
-            editor.current?.setText(text);
+        const now = editor.current;
+        if (now === null) {
+            return;
         }
-    }, [text]);
-    useEffect(() => editor.current?.setReadOnly(readOnly), [readOnly]);
+        if (shown.current.name !== name) {
+            now.show(name, { text, saved, readOnly });
+        } else {
+            if (text !== shown.current.text) {
+                now.setText(text);
+            }
+            if (saved !== shown.current.saved) {
+                now.setSaved(saved);
+            }
+            if (readOnly !== shown.current.readOnly) {
+                now.setReadOnly(readOnly);
+            }
+        }
+        shown.current = { name, text, saved, readOnly };
+    }, [script, name, text, saved, readOnly]);
+
+    // A tab that is closed takes its text with it.
+    useEffect(() => {
+        for (const gone of before.current.filter((each) => !kept.includes(each))) {
+            editor.current?.forget(gone);
+        }
+        before.current = kept;
+    }, [kept.join('\n')]);
+
+    // The cursor goes where it was asked to, once: after the template it is asked for is the one shown.
+    useEffect(() => {
+        if (goTo !== null && goTo.asked !== went.current && editor.current !== null && shown.current.name === name) {
+            went.current = goTo.asked;
+            editor.current.goTo(indexOfByte(saved, goTo.byte), goTo.focus);
+        }
+    }, [script, name, saved, goTo?.asked]);
 
     return <div ref={holder} className="sve-code__editor" />;
 }

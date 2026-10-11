@@ -1406,6 +1406,176 @@ await step('show the code in a plain field when the code editor\'s script can\'t
     await page.getByRole('button', { name: 'Hide the code' }).click();
 });
 
+// --- Code mode -------------------------------------------------------------------
+
+const tabNames = () => page.locator('.sve-tab__name').allTextContents();
+const codeTab = (name) => page.locator('.sve-tab', { has: page.locator('.sve-tab__name', { hasText: new RegExp(`^${name}$`) }) });
+const cursorLine = () => page.locator('.sve-code__editor .cm-activeLine').first().textContent();
+const cursorLineHas = (text) => until(`The cursor is not on a line with ${text}`, async () => ((await cursorLine()) ?? '').includes(text) || (await cursorLine()));
+const unsavedTabs = () => page.locator('.sve-tab', { has: page.locator('.sve-tab__dot') }).locator('.sve-tab__name').allTextContents();
+let heroCode = '';
+let headerCode = '';
+
+await step('work in the code beside the page: the open template is a tab', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    heroCode = await onDisk('blocks/hero.blade.php');
+    headerCode = await onDisk('partials/header.blade.php');
+    await bar.getByRole('button', { name: 'Code', exact: true }).click();
+    await page.locator('.sve-canvas--beside .sve-code--beside .cm-editor').waitFor();
+    const editorBox = await page.locator('.sve-code--beside').boundingBox();
+    const pageBox = await page.locator('iframe.sve-frame').boundingBox();
+    if (editorBox === null || pageBox === null || editorBox.x + editorBox.width > pageBox.x + 1 || Math.abs(editorBox.height - pageBox.height) > 2) {
+        throw new Error(`The code is at ${JSON.stringify(editorBox)}, the page at ${JSON.stringify(pageBox)}`);
+    }
+    if (JSON.stringify(await tabNames()) !== JSON.stringify(['show'])) {
+        throw new Error(`The tabs are ${JSON.stringify(await tabNames())}`);
+    }
+    // The code is there for as long as the mode is: nothing shows or hides it.
+    if ((await page.locator('.sve-code__close').count()) !== 0 || (await page.getByRole('button', { name: 'Edit as code' }).count()) !== 0) {
+        throw new Error('Code mode offers to hide the code');
+    }
+});
+
+await step('click an element on the page: its template opens as a tab, with the cursor on that element', async () => {
+    await frame.locator('.hero h1').click();
+    await openIs('blocks/hero');
+    await codeIs(heroCode);
+    await cursorLineHas('<h1>{{ $block->heading }}</h1>');
+    await outlineIs('selected', 'h1');
+    if (JSON.stringify(await tabNames()) !== JSON.stringify(['show', 'blocks/hero']) || !(await page.evaluate(() => document.activeElement?.closest('.cm-editor') !== null))) {
+        throw new Error('The hero is not a tab with the keyboard in its code');
+    }
+});
+
+await step('leave text typed and not saved in one tab, save another, and find the first as it was left', async () => {
+    await page.keyboard.press('End');
+    await page.keyboard.type(' <!-- kept -->');
+    await page.locator('.sve-code__bar').getByText('Not saved').waitFor();
+
+    // The header, from the page: the hero's text stays with its tab.
+    await frame.locator('.site-header .brand').click();
+    await openIs('partials/header');
+    await codeIs(headerCode);
+    await cursorLineHas('{{');
+    if (JSON.stringify(await unsavedTabs()) !== JSON.stringify(['blocks/hero']) || (await page.locator('.sve-code__bar .sve-tag').count()) !== 0) {
+        throw new Error(`Not saved: ${JSON.stringify(await unsavedTabs())}`);
+    }
+    await page.keyboard.press('End');
+    await page.keyboard.type(' <!-- header -->');
+    await page.keyboard.press('Control+s');
+    await page.locator('.sve-notice--done', { hasText: 'Saved partials/header.blade.php.' }).waitFor();
+    if (!(await onDisk('partials/header.blade.php')).includes('<!-- header -->') || (await onDisk('blocks/hero.blade.php')) !== heroCode) {
+        throw new Error('The header was not saved alone');
+    }
+
+    await codeTab('blocks/hero').locator('.sve-tab__name').click();
+    await openIs('blocks/hero');
+    await codeIs(heroCode.replace('<h1>{{ $block->heading }}</h1>', '<h1>{{ $block->heading }}</h1> <!-- kept -->'));
+    await page.locator('.sve-code__bar').getByText('Not saved').waitFor();
+});
+
+await step('find a place clicked on the page in text that has been typed in since', async () => {
+    // A line put in at the very top: everything in the file is further down than the page knows.
+    await code.evaluate((holder) => holder.sveCodeEditor.focus());
+    await page.keyboard.press('Control+Home');
+    await page.keyboard.type('{{-- a line that is not saved --}}');
+    await page.keyboard.press('Enter');
+    await frame.locator('.hero .muted').click();
+    await cursorLineHas('$block->subheading');
+    await frame.locator('.hero h1').click();
+    await cursorLineHas('<h1>{{ $block->heading }}</h1> <!-- kept -->');
+});
+
+await step('undo in a tab that was left and come back to, with the editor\'s own undo', async () => {
+    // What was typed before the tab was left, and what was typed after coming back: each a step or two of the editor's undo.
+    for (let steps = 0; steps < 6 && (await codeText()) !== heroCode; steps++) {
+        await page.keyboard.press('Control+z');
+        await page.waitForTimeout(60);
+    }
+    await codeIs(heroCode);
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+
+    await codeTab('partials/header').locator('.sve-tab__name').click();
+    await openIs('partials/header');
+    // As it was saved, a moment after the tab is asked for: the file is read again first.
+    await until('The header is not shown', async () => (await codeText()).includes('<!-- header -->'));
+    await page.waitForFunction(() => document.querySelector('.sve-code__editor .cm-content')?.getAttribute('aria-readonly') !== 'true');
+    await code.evaluate((holder) => holder.sveCodeEditor.focus());
+    await page.keyboard.press('Control+z');
+    await codeIs(headerCode);
+    await page.keyboard.press('Control+s');
+    await page.waitForFunction(() => document.querySelector('.sve-code__bar .sve-tag') === null);
+    await until('The header is not as it was', async () => (await onDisk('partials/header.blade.php')) === headerCode);
+});
+
+await step('outline on the page the element the cursor is in', async () => {
+    await codeTab('blocks/hero').locator('.sve-tab__name').click();
+    await openIs('blocks/hero');
+    await codeIs(heroCode);
+    await page.locator('.sve-code__editor .cm-line', { hasText: 'class="button"' }).first().click({ position: { x: 140, y: 8 } });
+    await outlineIs('selected', 'a.button');
+    await layerIs('a.button');
+    await outlineSettles('.hero .button');
+});
+
+await step('close a tab, and be asked first when it has text that is not saved', async () => {
+    await page.keyboard.press('End');
+    await page.keyboard.type(' <!-- going -->');
+    await page.locator('.sve-code__bar').getByText('Not saved').waitFor();
+    // Leaving for the admin asks too, and staying keeps everything.
+    page.once('dialog', (dialog) => dialog.dismiss());
+    await page.locator('.sve-bar__back').click();
+    await page.waitForTimeout(300);
+    if (!page.url().includes('/visual-editor') || !(await codeText()).includes('<!-- going -->')) {
+        throw new Error('The editor was left without asking');
+    }
+
+    page.once('dialog', (dialog) => dialog.dismiss());
+    await codeTab('blocks/hero').locator('.sve-tab__close').click();
+    await page.waitForTimeout(200);
+    if (!(await tabNames()).includes('blocks/hero') || !(await codeText()).includes('<!-- going -->')) {
+        throw new Error('The tab closed without asking');
+    }
+    page.once('dialog', (dialog) => dialog.accept());
+    await codeTab('blocks/hero').locator('.sve-tab__close').click();
+    await until('The hero is still a tab', async () => !(await tabNames()).includes('blocks/hero') || (await tabNames()));
+    // The tab beside it is the open one, and nothing of the closed one was written.
+    await openIs('partials/header');
+    await codeIs(headerCode);
+    if ((await onDisk('blocks/hero.blade.php')) !== heroCode) {
+        throw new Error('Closing the tab wrote the file');
+    }
+});
+
+await step('drag the line between the code and the page, and find it there when the editor is opened again', async () => {
+    const widthOf = async () => (await page.locator('.sve-code--beside').boundingBox()).width;
+    const before = await widthOf();
+    const line = await page.locator('.sve-divider').boundingBox();
+    await page.mouse.move(line.x + line.width / 2, line.y + line.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(line.x + line.width / 2 + 60, line.y + line.height / 2, { steps: 4 });
+    await page.mouse.move(line.x + line.width / 2 + 120, line.y + line.height / 2, { steps: 4 });
+    await page.mouse.up();
+    await until('The code did not get the room', async () => Math.abs((await widthOf()) - before - 120) < 8 || [(await widthOf()), before]);
+    const wide = await widthOf();
+
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.locator('.sve-canvas--beside .sve-code--beside .cm-editor').waitFor();
+    if (Math.abs((await widthOf()) - wide) > 2) {
+        throw new Error(`The code is ${await widthOf()} wide, and was left ${wide} wide`);
+    }
+    // And by the keyboard, for who does not drag.
+    await page.locator('.sve-divider').focus();
+    await page.keyboard.press('ArrowLeft');
+    await until('The line did not move by a key', async () => (await widthOf()) < wide - 10 || (await widthOf()));
+
+    // Back to working on the page, with the editor as it is the first time.
+    await bar.getByRole('button', { name: 'Visual', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('.sve-canvas--beside') === null);
+    await page.evaluate(() => localStorage.removeItem('sunrice-visual-editor:layout'));
+});
+
 await step('keep what is typed in the address field while a page is still arriving', async () => {
     // The frame is sent off to a page, and before it has arrived something else is typed.
     await open('/articles');

@@ -82,6 +82,8 @@ other page that uses the template.
 - Dragging layers uses the browser's own drag and drop, which does not work
   by touch. The buttons and keys do the same.
 - Things are dragged in the Layers panel, not on the page itself.
+- A tab's undo and its unsaved text last as long as the editor is open:
+  closing the browser tab asks first, and then they are gone.
 - The code editor has search and replace, undo of its own and several
   cursors. It does not fold code, complete what is typed, or search across
   files. Its script is fetched when code is first shown; when that fails,

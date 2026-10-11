@@ -61,6 +61,16 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
 - The page keeps its place after a change: it is drawn again out of sight and
   put in the place of the old one, scrolled to where that was.
 
+**The same in code, beside the page.**
+
+- **Visual | Code** in the top bar. In Code mode the template's code is
+  beside the page, in a code editor, with a line between them to drag.
+- Templates open as tabs. What is typed and not saved stays with its tab,
+  so the header can be looked at halfway through a change to the page.
+- A click on the page opens the template that drew what was clicked and
+  puts the cursor on that element, in text that has been typed in since
+  too. The element the cursor is in is outlined on the page.
+
 **Room for the page.**
 
 - Every panel folds to its title by a click on the title, and so does every
