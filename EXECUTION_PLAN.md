@@ -776,11 +776,14 @@ A second way of working, chosen in the top bar: **Visual | Code** (`mode` in `li
 
 ### V8.5 Tailwind preview without a build
 **Depends on:** V8.1
-- `config`: `tailwind.preview` (`false`), `tailwind.entry` (`resources/css/app.css`), `tailwind.script` (the address of `@tailwindcss/browser`, version 4; a site may keep its own copy).
-- `Rendering\Preview` — for a page drawn for the editor, and only then, when the preview is on and no dev server is running (`public/hot` is not there): the script, and the entry file's text as `<style type="text/tailwindcss">` so the site's theme applies. A dev server already gives the real thing, and the preview stays out of its way.
-- The editor's top bar says **Preview CSS** while it is in use, with what that means on pointing at it.
-- `docs/styles.md`: what the preview is and is not.
-**Done when:** on the site of V8.1 with no dev server and no build, a class with no rule in the built CSS is styled in the editor's frame and not on the page a visitor gets (browser check in the Vite job).
+**Status:** done.
+
+- `config`: `tailwind.preview` (`false`; `SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW`), `tailwind.entry` (`resources/css/app.css`), `tailwind.script` (`@tailwindcss/browser` version 4 on jsDelivr; a site may keep its own copy).
+- `Rendering\TailwindPreview` — `wanted()`: the preview is on and the site's dev server is not running (`public/hot` is not there); a dev server gives the real thing, and the preview stays out of its way. `tags()`: the script, and the entry file's text as `<style type="text/tailwindcss">` so the site's theme applies. `fit()` makes the entry file something the browser build takes: without `@plugin`, `@config`, `@source` and any `@import` but Tailwind's own, which it refuses or which mean nothing in a browser, and with no `</style` in it.
+- `EditorRender` puts the tags at the end of the page's `<head>`, for a page drawn for the editor and for no other, and says `preview` in the page's manifest; the bridge passes it on, and the top bar shows **Preview CSS** with what that means on pointing at it.
+- `docs/styles.md`, `docs/installation.md` (the three settings), `docs/limits.md`.
+
+**Tests:** `tests/Feature/TailwindPreviewTest.php`: the tags in the head of a page drawn for the editor, with the theme and without `@source`; nothing for a visitor, for someone who may not use the editor, when it is off (the default), or while `public/hot` is there; the script alone when there is no entry file; eleven cases of what `fit()` keeps and takes out. The Vite job, on a new Laravel application with neither a build nor a dev server since a class was added: the page for the editor has the browser build and the entry's theme; in Chrome the class has its style in the editor's frame, the bar says it is a preview, and a visitor's page has neither the style nor anything of the preview.
 
 ### V8.6 Build
 **Depends on:** V8.1, V7.1

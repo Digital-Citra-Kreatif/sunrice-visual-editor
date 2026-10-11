@@ -173,7 +173,7 @@ who may write code ([Permissions](docs/permissions.md)).
   on an older one nothing is registered and nothing fails.
 A site that builds its CSS (Tailwind through Vite) is styled by its
 classes. With `npm run dev` running a class added in the editor shows at
-once; otherwise after a build
+once; otherwise after a build, or before one with the preview turned on
 ([Styles](docs/styles.md#sites-that-build-their-css)).
 
 ## Using it

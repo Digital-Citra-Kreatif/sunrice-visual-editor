@@ -53,6 +53,23 @@ class ViteTest extends TestCase
         $this->assertStringNotContainsString('data-sve', $this->get('/demo')->assertOk()->getContent());
     }
 
+    public function test_preview_a_page_for_the_editor_has_tailwind_s_browser_build_and_a_visitor_s_has_not(): void
+    {
+        $this->assertFileDoesNotExist(public_path('hot'));
+        $this->actingAs($this->someone('admin@example.com', superAdmin: true));
+
+        $page = $this->get('/demo?sve=1')->assertOk()->getContent();
+        $this->assertStringContainsString('@tailwindcss/browser', $page);
+        // The site's own entry file, for its theme: Laravel's has the font in it.
+        $this->assertStringContainsString('<style type="text/tailwindcss" data-sve-preview>', $page);
+        $this->assertStringContainsString('--font-sans', $page);
+        $this->assertStringNotContainsString('@source', substr($page, (int) strpos($page, 'data-sve-preview>'), 2000));
+
+        $visitor = $this->get('/demo')->assertOk()->getContent();
+        $this->assertStringNotContainsString('data-sve-preview', $visitor);
+        $this->assertStringNotContainsString('@tailwindcss/browser', $visitor);
+    }
+
     /** Adds the class named in SVE_CLASS to the header's first element, through the editor, as a designer. It stays. */
     public function test_a_class_is_added_in_the_editor(): void
     {

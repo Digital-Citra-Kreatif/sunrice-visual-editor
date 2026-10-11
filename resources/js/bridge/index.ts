@@ -115,7 +115,7 @@ function manifest(): Manifest {
     try {
         const parsed = JSON.parse(document.getElementById(MANIFEST_ID)?.textContent ?? '') as Manifest;
 
-        return Array.isArray(parsed.files) ? { files: parsed.files, ...(typeof parsed.status === 'number' ? { status: parsed.status } : {}) } : { files: [] };
+        return Array.isArray(parsed.files) ? { files: parsed.files, ...(typeof parsed.status === 'number' ? { status: parsed.status } : {}), ...(parsed.preview === true ? { preview: true } : {}) } : { files: [] };
     } catch {
         return { files: [] };
     }
