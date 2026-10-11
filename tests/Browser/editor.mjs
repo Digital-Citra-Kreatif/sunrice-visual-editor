@@ -981,6 +981,18 @@ const until = async (what, check) => {
     throw new Error(`${what}: ${JSON.stringify(last)}`);
 };
 
+/** The outline of what is selected comes to lie over the element: after the frame changed size, the page measures again. */
+const outlineSettles = (selector) =>
+    until(`The outline is not on ${selector}`, async () => {
+        try {
+            await outlineOver('selected', selector);
+
+            return true;
+        } catch (error) {
+            return error.message;
+        }
+    });
+
 await step('show the page at one width: its frame is that wide, and what is selected stays outlined', async () => {
     // The card is still selected, on the articles page.
     await widthChoice.selectOption({ label: 'Mobile · 390' });
@@ -988,15 +1000,7 @@ await step('show the page at one width: its frame is that wide, and what is sele
     // The page as a phone has it: the menu is folded away.
     await styleIs('.site-menu', 'display', 'none');
     await layerIs('li.card');
-    await until('The outline is not on the card', async () => {
-        try {
-            await outlineOver('selected', '.card');
-
-            return true;
-        } catch (error) {
-            return error.message;
-        }
-    });
+    await outlineSettles('.card');
 });
 
 await step('show every width side by side, each frame at its own, and edit in the one that is picked', async () => {
@@ -1101,7 +1105,8 @@ await step('draw a template change in every frame, then put the stylesheet and t
     await sheetIs('app.css', appCss);
     await widthChoice.selectOption({ label: 'Full width' });
     await page.waitForFunction(() => document.querySelectorAll('iframe.sve-beside').length === 0 && document.querySelector('.sve-slot__head') === null);
-    await outlineOver('selected', '.card');
+    // The page is as wide as the room again, and says where its elements now are.
+    await outlineSettles('.card');
 });
 
 // --- The code panel --------------------------------------------------------------
