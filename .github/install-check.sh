@@ -65,7 +65,8 @@ step "The site as installed"
 mkdir -p tests/Feature
 cp "$package/.github/install/InstalledTest.php" tests/Feature/InstalledTest.php
 # As a test run (Laravel checks no CSRF token then), with the editor asked for, on the site's own database.
-SUNRICE_VISUAL_EDITOR=true DB_CONNECTION=sqlite DB_DATABASE="$site/database/database.sqlite" vendor/bin/phpunit --no-coverage --colors=never tests/Feature/InstalledTest.php
+SUNRICE_VISUAL_EDITOR=true DB_CONNECTION=sqlite DB_DATABASE="$site/database/database.sqlite" vendor/bin/phpunit --no-coverage --colors=never tests/Feature/InstalledTest.php | tee "$site/storage/logs/installed-test.log"
+tests=$(grep -E '^OK \(' "$site/storage/logs/installed-test.log")
 
 step "docs/installation.md: Removing"
 composer remove sunrice/visual-editor --no-interaction --no-ansi
@@ -73,3 +74,8 @@ rm -rf public/vendor/sunrice-visual-editor tests/Feature/InstalledTest.php
 [ "$(routes)" -eq 0 ]
 php artisan sunrice:sync-permissions --no-ansi
 echo "Removed, and the site still answers its commands."
+
+# Said where it can be read without the job's log: on the run's page.
+summary="Laravel $(php artisan --version --no-ansi | grep -o '[0-9][0-9.]*' | head -n 1), PHP $(php -r 'echo PHP_VERSION;'). Routes: local $on, production $elsewhere, production and asked for $asked, local and turned off $refused. The site as installed: $tests. Removed cleanly."
+echo "$summary"
+[ -z "${GITHUB_ACTIONS:-}" ] || echo "::notice title=Installed on a new site::$summary"
