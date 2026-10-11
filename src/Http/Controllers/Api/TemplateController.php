@@ -114,15 +114,23 @@ class TemplateController extends Controller
                 throw new InvalidRequest('That is too large to be a template.');
             }
 
+            $version = $this->version($body);
+
+            // The guard compares with this version, which the save checks again under the lock: check it first.
+            $file = $this->templates->find($path);
+            $before = (string) file_get_contents($file->file);
+            if (TemplateRepository::version($before) !== $version) {
+                throw new Conflict($path, TemplateRepository::version($before));
+            }
+
             if (! $this->mayCode($request)) {
                 // Without the permission to edit code, a whole text is theirs to write when it is one the template
                 // has been before (an undo, a redo) or runs nothing the template does not run now.
-                $file = $this->templates->find($path);
                 if (! Backups::had($file, $source)) {
-                    $guard->source((string) file_get_contents($file->file), $source);
+                    $guard->source($before, $source);
                 }
             }
-            $save->handle($path, $this->version($body), $source);
+            $save->handle($path, $version, $source);
 
             return ['template' => $this->templates->read($path)];
         });

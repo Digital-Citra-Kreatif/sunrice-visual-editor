@@ -289,6 +289,20 @@ it('lets someone who may not edit code rewrite what runs no code, and rearrange 
     expect(File::get($this->hero))->toBe($changed)->not->toBe($this->original);
 });
 
+it('holds a whole text to the version it names, not to the file as it is when the request comes', function () {
+    ($this->as)(Access::EDIT);
+    // Someone who may edit code took the echo out; a text made from the file before, that keeps it, names the version after.
+    $before = str_replace('<h1>', '{{ phpinfo() }}<h1>', $this->original);
+    File::put($this->hero, $before);
+
+    putJson(SVE_HERO_API.'/source', ['version' => sha1($this->original), 'source' => $before.'<p>x</p>'])
+        ->assertStatus(409)->assertJsonPath('reason', 'conflict')->assertJsonPath('version', sha1($before));
+    putJson(SVE_HERO_API.'/source', ['version' => sha1($this->original), 'source' => $before.'{{ system(\'id\') }}'])
+        ->assertStatus(409)->assertJsonPath('reason', 'conflict');
+
+    expect(File::get($this->hero))->toBe($before);
+});
+
 // --- What the editor offers is not held back ---------------------------------------
 
 it('takes everything the Insert library offers', function () {
