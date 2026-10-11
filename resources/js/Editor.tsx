@@ -91,8 +91,11 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
     // Set once: the frame is sent on to other pages by show(), not by rendering a new address.
     const [firstAddress] = useState(() => editorAddress(startPath, window.location.href) ?? '/?sve=1');
 
+    // The page the editor was asked to open on, as a path of this site and nothing else: the server
+    // has checked it, and what a link is made from is checked here as well.
+    const [firstPage] = useState(() => sitePath(startPath, window.location.origin) ?? '/');
     /** The address of the page in the frame, and what is being typed in its place, if anything. */
-    const [address, setAddress] = useState(startPath);
+    const [address, setAddress] = useState(firstPage);
     const [typed, setTyped] = useState<string | null>(null);
     const [problem, setProblem] = useState<string | null>(null);
     const [mode, setMode] = useState<Mode>('select');
@@ -110,6 +113,13 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
     const wanted = useRef<TemplateName | null>(null);
 
     const [open, setOpen] = useState<TemplateName | null>(null);
+    /**
+     * The template that is open as an answer arrives. A save, an undo or a change is answered a
+     * moment later, and another template may have been opened meanwhile: the answer is then about
+     * a template the panels no longer show, and is not theirs to take.
+     */
+    const openNow = useRef(open);
+    openNow.current = open;
     const [template, setTemplate] = useState<Loaded<TemplateData>>({ state: 'idle' });
     /** Bumped to read the open template from disk again. */
     const [readings, setReadings] = useState(0);
@@ -612,12 +622,14 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
     /** The code panel wrote the file: show it as it is now, in the panels and on the page. */
     const saved = (data: TemplateData) => {
         remember(data);
-        setTemplate({ state: 'ready', data });
         say('done', `Saved ${data.path}.`);
-        setDraft(null);
-        // The ids of the old tree mean nothing in the new one.
-        setSelected(null);
-        setCollapsed(new Set());
+        if (sameTemplate(openNow.current, data)) {
+            setTemplate({ state: 'ready', data });
+            setDraft(null);
+            // The ids of the old tree mean nothing in the new one.
+            setSelected(null);
+            setCollapsed(new Set());
+        }
         // Whether it opens as a tree may have changed with it.
         setAll(null);
         changedRedraw();
@@ -659,22 +671,26 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
         saveSource(open.path, now.version, step.source)
             .then((data) => {
                 setHistories((all) => ({ ...all, [historyKey(data)]: direction === 'undo' ? undone(history, left, data.version) : redone(history, left, data.version) }));
-                setTemplate({ state: 'ready', data });
-                setNotice(null);
-                setSelected(rowFor(data.tree, step.selected));
-                setPointedNode(null);
-                setCollapsed(new Set());
+                if (sameTemplate(openNow.current, data)) {
+                    setTemplate({ state: 'ready', data });
+                    setNotice(null);
+                    setSelected(rowFor(data.tree, step.selected));
+                    setPointedNode(null);
+                    setCollapsed(new Set());
+                    revealing.current = true;
+                }
                 // Whether it opens as a tree may have changed with it.
                 setAll(null);
-                revealing.current = true;
                 changedRedraw();
             })
             .catch((error: unknown) => {
                 say('problem', message(error));
                 if (error instanceof ApiError && error.reason === 'conflict') {
                     // The file has changed otherwise: read it again. Its history no longer applies.
-                    setSelected(null);
-                    setReadings((count) => count + 1);
+                    if (sameTemplate(openNow.current, now)) {
+                        setSelected(null);
+                        setReadings((count) => count + 1);
+                    }
                     redraw();
                 }
             })
@@ -691,18 +707,22 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
             return Promise.resolve(false);
         }
         setApplying(true);
+        const asked = open;
 
         return applyOperations(open.path, template.data.version, operations)
             .then(({ template: changed, focus }) => {
+                // The file was changed whichever template is open by now: its history has the step, and the page shows it.
                 remember(changed);
-                setTemplate({ state: 'ready', data: changed });
-                // The page shows that it worked. What was wrong with the change before it no longer is.
-                setNotice(null);
-                // The ids of the old tree mean nothing in the new one.
-                setSelected(rowFor(changed.tree, focus));
-                setPointedNode(null);
-                setCollapsed(new Set());
-                revealing.current = true;
+                if (sameTemplate(openNow.current, changed)) {
+                    setTemplate({ state: 'ready', data: changed });
+                    // The page shows that it worked. What was wrong with the change before it no longer is.
+                    setNotice(null);
+                    // The ids of the old tree mean nothing in the new one.
+                    setSelected(rowFor(changed.tree, focus));
+                    setPointedNode(null);
+                    setCollapsed(new Set());
+                    revealing.current = true;
+                }
                 changedRedraw();
 
                 return true;
@@ -712,8 +732,10 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
                 setRefusals((count) => count + 1);
                 if (error instanceof ApiError && error.reason === 'conflict') {
                     // The file is not what the panels show any more: read it again.
-                    setSelected(null);
-                    setReadings((count) => count + 1);
+                    if (sameTemplate(openNow.current, asked)) {
+                        setSelected(null);
+                        setReadings((count) => count + 1);
+                    }
                     redraw();
                 }
 
@@ -911,7 +933,7 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
             .then((read) =>
                 linkStylesheet(layout.path, read.version, stylesheet).then(({ template: changed, before }) => {
                     setHistories((all) => ({ ...all, [historyKey(changed)]: recorded(all[historyKey(changed)], { source: before, selected: null }, read.version, changed.version) }));
-                    if (sameTemplate(open, changed)) {
+                    if (sameTemplate(openNow.current, changed)) {
                         // The layout is the open template: what is selected in it has moved down by the link.
                         setTemplate({ state: 'ready', data: changed });
                         setSelected(rowFor(changed.tree, shiftedId(selected, before, changed.source ?? before)));
@@ -1140,7 +1162,7 @@ export function Editor({ startPath, widths: sentWidths, can }: Props) {
                     </button>
                 </div>
 
-                <a className="sve-bar__link" href={page?.url ?? startPath} target="_blank" rel="noreferrer">
+                <a className="sve-bar__link" href={page?.url ?? firstPage} target="_blank" rel="noreferrer">
                     View page ↗
                 </a>
             </header>

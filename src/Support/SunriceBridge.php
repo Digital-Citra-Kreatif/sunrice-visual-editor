@@ -81,9 +81,13 @@ final class SunriceBridge
     }
 
     /**
-     * Adds tools to Sunrice's MCP server (C3), where Sunrice takes tools
-     * from packages: `Sunrice::registerMcpTool()` came with sunrice-cms#40.
-     * On a Sunrice before that, the tools are not offered to agents.
+     * Adds tools to Sunrice's MCP server (C3): `Sunrice::registerMcpTool()`,
+     * which came with sunrice-cms#40 on 11 October 2026.
+     *
+     * Sunrice has no tagged release, so Composer can't be told to bring one
+     * that has it: a site whose Sunrice is a checkout from before that day
+     * has no such method. There the tools are not offered to agents, and
+     * nothing fails. The check goes when Sunrice tags a release to require.
      *
      * @param  list<class-string>  $tools
      * @return bool whether they were added
@@ -91,6 +95,7 @@ final class SunriceBridge
     public static function registerMcpTools(array $tools): bool
     {
         $sunrice = app(Sunrice::class);
+        // @phpstan-ignore function.alreadyNarrowedType (always there in the Sunrice this is analysed with, not in every one it runs with)
         if (! class_exists(Tool::class) || ! method_exists($sunrice, 'registerMcpTool')) {
             return false;
         }
@@ -119,7 +124,7 @@ final class SunriceBridge
         for ($n = 2; is_file($target); $n++) {
             $target = $place($now.'-'.$n);
         }
-        File::ensureDirectoryExists(dirname($target));
+        Files::directory(dirname($target));
         File::copy($file, $target);
 
         return $target;

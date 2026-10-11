@@ -146,9 +146,10 @@ who may write code ([Permissions](docs/permissions.md)).
 - Held to what the token's user may do in the editor: changing takes
   `visual-editor.edit`, and Blade or PHP of the agent's own takes
   `visual-editor.code`, by the same check as for a person.
-- They are offered to agents once Sunrice takes tools from packages
+- They need a Sunrice from 11 October 2026 or later, which takes tools from
+  packages
   ([sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40));
-  on a Sunrice before that nothing is registered and nothing fails.
+  on an older one nothing is registered and nothing fails.
 A site that builds its CSS (Vite, Tailwind) is styled by its classes: the
 editor changes CSS files, not what a build makes of them.
 

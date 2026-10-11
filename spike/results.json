@@ -8,7 +8,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 24.46,
+            "ms": 21.45,
             "nodes": {
                 "visual": 33,
                 "field": 6,
@@ -150,7 +150,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.88,
+            "ms": 0.79,
             "nodes": {
                 "visual": 11,
                 "field": 2,
@@ -298,7 +298,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 6.62,
+            "ms": 5.4,
             "nodes": {
                 "visual": 16,
                 "field": 4,
@@ -440,7 +440,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.37,
+            "ms": 1.02,
             "nodes": {
                 "visual": 7,
                 "field": 1,
@@ -576,7 +576,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.66,
+            "ms": 1.7,
             "nodes": {
                 "visual": 7,
                 "field": 2,
@@ -718,7 +718,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.53,
+            "ms": 0.4,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -848,7 +848,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 4.03,
+            "ms": 2.82,
             "nodes": {
                 "visual": 15,
                 "field": 3,
@@ -990,7 +990,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.76,
+            "ms": 2.56,
             "nodes": {
                 "visual": 18,
                 "field": 0,
@@ -1114,7 +1114,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.46,
+            "ms": 1.85,
             "nodes": {
                 "visual": 13,
                 "field": 4,
@@ -1256,7 +1256,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 11.22,
+            "ms": 8.5,
             "nodes": {
                 "visual": 37,
                 "field": 8,
@@ -1410,7 +1410,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.42,
+            "ms": 1.8,
             "nodes": {
                 "visual": 14,
                 "field": 1,
@@ -1564,7 +1564,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.34,
+            "ms": 2.57,
             "nodes": {
                 "visual": 15,
                 "field": 0,
@@ -1706,7 +1706,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.78,
+            "ms": 1.24,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -1848,7 +1848,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.72,
+            "ms": 1.3,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -1984,7 +1984,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.22,
+            "ms": 3.26,
             "nodes": {
                 "visual": 20,
                 "field": 3,
@@ -2120,7 +2120,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.07,
+            "ms": 0.89,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -2250,7 +2250,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.2,
+            "ms": 9.15,
             "nodes": {
                 "visual": 16,
                 "field": 3,
@@ -2386,7 +2386,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 4.68,
+            "ms": 2.86,
             "nodes": {
                 "visual": 13,
                 "field": 2,
@@ -2528,7 +2528,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.39,
+            "ms": 2.67,
             "nodes": {
                 "visual": 16,
                 "field": 5,
@@ -2672,7 +2672,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.32,
+            "ms": 0.36,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -2754,7 +2754,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.28,
+            "ms": 1.79,
             "nodes": {
                 "visual": 12,
                 "field": 2,
@@ -2890,7 +2890,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.65,
+            "ms": 3.46,
             "nodes": {
                 "visual": 34,
                 "field": 1,
@@ -3026,7 +3026,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.96,
+            "ms": 0.71,
             "nodes": {
                 "visual": 4,
                 "field": 1,
@@ -3156,7 +3156,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.7,
+            "ms": 1.93,
             "nodes": {
                 "visual": 15,
                 "field": 3,
@@ -3292,7 +3292,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.82,
+            "ms": 1.43,
             "nodes": {
                 "visual": 18,
                 "field": 2,
@@ -3428,7 +3428,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.91,
+            "ms": 1.63,
             "nodes": {
                 "visual": 14,
                 "field": 0,
@@ -3564,7 +3564,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.63,
+            "ms": 1.47,
             "nodes": {
                 "visual": 15,
                 "field": 4,
@@ -3700,7 +3700,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.35,
+            "ms": 1.6,
             "nodes": {
                 "visual": 11,
                 "field": 0,
@@ -3854,7 +3854,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.22,
+            "ms": 0.94,
             "nodes": {
                 "visual": 16,
                 "field": 0,
@@ -4002,7 +4002,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.29,
+            "ms": 0.96,
             "nodes": {
                 "visual": 16,
                 "field": 0,
@@ -4151,7 +4151,7 @@
             "reason": "@if is never closed",
             "identical": false,
             "compiles": true,
-            "ms": 0.74,
+            "ms": 0.56,
             "asExpected": true
         },
         {
@@ -4161,7 +4161,7 @@
             "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
             "identical": false,
             "compiles": true,
-            "ms": 0.96,
+            "ms": 0.85,
             "asExpected": true
         },
         {
@@ -4172,7 +4172,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.86,
+            "ms": 0.65,
             "nodes": {
                 "visual": 13,
                 "field": 1,
@@ -4320,7 +4320,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.45,
+            "ms": 2.04,
             "nodes": {
                 "visual": 6,
                 "field": 1,
@@ -4456,7 +4456,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.11,
+            "ms": 0.84,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -4592,7 +4592,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.8,
+            "ms": 0.73,
             "nodes": {
                 "visual": 11,
                 "field": 3,
@@ -4740,7 +4740,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.13,
+            "ms": 0.87,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -4876,7 +4876,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.12,
+            "ms": 1.18,
             "nodes": {
                 "visual": 7,
                 "field": 2,
@@ -5030,7 +5030,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.55,
+            "ms": 0.48,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -5148,7 +5148,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.97,
+            "ms": 0.53,
             "nodes": {
                 "visual": 8,
                 "field": 0,
@@ -5271,7 +5271,7 @@
                 "</a> closes nothing here",
                 "</div> closes nothing here"
             ],
-            "ms": 0.95,
+            "ms": 0.71,
             "nodes": {
                 "visual": 5,
                 "field": 2,
@@ -5410,7 +5410,7 @@
                 "<a> is not closed here",
                 "</a> closes nothing here"
             ],
-            "ms": 0.85,
+            "ms": 0.59,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -5536,7 +5536,7 @@
             "strays": [
                 "@endif has nothing here to close"
             ],
-            "ms": 0.67,
+            "ms": 0.44,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -5670,7 +5670,7 @@
                 "<div> is not closed here",
                 "</div> closes nothing here"
             ],
-            "ms": 0.51,
+            "ms": 0.43,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -5796,7 +5796,7 @@
             "strays": [
                 "</div> closes nothing here"
             ],
-            "ms": 0.31,
+            "ms": 0.26,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -5930,7 +5930,7 @@
                 "</body> closes nothing here",
                 "</html> closes nothing here"
             ],
-            "ms": 0.74,
+            "ms": 0.69,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -6082,7 +6082,7 @@
                 "<body> is not closed here",
                 "<main> is not closed here"
             ],
-            "ms": 1.11,
+            "ms": 0.9,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -6221,7 +6221,7 @@
                 "<li> is not closed here",
                 "<li> is not closed here"
             ],
-            "ms": 0.42,
+            "ms": 0.29,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -6298,7 +6298,7 @@
                 "<td> is not closed here",
                 "<td> is not closed here"
             ],
-            "ms": 0.71,
+            "ms": 0.58,
             "nodes": {
                 "visual": 4,
                 "field": 2,
@@ -6448,7 +6448,7 @@
             "strays": [
                 "<section> is not closed here"
             ],
-            "ms": 0.57,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 1,
@@ -6568,7 +6568,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.88,
+            "ms": 0.57,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6644,7 +6644,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.81,
+            "ms": 0.48,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6720,7 +6720,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.68,
+            "ms": 0.61,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6796,7 +6796,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.07,
+            "ms": 0.43,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6872,7 +6872,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.68,
+            "ms": 0.43,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -6948,7 +6948,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.72,
+            "ms": 0.45,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -7024,7 +7024,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.56,
+            "ms": 0.51,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -7100,7 +7100,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.62,
+            "ms": 0.44,
             "nodes": {
                 "visual": 4,
                 "field": 0,
@@ -7176,7 +7176,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.23,
+            "ms": 0.73,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -7300,7 +7300,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.73,
+            "ms": 1.69,
             "nodes": {
                 "visual": 18,
                 "field": 0,
@@ -7424,7 +7424,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.82,
+            "ms": 0.85,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -7554,7 +7554,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.47,
+            "ms": 0.4,
             "nodes": {
                 "visual": 3,
                 "field": 1,
@@ -7708,7 +7708,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.08,
+            "ms": 0.96,
             "nodes": {
                 "visual": 8,
                 "field": 4,
@@ -7862,7 +7862,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.85,
+            "ms": 0.72,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -7944,7 +7944,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.9,
+            "ms": 0.75,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8074,7 +8074,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.03,
+            "ms": 1.66,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -8204,7 +8204,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.11,
+            "ms": 1.72,
             "nodes": {
                 "visual": 21,
                 "field": 3,
@@ -8358,7 +8358,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.86,
+            "ms": 0.69,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -8458,7 +8458,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.87,
+            "ms": 0.7,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -8576,7 +8576,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.43,
+            "ms": 0.32,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8694,7 +8694,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.46,
+            "ms": 0.33,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8812,7 +8812,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.39,
+            "ms": 0.31,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -8930,7 +8930,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.57,
+            "ms": 0.43,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -9048,7 +9048,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.43,
+            "ms": 0.35,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9166,7 +9166,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.47,
+            "ms": 0.36,
             "nodes": {
                 "visual": 2,
                 "field": 0,
@@ -9284,7 +9284,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.53,
+            "ms": 0.47,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -9402,7 +9402,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.46,
+            "ms": 0.42,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -9520,7 +9520,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.47,
+            "ms": 0.37,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -9638,7 +9638,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.6,
+            "ms": 0.41,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -9756,7 +9756,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.47,
+            "ms": 0.37,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -9874,7 +9874,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.47,
+            "ms": 0.4,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -9992,7 +9992,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.57,
+            "ms": 0.33,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -10110,7 +10110,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.97,
+            "ms": 0.69,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -10346,7 +10346,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.13,
+            "ms": 0.91,
             "nodes": {
                 "visual": 8,
                 "field": 1,
@@ -10488,7 +10488,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 5.56,
+            "ms": 3.95,
             "nodes": {
                 "visual": 32,
                 "field": 2,
@@ -10642,7 +10642,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 7.13,
+            "ms": 4.86,
             "nodes": {
                 "visual": 37,
                 "field": 2,
@@ -10796,7 +10796,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.75,
+            "ms": 0.85,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -10938,7 +10938,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.81,
+            "ms": 0.71,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -11092,7 +11092,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.88,
+            "ms": 2.17,
             "nodes": {
                 "visual": 8,
                 "field": 2,
@@ -11234,7 +11234,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.67,
+            "ms": 1.25,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -11376,7 +11376,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.27,
+            "ms": 0.94,
             "nodes": {
                 "visual": 11,
                 "field": 2,
@@ -11530,7 +11530,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.48,
+            "ms": 0.41,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -11648,7 +11648,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.4,
+            "ms": 0.46,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -11766,7 +11766,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.5,
+            "ms": 1.07,
             "nodes": {
                 "visual": 2,
                 "field": 1,
@@ -11908,7 +11908,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.82,
+            "ms": 1.39,
             "nodes": {
                 "visual": 12,
                 "field": 1,
@@ -12050,7 +12050,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.91,
+            "ms": 2.01,
             "nodes": {
                 "visual": 15,
                 "field": 1,
@@ -12204,7 +12204,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1,
+            "ms": 0.91,
             "nodes": {
                 "visual": 7,
                 "field": 0,
@@ -12346,7 +12346,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.9,
+            "ms": 1.63,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -12500,7 +12500,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.46,
+            "ms": 4.21,
             "nodes": {
                 "visual": 36,
                 "field": 21,
@@ -12606,7 +12606,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 5.86,
+            "ms": 3.32,
             "nodes": {
                 "visual": 22,
                 "field": 0,
@@ -12688,7 +12688,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.48,
+            "ms": 1.17,
             "nodes": {
                 "visual": 25,
                 "field": 0,
@@ -12836,7 +12836,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.79,
+            "ms": 0.74,
             "nodes": {
                 "visual": 10,
                 "field": 1,
@@ -12978,7 +12978,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.46,
+            "ms": 0.4,
             "nodes": {
                 "visual": 5,
                 "field": 0,
@@ -13108,7 +13108,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.76,
+            "ms": 0.73,
             "nodes": {
                 "visual": 5,
                 "field": 1,
@@ -13250,7 +13250,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.12,
+            "ms": 0.98,
             "nodes": {
                 "visual": 19,
                 "field": 0,
@@ -13380,7 +13380,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 2.64,
+            "ms": 1.44,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -13486,7 +13486,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.47,
+            "ms": 0.4,
             "nodes": {
                 "visual": 6,
                 "field": 0,
@@ -13616,7 +13616,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.45,
+            "ms": 0.37,
             "nodes": {
                 "visual": 3,
                 "field": 0,
@@ -13876,7 +13876,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.37,
+            "ms": 0.28,
             "nodes": {
                 "visual": 1,
                 "field": 2,
@@ -13970,7 +13970,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.32,
+            "ms": 0.27,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -14052,7 +14052,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.42,
+            "ms": 0.31,
             "nodes": {
                 "visual": 1,
                 "field": 2,
@@ -14146,7 +14146,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.63,
+            "ms": 0.55,
             "nodes": {
                 "visual": 1,
                 "field": 0,
@@ -14240,7 +14240,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 4.67,
+            "ms": 1.62,
             "nodes": {
                 "visual": 10,
                 "field": 2,
@@ -14352,7 +14352,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.41,
+            "ms": 0.28,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -14434,7 +14434,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 0.31,
+            "ms": 0.28,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -14516,7 +14516,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.41,
+            "ms": 0.27,
             "nodes": {
                 "visual": 0,
                 "field": 1,
@@ -14598,7 +14598,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.36,
+            "ms": 2.51,
             "nodes": {
                 "visual": 18,
                 "field": 7,
@@ -14752,7 +14752,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.69,
+            "ms": 2.33,
             "nodes": {
                 "visual": 28,
                 "field": 3,
@@ -14900,7 +14900,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.55,
+            "ms": 2.52,
             "nodes": {
                 "visual": 28,
                 "field": 3,
@@ -15048,7 +15048,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 17.92,
+            "ms": 4.41,
             "nodes": {
                 "visual": 46,
                 "field": 6,
@@ -15202,7 +15202,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 3.06,
+            "ms": 2.51,
             "nodes": {
                 "visual": 20,
                 "field": 3,
@@ -15338,7 +15338,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.68,
+            "ms": 1.21,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -15468,7 +15468,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.47,
+            "ms": 1.39,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -15598,7 +15598,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.79,
+            "ms": 2.03,
             "nodes": {
                 "visual": 13,
                 "field": 0,
@@ -15734,7 +15734,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 1.58,
+            "ms": 1.46,
             "nodes": {
                 "visual": 8,
                 "field": 0,
@@ -15870,7 +15870,7 @@
             "identical": true,
             "compiles": true,
             "strays": [],
-            "ms": 9.12,
+            "ms": 6.45,
             "nodes": {
                 "visual": 44,
                 "field": 7,
@@ -15993,4523 +15993,6 @@
                     "tried": 46,
                     "passed": 46,
                     "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Foundation/Cloud/components/profile.blade.php",
-            "bytes": 119,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.49,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 1
-            },
-            "codeBytes": 96,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Foundation/Cloud/foo.blade.php",
-            "bytes": 60,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.51,
-            "nodes": {
-                "visual": 3,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Foundation/Cloud/reentrancy.blade.php",
-            "bytes": 78,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.41,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 1
-            },
-            "codeBytes": 55,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Foundation/Fixtures/MalformedErrorViews/errors/404.blade.php",
-            "bytes": 28,
-            "opens": false,
-            "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
-            "identical": false,
-            "compiles": true,
-            "ms": 0.38,
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Foundation/Fixtures/MalformedErrorViews/errors/500.blade.php",
-            "bytes": 28,
-            "opens": false,
-            "reason": "Blade syntax error: [BLADE_P010001] Unexpected end of input while parsing <?php tag on line 2",
-            "identical": false,
-            "compiles": true,
-            "ms": 0.29,
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/basic.blade.php",
-            "bytes": 19,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.29,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/embed-data.blade.php",
-            "bytes": 77,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.36,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/embed-image.blade.php",
-            "bytes": 86,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.39,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/embed-multiline.blade.php",
-            "bytes": 125,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.43,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/embed.blade.php",
-            "bytes": 85,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.45,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 2,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/link-with-template.blade.php",
-            "bytes": 89,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.55,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 1
-            },
-            "codeBytes": 88,
-            "edits": {
-                "change text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/mail/taylor.blade.php",
-            "bytes": 7,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.33,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/message-with-template.blade.php",
-            "bytes": 66,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.46,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 1
-            },
-            "codeBytes": 65,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/message.blade.php",
-            "bytes": 31,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.38,
-            "nodes": {
-                "visual": 2,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/table-with-template.blade.php",
-            "bytes": 324,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.65,
-            "nodes": {
-                "visual": 4,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/text.blade.php",
-            "bytes": 18,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.27,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/timestamp.blade.php",
-            "bytes": 75,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.37,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 1,
-                "expression": 1,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change expression": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Mail/Fixtures/view.blade.php",
-            "bytes": 14,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.34,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 1,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Notifications/Fixtures/greeting.blade.php",
-            "bytes": 15,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.35,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 1,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Notifications/Fixtures/html.blade.php",
-            "bytes": 12,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.32,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Notifications/Fixtures/mail/blank.blade.php",
-            "bytes": 0,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.24,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": [],
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Notifications/Fixtures/mail/color-test.blade.php",
-            "bytes": 19,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.26,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Notifications/Fixtures/mail/my-custom-theme.blade.php",
-            "bytes": 40,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.27,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Notifications/Fixtures/markdown.blade.php",
-            "bytes": 84,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.4,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 2,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/Notifications/Fixtures/plain.blade.php",
-            "bytes": 13,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.33,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/anonymous-components-1/app.blade.php",
-            "bytes": 48,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.35,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/anonymous-components-2/buttons/danger.blade.php",
-            "bytes": 54,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.32,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/anonymous-components-2/panel.blade.php",
-            "bytes": 43,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.39,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/anonymous-components-templates/page.blade.php",
-            "bytes": 117,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.56,
-            "nodes": {
-                "visual": 4,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/appendable-panel.blade.php",
-            "bytes": 164,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.53,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 1
-            },
-            "codeBytes": 126,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/base-input.blade.php",
-            "bytes": 228,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.56,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 2
-            },
-            "codeBytes": 213,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/child-input.blade.php",
-            "bytes": 52,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.45,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/hello-span.blade.php",
-            "bytes": 80,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.48,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 1
-            },
-            "codeBytes": 40,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/input-with-slot.blade.php",
-            "bytes": 105,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.45,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 1
-            },
-            "codeBytes": 63,
-            "edits": {
-                "add class": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "change attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/link.blade.php",
-            "bytes": 55,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.71,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 1
-            },
-            "codeBytes": 16,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/menu-item.blade.php",
-            "bytes": 122,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.79,
-            "nodes": {
-                "visual": 4,
-                "field": 3,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 1
-            },
-            "codeBytes": 46,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 4,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 4,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/menu.blade.php",
-            "bytes": 172,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.78,
-            "nodes": {
-                "visual": 10,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 6,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 5,
-                    "passed": 5,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/components/panel.blade.php",
-            "bytes": 71,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.45,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 1,
-                "code": 1
-            },
-            "codeBytes": 33,
-            "edits": {
-                "add class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "remove class": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add attribute": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rename": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "add field": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/consume.blade.php",
-            "bytes": 231,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 1.07,
-            "nodes": {
-                "visual": 11,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 7,
-                    "passed": 7,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 6,
-                    "passed": 6,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 5,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 7,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 8,
-                    "passed": 8,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/hello.blade.php",
-            "bytes": 18,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.41,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/partials/scoped-partial.blade.php",
-            "bytes": 69,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.4,
-            "nodes": {
-                "visual": 2,
-                "field": 1,
-                "label": 0,
-                "expression": 1,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/renderable-exception.blade.php",
-            "bytes": 82,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.38,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 1
-            },
-            "codeBytes": 81,
-            "edits": {
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/uses-appendable-panel.blade.php",
-            "bytes": 311,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 1.03,
-            "nodes": {
-                "visual": 5,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 3,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 4,
-                    "passed": 4,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/uses-child-input.blade.php",
-            "bytes": 46,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.39,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/uses-include-regular.blade.php",
-            "bytes": 68,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.37,
-            "nodes": {
-                "visual": 1,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/uses-include-scoped.blade.php",
-            "bytes": 77,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.38,
-            "nodes": {
-                "visual": 0,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 1
-            },
-            "codeBytes": 76,
-            "edits": {
-                "change arguments": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "rewrite code": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/uses-link.blade.php",
-            "bytes": 75,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.53,
-            "nodes": {
-                "visual": 4,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 3,
-                    "passed": 3,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/uses-panel-dynamically.blade.php",
-            "bytes": 148,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.63,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/uses-panel.blade.php",
-            "bytes": 67,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.51,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "insert inside": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Integration/View/Fixtures/templates/varied-dynamic-calls.blade.php",
-            "bytes": 142,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.61,
-            "nodes": {
-                "visual": 2,
-                "field": 0,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "delete": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 2,
-                    "passed": 2,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 2,
-                    "failures": []
-                }
-            },
-            "asExpected": null
-        },
-        {
-            "file": "tests/Routing/Fixtures/view.blade.php",
-            "bytes": 14,
-            "opens": true,
-            "reason": null,
-            "identical": true,
-            "compiles": true,
-            "strays": [],
-            "ms": 0.51,
-            "nodes": {
-                "visual": 1,
-                "field": 1,
-                "label": 0,
-                "expression": 0,
-                "mixed": 0,
-                "code": 0
-            },
-            "codeBytes": 0,
-            "edits": {
-                "change text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "type awkward text": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "change expression": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "switch escaping": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "delete": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "duplicate": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert after": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "insert before": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "wrap": {
-                    "tried": 1,
-                    "passed": 1,
-                    "skipped": 0,
-                    "failures": []
-                },
-                "unwrap": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "reorder": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
-                    "failures": []
-                },
-                "move inside": {
-                    "tried": 0,
-                    "passed": 0,
-                    "skipped": 1,
                     "failures": []
                 }
             },

@@ -33,8 +33,8 @@ it has been installed on a real project (see the end of
 - **Permissions**: `visual-editor.open`, `visual-editor.edit`,
   `visual-editor.code`. Someone who may edit and not edit code can't make a
   template run PHP it did not run before.
-- **Tools for AI agents**: `get_template_tree` and `edit_template`, for a
-  Sunrice that takes MCP tools from packages.
+- **Tools for AI agents**: `get_template_tree` and `edit_template`, on
+  Sunrice's MCP server (Sunrice from 11 October 2026 or later).
 - **Copy to site** for Sunrice's own views, which are otherwise read-only.
 
 ### How it keeps files safe
@@ -59,5 +59,3 @@ In [docs/limits.md](docs/limits.md). The ones to know first:
 - Plain CSS files only. A site that builds its CSS gets class editing.
 - The line between `edit` and `code` has had no independent security
   review.
-- The tools for agents wait for
-  [sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40).

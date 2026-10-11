@@ -54,6 +54,30 @@ it('will not replace a template the site already has', function () {
         ->and(File::get($this->templates.'/show.blade.php'))->toBe($mine);
 });
 
+it('writes the copy in one step, and leaves nothing else behind', function () {
+    File::delete($this->templates.'/taxonomies/show.blade.php');
+    $before = collect(File::allFiles($this->templates, true))->map->getRelativePathname()->sort()->values()->all();
+
+    $this->copy->handle('defaults/term.blade.php');
+
+    // The template, and no file it was written through.
+    expect(collect(File::allFiles($this->templates, true))->map->getRelativePathname()->sort()->values()->all())
+        ->toBe(collect([...$before, 'taxonomies/show.blade.php'])->sort()->values()->all());
+});
+
+it('leaves no template when the copy can\'t be written, so it can be asked for again', function () {
+    File::delete($this->templates.'/taxonomies/show.blade.php');
+    // Nothing can be written beside the template: its folder is gone and a file is in the way.
+    File::deleteDirectory($this->templates.'/taxonomies');
+    File::put($this->templates.'/taxonomies', '');
+
+    expect(fn () => $this->copy->handle('defaults/term.blade.php'))->toThrow(RuntimeException::class, 'Could not make the directory');
+
+    File::delete($this->templates.'/taxonomies');
+    expect($this->copy->handle('defaults/term.blade.php'))->toBe('taxonomies/show.blade.php')
+        ->and(File::get($this->templates.'/taxonomies/show.blade.php'))->toBe($this->repository->read('defaults/term.blade.php', 'package')['source']);
+});
+
 it('will not copy a view the site has no place for', function (string $path) {
     $before = collect(File::allFiles($this->templates))->map->getRelativePathname()->sort()->values()->all();
 

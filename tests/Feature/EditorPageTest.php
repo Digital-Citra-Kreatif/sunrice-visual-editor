@@ -59,6 +59,11 @@ it('opens on the page named in the link, and only on pages of the site', functio
     'another site' => ['https://example.com/', '/'],
     'another site, scheme-relative' => ['//example.com/', '/'],
     'a backslash trick' => ['/\\example.com', '/'],
+    'a tab a browser would drop' => ["/\t/example.com", '/'],
+    'a line break a browser would drop' => ["/\n/example.com", '/'],
+    'a carriage return a browser would drop' => ["/\r/example.com", '/'],
+    'a tab further in' => ["/ab\tout/x", '/'],
+    'a null byte' => ["/ab\0out", '/'],
     'no leading slash' => ['about', '/'],
     'the admin itself' => ['/cms/users', '/'],
 ]);
