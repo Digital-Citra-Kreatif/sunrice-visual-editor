@@ -217,6 +217,18 @@ window.addEventListener('pagehide', () => send({ type: 'leaving', url: visitorAd
 
 // --- Stylesheets ---------------------------------------------------------------
 
+/** The element and the properties the editor wants to know the page's values of. */
+let asked: { mark: Mark; properties: string[] } | null = null;
+
+function reportComputed(): void {
+    if (asked === null) {
+        return;
+    }
+    const element = copiesOf(asked.mark)[0];
+    const style = element === undefined ? null : window.getComputedStyle(element);
+    send({ type: 'computed', mark: asked.mark, values: style === null ? null : Object.fromEntries(asked.properties.map((property) => [property, style.getPropertyValue(property)])) });
+}
+
 /** A link that is being replaced by a newer one of the same file: gone once that one has loaded. */
 const OUTGOING = 'data-sve-outgoing';
 
@@ -248,6 +260,7 @@ function refreshSheets(sheets: Sheet[]): void {
                     before.remove();
                 }
                 reportSoon();
+                reportComputed();
             });
             fresh.addEventListener('error', () => {
                 // The file could not be fetched: the page keeps what it had.
@@ -280,6 +293,9 @@ window.addEventListener('message', (event) => {
         reportSoon();
     } else if (message.type === 'styles') {
         refreshSheets(Array.isArray(message.sheets) ? message.sheets : []);
+    } else if (message.type === 'computed') {
+        asked = typeof message.ask !== 'object' || message.ask === null || typeof message.ask.mark !== 'object' || message.ask.mark === null || parseMark(markValue(message.ask.mark)) === null || !Array.isArray(message.ask.properties) ? null : { mark: message.ask.mark, properties: message.ask.properties.filter((property) => typeof property === 'string').slice(0, 100) };
+        reportComputed();
     } else if (message.type === 'reveal') {
         copiesOf(message.mark)[0]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         reportSoon();

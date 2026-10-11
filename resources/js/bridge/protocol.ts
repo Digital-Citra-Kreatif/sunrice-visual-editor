@@ -100,6 +100,8 @@ export type FromPage =
     | { type: 'key'; key: Shortcut }
     /** Which of the stylesheets it was told of the page links, by the address each was given with. */
     | { type: 'styles'; linked: string[] }
+    /** What the page has for the properties asked about, for the first copy of an element; `values` is null when the element is not on the page. */
+    | { type: 'computed'; mark: Mark; values: Record<string, string> | null }
     | { type: 'leaving'; url: string };
 
 /** From the editor to the page. */
@@ -110,7 +112,9 @@ export type ToPage =
     | { type: 'watch'; watch: Watch }
     | { type: 'reveal'; mark: Mark }
     /** The theme's stylesheets as they are now: the page shows each it links as that version, and says which it links. */
-    | { type: 'styles'; sheets: Sheet[] };
+    | { type: 'styles'; sheets: Sheet[] }
+    /** "What does this element have for these properties?" Answered with `computed`, and again whenever a stylesheet has been fetched anew. Null: nothing is asked any more. */
+    | { type: 'computed'; ask: { mark: Mark; properties: string[] } | null };
 
 /** A stylesheet of the theme: where pages link it from, and the version it has. */
 export type Sheet = { url: string; version: string };

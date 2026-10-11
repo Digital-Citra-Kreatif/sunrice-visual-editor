@@ -337,6 +337,35 @@ await step('ends with the last of two versions told one right after the other', 
     assert.deepEqual(await links(), ['/sunrice-theme/app.css?v=1&sve-v=four']);
 });
 
+await step('says what the page has for an element, and says so again once a stylesheet has been fetched anew', async () => {
+    await forget();
+    await tell({ type: 'computed', ask: { mark: { file: 'cccccccccc', id: '60' }, properties: ['color', 'display', 'no-such-property'] } });
+    const first = await next('computed');
+
+    assert.deepEqual(first.mark, { file: 'cccccccccc', id: '60' });
+    assert.deepEqual(first.values, { color: 'rgb(7, 8, 9)', display: 'inline', 'no-such-property': '' });
+
+    stylesheet = '#word { color: rgb(10, 11, 12); display: inline-block; }';
+    await forget();
+    await tell({ type: 'styles', sheets: [{ url: '/sunrice-theme/app.css', version: 'five' }] });
+    const again = await next('computed', (message) => message.values?.color === 'rgb(10, 11, 12)');
+
+    assert.equal(again.values.display, 'inline-block');
+});
+
+await step('says an element is not there, and nothing once nothing is asked', async () => {
+    await forget();
+    await tell({ type: 'computed', ask: { mark: { file: 'cccccccccc', id: '999' }, properties: ['color'] } });
+    assert.equal((await next('computed')).values, null);
+
+    await forget();
+    await tell({ type: 'computed', ask: null });
+    await tell({ type: 'computed', ask: { mark: 'not a mark', properties: ['color'] } });
+    await tell({ type: 'hello' });
+    await next('ready');
+    assert.equal((await messages()).some((message) => message.type === 'computed'), false);
+});
+
 await browser.close();
 server.close();
 process.exit(failed ? 1 : 0);

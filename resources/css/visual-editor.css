@@ -1750,6 +1750,87 @@ select.sve-input {
     outline-offset: 1px;
 }
 
+/* Style: a control for each of the declarations most often written, for the rule of one class */
+
+.sve-style__target {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.sve-style__target code {
+    color: var(--foreground);
+    font: 0.6875rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sve-style__group {
+    gap: 0.25rem;
+}
+
+.sve-style__row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.sve-style__label {
+    overflow: hidden;
+    color: var(--muted-foreground);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* What the rule sets stands out from what it leaves to the page. */
+.sve-style__row--set .sve-style__label {
+    color: var(--foreground);
+    font-weight: 500;
+}
+
+.sve-style__value {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.sve-style__row .sve-input {
+    min-height: 1.625rem;
+    padding: 0.1875rem 0.375rem;
+    font-size: 0.75rem;
+}
+
+.sve-style__row select.sve-input {
+    padding-inline: 0.25rem;
+}
+
+.sve-style__row:not(.sve-style__row--set) select.sve-input {
+    color: var(--muted-foreground);
+}
+
+.sve-style__swatch {
+    flex: none;
+    width: 1.625rem;
+    height: 1.625rem;
+    padding: 0.125rem;
+    border: 1px solid var(--input);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--background);
+    cursor: pointer;
+}
+
+.sve-style__swatch:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.sve-style__swatch:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+}
+
 @media (max-width: 60rem) {
     .sve-shell {
         --sve-side: 13rem;

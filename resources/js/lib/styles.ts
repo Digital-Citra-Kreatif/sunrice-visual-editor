@@ -4,6 +4,7 @@
  */
 import type { ManifestFile } from '../bridge/protocol';
 import type { CssChange, StyleRule, Styles, ThemeFile } from './api';
+import { declaredAt, targetRule } from './styleFields.ts';
 
 /**
  * Something done in the panel, said by where it is in the list the panel
@@ -20,7 +21,9 @@ export type StyleEdit =
     /** What was typed into the empty row of a rule: one declaration, or several as CSS writes them. */
     | { kind: 'add'; rule: number; property: string; value: string }
     /** A rule for the class itself, which has none yet: into the editor's own stylesheet. */
-    | { kind: 'create'; property: string; value: string };
+    | { kind: 'create'; property: string; value: string }
+    /** A control of the Style tab as it now reads: what the class's own rule should say for a property. Emptied, it says nothing. */
+    | { kind: 'style'; property: string; value: string };
 
 /**
  * "color: red; margin: 0" → the declarations it holds, as typed or pasted
@@ -105,6 +108,22 @@ export function resolve(styles: Styles, edit: StyleEdit): { file: ThemeFile; cha
         }
 
         return { file: styles.own, changes: [{ type: 'rule', selector: styles.selector, ...(declarations.length > 0 ? { declarations } : {}) }] };
+    }
+
+    if (edit.kind === 'style') {
+        const at = targetRule(styles);
+        const value = edit.value.trim().replace(/;\s*$/, '');
+        const target = at === null ? null : styles.rules[at];
+        if (target === null || at === null) {
+            // No rule yet: the first thing said makes it.
+            return value === '' ? null : resolve(styles, { kind: 'create', property: edit.property, value });
+        }
+        const index = declaredAt(target, edit.property);
+        if (index === -1) {
+            return value === '' ? null : resolve(styles, { kind: 'add', rule: at, property: edit.property, value });
+        }
+
+        return resolve(styles, { kind: 'value', rule: at, index, value });
     }
 
     const rule = styles.rules[edit.rule];
