@@ -71,6 +71,18 @@ Today a developer writes the templates in a code editor while fields and content
 - Where an edit would put a directive directly against a letter or digit (`@else@endif`, `@elseText`), the editor adds one space so Blade still reads it.
 - Pasting HTML inserts it as nodes.
 
+### Editing as code
+
+- The editor has two modes, chosen in the top bar: **Visual** (layers, settings, insert) and **Code**. Both work on the same files, show the same page and find the same templates.
+- In Code mode the open template is text in a code editor beside the page: line numbers, colours for Blade, HTML and PHP, undo of its own, search and replace, several cursors.
+- Templates open as tabs. Each keeps the text that was typed and not saved, so the header can be looked at halfway through a change to the page's template. A tab with unsaved text says so, and leaving the editor with one asks first.
+- The templates of the page are listed as in Visual mode, and a click on the page opens the template that drew what was clicked and puts the cursor on that element. The element the cursor is in is outlined on the page.
+- **Fields** lists what can be read where the cursor is, in text that is not saved yet too, and a click writes the same Blade there as it would in Visual mode. After `$entry->` and the like, the editor offers what that value has.
+- Saving is one step for a tab (Ctrl+S): the text is checked as any save is (it compiles, the file is still the version it was read as), written, and the page drawn again. Nothing is saved while typing.
+- Code mode is for people who may edit code (`visual-editor.code`). Others can read the code and not change it.
+- The code editor is CodeMirror, in a script of its own that is fetched the first time Code mode is opened: the rest of the admin does not carry it.
+- It does not try to be an IDE: no search across files, no git, no terminal.
+
 ### Fields and variables
 
 - The **Fields** list shows what can be used at the selected position:
@@ -112,13 +124,25 @@ Today a developer writes the templates in a code editor while fields and content
 
 - First releases: classes are edited on the element, and a **CSS** panel shows and edits the rule for the selected element's first class in the theme's CSS files. A rule that does not exist yet is added to `public/sunrice-theme/editor.css`, which the layout must link.
 - CSS files are held to the same rule as Blade: a rule is changed in place and the rest of the file is untouched.
-- Sites that build their CSS (Tailwind, Vite) get class editing only; the build keeps running in the developer's terminal.
+- Sites that build their CSS get class editing; see *Sites that build their CSS* below.
 - A style panel has controls for layout, size, spacing, text, background and border; each reads and writes one declaration of the rule for a class.
 - The page can be shown at several widths side by side. One of the frames is edited; a style set while a width is edited is written under the `@media` condition for that width.
+
+### Sites that build their CSS (Vite, Tailwind)
+
+Tailwind writes CSS only for the classes it finds in the site's files, so a class added to a template has no style until the CSS is built again. Three situations, each with its own answer:
+
+- **A dev server is running** (`npm run dev` in the developer's terminal). Nothing of the editor is needed: it writes real files, Vite and Tailwind see the change and the page in the frame gets the new CSS. The editor never starts or stops that process.
+- **No dev server, and a look is wanted before building.** A setting, off by default, adds Tailwind's own browser build to pages drawn for the editor, and only to those: any class shows at once. It is a preview: it reads the site's CSS entry file for the theme, and plugins may behave differently from a real build. The editor says that a preview is what is shown. Visitors never get it.
+- **The CSS has to be built** for the site itself to show the change. A setting names one command (`npm run build`). When it is set, the editor has a **Build** button that runs exactly that command, shows what it printed and whether it worked, and says so plainly when it can't be started (no Node on the server). After a template is saved and until the next build, the editor says the built CSS may be behind. The button is off until the command is set, and takes a permission of its own.
+- The command comes from the site's configuration and never from a request. One build runs at a time, with a time limit.
+- Tailwind 4 with Laravel's Vite plugin is what this is built and checked for.
+- The Style and CSS tabs are for sites with plain CSS files. On a Tailwind site styling is done with classes.
 
 ### Permissions
 
 - Three permissions, registered with Sunrice and given to roles in its role editor: `visual-editor.open` (look), `visual-editor.edit` (change templates and stylesheets without writing code), `visual-editor.code` (write code). Each includes the ones before it. Super Admins have all three. None holds while the package is off.
+- A fourth, apart from those three: `visual-editor.build` (run the site's build command from the editor). It is not included in any of the others, since it runs a program on the server, and it does nothing unless a command is set.
 - Code editing is the highest, since it writes PHP. Someone who may edit and not edit code can never make a template run PHP that it did not run before, except code the editor itself writes for a field or a choice. This holds for every way of changing a template, and is checked on what Laravel's Blade compiler makes of the result, not on what was asked for.
 - Such a person may move, copy and take out code that is there, and may add any HTML.
 - Their undo and redo write the template as it was within the last twelve hours; no older version.
@@ -142,8 +166,8 @@ Today a developer writes the templates in a code editor while fields and content
 | # | Question | Assumed until decided |
 | --- | --- | --- |
 | 1 | Is staging allowed by default, or local only? | Local only; staging by `SUNRICE_VISUAL_EDITOR=true`. |
-| 2 | Plain CSS or a Tailwind build as the main styling path? | Plain CSS in `public/sunrice-theme/`, as the starter templates use. |
+| 2 | Plain CSS or a Tailwind build as the main styling path? | Both are served: plain CSS in `public/sunrice-theme/` with the Style and CSS tabs, as the starter templates use; Tailwind through Vite with classes, a preview and a build button (decided October 2026). |
 | 3 | May Sunrice core gain the three small public APIs in `EXECUTION_PLAN.md` Phase 0? | Yes; until they merge the package wraps the internals in one adapter class. |
 | 4 | Licence of this package. | Same as Sunrice (MIT); not stated in the repository yet. |
-| 5 | Is the code panel's own small editor enough, or is CodeMirror wanted (search and replace, several cursors, folding)? | Enough. It can be swapped in without changing anything around it. |
+| 5 | Is the code panel's own small editor enough, or is CodeMirror wanted (search and replace, several cursors, folding)? | CodeMirror, with a Code mode around it (decided October 2026). |
 | 6 | Should a draft's banner on the site carry an **Edit visually** link? Sunrice would need a hook for it. | No link; the editor is opened from the admin or by `?url=`. |

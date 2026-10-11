@@ -54,7 +54,7 @@ A node is addressed as `{file, version, node}`. Offsets are only valid for one v
 
 **Composer — require-dev:** `orchestra/testbench`, `pestphp/pest`, `pestphp/pest-plugin-laravel`, `laravel/pint`, `larastan/larastan`.
 
-**npm (admin script only, all dev dependencies):** `typescript`, `esbuild` (pinned to an exact version, so every build of `dist/` is the same), `@types/react`, `@types/react-dom`, `playwright-core` (the browser check; drives the Chrome already on the machine). Named here at first and not used, each for the reason given in its task: `@dnd-kit/core`, `@dnd-kit/sortable` (Layers panel, V4.4), `codemirror`, `@codemirror/lang-html`, `@codemirror/lang-css`, `@codemirror/lang-php` (code panel, V3.4). React, Inertia and the admin's UI components come from `window.Sunrice` and are never bundled.
+**npm (admin script only, all dev dependencies):** `typescript`, `esbuild` (pinned to an exact version, so every build of `dist/` is the same), `@types/react`, `@types/react-dom`, `playwright-core` (the browser check; drives the Chrome already on the machine). Named here at first and not used, each for the reason given in its task: `@dnd-kit/core`, `@dnd-kit/sortable` (Layers panel, V4.4), `codemirror`, `@codemirror/lang-html`, `@codemirror/lang-css`, `@codemirror/lang-php` (code panel, V3.4). **Added for Phase 8:** `@codemirror/state`, `@codemirror/view`, `@codemirror/commands`, `@codemirror/search`, `@codemirror/language`, `@codemirror/autocomplete` (the code editor of V8.2; none of the language packages, since the package's own highlighter knows Blade and they do not). They are bundled into `dist/code-editor.js`, a script of its own. React, Inertia and the admin's UI components come from `window.Sunrice` and are never bundled.
 
 **No CSS parser.** V6.1 tried it: `sabberworm/php-css-parser` writes none of twelve stylesheets back as it read them (spacing, comments, the way values are written) and keeps no offsets, so a change through it rewrites the whole file. `src/Css/Stylesheet.php` finds rules and declarations by their place in the text instead, and passes every check of the CSS round-trip test (`spike/CSS_RESULTS.md`), Bootstrap and Bulma included.
 
@@ -104,10 +104,11 @@ sunrice-visual-editor/
 | 5. Fields and variables | V5.1–V5.5 | V4.2 (V5.1–V5.3 can start after V1.7) | 2–3 weeks | **M3:** the field picker; the goal in `SPEC.md` is met |
 | 6. Styles | V6.1–V6.4 | V4.2 | 3+ weeks | CSS panel, then a style panel and breakpoints |
 | 7. Permissions, agents, release | V7.1–V7.4 | M3 | 1–2 weeks | Own permissions, MCP tools, docs, v0.1.0 |
+| 8. Code mode, and sites that build their CSS | V8.1–V8.6 | Phase 7 | 2–3 weeks | A real code editor beside the page with tabs and fields at the cursor; Tailwind through Vite: preview and build |
 
 Sizes are rough guesses for one developer working with coding agents. Phases 1 and 2 have no UI and can run alongside Phase 0. V5.1–V5.3 are backend only and can run alongside Phases 3 and 4.
 
-**Where it stands:** Phases 0 to 6 are done and merged, and of Phase 7 everything but the release (V7.4), which waits for an install on a real project. Where a task was built differently from what was first written here, its text below says what was built and why.
+**Where it stands:** Phases 0 to 7 are done and merged, except the release itself (V7.4), which waits for an install on a real project. Phase 8 was added in October 2026 and is next. Where a task was built differently from what was first written here, its text below says what was built and why.
 
 ---
 
@@ -683,3 +684,76 @@ A scan of the repository by an AI agent reported five things. Each was checked a
 - **An answer that came late was shown as the open template** (`Editor.tsx`: a save, an undo, a change). With another template opened while the server was still answering, the panels showed the first template's tree under the second one's name, and the next change was refused as made for another file. The answer's history and the page are still taken; the panels take it only when it is for the template that is open. A step of the browser check holds an answer back, opens another template and lets it go; it fails on the screen as it was.
 
 **Sunrice's main moved while this was open.** sunrice-cms#39 and #40 were merged the same afternoon. Static analysis then failed on every branch of this package: the check that `Sunrice::registerMcpTool()` exists is always true against a Sunrice that has it. The check stays, for a site whose Sunrice is an older checkout (there is no tagged release to require), with a note for the analyser. `McpToolsTest` now also asks Sunrice itself whether the two tools are among those it offers.
+
+---
+
+## Phase 8 — Code mode, and sites that build their CSS
+
+Asked for in October 2026, after Phase 7: a code editor as a second way of working beside the visual one, with the page, the templates of the page and the fields still there; and a way to work on a site whose CSS is Tailwind built by Vite. `SPEC.md` has both (*Editing as code*, *Sites that build their CSS*).
+
+Two things were decided before any of it was built:
+
+- **CodeMirror 6, not Ace or Monaco.** Monaco is several megabytes and built for an application of its own. Ace would do, and is one file; CodeMirror is smaller for what is used here, is put together from parts (no language package is needed, see §2), handles touch and screen readers, and maps a place in the saved text to its place in the text being typed, which click-to-line needs. Bundled from source with everything Phase 8 uses it comes to 339 KB, 113 KB gzipped: more than the whole editor today (107 KB), so it is a script of its own, fetched when Code mode is first opened.
+- **The editor never runs a dev server.** `npm run dev` stays in the developer's terminal, where it can be seen and stopped. A watcher started from a web request outlives the request, holds a port, and is one more way for the admin to run things on the server. A build is different: one command from the site's configuration, run once, with an end.
+
+### V8.1 Vite and Tailwind, as they are
+**Depends on:** V7.4
+What the editor does today on a site with Laravel's Vite plugin and Tailwind 4, found out and written down, before anything is built for it.
+- `.github/vite-check.sh`, a job beside `install`: a new Laravel application (which comes with Vite and Tailwind 4), Sunrice, the package; a layout that uses `@vite`. Then:
+  - a class Tailwind has no rule for yet (`bg-fuchsia-500`) is added to a template through the editor's API; `npm run build`; the built CSS has the rule. This is the path the Build button will take.
+  - with `npm run dev` running, a page drawn for the editor links the dev server, and the dev server's CSS has the rule without a build.
+  - the page drawn for the editor still carries its marks with `@vite` in the layout, and the layout opens as a tree with `@vite(…)` as one piece of code.
+- Whatever that turns up is mended here.
+- `docs/styles.md`: the section on sites that build their CSS, rewritten from what was found.
+**Done when:** the job passes, and the page says what works without the editor doing anything.
+
+### V8.2 A code editor in place of the text field
+**Depends on:** V8.1
+- `resources/js/code/` — the editor, with no React in it: `mount(parent, {text, readOnly, indent, onChange, onSave})` → `{text(), setText(), focus(), cursor(), setCursor(), destroy()}`. CodeMirror with line numbers, history, search and replace, several cursors, bracket matching, Tab indenting by what the file itself uses, Ctrl/⌘+S.
+- Colours from `lib/highlight.ts`, which knows Blade: its tokens become the editor's decorations. No language package.
+- `build.mjs` builds it into `dist/code-editor.js`; `EditorController` sends its address; `lib/codeEditor.ts` fetches it once, when first needed, with `import()`.
+- `panels/CodePanel.tsx` uses it where the text field was. Everything around it stays: Save, Revert, what a refused save says, read-only for those without `code`. While the script is on its way, or when it can't be fetched, the text field as it is today is what is shown: code can always be read and saved.
+- `package.json`: the six packages of §2.
+**Done when:** the browser check's steps for the code panel pass on the new editor, with new ones for search and replace and for undo; `dist/visual-editor.js` is no larger than before by more than the loader.
+
+### V8.3 Code mode
+**Depends on:** V8.2
+- **Visual | Code** in the top bar (`mode` in `lib/memory.ts`, kept per browser). In Code mode the left side keeps the templates of the page, the code editor takes the place of the layers and of the Settings side, and the page is beside it; the divider can be dragged.
+- **Tabs** (`lib/tabs.ts`): the templates opened in this session, each with its text as typed, its cursor and its editor history. Opening a template from the list or from the page adds a tab or goes to it. A dot marks unsaved text; closing such a tab, or leaving the editor, asks. Visual mode shows the open tab's template as saved, and says when it has unsaved text in Code mode.
+- **Click to line.** A click on the page gives the template and the node's place in the saved file (the mark, as today). The cursor goes there; in text that has been typed in since, the place is carried through the changes (CodeMirror's `ChangeSet.mapPos`).
+- **Cursor to page.** The node the cursor is in is outlined on the page (the saved tree's node at that place, carried back the same way). Not while the text does not open as a tree.
+- **Save** writes one tab; the others keep their text. A conflict (the file changed on disk) offers the file as it is now, as today.
+**Done when:** a browser step edits the page's template, opens the header from the page with the cursor on the clicked element, saves the header, goes back and finds the first text still there, unsaved.
+
+### V8.4 Fields and variables at the cursor
+**Depends on:** V8.3
+- `Template::at(int $offset)` — the node a place in the text is in, and whether the place is inside it or beside it: what `Scope::at()` needs to be asked.
+- `POST templates/{path}/fields` with `{source, offset}`: the variables at that place in text that is not saved. The text is opened as a tree for this and nothing is written. When it does not open (a tag is still being typed), the answer is what the file is given and what every template has, and says that it is no more than that.
+- **Fields** beside the code editor: the same list as **Insert → Fields**, for the cursor. A click inserts at the cursor the Blade the picker writes, indented as the line is.
+- **Completion.** After `$name->`, `$name['` and `{{ `, the editor offers what that value has, from the same answer, with the guarded form written (`?->`, `?? ''`) as the picker writes it.
+- Needs `visual-editor.code`, as everything that types code does.
+**Done when:** in the hero block, with a line typed and not saved above the cursor, the list has `$block`'s fields and a variable set on that unsaved line; a click writes what the picker writes; completion after `$block->` lists the fieldset's fields (browser step, and `tests/Feature/FieldsApiTest.php` for the endpoint).
+
+### V8.5 Tailwind preview without a build
+**Depends on:** V8.1
+- `config`: `tailwind.preview` (`false`), `tailwind.entry` (`resources/css/app.css`), `tailwind.script` (the address of `@tailwindcss/browser`, version 4; a site may keep its own copy).
+- `Rendering\Preview` — for a page drawn for the editor, and only then, when the preview is on and no dev server is running (`public/hot` is not there): the script, and the entry file's text as `<style type="text/tailwindcss">` so the site's theme applies. A dev server already gives the real thing, and the preview stays out of its way.
+- The editor's top bar says **Preview CSS** while it is in use, with what that means on pointing at it.
+- `docs/styles.md`: what the preview is and is not.
+**Done when:** on the site of V8.1 with no dev server and no build, a class with no rule in the built CSS is styled in the editor's frame and not on the page a visitor gets (browser check in the Vite job).
+
+### V8.6 Build
+**Depends on:** V8.1, V7.1
+- `config`: `build.command` (`null`: no button), `build.timeout` (120 seconds).
+- Permission `visual-editor.build`, on its own (`Access::BUILD`): not part of `code`, and no part of it.
+- `Actions\Build` — runs the configured command in the site's directory with Symfony's Process (which Laravel has), one at a time (the lock of `Support\Files`), stopped at the time limit. Answers with whether it ended well, how long it took and the end of what it printed. A command that can't be started says what was missing. A line in the activity log.
+- `POST {admin}/visual-editor/api/build`. Nothing in the request names a command.
+- **Build** in the top bar, there only when a command is set and the person may. After a template or a stylesheet is saved it reads **Build needed**, until a build ends well; not while a dev server is running. What the command printed opens under the bar when it fails.
+- **Tools for agents:** none. An agent that may run commands has Sunrice's own tool for that.
+- `docs/installation.md` (the settings, the permission), `docs/styles.md`, `docs/permissions.md`, `docs/limits.md`.
+**Done when:** on the site of V8.1, a class added in the editor has no rule in the built CSS, **Build needed** shows, the button builds, the rule is there and the notice gone; with the command set to something that is not there, the button says so (Vite job, and `tests/Feature/BuildTest.php` with a command of the test's own).
+
+### Later, not in this phase
+- Tailwind's class names offered in the class field of the Settings panel, from the site's theme.
+- Search across the site's templates.
+- The stylesheet files of the theme opened in Code mode, as templates are.
