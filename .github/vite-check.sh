@@ -47,7 +47,8 @@ npm run build
 built | grep -q '\.bg-fuchsia-500' || fail "After a build the CSS still has no rule for bg-fuchsia-500."
 
 step "With the dev server running, no build is needed"
-node node_modules/vite/bin/vite.js > storage/logs/vite.log 2>&1 &
+# Laravel's plugin won't start a dev server where CI is set, unless told that it is meant.
+LARAVEL_BYPASS_ENV_CHECK=1 node node_modules/vite/bin/vite.js > storage/logs/vite.log 2>&1 &
 vite=$!
 php artisan serve --port=8091 --no-ansi > storage/logs/serve.log 2>&1 &
 served=$!
