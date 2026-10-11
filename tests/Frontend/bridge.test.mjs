@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { editorAddress, markValue, parseMark, unwrap, visitorAddress, wrap } from '../../resources/js/bridge/protocol.ts';
+import { editorAddress, markValue, parseMark, shortcutOf, unwrap, visitorAddress, wrap } from '../../resources/js/bridge/protocol.ts';
 
 test('reads a mark, and nothing else as one', () => {
     assert.deepEqual(parseMark('a1b2c3d4e5:412'), { file: 'a1b2c3d4e5', id: '412' });
@@ -64,4 +64,28 @@ test('takes only its own messages', () => {
     assert.equal(unwrap(null), null);
     assert.equal(unwrap('sve'), null);
     assert.equal(unwrap(undefined), null);
+});
+
+test('reads the editor\'s shortcuts from a key press, and nothing typed into a field', () => {
+    const press = (key, more = {}) => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, target: { tagName: 'BODY' }, ...more });
+
+    assert.equal(shortcutOf(press('z', { ctrlKey: true })), 'undo');
+    assert.equal(shortcutOf(press('z', { metaKey: true })), 'undo');
+    assert.equal(shortcutOf(press('Z', { ctrlKey: true, shiftKey: true })), 'redo');
+    assert.equal(shortcutOf(press('z', { metaKey: true, shiftKey: true })), 'redo');
+    assert.equal(shortcutOf(press('y', { ctrlKey: true })), 'redo');
+    assert.equal(shortcutOf(press('Delete')), 'delete');
+    assert.equal(shortcutOf(press('Backspace')), 'delete');
+
+    assert.equal(shortcutOf(press('z')), null);
+    assert.equal(shortcutOf(press('c', { ctrlKey: true })), null);
+    assert.equal(shortcutOf(press('Delete', { shiftKey: true })), null);
+    assert.equal(shortcutOf(press('z', { ctrlKey: true, altKey: true })), null);
+    assert.equal(shortcutOf(press('ArrowUp', { altKey: true })), null);
+    for (const tagName of ['INPUT', 'TEXTAREA', 'SELECT']) {
+        assert.equal(shortcutOf(press('z', { ctrlKey: true, target: { tagName } })), null, tagName);
+        assert.equal(shortcutOf(press('Backspace', { target: { tagName } })), null, tagName);
+    }
+    assert.equal(shortcutOf(press('Backspace', { target: { tagName: 'DIV', isContentEditable: true } })), null);
+    assert.equal(shortcutOf(press('z', { ctrlKey: true, target: null })), 'undo');
 });

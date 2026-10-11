@@ -203,6 +203,14 @@
     white-space: nowrap;
 }
 
+/* Undo / Redo */
+
+.sve-history {
+    flex: none;
+    display: flex;
+    gap: 0.25rem;
+}
+
 /* Select / Browse */
 
 .sve-modes {
@@ -1039,6 +1047,11 @@ textarea.sve-input {
 .sve-notice__text {
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+.sve-notice__action {
+    height: 1.5rem;
+    padding-inline: 0.625rem;
 }
 
 .sve-notice__dismiss {

@@ -376,6 +376,107 @@ await step('wrap it, unwrap it, and put the hero back', async () => {
     }
 });
 
+// --- Undo and redo -----------------------------------------------------------------
+
+const undo = page.locator('.sve-bar').getByRole('button', { name: 'Undo', exact: true });
+const redo = page.locator('.sve-bar').getByRole('button', { name: 'Redo', exact: true });
+const heroNow = async () => {
+    await idle();
+
+    return (await (await page.request.get(heroApi)).json()).template.source;
+};
+
+await step('undo three changes of three kinds, one by one, back to the hero as it was', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    if (!(await undo.isDisabled()) || !(await redo.isDisabled())) {
+        throw new Error('There is something to undo before anything was done');
+    }
+
+    await settings.getByLabel('Add a class').fill('sve-browser-test');
+    await settings.getByLabel('Add a class').press('Enter');
+    await frame.locator('.hero h1.sve-browser-test').waitFor();
+    const classed = await heroNow();
+    await action('Move down').click();
+    await frame.locator('.hero p.muted + h1').waitFor();
+    const moved = await heroNow();
+    await page.locator('.sve-bar').getByRole('button', { name: 'Insert' }).click();
+    await insertable('Paragraph').click();
+    await frame.locator('.hero h1 + p', { hasText: 'Text' }).waitFor();
+    const inserted = await heroNow();
+    if (new Set([hero.source, classed, moved, inserted]).size !== 4) {
+        throw new Error('The three changes did not each change the file');
+    }
+
+    for (const expected of [moved, classed, hero.source]) {
+        await undo.click();
+        const now = await heroNow();
+        if (now !== expected) {
+            throw new Error(`After an undo the hero is not what it was:\n${now}`);
+        }
+    }
+    await frame.locator('.hero h1:not(.sve-browser-test) + p.muted').waitFor();
+    if (!(await undo.isDisabled())) {
+        throw new Error('There is still something to undo');
+    }
+});
+
+await step('redo, and undo again with Ctrl+Z on the page', async () => {
+    await redo.click();
+    await frame.locator('.hero h1.sve-browser-test').waitFor();
+    // A click on the page gives the page the keyboard: the key still reaches the editor.
+    await frame.locator('.hero h1').click();
+    await idle();
+    await frame.locator('body').press('Control+z');
+    await frame.locator('.hero h1:not(.sve-browser-test)').waitFor();
+    if ((await heroNow()) !== hero.source) {
+        throw new Error('Ctrl+Z on the page did not bring the hero back');
+    }
+});
+
+await step('say so when a change breaks the page where it is drawn, and undo it from there', async () => {
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    // The menu partial needs $items, which a block doesn't have: it compiles, and fails when drawn.
+    // What Laravel's own error page then does in the frame is not the editor's to answer for.
+    const errorsBefore = errors.length;
+    await inserting.getByLabel('Find something to insert').fill('partials/menu');
+    await insertable('partials/menu').click();
+    const broken = page.locator('.sve-notice--problem', { hasText: 'could not be drawn after that change' });
+    await broken.waitFor({ timeout: 15000 }).catch(async (error) => {
+        // What the editor and the page have to say for themselves, for whoever reads this log.
+        console.log('     editor:', JSON.stringify(await page.evaluate(() => ({
+            notice: document.querySelector('.sve-notice')?.textContent ?? null,
+            busy: document.querySelector('.sve-shell')?.getAttribute('aria-busy'),
+            templates: document.querySelector('.sve-side--left .sve-panel__body')?.textContent?.slice(0, 160) ?? null,
+        }))));
+        console.log('     page:', JSON.stringify(await page.evaluate(() => {
+            const inFrame = document.querySelector('iframe.sve-frame')?.contentDocument;
+
+            return {
+                address: inFrame?.location.href ?? null,
+                title: inFrame?.title ?? null,
+                manifest: inFrame?.getElementById('sve-manifest')?.textContent?.slice(0, 120) ?? null,
+                scripts: [...(inFrame?.scripts ?? [])].map((script) => script.src).filter((src) => src.includes('bridge')),
+                text: inFrame?.body?.innerText.slice(0, 300) ?? null,
+            };
+        })));
+        throw error;
+    });
+    await broken.getByRole('button', { name: 'Undo' }).click();
+    await frame.locator('.hero h1').waitFor();
+    if ((await heroNow()) !== hero.source) {
+        throw new Error('The undo did not bring the hero back');
+    }
+    const home = await page.request.get(`${base}/`);
+    if (home.status() !== 200) {
+        throw new Error(`The homepage answers ${home.status()} after the undo`);
+    }
+    errors.length = errorsBefore;
+});
+
 // --- The code panel --------------------------------------------------------------
 
 const code = page.locator('.sve-code__field');

@@ -37,7 +37,8 @@ export type ManifestFile = {
     opens: boolean;
 };
 
-export type Manifest = { files: ManifestFile[] };
+/** `status`: what the server answered the page with. A page that failed to draw is still a page: 404, 500. */
+export type Manifest = { files: ManifestFile[]; status?: number };
 
 /** A marked element under the pointer or clicked. */
 export type Target = {
@@ -68,12 +69,35 @@ export type Measured = {
 
 export type Mode = 'select' | 'browse';
 
+/** What the editor does from the keyboard, wherever the keyboard is. */
+export type Shortcut = 'undo' | 'redo' | 'delete';
+
+/**
+ * The shortcut a key press means, if any: Ctrl/⌘+Z, Ctrl/⌘+Shift+Z or
+ * Ctrl+Y, Delete or Backspace. Not while something is being typed into.
+ */
+export function shortcutOf(event: { key: string; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean; altKey: boolean; target: unknown }): Shortcut | null {
+    const target = event.target as { tagName?: unknown; isContentEditable?: unknown } | null;
+    const tag = typeof target?.tagName === 'string' ? target.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || target?.isContentEditable === true || event.altKey) {
+        return null;
+    }
+    const key = event.key.toLowerCase();
+    if (event.ctrlKey || event.metaKey) {
+        return key === 'z' ? (event.shiftKey ? 'redo' : 'undo') : key === 'y' && !event.shiftKey ? 'redo' : null;
+    }
+
+    return !event.shiftKey && (key === 'delete' || key === 'backspace') ? 'delete' : null;
+}
+
 /** From the page to the editor. */
 export type FromPage =
     | { type: 'ready'; url: string; title: string; manifest: Manifest; mode: Mode }
     | { type: 'hover'; target: Target | null }
     | { type: 'select'; target: Target }
     | { type: 'measured'; measured: Measured; scroll: { x: number; y: number }; page: { width: number; height: number } }
+    /** A key the editor acts on was pressed while the page had the keyboard. */
+    | { type: 'key'; key: Shortcut }
     | { type: 'leaving'; url: string };
 
 /** From the editor to the page. */

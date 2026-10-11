@@ -90,6 +90,8 @@ await step('says it is ready, with the page as a visitor has it and the manifest
     assert.equal(ready.title, 'A page of the site');
     assert.equal(ready.mode, 'select');
     assert.deepEqual(ready.manifest.files.map((file) => file.path), ['show.blade.php', 'partials/item.blade.php', 'layouts/app.blade.php']);
+    // What the server answered the page with comes along: the editor says so when a page failed to draw.
+    assert.equal(ready.manifest.status, 200);
 });
 
 await step('says so again when the editor asks who is there', async () => {
@@ -205,6 +207,30 @@ await step('ignores what is not the editor\'s to say', async () => {
     await page.waitForTimeout(150);
 
     assert.deepEqual((await messages()).filter((message) => message.type === 'measured'), []);
+});
+
+await step('hands the editor its keys while picking: undo, redo, delete', async () => {
+    await forget();
+    await frame().locator('#word').click();
+    for (const [keys, expected] of [['Control+z', 'undo'], ['Control+Shift+z', 'redo'], ['Control+y', 'redo'], ['Meta+z', 'undo'], ['Delete', 'delete'], ['Backspace', 'delete']]) {
+        await forget();
+        await frame().locator('body').press(keys);
+        assert.deepEqual(await next('key'), { type: 'key', key: expected }, keys);
+    }
+
+    // Other keys are the page's, and so is every key in a field or while browsing.
+    await forget();
+    await frame().locator('body').press('a');
+    await frame().locator('body').press('Control+c');
+    await frame().locator('#search input').press('Control+z');
+    await frame().locator('#search input').press('Backspace');
+    await tell({ type: 'mode', mode: 'browse' });
+    await frame().locator('body').press('Control+z');
+    await frame().locator('body').press('Delete');
+    await tell({ type: 'mode', mode: 'select' });
+    await tell({ type: 'hello' });
+    await next('ready');
+    assert.deepEqual((await messages()).filter((message) => message.type === 'key'), []);
 });
 
 await step('follows a link to another page of the site as an editor render when browsing', async () => {

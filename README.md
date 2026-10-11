@@ -37,8 +37,8 @@ tree or the page), the **Settings** panel (tag, id, classes, attributes, text,
 what an echo prints, a condition, a loop, an include), **Insert** (elements,
 Blade structures, Sunrice's components, the site's partials, pasted HTML) and
 moving, duplicating, wrapping and deleting (by dragging a layer, by button or
-by key) are in. Undo, and a page that keeps its place after a change, are not
-yet. The field picker is the third milestone.
+by key) are in, with undo and redo for all of it. A page that keeps its place
+after a change is not yet. The field picker is the third milestone.
 
 ## Using it
 

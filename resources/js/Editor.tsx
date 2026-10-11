@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { editorAddress, isEditorAddress, markValue, type ManifestFile, type Mark, type Measured, type Mode } from './bridge/protocol';
+import { editorAddress, isEditorAddress, markValue, shortcutOf, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, copyToSite, listInserts, listTemplates, readTemplate, type Insertable, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
+import { ApiError, applyOperations, copyToSite, listInserts, listTemplates, readTemplate, saveSource, type Insertable, type Operation, type TemplateData, type TemplateInfo } from './lib/api';
 import { useBridge } from './lib/frame';
+import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { pageOf, rememberPage } from './lib/memory';
 import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
 import { isAdminPath, sitePath } from './lib/path';
@@ -22,11 +23,14 @@ type Props = {
     startPath: string;
 };
 
-/** The page in the frame, as its bridge described it. */
-type Page = { url: string; title: string; files: ManifestFile[] };
+/** The page in the frame, as its bridge described it. `status` is what the server answered it with. */
+type Page = { url: string; title: string; files: ManifestFile[]; status: number };
 
 /** How long a page gets to say it is ready after it has loaded. */
 const READY_WITHIN = 1500;
+
+/** The name a template's history goes by. */
+const historyKey = (template: { origin: string; path: string }) => `${template.origin}:${template.path}`;
 
 const message = (error: unknown) => (error instanceof ApiError || error instanceof Error ? error.message : 'Something went wrong.');
 
@@ -56,6 +60,8 @@ export function Editor({ startPath }: Props) {
     const [waiting, setWaiting] = useState<'loading' | 'unknown' | null>('loading');
     /** Whether the page in the frame has said it is one drawn for the editor, since it was last asked. */
     const answered = useRef(false);
+    /** The wait for that answer: one at a time, for the page that loaded last. */
+    const answerWait = useRef<number | null>(null);
     /** The address of the last page that was in the frame, to know the same page drawn again from another. */
     const lastPage = useRef<string | null>(null);
     /** A template to open once the page that is on its way has arrived. */
@@ -77,7 +83,14 @@ export function Editor({ startPath }: Props) {
     const [refusals, setRefusals] = useState(0);
     /** What there is to tell: the last refusal, or the last thing done out of sight. */
     const [notice, setNotice] = useState<Notice | null>(null);
-    const say = (kind: Notice['kind'], text: string) => setNotice({ kind, text, at: Date.now() });
+    const say = (kind: Notice['kind'], text: string, action?: Notice['action']) => setNotice({ kind, text, at: Date.now(), action });
+
+    /** Undo and redo, for each template changed since the editor was opened: by "origin:path". */
+    const [histories, setHistories] = useState<Record<string, History>>({});
+    /** A change was made and the page is being drawn again: what the page answered with before it. */
+    const statusBefore = useRef<number | null>(null);
+    /** What a shortcut does, as things are now: the keys are listened for once, and things change. */
+    const shortcuts = useRef<(shortcut: Shortcut) => void>(() => {});
     /** The page in the frame is being drawn again, not left: what is known about it holds until it is back. */
     const redrawing = useRef(false);
     /** Once the page is back, bring what is selected into view: it may be new, and anywhere. */
@@ -108,7 +121,15 @@ export function Editor({ startPath }: Props) {
             answered.current = true;
             redrawing.current = false;
             setWaiting(null);
-            setPage({ url: said.url, title: said.title, files });
+            const status = said.manifest.status ?? 200;
+            setPage({ url: said.url, title: said.title, files, status });
+            // A change that compiled can still fail where the template is drawn: a variable that
+            // isn't there, a collection that doesn't exist. No check before saving can know that.
+            const before = statusBefore.current;
+            statusBefore.current = null;
+            if (before !== null && before < 400 && status >= 400) {
+                say('problem', `The page could not be drawn after that change: the server answered ${status}.`, { label: 'Undo', run: () => shortcuts.current('undo') });
+            }
             setAddress(said.url);
             setProblem(null);
             rememberPage(files.map((file) => `${file.origin}:${file.path}`), said.url);
@@ -147,6 +168,8 @@ export function Editor({ startPath }: Props) {
                 toSelect.current = { template: { path: file.path, origin: file.origin }, id };
                 openTemplate({ path: file.path, origin: file.origin });
             }
+        } else if (said.type === 'key') {
+            shortcuts.current(said.key);
         } else if (said.type === 'measured') {
             setMeasured(said.measured);
         } else if (said.type === 'leaving') {
@@ -228,14 +251,27 @@ export function Editor({ startPath }: Props) {
         }
         // Whatever was said before may have come from the page that was here a moment ago:
         // ask the one that has loaded. A page drawn for the editor answers at once.
+        // The wait for the page before this one is over. Left running, it comes due while
+        // this page is still being asked, finds no answer yet and says the page is gone:
+        // a large page, read on the thread the timer runs on, is all that takes.
+        if (answerWait.current !== null) {
+            window.clearTimeout(answerWait.current);
+        }
         answered.current = false;
         tell({ type: 'hello' });
-        window.setTimeout(() => {
+        answerWait.current = window.setTimeout(() => {
+            answerWait.current = null;
             if (!answered.current && addressInFrame() === href) {
                 setWaiting('unknown');
                 setPage(null);
                 setHovered(null);
                 setMeasured(null);
+                redrawing.current = false;
+                if (statusBefore.current !== null) {
+                    // It was a page of the editor's before the change, and is none now.
+                    statusBefore.current = null;
+                    say('problem', 'The page did not come back after that change.', { label: 'Undo', run: () => shortcuts.current('undo') });
+                }
             }
         }, READY_WITHIN);
     };
@@ -363,6 +399,21 @@ export function Editor({ startPath }: Props) {
         };
     }, [open?.path, open?.origin, readings]);
 
+    // Undo and redo from the keyboard, wherever in the editor it is, except in a field, which has
+    // its own. Delete is not listened for here: only on a layer, or on the page (the bridge).
+    useEffect(() => {
+        const pressed = (event: KeyboardEvent) => {
+            const shortcut = event.defaultPrevented ? null : shortcutOf(event);
+            if (shortcut === 'undo' || shortcut === 'redo') {
+                event.preventDefault();
+                shortcuts.current(shortcut);
+            }
+        };
+        window.addEventListener('keydown', pressed);
+
+        return () => window.removeEventListener('keydown', pressed);
+    }, []);
+
     // Closing the tab with changes in the code panel: the browser asks first.
     useEffect(() => {
         if (!unsaved) {
@@ -376,6 +427,7 @@ export function Editor({ startPath }: Props) {
 
     /** The code panel wrote the file: show it as it is now, in the panels and on the page. */
     const saved = (data: TemplateData) => {
+        remember(data);
         setTemplate({ state: 'ready', data });
         say('done', `Saved ${data.path}.`);
         setDraft(null);
@@ -384,7 +436,64 @@ export function Editor({ startPath }: Props) {
         setCollapsed(new Set());
         // Whether it opens as a tree may have changed with it.
         setAll(null);
+        changedRedraw();
+    };
+
+    /** The open template was changed: its history gains the file as it was. */
+    const remember = (changed: TemplateData) => {
+        if (template.state !== 'ready' || template.data.source === null) {
+            return;
+        }
+        const before = { source: template.data.source, selected };
+        const was = template.data.version;
+        setHistories((all) => ({ ...all, [historyKey(changed)]: recorded(all[historyKey(changed)], before, was, changed.version) }));
+    };
+
+    /** Draws the page again after a change, and remembers how it was doing before it. */
+    const changedRedraw = () => {
+        statusBefore.current = page?.status ?? null;
         redraw();
+    };
+
+    /**
+     * Undo or redo: saves the open template as it was a step back, or a
+     * step forward again, and selects what was selected then.
+     */
+    const travel = (direction: 'undo' | 'redo') => {
+        if (open === null || template.state !== 'ready' || template.data.source === null || applying || unsaved) {
+            return;
+        }
+        const now = template.data;
+        const history = histories[historyKey(now)];
+        const step = direction === 'undo' ? undoStep(history, now.version) : redoStep(history, now.version);
+        if (history === undefined || step === null) {
+            return;
+        }
+        const left = { source: template.data.source, selected };
+        setApplying(true);
+        saveSource(open.path, now.version, step.source)
+            .then((data) => {
+                setHistories((all) => ({ ...all, [historyKey(data)]: direction === 'undo' ? undone(history, left, data.version) : redone(history, left, data.version) }));
+                setTemplate({ state: 'ready', data });
+                setNotice(null);
+                setSelected(rowFor(data.tree, step.selected));
+                setPointedNode(null);
+                setCollapsed(new Set());
+                // Whether it opens as a tree may have changed with it.
+                setAll(null);
+                revealing.current = true;
+                changedRedraw();
+            })
+            .catch((error: unknown) => {
+                say('problem', message(error));
+                if (error instanceof ApiError && error.reason === 'conflict') {
+                    // The file has changed otherwise: read it again. Its history no longer applies.
+                    setSelected(null);
+                    setReadings((count) => count + 1);
+                    redraw();
+                }
+            })
+            .finally(() => setApplying(false));
     };
 
     /**
@@ -400,6 +509,7 @@ export function Editor({ startPath }: Props) {
 
         return applyOperations(open.path, template.data.version, operations)
             .then(({ template: changed, focus }) => {
+                remember(changed);
                 setTemplate({ state: 'ready', data: changed });
                 // The page shows that it worked. What was wrong with the change before it no longer is.
                 setNotice(null);
@@ -408,7 +518,7 @@ export function Editor({ startPath }: Props) {
                 setPointedNode(null);
                 setCollapsed(new Set());
                 revealing.current = true;
-                redraw();
+                changedRedraw();
 
                 return true;
             })
@@ -541,6 +651,20 @@ export function Editor({ startPath }: Props) {
         }
     };
 
+    const history = template.state === 'ready' ? histories[historyKey(template.data)] : undefined;
+    const undoable = template.state === 'ready' && fixed === null && !applying && canUndo(history, template.data.version);
+    const redoable = template.state === 'ready' && fixed === null && !applying && canRedo(history, template.data.version);
+
+    shortcuts.current = (shortcut) => {
+        if (shortcut === 'delete') {
+            if (selected !== null) {
+                act(selected, 'delete');
+            }
+        } else {
+            travel(shortcut);
+        }
+    };
+
     return (
         <div className="sve-shell" aria-busy={applying}>
             <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
@@ -580,6 +704,15 @@ export function Editor({ startPath }: Props) {
                         </p>
                     )}
                 </form>
+
+                <div className="sve-history" role="group" aria-label="Undo and redo">
+                    <button type="button" className="sve-button sve-button--quiet" disabled={!undoable} onClick={() => travel('undo')} title="Undo the last change to this template (Ctrl+Z)">
+                        Undo
+                    </button>
+                    <button type="button" className="sve-button sve-button--quiet" disabled={!redoable} onClick={() => travel('redo')} title="Redo what was undone (Ctrl+Shift+Z)">
+                        Redo
+                    </button>
+                </div>
 
                 <button type="button" className="sve-button sve-button--quiet" aria-pressed={inserting} onClick={() => setInserting((on) => !on)} title="Add elements, Blade and components to the open template">
                     <span aria-hidden="true">+</span> Insert

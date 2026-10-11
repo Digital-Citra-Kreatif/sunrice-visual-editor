@@ -394,8 +394,14 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V4.5 History
 **Depends on:** V4.2
-Undo and redo per file for the session, as a stack of source versions; undo is a save of the earlier source against the current version. When the page comes back as an error after a change (a value that doesn't exist where the template is drawn: no check before saving can know that), the editor says so and offers the undo. Leaving with nothing unsaved is always the case (edits save at once), so there is no dirty state to guard except in the code panel.
-**Done when:** ten mixed edits undone return the file byte for byte.
+- `resources/js/lib/history.ts` — undo and redo for each template changed since the editor was opened: a stack of the file as it was before each change, with what was selected then. A step is a whole source, so every kind of change is undone the same way: from Settings, Insert, a move, a delete, or a save in the code panel. A hundred steps a template.
+- **Undo** and **Redo** in the top bar, Ctrl/⌘+Z and Ctrl/⌘+Shift+Z (or Ctrl+Y). An undo saves the earlier source over the current version (`PUT …/source`), draws the page again and selects what was selected then: a deleted node comes back selected. A change made after an undo ends what could be redone.
+- **Keys reach the editor from the page too.** A click on the page gives the page the keyboard, so the bridge hands on undo, redo and Delete while the frame is in Select mode (`shortcutOf` in `bridge/protocol.ts`). Delete on the page deletes the selected node. In a field, and when browsing, the keys are the field's and the page's.
+- **A file changed otherwise has no history.** The history holds for the version of the file it last saw. After a change made in a code editor or by someone else, an undo is refused by the server (`conflict`), the file is read again and nothing is offered for it any more: an undo never writes over a change it has not seen.
+- **A change that breaks the page.** A value that doesn't exist where the template is drawn compiles and fails on the page; no check before saving can know. The page now says what it was answered with (`status` in the manifest), and when a page that was drawn before a change is not after it, the editor says so with an **Undo** button.
+- Leaving with nothing unsaved is always the case (edits save at once), so there is no dirty state to guard except in the code panel, and while the code panel has unsaved changes undo is off.
+- The history is the session's: it is gone when the editor is reloaded. The backups in `storage/app/sunrice/template-backups` are what lasts.
+**Done when:** ten mixed edits undone return the file byte for byte (`tests/Feature/UndoTest.php` through the API; `tests/Frontend/history.test.mjs` for the stack; three changes of three kinds in the browser check).
 
 ### V4.6 Refresh without losing place
 **Depends on:** V4.2

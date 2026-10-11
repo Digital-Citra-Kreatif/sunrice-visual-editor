@@ -9,6 +9,7 @@ import {
     editorAddress,
     markValue,
     parseMark,
+    shortcutOf,
     unwrap,
     visitorAddress,
     wrap,
@@ -109,7 +110,7 @@ function manifest(): Manifest {
     try {
         const parsed = JSON.parse(document.getElementById(MANIFEST_ID)?.textContent ?? '') as Manifest;
 
-        return Array.isArray(parsed.files) ? parsed : { files: [] };
+        return Array.isArray(parsed.files) ? { files: parsed.files, ...(typeof parsed.status === 'number' ? { status: parsed.status } : {}) } : { files: [] };
     } catch {
         return { files: [] };
     }
@@ -185,6 +186,23 @@ document.addEventListener(
                 field.value = '1';
                 form.appendChild(field);
             }
+        }
+    },
+    true,
+);
+
+// --- Keys ----------------------------------------------------------------------
+
+// A click on the page gives the page the keyboard. Undo, redo and delete are the editor's
+// while it is picking elements; when browsing, the keys are the page's own.
+document.addEventListener(
+    'keydown',
+    (event) => {
+        const shortcut = mode === 'select' ? shortcutOf(event) : null;
+        if (shortcut !== null) {
+            event.preventDefault();
+            event.stopPropagation();
+            send({ type: 'key', key: shortcut });
         }
     },
     true,
