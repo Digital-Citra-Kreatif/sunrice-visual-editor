@@ -6,6 +6,7 @@ import { appliesAt, mediaLabel, sameMedia } from '../lib/media';
 import type { StyleEdit } from '../lib/styles';
 import type { Width } from '../lib/widths';
 import { ClassChoice, LookOnly, NoClass, Unlinked } from './CssPanel';
+import { Group } from './Panel';
 import { Field } from './SettingsPanel';
 
 type Props = {
@@ -101,8 +102,7 @@ export function StyleFields({ classes, chosen, onChoose, styles, failed, onPage,
                     </p>
 
                     {STYLE_GROUPS.map((group) => (
-                        <fieldset key={group.title} className="sve-group sve-style__group">
-                            <legend>{group.title}</legend>
+                        <Group key={group.title} label={group.title} name={`style:${group.title}`} className="sve-style__group">
                             {group.controls
                                 .filter((control) => shown(control, rule, onPage))
                                 .map((control) => (
@@ -116,7 +116,7 @@ export function StyleFields({ classes, chosen, onChoose, styles, failed, onPage,
                                         onSet={(value) => onEdit({ kind: 'style', property: control.property, value, media })}
                                     />
                                 ))}
-                        </fieldset>
+                        </Group>
                     ))}
 
                     <Unlinked styles={known} linked={linked} layout={layout} linking={linking} onLink={onLink} />

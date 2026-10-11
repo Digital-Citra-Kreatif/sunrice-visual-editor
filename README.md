@@ -61,6 +61,13 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
 - The page keeps its place after a change: it is drawn again out of sight and
   put in the place of the old one, scrolled to where that was.
 
+**Room for the page.**
+
+- Every panel folds to its title by a click on the title, and so does every
+  titled group inside one. Three buttons in the top bar show and hide the
+  panels on the left, the code under the page and the panels on the right.
+- The editor opens the way it was left.
+
 **The CMS's fields and variables, picked from a list in place of typed.**
 
 - **Insert → Fields** lists what can be read where the next thing goes: the

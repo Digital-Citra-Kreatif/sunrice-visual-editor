@@ -7,7 +7,7 @@ import { argumentsOf, attribute, attributesOf, classesOf, headOf, joinInclude, j
 import { kindOf } from '../lib/tree';
 import { FieldChooser } from './FieldsPanel';
 import { nodeTitle } from './LayersPanel';
-import { Panel } from './Panel';
+import { Group, Panel } from './Panel';
 
 type Props = {
     template: TemplateData;
@@ -584,15 +584,6 @@ function SourceSettings({ template, node, off, send, always }: { template: Templ
             <summary>As code</summary>
             {field}
         </details>
-    );
-}
-
-function Group({ label, children }: { label: string; children: ReactNode }) {
-    return (
-        <fieldset className="sve-group">
-            <legend>{label}</legend>
-            {children}
-        </fieldset>
     );
 }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FieldGroup, PickField, PickVariable } from '../lib/api';
 import { ORIGINS, everything, matchingFields, nameOf, originOf, printable, usual, type Found } from '../lib/fields';
+import { Section } from './Panel';
 
 type ListProps = {
     /** What can be read at the place; null until it is known. */
@@ -76,8 +77,7 @@ export function FieldsList({ variables, failed, typed, off, onInsert }: ListProp
                 const those = variables.filter((variable) => originOf(variable) === origin);
 
                 return those.length === 0 ? null : (
-                    <section key={origin} className="sve-insert__group sve-pick" aria-label={title}>
-                        <h3 className="sve-insert__title">{title}</h3>
+                    <Section key={origin} title={title} name={`fields:${origin}`} className="sve-insert__group sve-pick">
                         {those.map((variable) => {
                             // What the site has everywhere is many: closed until it is wanted.
                             const startsOpen = origin !== 'site';
@@ -97,7 +97,7 @@ export function FieldsList({ variables, failed, typed, off, onInsert }: ListProp
                                 </div>
                             );
                         })}
-                    </section>
+                    </Section>
                 );
             })}
         </>

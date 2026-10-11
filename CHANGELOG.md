@@ -21,6 +21,9 @@ it has been installed on a real project (see the end of
   Insert elements, Blade structures, Sunrice's components, the site's
   partials and pasted HTML. Move, duplicate, wrap, unwrap and delete, by
   dragging, by button or by key. Undo and redo.
+- **Room for the page**: every panel and every titled group in one folds to
+  its title; the two sides and the code hide from the top bar; the editor
+  opens the way it was left.
 - **Fields from lists**: what a template can read at each place (the entry
   with its collection's fields, a block's fields, loop items, what a
   partial is passed, global sets, menus), each written as the Blade that

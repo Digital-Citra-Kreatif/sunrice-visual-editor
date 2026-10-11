@@ -9,6 +9,7 @@ import { asMedia, breakpoints, mediaFor, sameMedia } from './lib/media';
 import { pageOf, rememberPage } from './lib/memory';
 import { startRedraw, type Redraw } from './lib/redraw';
 import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
+import { folding, isFolded, readLayout, siding, writeLayout } from './lib/layout';
 import { isAdminPath, sitePath } from './lib/path';
 import { classesOf } from './lib/settings';
 import { STYLE_PROPERTIES } from './lib/styleFields';
@@ -20,7 +21,7 @@ import { activeWidth, layout, readWidths, viewOf, viewValue, type View } from '.
 import { CodePanel } from './panels/CodePanel';
 import { InsertPanel, type InsertTab } from './panels/InsertPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
-import { Side } from './panels/Panel';
+import { Folds, Side } from './panels/Panel';
 import { CssRules, LookOnly } from './panels/CssPanel';
 import { StyleFields } from './panels/StylePanel';
 import { SettingsPanel, type SettingsTab } from './panels/SettingsPanel';
@@ -37,6 +38,18 @@ type Props = {
     /** Where the code editor's script is fetched from, when code is first shown. */
     codeEditor?: string;
 };
+
+/** A small picture of the editor with one part of it filled in: which part a button of the top bar shows and hides. */
+function ShownIcon({ part }: { part: 'left' | 'code' | 'right' }) {
+    return (
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <rect x="1.5" y="2.5" width="13" height="11" rx="1.5" fill="none" stroke="currentColor" />
+            {part === 'left' && <rect x="2.5" y="3.5" width="3.5" height="9" rx="0.5" fill="currentColor" />}
+            {part === 'right' && <rect x="10" y="3.5" width="3.5" height="9" rx="0.5" fill="currentColor" />}
+            {part === 'code' && <rect x="2.5" y="8.5" width="11" height="4" rx="0.5" fill="currentColor" />}
+        </svg>
+    );
+}
 
 /** The page in the frame, as its bridge described it. `status` is what the server answered it with. */
 type Page = { url: string; title: string; files: ManifestFile[]; status: number };
@@ -126,6 +139,10 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
     /** Bumped to read the open template from disk again. */
     const [readings, setReadings] = useState(0);
     const [coding, setCoding] = useState(false);
+    /** Which sides are shown and what is folded to its title: as the editor was left (lib/layout.ts). */
+    const [arranged, setArranged] = useState(readLayout);
+    useEffect(() => writeLayout(arranged), [arranged]);
+    const folds = useMemo(() => ({ folded: new Set(arranged.folded), toggle: (name: string) => setArranged((now) => folding(now, name)) }), [arranged.folded]);
     /** The open template's text as changed in the code panel and not saved; null when it is as on disk. */
     const [draft, setDraft] = useState<string | null>(null);
     const unsaved = draft !== null;
@@ -1091,7 +1108,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
     };
 
     return (
-        <div className="sve-shell" aria-busy={applying}>
+        <Folds.Provider value={folds}>
+        <div className={`sve-shell${arranged.left ? '' : ' sve-shell--no-left'}${arranged.right ? '' : ' sve-shell--no-right'}`} aria-busy={applying}>
             <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
 
             <header className="sve-bar">
@@ -1139,7 +1157,18 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                     </button>
                 </div>
 
-                <button type="button" className="sve-button sve-button--quiet" aria-pressed={inserting} onClick={() => setInserting((on) => !on)} title="Add elements, Blade and components to the open template">
+                <button
+                    type="button"
+                    className="sve-button sve-button--quiet"
+                    aria-pressed={inserting && arranged.left && !isFolded(arranged, 'panel:Insert')}
+                    onClick={() => {
+                        // What is inserted is chosen in the left side: asked for while that is hidden or folded, it is brought out.
+                        const outOfSight = !arranged.left || isFolded(arranged, 'panel:Insert');
+                        setInserting((on) => !on || outOfSight);
+                        setArranged((now) => folding(siding(now, 'left', true), 'panel:Insert', true));
+                    }}
+                    title="Add elements, Blade and components to the open template"
+                >
                     <span aria-hidden="true">+</span> Insert
                 </button>
 
@@ -1164,12 +1193,46 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                     </button>
                 </div>
 
+                <div className="sve-shown" role="group" aria-label="What is shown beside the page">
+                    <button
+                        type="button"
+                        className="sve-shown__part"
+                        aria-pressed={arranged.left}
+                        onClick={() => setArranged((now) => siding(now, 'left'))}
+                        aria-label="Panels on the left"
+                        title={arranged.left ? 'Hide the panels on the left' : 'Show the panels on the left'}
+                    >
+                        <ShownIcon part="left" />
+                    </button>
+                    <button
+                        type="button"
+                        className="sve-shown__part"
+                        aria-pressed={coding && template.state === 'ready'}
+                        disabled={template.state !== 'ready'}
+                        onClick={() => setCoding((on) => !on)}
+                        aria-label="Code under the page"
+                        title={template.state !== 'ready' ? 'Open a template to see its code' : coding ? 'Hide the code' : 'Show the code of the open template'}
+                    >
+                        <ShownIcon part="code" />
+                    </button>
+                    <button
+                        type="button"
+                        className="sve-shown__part"
+                        aria-pressed={arranged.right}
+                        onClick={() => setArranged((now) => siding(now, 'right'))}
+                        aria-label="Panels on the right"
+                        title={arranged.right ? 'Hide the panels on the right' : 'Show the panels on the right'}
+                    >
+                        <ShownIcon part="right" />
+                    </button>
+                </div>
+
                 <a className="sve-bar__link" href={page?.url ?? firstPage} target="_blank" rel="noreferrer">
                     View page ↗
                 </a>
             </header>
 
-            <Side side="left">
+            <Side side="left" shown={arranged.left}>
                 {inserting ? (
                     <InsertPanel
                         template={template.state === 'ready' ? template.data : null}
@@ -1289,7 +1352,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                 )}
             </main>
 
-            <Side side="right">
+            <Side side="right" shown={arranged.right}>
                 {template.state === 'ready' && selectedNode !== null && (
                     <SettingsPanel
                         template={template.data}
@@ -1377,5 +1440,6 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor }: Props
                 />
             </Side>
         </div>
+        </Folds.Provider>
     );
 }
