@@ -63,6 +63,45 @@ export type Insertable = {
     keywords: string;
 };
 
+/** One way of putting a value into a template (Insert on the server). */
+export type FieldInsert = { title: string; kind: 'print' | 'element' | 'structure'; blade: string };
+
+/** Some of what can be read from a value, under one heading: "Every entry", "Articles". */
+export type FieldGroup = { title: string; fields: PickField[] };
+
+/** What the picker says of any value (Picker on the server). */
+type Pickable = {
+    /** The PHP that reads it: "$entry->get('cover')?->alt". */
+    code: string;
+    /** What it is, in a word or two: "text", "file", "list of entries". */
+    what: string;
+    kind: string;
+    /** The collections, taxonomies or fieldsets it is of, by title. */
+    of: string[];
+    /** The ways it can be inserted, the usual one first. None for what is only read into. */
+    inserts: FieldInsert[];
+    /** As Blade where a text goes: "{{ … }}"; null for what is no text. */
+    print: string | null;
+    /** The same without the braces, for an echo or an attribute. */
+    expression: string | null;
+    /** What can be read from it. */
+    groups: FieldGroup[];
+};
+
+export type PickField = Pickable & {
+    handle: string;
+    label: string;
+    /** "Not in Pages": a field only some of the collections have. */
+    note: string | null;
+};
+
+/** Something a template can read at a place: "$entry", a loop's item, a global set. */
+export type PickVariable = Pickable & {
+    title: string;
+    from: 'page' | 'included' | 'loop' | 'set' | 'component' | 'site';
+    sure: boolean;
+};
+
 export type Refusal = 'forbidden' | 'not_found' | 'conflict' | 'rejected' | 'syntax' | 'invalid' | 'failed';
 
 export class ApiError extends Error {
@@ -168,4 +207,14 @@ export function saveSource(path: string, version: string, source: string): Promi
  */
 export function applyOperations(path: string, version: string, operations: Operation[]): Promise<{ template: TemplateData; focus: string | null }> {
     return request<{ template: TemplateData; focus: string | null }>('POST', `templates/${pathInAddress(path)}/operations`, { version, operations });
+}
+
+/**
+ * What can be read at a place in a template: at a node, or for something
+ * going into it; with no node, for the template as a whole.
+ */
+export function listFields(path: string, version: string, node: string | null, inside: boolean): Promise<PickVariable[]> {
+    const query = new URLSearchParams({ version, ...(node === null ? {} : { node }), ...(inside ? { inside: '1' } : {}) });
+
+    return request<{ variables: PickVariable[] }>('GET', `templates/${pathInAddress(path)}/fields?${query.toString()}`).then((answer) => answer.variables);
 }

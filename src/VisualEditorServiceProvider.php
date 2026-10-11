@@ -7,6 +7,7 @@ namespace Sunrice\VisualEditor;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\ServiceProvider;
 use Sunrice\Facades\Sunrice;
+use Sunrice\VisualEditor\Fields\Catalog;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Support\Access;
 
@@ -18,6 +19,9 @@ class VisualEditorServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/sunrice-visual-editor.php', 'sunrice-visual-editor');
+
+        // The site's blueprints are read once for a request, whoever asks.
+        $this->app->scoped(Catalog::class);
     }
 
     public function boot(): void
