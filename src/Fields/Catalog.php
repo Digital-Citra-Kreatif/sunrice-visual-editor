@@ -50,7 +50,7 @@ final class Catalog
     {
         return match ($shape->kind) {
             Shape::ENTRY => [new Members('Every entry', $this->ofEveryEntry()), ...$this->blueprints('collection', $shape->of)],
-            Shape::TERM => [new Members('Every term', $this->ofEveryTerm()), ...$this->blueprints('taxonomy', $shape->of)],
+            Shape::TERM => [new Members('Every term', $this->ofEveryTerm($shape->of)), ...$this->blueprints('taxonomy', $shape->of)],
             Shape::BLOCK => [new Members('Every block', [
                 $this->builtIn('type', 'Block type', Shape::of(Shape::TEXT), '%s->type'),
                 $this->builtIn('key', 'Key', Shape::of(Shape::TEXT), '%s->key'),
@@ -59,8 +59,10 @@ final class Catalog
             Shape::GLOBALS => $this->blueprints('global', $shape->of),
             Shape::COLLECTION => [new Members('Collection', [
                 $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->titleIn($locale)'),
-                $this->builtIn('listing_title', 'Listing page title', Shape::of(Shape::TEXT), '%s->archiveText($locale)[\'title\']'),
-                $this->builtIn('listing_intro', 'Listing page intro', Shape::of(Shape::TEXT), '%s->archiveText($locale)[\'intro\']'),
+                $this->builtIn('listing', 'Listing page text', Shape::group([
+                    $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), "%s['title']"),
+                    $this->builtIn('intro', 'Intro', Shape::of(Shape::TEXT), "%s['intro']"),
+                ]), '%s->archiveText($locale)'),
             ]), ...array_values(array_filter($this->blueprints('listing', $shape->of), fn (Members $members) => $shape->of !== [] && $members->fields !== []))],
             Shape::TAXONOMY => [new Members('Taxonomy', [$this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->titleIn($locale)')])],
             Shape::ASSET => [new Members('File', [
@@ -165,15 +167,18 @@ final class Catalog
         ];
     }
 
-    /** @return list<Field> */
-    private function ofEveryTerm(): array
+    /**
+     * @param  list<string>  $taxonomies  the term's own: the terms above and below it are of the same
+     * @return list<Field>
+     */
+    private function ofEveryTerm(array $taxonomies): array
     {
         return [
             $this->builtIn('name', 'Name', Shape::of(Shape::TEXT), '%s->name'),
             $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), '%s->url'),
             $this->builtIn('slug', 'Slug', Shape::of(Shape::TEXT), '%s->slug'),
-            $this->builtIn('parent', 'Term above it', Shape::term(), '%s->parent'),
-            $this->builtIn('children', 'Terms below it', Shape::listOf(Shape::term()), '%s->children'),
+            $this->builtIn('parent', 'Term above it', Shape::term($taxonomies), '%s->parent'),
+            $this->builtIn('children', 'Terms below it', Shape::listOf(Shape::term($taxonomies)), '%s->children'),
         ];
     }
 

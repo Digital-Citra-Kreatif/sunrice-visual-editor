@@ -134,9 +134,9 @@ it('lists what terms, blocks, globals, files, links, dates and menu items have',
         ->and($handles(Shape::of(Shape::MENU_ITEM)))->toBe([['label', 'url', 'newTab', 'isActive', 'isActiveOrAncestor', 'children']])
         ->and($handles(Shape::of(Shape::USER)))->toBe([['name']])
         ->and($handles(Shape::of(Shape::PAGE)))->toBe([['entry', 'term', 'collection', 'taxonomy']])
-        ->and($handles(Shape::collection('things')))->toBe([['title', 'listing_title', 'listing_intro'], ['image', 'description']])
-        ->and($handles(Shape::collection('articles')))->toBe([['title', 'listing_title', 'listing_intro']])   // no listing blueprint
-        ->and($handles(Shape::collection()))->toBe([['title', 'listing_title', 'listing_intro']])
+        ->and($handles(Shape::collection('things')))->toBe([['title', 'listing'], ['image', 'description']])
+        ->and($handles(Shape::collection('articles')))->toBe([['title', 'listing']])   // no listing blueprint
+        ->and($handles(Shape::collection()))->toBe([['title', 'listing']])
         ->and($handles(Shape::of(Shape::TEXT)))->toBe([]);
 
     expect($this->catalog->member(Shape::of(Shape::ASSET), 'url:large')->from('$image'))->toBe("\$image->url('large')")

@@ -439,8 +439,23 @@ How a page is rendered for the editor without touching normal rendering:
 
 ### V5.2 Scope
 **Depends on:** V5.1, V2.1
-`src/Fields/Scope.php` — `at(Template, Node): list<Variable>`. From the file's role and `usedBy`: `$entry`, `$entries`, `$term`, `$block`, `$sunricePage`, `$locale`, globals, menus. From the position: each enclosing `@foreach ($source as $item)` adds `$item`, typed when `$source` is a known field or query (repeater rows, entries, terms, assets, `$component->entries` with the tag's `collection`); enclosing component tags add `$component`. Simple assignments (`@php($image = $entry->get('image'))`) are followed; anything else is listed untyped.
-**Done when:** scope is correct at marked positions in every starter template (a table-driven test).
+- `src/Fields/Scope.php` — `at(file, template, node, inside)`: what the template can read at that place, as `Variable`s (`src/Fields/Variable.php`): how it is written (`$entry`, or `sunrice_global('site')` for what is no variable), its shape, where it comes from, a line saying so, and whether it is sure to be there. Three sides:
+
+  | From | What | How it is known |
+  | --- | --- | --- |
+  | the file | `$entry` and `$collection`; `$entries`; `$term`, `$taxonomy`; `$block`; `$query`, `$results` | The collections and taxonomies whose pages the template draws (`usedBy`); a block's fieldset is the file's name |
+  | the file, for a partial | whatever it reads and does not set | From every `@include` of it in the site's templates (and `@includeIf`, `@includeWhen`, `@includeUnless`, `@includeFirst`, `@each`): what the include names for it, and everything else the including template has at that place, which Blade passes on too. An entry of one collection here and another there is an entry of either. With no include to go by, Sunrice's own names say what it is (`$entry`, `$entries`, `$term`, `$terms`, `$block`, `$collection`, `$taxonomy`); anything else is a plain value |
+  | the place | the item (and key) of every loop around it | What the loop goes over: a field, `$entries`, a menu, `$component->entries` |
+  | the place | what the template sets above it | `@php($image = …)`, the statements of a `@php … @endphp`, a condition that sets what it asks about (`@if ($excerpt = $entry->get('excerpt'))`: sure to be there inside it) |
+  | the place | `$component`, inside `<x-sunrice::entries>`, `<x-sunrice::entry-filter>` and `<x-sunrice::terms>` | The tag's `collection` or `taxonomy` |
+  | the site | `$sunricePage`, `$locale`, each global set, each menu | Everywhere |
+
+  `inside` is for something that goes into the node, not in its place: a loop's item is there inside the loop, not where the loop stands.
+- `src/Fields/Expression.php` — reads a PHP expression as far as it says what its value is, without running it: variables, the ways the catalog says values are read (`->get('h')`, `->h`, `['h']`, `->url('large')`), `??`, `?:`, `a ? b : c`, brackets, `sunrice_global()`, `sunrice_menu()`, `sunrice_entries()`, `collect()`, and what list methods give (`first()` one item, `take(3)` the list again, `count()` a number). Sunrice's own idiom for "the first of several, or the one there is" (`$x instanceof Collection ? $x->first() : $x`) comes out as the one. Anything it does not read is unknown, never a guess. It also takes a call's arguments and a written-out array apart, for the includes.
+- A variable set to something that can't be followed, or looped over from it, is listed as a plain value: it can be printed, and nothing is offered from inside it.
+- **Not followed:** what a layout gets from the template that extends it (Sunrice's layouts read `$sunricePage`), view composers, a variable set inside an earlier `@if` (it may not have run), `as [$a, $b]`, and Blade's `$loop`.
+- `Catalog`: a collection's listing page text is now one member, `archiveText($locale)`, with `title` and `intro` inside; the terms above and below a term are of its taxonomy.
+**Done when:** scope is correct at marked positions in every starter template (`tests/Unit/Fields/ScopeTest.php`: 25 places in the 19 starter templates, and a site's own templates with a repeater, a condition on a block, both components, `@each` and a partial that is passed a row; `tests/Unit/Fields/ExpressionTest.php`: over a hundred expressions).
 
 ### V5.3 Emitters
 **Depends on:** V5.1, V1.4
