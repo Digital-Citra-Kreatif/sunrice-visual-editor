@@ -134,11 +134,15 @@ final class SunriceBridge
             ->values()->all();
     }
 
-    /** @return list<array{handle: string, title: string}> */
+    /**
+     * `archive`: whether each term has a page of its own, and so a URL that leads somewhere.
+     *
+     * @return list<array{handle: string, title: string, archive: bool}>
+     */
     public static function taxonomies(): array
     {
         return Taxonomy::query()->orderBy('title')->get()
-            ->map(fn (Taxonomy $taxonomy) => ['handle' => (string) $taxonomy->handle, 'title' => (string) $taxonomy->title])
+            ->map(fn (Taxonomy $taxonomy) => ['handle' => (string) $taxonomy->handle, 'title' => (string) $taxonomy->title, 'archive' => (bool) $taxonomy->setting('has_archive', false)])
             ->values()->all();
     }
 
