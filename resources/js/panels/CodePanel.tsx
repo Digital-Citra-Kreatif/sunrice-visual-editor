@@ -79,7 +79,10 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
     const [trouble, setTrouble] = useState<Trouble | null>(null);
     // The open template's tab is in sight, however many there are.
     const openTab = useRef<HTMLSpanElement>(null);
-    useEffect(() => openTab.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' }), [template.path, template.origin, tabs.length]);
+    useEffect(() => {
+        // In braces: a newer browser answers scrollIntoView with a promise, and what an effect answers with is taken for its undoing.
+        openTab.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }, [template.path, template.origin, tabs.length]);
 
     const original = template.source ?? '';
     const text = draft ?? original;
