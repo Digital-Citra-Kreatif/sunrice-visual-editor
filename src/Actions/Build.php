@@ -59,7 +59,7 @@ final class Build
             }
             $started = microtime(true);
             $output = '';
-            $process = Process::fromShellCommandline($command, base_path(), null, null, (float) $timeout);
+            $process = Process::fromShellCommandline($command, base_path(), self::environment(), null, (float) $timeout);
             try {
                 $code = $process->run(function (string $type, string $buffer) use (&$output): void {
                     $output .= $buffer;
@@ -87,6 +87,24 @@ final class Build
             flock($lock, LOCK_UN);
             fclose($lock);
         }
+    }
+
+    /**
+     * What the command is given on top of what a process started from PHP
+     * gets anyway. Behind a web server that is only what PHP lists as the
+     * request's own variables, which often leaves out the path: `npm` is
+     * then looked for in the shell's few default places, and the `node`
+     * it starts in fewer still. Where the web server's process has a path
+     * and a home directory, the build gets them.
+     *
+     * @return array<string, string>
+     */
+    private static function environment(): array
+    {
+        return array_filter(
+            ['PATH' => getenv('PATH'), 'HOME' => getenv('HOME')],
+            fn (string|false $value): bool => is_string($value) && $value !== '',
+        );
     }
 
     /** What a command printed, as text to show: without the colours it wrote for a terminal, and its end when it is long. */

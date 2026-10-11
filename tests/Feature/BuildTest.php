@@ -93,6 +93,29 @@ it('says so when the command is not there to run', function () {
         ->and($answer['output'])->toContain('sve-no-such-program-anywhere');
 });
 
+it('gives the command the path the web server\'s process has, which PHP does not list for a request', function () {
+    actingAsSuperAdmin();
+    config(['sunrice-visual-editor.build.command' => 'printenv PATH']);
+
+    // Behind a web server the path is in the process and not in what PHP lists: a process started from there went without.
+    $listed = [$_SERVER['PATH'] ?? null, $_ENV['PATH'] ?? null];
+    unset($_SERVER['PATH'], $_ENV['PATH']);
+    try {
+        $answer = postJson(SVE_BUILD)->assertOk()->json();
+    } finally {
+        [$server, $env] = $listed;
+        if ($server !== null) {
+            $_SERVER['PATH'] = $server;
+        }
+        if ($env !== null) {
+            $_ENV['PATH'] = $env;
+        }
+    }
+
+    expect($answer['ok'])->toBeTrue($answer['output'])
+        ->and($answer['output'])->toBe(getenv('PATH'));
+});
+
 it('stops a build that takes too long', function () {
     actingAsSuperAdmin();
     config(['sunrice-visual-editor.build' => ['command' => phpDoes('echo "started"; sleep(20);'), 'timeout' => 1]]);

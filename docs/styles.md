@@ -185,11 +185,22 @@ permission is not listed yet). The top bar then has a **Build** button.
 Three things to know:
 
 - **Node has to be on the server.** Sunrice and the editor come built and
-  need no Node; a build does. The web server's user must find `npm` in its
-  path and the site's `node_modules` must be installed. Where either is
-  missing the button says that a program was not found, and what the
-  shell printed names it. A full path in the command
-  (`/usr/bin/npm run build`) helps where the web server's path is short.
+  need no Node; a build does. The web server's user must find `npm` and
+  `node`, and the site's `node_modules` must be installed. Where any of
+  that is missing the button says that a program was not found, and what
+  the shell printed names it.
+- **The web server's path is often short.** The command gets the path the
+  web server's own process has. PHP-FPM usually runs with none, and the
+  shell then looks in a few system directories only: a Node installed
+  there (`/usr/bin`) is found, one installed for a user (nvm, Herd, a
+  version manager) is not. The command is a shell command, so it can say
+  where Node is:
+
+  ```
+  SUNRICE_VISUAL_EDITOR_BUILD="PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:/usr/bin:/bin npm run build"
+  ```
+
+  A full path to `npm` alone is not enough: `npm` starts `node` by name.
 - **The web server's user writes the build**, so it needs to be allowed to
   write `public/build`.
 - **A build takes the time it takes.** The request waits for it, up to
