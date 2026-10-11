@@ -90,6 +90,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Build
+    |--------------------------------------------------------------------------
+    |
+    | For a site whose CSS is built (Tailwind through Vite). When a command
+    | is set here, the editor has a Build button that runs exactly this
+    | command in the site's directory, shows what it printed, and says when
+    | the built CSS is behind the templates. Without one there is no button.
+    |
+    | The command is this setting and nothing else: nothing a request sends
+    | is ever run. Running it takes a permission of its own
+    | (visual-editor.build), and it is stopped after `timeout` seconds.
+    | Node has to be installed where the site runs: Sunrice itself does not
+    | need it.
+    |
+    */
+
+    'build' => [
+        'command' => env('SUNRICE_VISUAL_EDITOR_BUILD'),
+        'timeout' => 120,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Paths
     |--------------------------------------------------------------------------
     |

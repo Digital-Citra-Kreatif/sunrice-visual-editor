@@ -42,7 +42,7 @@ class InstalledTest extends TestCase
         }
 
         $this->assertSame(
-            ['visual-editor.code', 'visual-editor.edit', 'visual-editor.open'],
+            ['visual-editor.build', 'visual-editor.code', 'visual-editor.edit', 'visual-editor.open'],
             Permission::query()->where('name', 'like', 'visual-editor.%')->orderBy('name')->pluck('name')->all(),
         );
     }

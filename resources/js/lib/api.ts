@@ -225,6 +225,22 @@ export function listFields(path: string, version: string, node: string | null, i
     return request<{ variables: PickVariable[] }>('GET', `templates/${pathInAddress(path)}/fields?${query.toString()}`).then((answer) => answer.variables);
 }
 
+/** How a run of the site's build command went (Build on the server). */
+export type Built = {
+    ok: boolean;
+    seconds: number;
+    /** The end of what the command printed. */
+    output: string;
+    /** What the command ended with; null when it was stopped or could not be run. */
+    code: number | null;
+    message: string;
+};
+
+/** Runs the site's build command: the one the site's configuration names, and nothing this sends. */
+export function runBuild(): Promise<Built> {
+    return request<Built>('POST', 'build', {});
+}
+
 /** What can be read at a place in a template's text as it is typed: nothing is saved by asking. */
 export type FieldsAt = {
     variables: PickVariable[];

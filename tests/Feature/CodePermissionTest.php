@@ -107,6 +107,8 @@ it('registers its permissions with Sunrice, for roles to be given', function () 
         'visual-editor.open' => 'Open the visual editor',
         'visual-editor.edit' => 'Change templates and styles in the visual editor',
         'visual-editor.code' => 'Edit template code in the visual editor',
+        // Apart from the three: it is in none of them.
+        'visual-editor.build' => 'Run the site\'s build command from the visual editor',
     ]);
 });
 
@@ -140,9 +142,10 @@ it('tells the screen what whoever opened it may do', function (array $has, ?arra
         : get('/cms/visual-editor')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('can', $can));
 })->with([
     'none' => [[], null],
-    'open' => [[Access::OPEN], ['edit' => false, 'code' => false]],
-    'edit' => [[Access::EDIT], ['edit' => true, 'code' => false]],
-    'code' => [[Access::CODE], ['edit' => true, 'code' => true]],
+    'open' => [[Access::OPEN], ['edit' => false, 'code' => false, 'build' => false]],
+    'edit' => [[Access::EDIT], ['edit' => true, 'code' => false, 'build' => false]],
+    // Writing code is not running the site's build: that is a permission of its own (BuildTest).
+    'code' => [[Access::CODE], ['edit' => true, 'code' => true, 'build' => false]],
 ]);
 
 it('lets someone who may only open the editor read everything and change nothing', function () {

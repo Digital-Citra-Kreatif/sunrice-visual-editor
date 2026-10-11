@@ -50,3 +50,5 @@ env:
   - DB_CONNECTION=sqlite
   - SUNRICE_ADMIN_PATH=cms
   - SUNRICE_VISUAL_EDITOR=true
+  # A build command that harms nothing, so the editor's Build button can be tried on the demo site.
+  - 'SUNRICE_VISUAL_EDITOR_BUILD="php -v"'

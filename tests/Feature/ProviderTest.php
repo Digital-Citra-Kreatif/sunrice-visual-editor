@@ -27,7 +27,7 @@ it('has Sunrice create its permissions once, however often permissions are synce
     $sync();
 
     expect(Permission::query()->where('name', 'like', 'visual-editor.%')->orderBy('name')->pluck('name')->all())
-        ->toBe(['visual-editor.code', 'visual-editor.edit', 'visual-editor.open'])
+        ->toBe(['visual-editor.build', 'visual-editor.code', 'visual-editor.edit', 'visual-editor.open'])
         // Sunrice's own are synced as they were.
         ->and(Permission::query()->where('name', 'sunrice.access-admin')->count())->toBe(1);
 });

@@ -36,9 +36,15 @@ it has been installed on a real project (see the end of
   place, as rows of declarations or as controls. The page at several
   widths side by side, and a style written under the `@media` condition
   for the width being edited.
+- **Sites that build their CSS** (Tailwind through Vite): a class added in
+  the editor shows at once while `npm run dev` runs. Without a dev server,
+  an opt-in preview shows it in the editor before a build, and a **Build**
+  button runs the site's own build command, when one is set, and shows
+  what it printed.
 - **Permissions**: `visual-editor.open`, `visual-editor.edit`,
   `visual-editor.code`. Someone who may edit and not edit code can't make a
-  template run PHP it did not run before.
+  template run PHP it did not run before. Apart from those,
+  `visual-editor.build` for running the build command.
 - **Tools for AI agents**: `get_template_tree` and `edit_template`, on
   Sunrice's MCP server (Sunrice from 11 October 2026 or later).
 - **Copy to site** for Sunrice's own views, which are otherwise read-only.

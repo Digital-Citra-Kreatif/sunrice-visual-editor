@@ -1682,6 +1682,56 @@ await step('refuse the admin\'s own address', async () => {
     await page.getByRole('alert').getByText('admin').waitFor();
 });
 
+// --- The site's build command ---------------------------------------------------------
+
+const buildButton = page.locator('.sve-bar__build');
+
+await step('say that a build is needed once a template has changed, run it, and say how long it took', async () => {
+    await page.goto(`${base}/cms/visual-editor`);
+    await page.waitForSelector('.sve-template');
+    await frame.locator('.hero h1').waitFor();
+    if ((await buildButton.textContent())?.trim() !== 'Build') {
+        throw new Error(`Before anything changed the button says “${await buildButton.textContent()}”`);
+    }
+
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    await settings.getByLabel('Add a class').fill('built-later');
+    await settings.getByLabel('Add a class').press('Enter');
+    await frame.locator('.hero h1.built-later').waitFor();
+    await idle();
+    await buildButton.getByText('Build needed', { exact: true }).waitFor();
+
+    await buildButton.click();
+    await page.getByText(/^Built in [\d.]+ seconds\.$/).waitFor();
+    await buildButton.getByText('Build', { exact: true }).waitFor();
+    // The page was drawn again with what was built, and what was selected still is.
+    await frame.locator('.hero h1.built-later[data-sve]').waitFor();
+    await layerIs('h1.built-later');
+
+    await settings.getByLabel('Remove the class built-later').click();
+    await idle();
+    await buildButton.getByText('Build needed', { exact: true }).waitFor();
+});
+
+await step('show what a build that failed printed, until it is put away', async () => {
+    // The demo site's command cannot fail: the answer of one that did is put in its place.
+    await page.route('**/visual-editor/api/build', (route) =>
+        route.fulfill({
+            json: { ok: false, seconds: 1.2, code: 1, message: 'The build failed (exit code 1).', output: 'error: Cannot apply unknown utility class `bg-skyy-400`' },
+        }),
+    );
+    await buildButton.click();
+    const failed = page.getByRole('alert', { name: 'The build' });
+    await failed.getByText('The build failed (exit code 1).').waitFor();
+    await failed.getByText('Cannot apply unknown utility class').waitFor();
+    // What was needed still is.
+    await buildButton.getByText('Build needed', { exact: true }).waitFor();
+    await failed.getByRole('button', { name: 'Put this away' }).click();
+    await failed.waitFor({ state: 'detached' });
+    await page.unroute('**/visual-editor/api/build');
+});
+
 await step('take a screenshot', async () => {
     await page.goto(`${base}/cms/visual-editor`);
     await frame.getByText('Templates you can see').waitFor();
@@ -1706,6 +1756,10 @@ await step('sign in as the designer, who may change templates and not write code
     await page.getByRole('link', { name: 'Visual editor' }).first().click();
     await page.waitForSelector('.sve-template');
     await frame.getByText('Templates you can see').waitFor();
+    // The site's build command is not theirs to run.
+    if ((await page.locator('.sve-bar__build').count()) !== 0) {
+        throw new Error('The Build button is shown to someone who may not build');
+    }
 });
 
 await step('show them code and let them choose from lists, not type it', async () => {
