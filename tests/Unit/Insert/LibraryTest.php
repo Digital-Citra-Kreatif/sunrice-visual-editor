@@ -87,9 +87,11 @@ it('names each entry once, in its group', function () {
 it('names a collection, taxonomy or form of the site in each of Sunrice\'s components', function () {
     $entries = collect(sveLibrary())->keyBy('id');
 
-    expect($entries['sunrice.entries.articles']['blade'])->toContain('<x-sunrice::entries collection="articles"', '<a href="{{ $entry->url }}">{{ $entry->title }}</a>')
+    expect($entries['sunrice.entries.articles']['blade'])->toContain('<x-sunrice::entries collection="articles"', '<a href="{{ $item->url }}">{{ $item->title }}</a>')
+        // Each one is $item: on an entry's page $entry is the page's own.
+        ->and($entries['sunrice.entries.articles']['blade'])->toContain('as $item)')->not->toContain('$entry')
         // Entries without a page of their own have no address to link to.
-        ->and($entries['sunrice.entries.team']['blade'])->toContain('<h3>{{ $entry->title }}</h3>')->not->toContain('href')
+        ->and($entries['sunrice.entries.team']['blade'])->toContain('<h3>{{ $item->title }}</h3>')->not->toContain('href')
         ->and($entries['sunrice.terms.categories']['blade'])->toContain('<x-sunrice::terms taxonomy="categories">')
         ->and($entries['sunrice.form.contact']['blade'])->toContain('<x-sunrice::form handle="contact">', 'name="{{ $name }}"');
 });

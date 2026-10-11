@@ -56,6 +56,7 @@ final class TreeData
                 if (Rules::hasAttributes($node)) {
                     $data['attributes'] = $this->attributes($node);
                 }
+                $data = $this->withComponentAttributes($node, $data);
                 if (in_array($node->kind, ['echo', 'raw_echo'], true)) {
                     $data['expression'] = (string) $node->args;
                 } elseif ($node->kind === 'directive') {
@@ -65,6 +66,7 @@ final class TreeData
             case 'branch':
                 $data['source'] = $node->open;
                 $data['arguments'] = $node->args;
+                $data = $this->withComponentAttributes($node, $data);
                 break;
             case 'block':
                 $data['atom'] = $node->kind;
@@ -92,6 +94,29 @@ final class TreeData
                 $data['children'][] = $this->node($child);
             }
         }
+
+        return $data;
+    }
+
+    /**
+     * A component's tag: what it is given, as attributes to change. Left
+     * out when the tag can't be read attribute by attribute.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function withComponentAttributes(Node $node, array $data): array
+    {
+        if (! Rules::isComponentTag($node)) {
+            return $data;
+        }
+        try {
+            Attributes::refresh($node);
+        } catch (EditRejected) {
+            return $data;
+        }
+        $data['attributes'] = $this->attributes($node);
+        $data['can']['attributes'] = true;
 
         return $data;
     }

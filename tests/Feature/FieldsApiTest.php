@@ -170,3 +170,28 @@ it('is for those who may use the editor only', function () {
 
     ($this->ask)('show.blade.php')->assertStatus(403);
 });
+
+it('says what a value is asked for and compared as in a condition, and gone over in a loop', function () {
+    $entry = ($this->variable)(($this->ask)('show.blade.php')->assertOk(), '$entry');
+
+    expect(($this->field)($entry, 'summary'))->toMatchArray(['asked' => "\$entry->get('summary')", 'compared' => "\$entry->get('summary')", 'looped' => null])
+        ->and(($this->field)($entry, 'photos'))->toMatchArray(['asked' => "collect(\$entry->get('photos'))->isNotEmpty()", 'looped' => "\$entry->get('photos') ?? []"])
+        ->and(($this->field)($entry, 'terms'))->toMatchArray(['asked' => '$entry->terms->isNotEmpty()', 'looped' => '$entry->terms'])
+        ->and(($this->field)(($this->field)($entry, 'details'), 'material'))->toMatchArray(['asked' => "! empty(\$entry->get('details')['material'])", 'compared' => "(\$entry->get('details')['material'] ?? null)"]);
+});
+
+it('lists the site\'s collections with their fields, and its taxonomies', function () {
+    $site = $this->getJson(route('sunrice.admin.visual-editor.api.site'))->assertOk();
+
+    expect(array_column($site->json('collections'), 'title', 'handle'))->toBe(['articles' => 'Articles', 'pages' => 'Pages', 'things' => 'Things'])
+        ->and($site->json('collections.0.single'))->toBeTrue()
+        ->and($site->json('collections.0.fields'))->toBe([
+            ['handle' => 'excerpt', 'label' => 'Excerpt', 'what' => 'text', 'kind' => 'text'],
+            ['handle' => 'body', 'label' => 'Body', 'what' => 'rich text', 'kind' => 'html'],
+        ])
+        ->and($site->json('taxonomies'))->toBe([['handle' => 'topics', 'title' => 'Topics', 'archive' => true]]);
+
+    auth()->logout();
+    $this->actingAs(createUser(email: 'editor@example.com'), config('sunrice.auth.guard', 'web'));
+    $this->getJson(route('sunrice.admin.visual-editor.api.site'))->assertStatus(403);
+});

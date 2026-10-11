@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { binding, boundTo, echoed, everything, matchingFields, nameOf, originOf, printable, usual } from '../../resources/js/lib/fields.ts';
 
-const value = (code, what, more = {}) => ({ code, what, kind: what, of: [], inserts: [], print: null, expression: null, groups: [], ...more });
+const value = (code, what, more = {}) => ({ code, what, kind: what, of: [], inserts: [], print: null, expression: null, asked: code, compared: code, looped: null, groups: [], ...more });
 const text = (code, more = {}) => value(code, 'text', { print: `{{ ${code} }}`, expression: code, inserts: [{ title: 'Text', kind: 'print', blade: `{{ ${code} }}` }], ...more });
 const field = (handle, label, of, note = null) => ({ handle, label, note, ...of });
 
@@ -77,6 +77,10 @@ test('says which field an expression reads', () => {
     assert.deepEqual(boundTo(variables, "$step['label'] ?? ''").trail, ['$step', 'Label'], 'as it is written where a text goes');
     assert.deepEqual(boundTo(variables, "$step['label']").trail, ['$step', 'Label'], 'or as it is read');
     assert.equal(boundTo(variables, '$entry->title . "!"'), null);
+    // What a loop goes over is said the same way.
+    const photos = { handle: 'photos', label: 'Photos', note: null, ...value("$entry->get('photos')", 'list of files', { looped: "$entry->get('photos') ?? []" }) };
+    const withList = [{ ...variables[1], groups: [{ title: 'Things', fields: [photos] }] }];
+    assert.deepEqual(boundTo(withList, "$entry->get('photos') ?? []").trail, ['$entry', 'Photos']);
     assert.equal(boundTo(variables, ''), null);
     assert.equal(boundTo(null, '$entry->title'), null);
 });

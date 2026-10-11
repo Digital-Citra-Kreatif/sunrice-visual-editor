@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FieldGroup, PickField, PickVariable } from '../lib/api';
-import { ORIGINS, matchingFields, nameOf, originOf, printable, usual, type Found } from '../lib/fields';
+import { ORIGINS, everything, matchingFields, nameOf, originOf, printable, usual, type Found } from '../lib/fields';
 
 type ListProps = {
     /** What can be read at the place; null until it is known. */
@@ -174,6 +174,10 @@ type ChooserProps = {
     /** What the control is called, for the button's name: "Text", "href". */
     control: string;
     disabled: boolean;
+    /** What the link that opens the list says. */
+    label?: string;
+    /** Which of the values are offered: those that can be written as text, unless said otherwise. */
+    offer?: (found: Found) => boolean;
     onChoose(value: PickVariable | PickField): void;
 };
 
@@ -182,17 +186,17 @@ type ChooserProps = {
  * can be written where a text goes, to fill the control from. Opens in
  * place, under the control.
  */
-export function FieldChooser({ variables, control, disabled, onChoose }: ChooserProps) {
+export function FieldChooser({ variables, control, disabled, label = 'Use a field…', offer, onChoose }: ChooserProps) {
     const [open, setOpen] = useState(false);
     const [typed, setTyped] = useState('');
-    const all = variables === null ? [] : printable(variables);
+    const all = variables === null ? [] : offer === undefined ? printable(variables) : everything(variables).filter(offer);
     const words = typed.toLowerCase().split(/\s+/).filter((word) => word !== '');
     const shown: Found[] = all.filter((found) => words.every((word) => `${found.trail.join(' ')} ${found.value.code}`.toLowerCase().includes(word)));
 
     return (
         <div className="sve-bind">
             <button type="button" className="sve-bind__open" aria-expanded={open} disabled={disabled} onClick={() => setOpen((was) => !was)} aria-label={`Use a field for ${control}`} title="Fill it from one of the CMS’s fields or variables">
-                {open ? 'Close' : 'Use a field…'}
+                {open ? 'Close' : label}
             </button>
             {open && (
                 <div className="sve-bind__list" role="group" aria-label={`Fields for ${control}`}>
@@ -200,7 +204,7 @@ export function FieldChooser({ variables, control, disabled, onChoose }: Chooser
                     {variables === null ? (
                         <p className="sve-empty">Looking at what is there…</p>
                     ) : shown.length === 0 ? (
-                        <p className="sve-empty">{all.length === 0 ? 'Nothing here can be written as text.' : `Nothing matches “${typed.trim()}”.`}</p>
+                        <p className="sve-empty">{all.length === 0 ? 'Nothing at this place can be used for it.' : `Nothing matches “${typed.trim()}”.`}</p>
                     ) : (
                         <ul className="sve-insertables">
                             {shown.map((found) => (
@@ -213,7 +217,7 @@ export function FieldChooser({ variables, control, disabled, onChoose }: Chooser
                                             setOpen(false);
                                             onChoose(found.value);
                                         }}
-                                        title={found.value.print ?? ''}
+                                        title={found.value.code}
                                     >
                                         <span className="sve-insertable__title">{found.trail.join(' › ')}</span>
                                         <code className="sve-insertable__hint">{found.value.what}</code>

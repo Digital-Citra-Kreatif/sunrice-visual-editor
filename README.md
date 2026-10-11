@@ -14,7 +14,7 @@ What the package will do is in [SPEC.md](SPEC.md); the order of work is in
 
 ## What works today
 
-The first two milestones of three.
+All three milestones of the plan's first part.
 
 **See a page's templates, click through them, edit them as code.**
 
@@ -47,8 +47,7 @@ The first two milestones of three.
 - The page keeps its place after a change: it is drawn again out of sight and
   put in the place of the old one, scrolled to where that was.
 
-Under way, the third milestone: **the CMS's fields and variables, picked from
-a list in place of typed.**
+**The CMS's fields and variables, picked from a list in place of typed.**
 
 - **Insert → Fields** lists what can be read where the next thing goes: the
   entry of the page with the fields of its collection, a block's fields, the
@@ -59,9 +58,13 @@ a list in place of typed.**
   field is empty, or is not there at all.
 - **Use a field…** under a text, an echo or an attribute in Settings fills it
   from a field, and a value that is a field says which.
+- A condition is built by choosing a field and what to ask of it ("Price is
+  more than 100"); a loop's source is chosen from the lists there are.
+- `<x-sunrice::entries>` is set from lists: the collection, the order, how
+  many, in pages or not, and filters.
 
-Still to come in it: building a condition or a query for entries without
-typing.
+Not there yet: a panel for styles (the classes of an element can be changed,
+its CSS can't), permissions of its own, and tools for AI agents.
 
 ## Using it
 

@@ -84,6 +84,12 @@ type Pickable = {
     print: string | null;
     /** The same without the braces, for an echo or an attribute. */
     expression: string | null;
+    /** As a condition that there is anything: "$entry->get('cover')", "$entry->terms->isNotEmpty()". */
+    asked: string;
+    /** As it is written to be compared with another value. */
+    compared: string;
+    /** As it is written to be gone over in a loop; null for what is no list. */
+    looped: string | null;
     /** What can be read from it. */
     groups: FieldGroup[];
 };
@@ -217,4 +223,14 @@ export function listFields(path: string, version: string, node: string | null, i
     const query = new URLSearchParams({ version, ...(node === null ? {} : { node }), ...(inside ? { inside: '1' } : {}) });
 
     return request<{ variables: PickVariable[] }>('GET', `templates/${pathInAddress(path)}/fields?${query.toString()}`).then((answer) => answer.variables);
+}
+
+/** A collection of the site, with the fields its entries have. */
+export type SiteCollection = { handle: string; title: string; single: boolean; fields: { handle: string; label: string; what: string; kind: string }[] };
+
+/** What the site's content is made of, for the controls that choose from it. */
+export type Site = { collections: SiteCollection[]; taxonomies: { handle: string; title: string; archive: boolean }[] };
+
+export function readSite(): Promise<Site> {
+    return request<Site>('GET', 'site');
 }

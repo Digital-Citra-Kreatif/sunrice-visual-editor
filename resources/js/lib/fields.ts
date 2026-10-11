@@ -93,7 +93,8 @@ export function boundTo(variables: PickVariable[] | null, expression: string | n
     }
     const wanted = squeezed(expression);
 
-    return everything(variables).find((found) => squeezed(found.value.code) === wanted || (found.value.expression !== null && squeezed(found.value.expression) === wanted)) ?? null;
+    // As it is read, as it is written where a text goes, or as it is gone over in a loop.
+    return everything(variables).find((found) => [found.value.code, found.value.expression, found.value.looped].some((code) => code !== null && squeezed(code) === wanted)) ?? null;
 }
 
 /** The expression of an attribute's value when the value is one echo and nothing else: `{{ $entry->url }}`. */
@@ -110,7 +111,7 @@ export function echoed(value: string | null): string | null {
  * after them. An echo is given the field's expression, and printed as HTML
  * or not as the field wants. An attribute's value becomes `{{ … }}`.
  */
-export function binding(node: TreeNode, to: PickVariable | PickField, attribute: string | null = null): Operation[] {
+export function binding(node: { id: string; type: TreeNode['type']; atom?: unknown }, to: PickVariable | PickField, attribute: string | null = null): Operation[] {
     if (to.print === null || to.expression === null) {
         return [];
     }

@@ -76,6 +76,7 @@ final class Attributes
     public static function addClass(Node $element, string $class): void
     {
         $class = self::className($class);
+        self::refuseForComponent($element);
         self::refuseClassDirective($element);
         if (in_array($class, self::classes($element), true)) {
             return;
@@ -98,6 +99,7 @@ final class Attributes
 
     public static function removeClass(Node $element, string $class): void
     {
+        self::refuseForComponent($element);
         $class = self::className($class);
         self::refuseClassDirective($element);
         $tokens = self::classTokens($element);
@@ -186,12 +188,18 @@ final class Attributes
      */
     public static function refresh(Node $element): void
     {
-        $tokens = (new HtmlLexer)->lex($element->open, (new BladeScanner)->scan($element->open));
+        // A component's tag is read as an element's would be: under another name, of the same
+        // length, that Blade does not take for a component and read as one piece.
+        $component = Rules::isComponentTag($element);
+        $open = $component ? '<y-'.substr($element->open, 3) : $element->open;
+        $tokens = (new HtmlLexer)->lex($open, (new BladeScanner)->scan($open));
         $tag = $tokens[0] ?? null;
-        if (count($tokens) !== 1 || $tag['type'] !== 'open' || $tag['start'] !== 0 || $tag['end'] !== strlen($element->open)) {
-            throw new EditRejected('The change would break the tag.');
+        if (count($tokens) !== 1 || $tag['type'] !== 'open' || $tag['start'] !== 0 || $tag['end'] !== strlen($open)) {
+            throw new EditRejected($component ? 'The component\'s tag can\'t be read attribute by attribute: change it in the code.' : 'The change would break the tag.');
         }
-        $element->name = $tag['name'];
+        if (! $component) {
+            $element->name = $tag['name'];
+        }
         $element->attrs = $tag['attrs'];
     }
 
@@ -250,7 +258,10 @@ final class Attributes
      */
     private static function existing(Node $element, string $name): ?array
     {
-        if (! Rules::hasAttributes($element)) {
+        if (Rules::isComponentTag($element)) {
+            // Read where it is needed: the tree keeps a component's tag as one piece.
+            self::refresh($element);
+        } elseif (! Rules::hasAttributes($element)) {
             throw new EditRejected('Only elements have attributes.');
         }
         $found = array_values(array_filter($element->attrs, fn (array $attr) => $attr['kind'] === 'attr' && $attr['name'] === $name));
@@ -272,8 +283,20 @@ final class Attributes
     private static function insertPoint(Node $element): int
     {
         $last = end($element->attrs);
+        if ($last !== false) {
+            return $last['end'];
+        }
 
-        return $last === false ? 1 + strlen($element->name) : $last['end'];
+        // After the tag's name: "<section", "<x-sunrice::entries".
+        return Rules::isComponentTag($element) ? strcspn($element->open, " \t\r\n/>") : 1 + strlen($element->name);
+    }
+
+    /** A component's classes are whatever its `class` attribute says: one text, set as an attribute. */
+    private static function refuseForComponent(Node $element): void
+    {
+        if (Rules::isComponentTag($element)) {
+            throw new EditRejected('A component is given its classes as one attribute: change its class attribute.');
+        }
     }
 
     private static function refuseClassDirective(Node $element): void
