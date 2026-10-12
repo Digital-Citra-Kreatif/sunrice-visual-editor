@@ -1188,13 +1188,41 @@ await step('fold a panel to its title and open it again, with what was in it as 
     await layerIs('h1');
 });
 
+await step('keep one compact toolbar row on desktop, with matching visible and accessible panel names', async () => {
+    await page.setViewportSize({ width: 1440, height: 860 });
+    const box = await bar.boundingBox();
+    if (box === null || box.height > 49) {
+        throw new Error(`Desktop toolbar uses ${box?.height} pixels instead of one 48px row`);
+    }
+    for (const name of ['Structure', 'Code', 'Inspector']) {
+        await bar.locator('.sve-shown').getByRole('button', { name, exact: true }).waitFor();
+    }
+});
+
 await step('hide the panels on both sides: the page takes their room, and the outline stays on its element', async () => {
     const before = await widthIn(frame);
-    await bar.getByRole('button', { name: 'Panels on the right' }).click();
-    await bar.getByRole('button', { name: 'Panels on the left' }).click();
+    await bar.getByRole('button', { name: 'Inspector', exact: true }).click();
+    await bar.getByRole('button', { name: 'Structure', exact: true }).click();
     await until('The sides are still there', async () => (await page.locator('.sve-side:visible').count()) === 0 || (await page.locator('.sve-side:visible').count()));
     await until('The page did not take the room', async () => (await widthIn(frame)) >= before + 400 || (await widthIn(frame)));
     await outlineSettles('.hero h1');
+});
+
+await step('hidden panel handles cost no frame width, including when hovered or focused', async () => {
+    for (const width of [1440, 1100]) {
+        await page.setViewportSize({ width, height: 860 });
+        await until('Hidden sides cost frame width', async () => Math.abs((await widthIn(frame)) - (width - 26)) <= 1);
+        for (const name of ['Open Structure', 'Open Inspector']) {
+            const edge = page.getByRole('button', { name, exact: true });
+            await edge.hover();
+            await edge.focus();
+            const shown = await widthIn(frame);
+            if (Math.abs(shown - (width - 26)) > 1) {
+                throw new Error(`Hover/focus on ${name} reduced the page to ${shown}px at ${width}px`);
+            }
+        }
+    }
+    await page.setViewportSize({ width: 1440, height: 860 });
 });
 
 await step('find the editor as it was left when it is opened again', async () => {
@@ -1204,7 +1232,7 @@ await step('find the editor as it was left when it is opened again', async () =>
         throw new Error('A side that was hidden is shown again');
     }
     for (const side of ['left', 'right']) {
-        if ((await bar.getByRole('button', { name: `Panels on the ${side}` }).getAttribute('aria-pressed')) !== 'false') {
+        if ((await bar.getByRole('button', { name: side === 'left' ? 'Structure' : 'Inspector', exact: true }).getAttribute('aria-pressed')) !== 'false') {
             throw new Error(`The button for the ${side} side says it is shown`);
         }
     }
@@ -1213,7 +1241,7 @@ await step('find the editor as it was left when it is opened again', async () =>
 await step('fly a hidden side out over the page: the page keeps its width, and Escape or a click on the page puts the side away', async () => {
     const before = await widthIn(frame);
     const flown = page.locator('.sve-side--flown');
-    const edge = (side) => page.getByRole('button', { name: `Fly out the panels on the ${side}` });
+    const edge = (side) => page.getByRole('button', { name: `Open ${side === 'left' ? 'Structure' : 'Inspector'}`, exact: true });
 
     await edge('right').click();
     await page.locator('.sve-side--right.sve-side--flown').waitFor();
@@ -1257,10 +1285,10 @@ await step('fly a hidden side out over the page: the page keeps its width, and E
     await flown.getByRole('button', { name: 'Keep open' }).click();
     await page.locator('.sve-side--left:not(.sve-side--flown)').waitFor();
     await until('The page did not give the side its room', async () => (await widthIn(frame)) <= before - 200 || (await widthIn(frame)));
-    if ((await bar.getByRole('button', { name: 'Panels on the left' }).getAttribute('aria-pressed')) !== 'true' || (await edge('left').count()) !== 0) {
+    if ((await bar.getByRole('button', { name: 'Structure', exact: true }).getAttribute('aria-pressed')) !== 'true' || (await edge('left').count()) !== 0) {
         throw new Error('The side that was kept open is not shown as one beside the page');
     }
-    await bar.getByRole('button', { name: 'Panels on the left' }).click();
+    await bar.getByRole('button', { name: 'Structure', exact: true }).click();
     await edge('left').waitFor();
     if ((await flown.count()) !== 0) {
         throw new Error('A side hidden from the bar flew out by itself');
@@ -1272,14 +1300,14 @@ await step('bring the left side back by asking to insert something, and the righ
     await page.locator('.sve-side--left .sve-panel[aria-label="Insert"]').waitFor();
     await bar.getByRole('button', { name: 'Insert' }).click();
     await page.locator('.sve-side--left .sve-panel[aria-label="Templates on this page"]').waitFor();
-    await bar.getByRole('button', { name: 'Panels on the right' }).click();
+    await bar.getByRole('button', { name: 'Inspector', exact: true }).click();
     await page.locator('.sve-side--right').waitFor();
 });
 
 await step('show and hide the code from the bar, and fold a group of controls inside a panel', async () => {
     await frame.locator('.hero .muted').click();
     await layerIs('p.muted');
-    const codeButton = bar.getByRole('button', { name: 'Code under the page' });
+    const codeButton = bar.locator('.sve-shown').getByRole('button', { name: 'Code', exact: true });
     await codeButton.click();
     await page.locator('.sve-code').waitFor();
     // Long enough for the code editor to have come and shown the template.

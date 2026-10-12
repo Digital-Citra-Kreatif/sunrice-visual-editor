@@ -27,7 +27,9 @@ it has been installed on a real project (see the end of
 - **Room for the page**: every panel and every titled group in one folds to
   its title; the two sides and the code hide from the top bar, and a
   hidden side flies out over the page when it is needed; the editor
-  opens the way it was left.
+  opens the way it was left. Structure, Code and Inspector are named in
+  the compact top bar; edge handles show their labels on hover or focus
+  without taking width from the page.
 - **Fields from lists**: what a template can read at each place (the entry
   with its collection's fields, a block's fields, loop items, what a
   partial is passed, global sets, menus), each written as the Blade that

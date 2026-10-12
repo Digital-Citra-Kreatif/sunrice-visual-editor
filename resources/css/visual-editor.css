@@ -4,7 +4,7 @@
  */
 
 .sve-shell {
-    --sve-bar: auto;
+    --sve-bar: minmax(3rem, max-content);
     --sve-side: 17.5rem;
     position: fixed;
     inset: 0;
@@ -47,7 +47,8 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding-inline: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    box-sizing: border-box;
     border-block-end: 1px solid var(--border);
     background: var(--card);
 }
@@ -271,6 +272,7 @@
 /* What a hidden side leaves behind: a strip in the room around the page, as tall as the page. It covers
    nothing of the page, and at the window's edge the pointer can't overshoot it. */
 .sve-edge {
+    position: relative;
     grid-area: canvas;
     z-index: 10;
     align-self: stretch;
@@ -298,6 +300,30 @@
     border-radius: 999px;
     background: var(--muted-foreground);
     opacity: 0.45;
+}
+
+.sve-edge__label {
+    display: none;
+    writing-mode: vertical-rl;
+    font: inherit;
+    font-size: 0.6875rem;
+    color: var(--accent-foreground);
+}
+
+/* Expand over the canvas padding only while asked for; the frame never loses width. */
+.sve-edge:hover,
+.sve-edge:focus-visible {
+    width: 1.5rem;
+}
+
+.sve-edge:hover .sve-edge__label,
+.sve-edge:focus-visible .sve-edge__label {
+    display: block;
+}
+
+.sve-edge:hover .sve-edge__grip,
+.sve-edge:focus-visible .sve-edge__grip {
+    display: none;
 }
 
 .sve-edge:hover,
@@ -477,9 +503,10 @@
 }
 
 .sve-shown__part {
-    display: grid;
-    place-items: center;
-    width: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding-inline: 0.375rem;
     height: 1.75rem;
     border: 0;
     border-radius: calc(var(--radius) - 2px);
@@ -2448,25 +2475,22 @@ select.sve-input {
     }
 }
 
+/* Keep names available to assistive technology when the compact bar needs icons. */
+@media (max-width: 1200px) {
+    .sve-shown__label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+}
 
-
-/* Separate navigation from editing actions, with room to wrap on smaller windows. */
-.sve-bar { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; }
-.sve-bar__navigation, .sve-bar__tools { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; min-width: 0; }
-.sve-bar__tools { flex-wrap: wrap; border-block-start: 1px solid var(--border); }
-.sve-shown { margin-inline-start: auto; }
-.sve-shown__part { display: flex; gap: 0.375rem; width: auto; padding-inline: 0.5rem; }
-.sve-side__header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.5rem 0.75rem; border-block-end: 1px solid var(--border); }
-.sve-side__header strong { font-weight: 600; }
-.sve-side__header .sve-side__keep { height: 1.875rem; }
-.sve-edge { width: 1.5rem; gap: 0.5rem; align-content: center; background: var(--card); color: var(--muted-foreground); }
-.sve-edge__label { writing-mode: vertical-rl; font: inherit; font-size: 0.6875rem; }
-.sve-edge__grip { height: 1.5rem; }
-.sve-canvas { margin-inline: 1.5rem; }
-.sve-shell:not(.sve-shell--no-left) .sve-canvas { margin-inline-start: 0; }
-.sve-shell:not(.sve-shell--no-right) .sve-canvas { margin-inline-end: 0; }
 @media (max-width: 900px) {
-    .sve-bar__title { display: none; }
-    .sve-bar__navigation { gap: 0.25rem; }
-    .sve-shown { margin-inline-start: 0; }
+    .sve-bar {
+        flex-wrap: wrap;
+    }
 }

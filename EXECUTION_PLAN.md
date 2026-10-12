@@ -822,3 +822,11 @@ A hidden side already took no room (V8.7). What was missing was a way to use it 
 - Tailwind's class names offered in the class field of the Settings panel, from the site's theme.
 - Search across the site's templates.
 - The stylesheet files of the theme opened in Code mode, as templates are.
+
+
+
+### UX1 — Discoverable panel controls without losing page space
+
+Depends on V8.7 and V8.8 (merged). Keep a compact single desktop toolbar row and the existing panel layout. Add Structure, Code and Inspector labels with matching accessible names, compact the labels at narrower widths, and show edge labels on hover/focus over the existing padding. Keep **Keep open** as the pinning action. No extra sidebar headers or canvas margins.
+
+Update the existing browser check for the button names. Check the desktop bar height and full frame width at 1440px and 1100px, including edge hover/focus; retain its selection, persistence, Escape, focus-return and pinning coverage. Regenerate dist assets and update SPEC, README and CHANGELOG.

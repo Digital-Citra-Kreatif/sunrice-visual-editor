@@ -77,9 +77,11 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
 **Room for the page.**
 
 - Every panel folds to its title by a click on the title, and so does every
-  titled group inside one. Three buttons in the top bar show and hide the
-  panels on the left, the code under the page and the panels on the right.
-- A hidden side takes no room. A strip at the page's edge flies it out over
+  titled group inside one. **Structure**, **Code** and **Inspector** in the
+  compact top bar show and hide the two sides and the code under the page.
+  Labels become icons on narrower windows, with the same accessible names.
+- A hidden side takes no room. A strip at the page's edge shows its label
+  on hover or keyboard focus and flies it out over
   the page, which keeps its width; Escape or a click on the page puts it
   away, and **Keep open** gives it its room back.
 - The editor opens the way it was left.

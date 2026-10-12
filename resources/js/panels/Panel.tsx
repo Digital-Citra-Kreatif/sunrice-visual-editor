@@ -104,8 +104,6 @@ type SideProps = {
     onKeep?(): void;
     /** Put it away again. */
     onAway?(): void;
-    /** Minimize a docked side without unmounting its controls. */
-    onMinimize?(): void;
     children: ReactNode;
 };
 
@@ -113,7 +111,7 @@ type SideProps = {
  * A column of panels on one side of the page. Hidden, it takes no room at
  * all; it can then be flown out over the page for as long as it is needed.
  */
-export function Side({ side, shown = true, flown = false, onKeep, onAway, onMinimize, children }: SideProps) {
+export function Side({ side, shown = true, flown = false, onKeep, onAway, children }: SideProps) {
     const element = useRef<HTMLElement>(null);
     // Flown out, the keyboard goes with it: Tab walks its controls, Escape puts it away.
     useEffect(() => {
@@ -137,19 +135,11 @@ export function Side({ side, shown = true, flown = false, onKeep, onAway, onMini
                 }
             }}
         >
-            {shown && !flown && (
-                <div className="sve-side__header">
-                    <strong>{side === 'left' ? 'Structure' : 'Inspector'}</strong>
-                    <button type="button" className="sve-side__keep" onClick={onMinimize} aria-label={`Minimize ${side === 'left' ? 'Structure' : 'Inspector'}`} title="Hide this panel; reopen it from the toolbar or page edge">
-                        <span aria-hidden="true">−</span> Minimize
-                    </button>
-                </div>
-            )}
             {flown && (
                 <div className="sve-side__flown">
-                    <span className="sve-side__for-now">Temporary panel</span>
+                    <span className="sve-side__for-now">Over the page, for now</span>
                     <button type="button" className="sve-side__keep" onClick={onKeep} title="Give these panels their room beside the page again">
-                        Pin panel
+                        Keep open
                     </button>
                     <button type="button" className="sve-side__away" onClick={onAway} aria-label="Put the panels away" title="Put the panels away (Esc)">
                         ×
@@ -160,4 +150,3 @@ export function Side({ side, shown = true, flown = false, onKeep, onAway, onMini
         </aside>
     );
 }
-
