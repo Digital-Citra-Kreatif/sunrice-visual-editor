@@ -1340,47 +1340,51 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
 
             <header className="sve-bar">
-                <Sunrice.inertia.Link
-                    href={Sunrice.adminUrl()}
-                    className="sve-bar__back"
-                    title="Back to the admin"
-                    // The admin is left without the page being left, so the browser does not ask: this does.
-                    onBefore={() => !anyUnsaved || window.confirm('Leave the editor without saving what you changed in the code?')}
-                >
-                    <span aria-hidden="true">←</span> Admin
-                </Sunrice.inertia.Link>
-                <strong className="sve-bar__title">Visual editor</strong>
-
-                <form className="sve-address" onSubmit={go}>
-                    <label className="sve-address__label" htmlFor="sve-address">
-                        Page
-                    </label>
-                    <input
-                        id="sve-address"
-                        className="sve-address__input"
-                        value={typed ?? address}
-                        onChange={(event) => setTyped(event.target.value)}
-                        onKeyDown={(event) => {
-                            if (event.key === 'Escape') {
-                                setTyped(null);
-                                setProblem(null);
-                            }
-                        }}
-                        spellCheck={false}
-                        autoComplete="off"
-                        aria-invalid={problem !== null}
-                        aria-describedby={problem !== null ? 'sve-address-problem' : undefined}
-                    />
-                    <button className="sve-button" type="submit">
-                        Open
-                    </button>
-                    {problem !== null && (
-                        <p className="sve-address__problem" id="sve-address-problem" role="alert">
-                            {problem}
-                        </p>
-                    )}
-                </form>
-
+                <div className="sve-bar__navigation">
+                    <Sunrice.inertia.Link
+                        href={Sunrice.adminUrl()}
+                        className="sve-bar__back"
+                        title="Back to the admin"
+                        // The admin is left without the page being left, so the browser does not ask: this does.
+                        onBefore={() => !anyUnsaved || window.confirm('Leave the editor without saving what you changed in the code?')}
+                    >
+                        <span aria-hidden="true">←</span> Admin
+                    </Sunrice.inertia.Link>
+                    <strong className="sve-bar__title">Visual editor</strong>
+    
+                    <form className="sve-address" onSubmit={go}>
+                        <label className="sve-address__label" htmlFor="sve-address">
+                            Page
+                        </label>
+                        <input
+                            id="sve-address"
+                            className="sve-address__input"
+                            value={typed ?? address}
+                            onChange={(event) => setTyped(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Escape') {
+                                    setTyped(null);
+                                    setProblem(null);
+                                }
+                            }}
+                            spellCheck={false}
+                            autoComplete="off"
+                            aria-invalid={problem !== null}
+                            aria-describedby={problem !== null ? 'sve-address-problem' : undefined}
+                        />
+                        <button className="sve-button" type="submit">
+                            Open
+                        </button>
+                        {problem !== null && (
+                            <p className="sve-address__problem" id="sve-address-problem" role="alert">
+                                {problem}
+                            </p>
+                        )}
+                    </form>
+    
+                    <a className="sve-bar__link" href={page?.url ?? firstPage} target="_blank" rel="noreferrer">View page ↗</a>
+                    </div>
+                <div className="sve-bar__tools" role="toolbar" aria-label="Editor tools">
                 <div className="sve-modes" role="group" aria-label="How the template is worked on">
                     <button type="button" className="sve-modes__mode" aria-pressed={arranged.mode === 'visual'} onClick={() => setArranged((now) => ({ ...now, mode: 'visual' }))} title="On the page, with layers and settings">
                         Visual
@@ -1468,7 +1472,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         aria-label="Panels on the left"
                         title={arranged.left ? 'Hide the panels on the left' : 'Show the panels on the left'}
                     >
-                        <ShownIcon part="left" />
+                        <ShownIcon part="left" /> <span>Structure</span>
                     </button>
                     <button
                         type="button"
@@ -1479,7 +1483,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         aria-label="Code under the page"
                         title={arranged.mode === 'code' ? 'In Code mode the code is beside the page' : template.state !== 'ready' ? 'Open a template to see its code' : coding ? 'Hide the code' : 'Show the code of the open template'}
                     >
-                        <ShownIcon part="code" />
+                        <ShownIcon part="code" /> <span>Source</span>
                     </button>
                     <button
                         type="button"
@@ -1489,16 +1493,14 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         aria-label="Panels on the right"
                         title={arranged.right ? 'Hide the panels on the right' : 'Show the panels on the right'}
                     >
-                        <ShownIcon part="right" />
+                        <ShownIcon part="right" /> <span>Inspector</span>
                     </button>
                 </div>
 
-                <a className="sve-bar__link" href={page?.url ?? firstPage} target="_blank" rel="noreferrer">
-                    View page ↗
-                </a>
+                </div>
             </header>
 
-            <Side side="left" shown={arranged.left} flown={flown === 'left'} onKeep={() => setArranged((now) => siding(now, 'left', true))} onAway={() => setFlown(null)}>
+            <Side side="left" onMinimize={() => setArranged((now) => siding(now, 'left', false))} shown={arranged.left} flown={flown === 'left'} onKeep={() => setArranged((now) => siding(now, 'left', true))} onAway={() => setFlown(null)}>
                 {inserting ? (
                     <InsertPanel
                         template={template.state === 'ready' ? template.data : null}
@@ -1554,10 +1556,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                             }}
                             aria-expanded={false}
                             onClick={() => setFlown(side)}
-                            aria-label={`Fly out the panels on the ${side}`}
+                            aria-label={`Open ${side === 'left' ? 'Structure' : 'Inspector'}`}
                             title={`Show the panels on the ${side} over the page, for now`}
                         >
                             <span className="sve-edge__grip" aria-hidden="true" />
+                            <span className="sve-edge__label">{side === 'left' ? 'Structure' : 'Inspector'}</span>
                         </button>
                     ),
             )}
@@ -1687,7 +1690,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 )}
             </main>
 
-            <Side side="right" shown={arranged.right} flown={flown === 'right'} onKeep={() => setArranged((now) => siding(now, 'right', true))} onAway={() => setFlown(null)}>
+            <Side side="right" onMinimize={() => setArranged((now) => siding(now, 'right', false))} shown={arranged.right} flown={flown === 'right'} onKeep={() => setArranged((now) => siding(now, 'right', true))} onAway={() => setFlown(null)}>
                 {arranged.mode === 'code' && mayCode && (
                     <Panel title="Fields" grow>
                         <input className="sve-input sve-insert__find" type="search" value={fieldsTyped} onChange={(event) => setFieldsTyped(event.target.value)} placeholder="Find…" aria-label="Find a field or a variable" spellCheck={false} autoComplete="off" />
@@ -1806,3 +1809,4 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         </Folds.Provider>
     );
 }
+
