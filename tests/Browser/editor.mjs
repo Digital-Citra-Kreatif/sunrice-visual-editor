@@ -1210,6 +1210,63 @@ await step('find the editor as it was left when it is opened again', async () =>
     }
 });
 
+await step('fly a hidden side out over the page: the page keeps its width, and Escape or a click on the page puts the side away', async () => {
+    const before = await widthIn(frame);
+    const flown = page.locator('.sve-side--flown');
+    const edge = (side) => page.getByRole('button', { name: `Fly out the panels on the ${side}` });
+
+    await edge('right').click();
+    await page.locator('.sve-side--right.sve-side--flown').waitFor();
+    const side = await flown.boundingBox();
+    const shown = await page.locator('iframe.sve-frame').boundingBox();
+    if ((await widthIn(frame)) !== before || side === null || shown === null || side.x < shown.x || side.x >= shown.x + shown.width) {
+        throw new Error(`The page was ${before} wide and is ${await widthIn(frame)}; the side is at ${JSON.stringify(side)}, the page at ${JSON.stringify(shown)}`);
+    }
+    // The keyboard went with it, and comes back to what flies it out.
+    await page.keyboard.press('Escape');
+    await flown.waitFor({ state: 'detached' });
+    await until('The keyboard is not on what flies the side out', async () => (await edge('right').evaluate((button) => button === document.activeElement)) || (await page.evaluate(() => document.activeElement?.className ?? null)));
+
+    // What is changed in it is changed as beside the page, and the page drawn again leaves it out.
+    await frame.locator('.hero h1').click();
+    await layerIs('h1');
+    await edge('right').click();
+    await flown.getByLabel('Add a class').fill('flown-out');
+    await flown.getByLabel('Add a class').press('Enter');
+    await frame.locator('.hero h1.flown-out').waitFor();
+    await idle();
+    await flown.getByLabel('Remove the class flown-out').click();
+    await idle();
+    await until('The class is still on the page', async () => (await frame.locator('.hero h1.flown-out').count()) === 0);
+    if (!(await flown.isVisible()) || (await widthIn(frame)) !== before) {
+        throw new Error('The side went away, or the page changed its width, while something was changed in the side');
+    }
+
+    // A click on the page is for the page.
+    await frame.locator('.hero .muted').click();
+    await flown.waitFor({ state: 'detached' });
+    await layerIs('p.muted');
+    const kept = await laidOut();
+    if (kept === null || kept.left !== false || kept.right !== false || 'flown' in kept) {
+        throw new Error(`After a side was flown out the editor is left as ${JSON.stringify(kept)}`);
+    }
+
+    // The other side, kept open: it has its room back, as from the bar.
+    await edge('left').click();
+    await page.locator('.sve-side--left.sve-side--flown .sve-layer[aria-selected="true"]').waitFor();
+    await flown.getByRole('button', { name: 'Keep open' }).click();
+    await page.locator('.sve-side--left:not(.sve-side--flown)').waitFor();
+    await until('The page did not give the side its room', async () => (await widthIn(frame)) <= before - 200 || (await widthIn(frame)));
+    if ((await bar.getByRole('button', { name: 'Panels on the left' }).getAttribute('aria-pressed')) !== 'true' || (await edge('left').count()) !== 0) {
+        throw new Error('The side that was kept open is not shown as one beside the page');
+    }
+    await bar.getByRole('button', { name: 'Panels on the left' }).click();
+    await edge('left').waitFor();
+    if ((await flown.count()) !== 0) {
+        throw new Error('A side hidden from the bar flew out by itself');
+    }
+});
+
 await step('bring the left side back by asking to insert something, and the right one from the bar', async () => {
     await bar.getByRole('button', { name: 'Insert' }).click();
     await page.locator('.sve-side--left .sve-panel[aria-label="Insert"]').waitFor();

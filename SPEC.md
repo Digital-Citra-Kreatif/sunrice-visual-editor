@@ -76,6 +76,7 @@ Today a developer writes the templates in a code editor while fields and content
 - Everything beside the page can be put out of the way and brought back with one click, so the page, or the code, has the room when it is what is being looked at.
 - Every panel (Templates on this page, Layers, Insert, Settings, Template) folds to its title by a click on the title, and opens again the same way. So does every titled group inside a panel: the groups of controls in Settings and Style, the kinds of thing in Insert, where a field comes from in Fields.
 - Three buttons in the top bar show and hide the panels on the left, the code under the page, and the panels on the right. A side that is hidden gives its room to the page.
+- A hidden side takes no room at all, and can be looked into without giving it any: a strip at the page's edge, in the room around the page, flies the side out **over** the page. The page keeps its width, so nothing on it moves. The side goes away again by Escape, by its own button, or by a click on the page or in the code; **Keep open** gives it its room back. Only one side is flown out at a time, and none is when the editor is opened again.
 - Asking for something that lives in a hidden or folded place brings the place back: **Insert** shows the left side.
 - The editor opens the way it was left: what is hidden and what is folded is remembered in the browser.
 - What is folded keeps its state: a list stays scrolled, a field half typed stays typed.

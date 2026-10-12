@@ -9,7 +9,7 @@ import { asMedia, breakpoints, mediaFor, sameMedia } from './lib/media';
 import { pageOf, rememberPage } from './lib/memory';
 import { startRedraw, type Redraw } from './lib/redraw';
 import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
-import { folding, isFolded, readLayout, shareOf, siding, writeLayout } from './lib/layout';
+import { flownOf, folding, isFolded, readLayout, shareOf, siding, writeLayout, type Flown } from './lib/layout';
 import { isAdminPath, sitePath } from './lib/path';
 import { classesOf } from './lib/settings';
 import { STYLE_PROPERTIES } from './lib/styleFields';
@@ -176,6 +176,41 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const [arranged, setArranged] = useState(readLayout);
     useEffect(() => writeLayout(arranged), [arranged]);
     const folds = useMemo(() => ({ folded: new Set(arranged.folded), toggle: (name: string) => setArranged((now) => folding(now, name)) }), [arranged.folded]);
+    /** A hidden side that is over the page for now. It is put away by Escape, by its own button, and by a click on the page or in the code. */
+    const [flownSide, setFlown] = useState<Flown>(null);
+    const flown = flownOf(arranged, flownSide);
+    /** What flies each hidden side out: where the keyboard goes when one is put away with the keyboard in it. */
+    const edges = useRef<Record<'left' | 'right', HTMLButtonElement | null>>({ left: null, right: null });
+    const wasFlown = useRef<Flown>(null);
+    useEffect(() => {
+        const was = wasFlown.current;
+        wasFlown.current = flown;
+        if (flownSide !== null && flown === null) {
+            // It has its room back: it is no longer something to put away.
+            setFlown(null);
+        }
+        if (was !== null && flown === null && (document.activeElement === null || document.activeElement === document.body)) {
+            edges.current[was]?.focus();
+        }
+        if (flown === null) {
+            return;
+        }
+        const away = () => setFlown(null);
+        const pointer = (event: PointerEvent) => {
+            if (event.target instanceof Node && canvas.current?.contains(event.target) === true) {
+                away();
+            }
+        };
+        // A click on the page is the page's own: what this window hears of it is that the keyboard went there.
+        const left = () => window.setTimeout(() => document.activeElement instanceof HTMLIFrameElement && away(), 0);
+        document.addEventListener('pointerdown', pointer, true);
+        window.addEventListener('blur', left);
+
+        return () => {
+            document.removeEventListener('pointerdown', pointer, true);
+            window.removeEventListener('blur', left);
+        };
+    }, [flown, flownSide]);
     /** The open template's text as changed in the code panel and not saved; null when it is as on disk. */
     const [all, setAll] = useState<TemplateInfo[] | null>(null);
     const [copying, setCopying] = useState(false);
@@ -301,6 +336,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 setHovered(said.target?.mark ?? null);
             }
         } else if (said.type === 'select') {
+            // A click on the page: a side flown out over it has had its moment.
+            setFlown(null);
             if (applying || redrawing.current) {
                 // A change is being saved, or the page drawn again after one: what is on the
                 // page is the file as it was, and its elements are not those of the tree now.
@@ -658,7 +695,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const fieldsText = fieldsOf === null ? null : (drafts[historyKey(fieldsOf)] ?? fieldsOf.source);
     const fieldsByte = fieldsOf !== null && codeCursor !== null && codeCursor.of === historyKey(fieldsOf) ? codeCursor.byte : 0;
     const fieldsWanted = arranged.mode === 'code' && mayCode && template.state === 'ready' && fieldsOf !== null;
-    const fieldsShown = fieldsWanted && arranged.right && !isFolded(arranged, 'panel:Fields');
+    const fieldsShown = fieldsWanted && (arranged.right || flown === 'right') && !isFolded(arranged, 'panel:Fields');
     useEffect(() => {
         if (!fieldsWanted || fieldsOf === null || fieldsText === null) {
             return;
@@ -1461,7 +1498,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 </a>
             </header>
 
-            <Side side="left" shown={arranged.left}>
+            <Side side="left" shown={arranged.left} flown={flown === 'left'} onKeep={() => setArranged((now) => siding(now, 'left', true))} onAway={() => setFlown(null)}>
                 {inserting ? (
                     <InsertPanel
                         template={template.state === 'ready' ? template.data : null}
@@ -1502,6 +1539,28 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                     }
                 />
             </Side>
+
+            {/* A hidden side leaves a strip at the page's edge, in the room around the page: a click flies the side out over the page. */}
+            {(['left', 'right'] as const).map(
+                (side) =>
+                    !arranged[side] &&
+                    flown !== side && (
+                        <button
+                            key={side}
+                            type="button"
+                            className={`sve-edge sve-edge--${side}`}
+                            ref={(button) => {
+                                edges.current[side] = button;
+                            }}
+                            aria-expanded={false}
+                            onClick={() => setFlown(side)}
+                            aria-label={`Fly out the panels on the ${side}`}
+                            title={`Show the panels on the ${side} over the page, for now`}
+                        >
+                            <span className="sve-edge__grip" aria-hidden="true" />
+                        </button>
+                    ),
+            )}
 
             <main className={`sve-canvas sve-canvas--${mode}${arranged.mode === 'code' ? ' sve-canvas--beside' : ''}`} ref={canvas} style={arranged.mode === 'code' ? ({ '--sve-code-share': String(arranged.share) } as CSSProperties) : undefined}>
                 <div className={`sve-widths sve-widths--${view.kind}`} ref={room}>
@@ -1628,7 +1687,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 )}
             </main>
 
-            <Side side="right" shown={arranged.right}>
+            <Side side="right" shown={arranged.right} flown={flown === 'right'} onKeep={() => setArranged((now) => siding(now, 'right', true))} onAway={() => setFlown(null)}>
                 {arranged.mode === 'code' && mayCode && (
                     <Panel title="Fields" grow>
                         <input className="sve-input sve-insert__find" type="search" value={fieldsTyped} onChange={(event) => setFieldsTyped(event.target.value)} placeholder="Find…" aria-label="Find a field or a variable" spellCheck={false} autoComplete="off" />

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { EVERYTHING, folding, isFolded, readLayout, shareOf, siding, writeLayout } from '../../resources/js/lib/layout.ts';
+import { EVERYTHING, flownOf, folding, isFolded, readLayout, shareOf, siding, writeLayout } from '../../resources/js/lib/layout.ts';
 
 const store = (kept = {}) => ({ getItem: (key) => kept[key] ?? null, setItem: (key, value) => void (kept[key] = value) });
 
@@ -59,4 +59,19 @@ test('keeps the way of working and how the room is shared, within what is allowe
     assert.equal(shareOf(5), 0.8);
     assert.equal(shareOf('half'), 0.5);
     assert.equal(shareOf(Number.NaN), 0.5);
+});
+
+test('flies out only a side that is hidden, and remembers none of it', () => {
+    const hidden = siding(EVERYTHING, 'left', false);
+    assert.equal(flownOf(hidden, 'left'), 'left');
+    // The other side has its room: there is nothing of it to fly out.
+    assert.equal(flownOf(hidden, 'right'), null);
+    assert.equal(flownOf(hidden, null), null);
+    // Given its room back, it is simply there.
+    assert.equal(flownOf(siding(hidden, 'left', true), 'left'), null);
+
+    // What is flown out is for now: the layout that is kept knows nothing of it.
+    const kept = {};
+    writeLayout(hidden, store(kept));
+    assert.deepEqual(Object.keys(JSON.parse(Object.values(kept)[0])).sort(), ['folded', 'left', 'mode', 'right', 'share']);
 });

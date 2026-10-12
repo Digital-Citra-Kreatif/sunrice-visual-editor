@@ -104,7 +104,7 @@ sunrice-visual-editor/
 | 5. Fields and variables | V5.1–V5.5 | V4.2 (V5.1–V5.3 can start after V1.7) | 2–3 weeks | **M3:** the field picker; the goal in `SPEC.md` is met |
 | 6. Styles | V6.1–V6.4 | V4.2 | 3+ weeks | CSS panel, then a style panel and breakpoints |
 | 7. Permissions, agents, release | V7.1–V7.4 | M3 | 1–2 weeks | Own permissions, MCP tools, docs, v0.1.0 |
-| 8. Code mode, and sites that build their CSS | V8.1–V8.7 | Phase 7 | 2–3 weeks | A real code editor beside the page with tabs and fields at the cursor; Tailwind through Vite: preview and build |
+| 8. Code mode, and sites that build their CSS | V8.1–V8.8 | Phase 7 | 2–3 weeks | A real code editor beside the page with tabs and fields at the cursor; Tailwind through Vite: preview and build |
 
 Sizes are rough guesses for one developer working with coding agents. Phases 1 and 2 have no UI and can run alongside Phase 0. V5.1–V5.3 are backend only and can run alongside Phases 3 and 4.
 
@@ -802,6 +802,21 @@ A second way of working, chosen in the top bar: **Visual | Code** (`mode` in `li
 - `docs/installation.md` (the two settings, the permission), `docs/styles.md` (*Building from the editor*), `docs/permissions.md` (*Building*), `docs/limits.md`.
 
 **Tests:** `tests/Feature/BuildTest.php`, with commands of the test's own: a build that ends well, with what it printed and a line in the log; one that fails, with its output and without the colours; a program that is not there; one that takes too long, stopped; a second build refused while one runs; long output cut to its end; no command, no build and no button; nothing from the request run; who may (the permission alone opens nothing, `code` alone builds nothing); the path of the web server's process given to the command when PHP does not list it; the dev server said. `ProviderTest` and the install check: four permissions. Two steps of the browser check on the demo site: **Build needed** after a class is added, the build run and its time said, the selection kept; a failed build's output shown and put away (the answer of a failed build put in the request's place, since the demo's command can't fail). The designer has no button. The Vite job, on the new Laravel application with `npm run build` as its command: a class added through the editor is not in the built CSS; a designer is refused the build; someone with the permission builds, Vite's own output comes back, and the rule is in the CSS; a command that is not on the server says so; and in Chrome, a class added in **Settings** makes the bar say **Build needed**, the button builds, and a visitor's page then has the style.
+
+### V8.8 Sides that fly out
+**Depends on:** V8.7
+**Status:** done. Asked for after Phase 8 was merged: "hide the panel wholly, like a flyout pane".
+
+A hidden side already took no room (V8.7). What was missing was a way to use it without giving the room back, which moves everything on the page (`SPEC.md`, *Room for the page*).
+
+- `lib/layout.ts` — `Flown` (`'left' | 'right' | null`) and `flownOf(layout, flown)`: only a hidden side is flown out. It is not part of the layout that is remembered: the editor opens with every hidden side away.
+- `panels/Panel.tsx`, `Side` — `flown`, `onKeep`, `onAway`. Flown, the side is laid over the page's part of the screen at its own width, with a line of its own on top: what it is ("Over the page, for now"), **Keep open** and a button that puts it away. The keyboard goes into it when it flies out; Escape puts it away unless something inside took the key for itself.
+- `Editor.tsx` — a hidden side leaves a strip at that edge of the page, in the room around the page, as tall as the page (`.sve-edge`): it covers nothing of the page, and at the window's edge the pointer can't overshoot it. A click flies the side out. It is put away by a click anywhere in the page's part of the screen (the code included), by the page being clicked (the page says `select`; and where it only browses, this window loses the keyboard to the frame), by Escape and by its button. Put away with the keyboard, the keyboard goes back to the strip. One side at a time.
+- **What does not put it away:** a change made in it. The page is drawn again after every change, and the side stays, so several settings can be changed in a row.
+- The bar's buttons are as they were: they give a side its room or take it. **Insert** still gives the left side its room, since what is inserted goes where the page is clicked next.
+- No opening by pointing: a pointer on its way to the scrollbar or out of the window would fly a side out that nobody asked for.
+
+**Tests:** `tests/Frontend/layout.test.mjs` (only a hidden side flies out; nothing of it is kept). One step of the browser check, 90 in all: the right side flown out over the page with the page as wide as before; Escape, and the keyboard back on the strip; a class added and taken off in the flown side with the side still there and the page still as wide; a click on the page putting it away and selecting what was clicked; nothing of it in what the browser keeps; the left side flown out with the selection marked in its layers, kept open, and hidden again from the bar without flying out by itself.
 
 ### Later, not in this phase
 - Tailwind's class names offered in the class field of the Settings panel, from the site's theme.

@@ -79,6 +79,9 @@ All three milestones of the plan's first part, and styles: the theme's CSS files
 - Every panel folds to its title by a click on the title, and so does every
   titled group inside one. Three buttons in the top bar show and hide the
   panels on the left, the code under the page and the panels on the right.
+- A hidden side takes no room. A strip at the page's edge flies it out over
+  the page, which keeps its width; Escape or a click on the page puts it
+  away, and **Keep open** gives it its room back.
 - The editor opens the way it was left.
 
 **The CMS's fields and variables, picked from a list in place of typed.**

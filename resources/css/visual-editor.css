@@ -164,6 +164,153 @@
     border-inline-start: 1px solid var(--border);
 }
 
+/* A hidden side flown out over the page for now. It takes no room: the page keeps its width, and what
+   is under the side is covered for as long as it is out. */
+.sve-side.sve-side--flown {
+    grid-area: canvas;
+    z-index: 20;
+    width: var(--sve-side);
+    max-width: calc(100% - 1.5rem);
+    border: 0;
+    box-shadow:
+        0 0 0 1px var(--border),
+        0 0.75rem 2rem rgb(0 0 0 / 0.2);
+    outline: 0;
+}
+
+.sve-side--flown.sve-side--left {
+    justify-self: start;
+    animation: sve-fly-from-left 140ms ease-out;
+}
+
+.sve-side--flown.sve-side--right {
+    justify-self: end;
+    animation: sve-fly-from-right 140ms ease-out;
+}
+
+@keyframes sve-fly-from-left {
+    from {
+        transform: translateX(-1.5rem);
+        opacity: 0;
+    }
+}
+
+@keyframes sve-fly-from-right {
+    from {
+        transform: translateX(1.5rem);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sve-side--flown.sve-side--left,
+    .sve-side--flown.sve-side--right {
+        animation: none;
+    }
+}
+
+/* What a flown side says of itself, and the two ways out of it: to stay, and to go. */
+.sve-side__flown {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.375rem 0.25rem 0.75rem;
+    border-block-end: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--accent-foreground);
+    font-size: 0.6875rem;
+}
+
+.sve-side__for-now {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sve-side__keep,
+.sve-side__away {
+    flex: none;
+    height: 1.5rem;
+    padding-inline: 0.5rem;
+    border: 1px solid transparent;
+    border-radius: calc(var(--radius) - 2px);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.sve-side__keep {
+    border-color: var(--border);
+    background: var(--card);
+    color: var(--card-foreground);
+}
+
+.sve-side__away {
+    width: 1.5rem;
+    padding: 0;
+    font-size: 0.9375rem;
+    line-height: 1;
+}
+
+.sve-side__keep:hover,
+.sve-side__away:hover {
+    border-color: var(--ring);
+}
+
+.sve-side__keep:focus-visible,
+.sve-side__away:focus-visible,
+.sve-edge:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+/* What a hidden side leaves behind: a strip in the room around the page, as tall as the page. It covers
+   nothing of the page, and at the window's edge the pointer can't overshoot it. */
+.sve-edge {
+    grid-area: canvas;
+    z-index: 10;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    width: 0.75rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.sve-edge--left {
+    justify-self: start;
+}
+
+.sve-edge--right {
+    justify-self: end;
+}
+
+.sve-edge__grip {
+    width: 0.25rem;
+    height: 3rem;
+    border-radius: 999px;
+    background: var(--muted-foreground);
+    opacity: 0.45;
+}
+
+.sve-edge:hover,
+.sve-edge:focus-visible {
+    background: var(--accent);
+}
+
+.sve-edge:hover .sve-edge__grip,
+.sve-edge:focus-visible .sve-edge__grip {
+    background: var(--ring);
+    opacity: 1;
+}
+
 /* A panel is as tall as what it holds, up to a share of its side; one that grows takes the rest. */
 .sve-panel {
     flex: 0 1 auto;

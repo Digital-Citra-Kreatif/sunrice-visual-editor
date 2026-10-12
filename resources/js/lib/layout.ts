@@ -74,6 +74,14 @@ export function folding(layout: Layout, name: string, open?: boolean): Layout {
     return fold === isFolded(layout, name) ? layout : { ...layout, folded: fold ? [...folded, name].slice(-MOST) : folded };
 }
 
+/** A hidden side that is over the page for now, taking no room: nothing remembered, it is gone when the editor is opened again. */
+export type Flown = 'left' | 'right' | null;
+
+/** The side that is flown out, as it may be: only a hidden side is. One that has been given its room back is simply there. */
+export function flownOf(layout: Layout, flown: Flown): Flown {
+    return flown !== null && !layout[flown] ? flown : null;
+}
+
 /** The layout with a side shown if it was hidden, and hidden if it was shown; or as `shown` says. */
 export function siding(layout: Layout, side: 'left' | 'right', shown?: boolean): Layout {
     const now = shown ?? !layout[side];
