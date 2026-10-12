@@ -87,8 +87,9 @@ done
 ! built | grep -q 'bg-lime-300' || fail "The built CSS changed without a build."
 
 step "The editor itself, in a browser, with the dev server running"
-# Sunrice's admin asked the site's dev server for its own script until sunrice-cms#41, and was
-# blank while one ran. On a Sunrice from before that there is no editor to open.
+# Sunrice's admin asked the site's dev server for its own script until sunrice-cms#41 (merged
+# on 12 October 2026), and was blank while one ran. On a Sunrice from before that there is no
+# editor to open.
 if grep -q 'useHotFile' vendor/sunrice/cms/resources/views/app.blade.php; then
     BASE_URL=http://127.0.0.1:8091 node "$package/.github/vite/browser.mjs" | tee storage/logs/browser.log
     browser="In a browser with the dev server running: $(grep -c '^ok' storage/logs/browser.log) steps."

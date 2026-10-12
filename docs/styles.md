@@ -126,10 +126,11 @@ the dev server serves its rule; the page in the editor's frame shows it
 within a moment. Vite also reloads a page whose Blade file changed, and the
 editor stays in step with that: what was selected stays selected.
 
-This needs a Sunrice from after
-[sunrice-cms#41](https://github.com/littleboy130491/sunrice-cms/pull/41).
+This needs a Sunrice from 12 October 2026 or later
+([sunrice-cms#41](https://github.com/littleboy130491/sunrice-cms/pull/41)).
 Before it, Sunrice's admin was blank for as long as the site's dev server
-ran, the editor with it.
+ran, the editor with it: `composer update sunrice/cms` if that is what you
+see.
 
 **Without a dev server, the class shows after a build.** The editor's frame
 and the site both use the built CSS (`public/build`), which does not have
