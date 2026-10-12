@@ -1519,7 +1519,7 @@ await step('work in the code beside the page: the open template is a tab', async
     await page.waitForSelector('.sve-template');
     heroCode = await onDisk('blocks/hero.blade.php');
     headerCode = await onDisk('partials/header.blade.php');
-    await bar.getByRole('button', { name: 'Code', exact: true }).click();
+    await bar.getByRole('group', { name: 'How the template is worked on', exact: true }).getByRole('button', { name: 'Code', exact: true }).click();
     await page.locator('.sve-canvas--beside .sve-code--beside .cm-editor').waitFor();
     const editorBox = await page.locator('.sve-code--beside').boundingBox();
     const pageBox = await page.locator('iframe.sve-frame').boundingBox();
@@ -1881,7 +1881,7 @@ await step('show them code and let them choose from lists, not type it', async (
     await page.getByRole('button', { name: 'Hide the code' }).click();
 
     // In Code mode too: the code to read, and no list of fields to write from.
-    await bar.getByRole('button', { name: 'Code', exact: true }).click();
+    await bar.getByRole('group', { name: 'How the template is worked on', exact: true }).getByRole('button', { name: 'Code', exact: true }).click();
     await page.locator('.sve-code--beside .cm-editor').waitFor();
     await page.locator('.sve-code__bar').getByText('Read-only').waitFor();
     if ((await fieldsPanel.count()) !== 0) {
