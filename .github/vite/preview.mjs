@@ -31,8 +31,10 @@ const frame = page.frameLocator('iframe.sve-frame');
 const saveHeader = async (change) => {
     await frame.locator('.site-header .brand').first().click();
     await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'partials/header');
-    const code = page.locator('section[aria-label^="Code of"] .sve-code__editor');
+    // The header's own code: until it has been read, the code beside the page still shows the template before.
+    const code = page.locator('section[aria-label="Code of partials/header.blade.php"] .sve-code__editor');
     await code.locator('.cm-editor').waitFor();
+    await page.waitForFunction((from) => document.querySelector('section[aria-label="Code of partials/header.blade.php"] .sve-code__editor')?.sveCodeEditor?.text().includes(from) === true, change[0]);
     await code.evaluate((holder, [from, to]) => {
         const text = holder.sveCodeEditor.text();
         if (!text.includes(from)) {
