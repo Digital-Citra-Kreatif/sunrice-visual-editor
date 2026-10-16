@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Workbench\App\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 use Sunrice\Actions\Entries\PublishTranslation;
 use Sunrice\Models\Blueprint;
 use Sunrice\Models\Collection;
@@ -90,17 +91,23 @@ class DemoSeeder extends Seeder
 
         Setting::set('homepage_entry_id', $home->id);
 
+        // Sunrice before it translated globals like entries had a set-wide "translatable" switch and
+        // kept a set that was not translatable in a row of no language; since, every row has its language.
+        $shared = Schema::hasColumn('sunrice_globals', 'translatable');
+        $global = fn (array $set) => GlobalSet::create($set + ($shared ? ['translatable' => false] : []));
+        $locale = $shared ? null : Locales::main();
+
         $siteBlueprint = Blueprint::create(['handle' => 'site', 'title' => 'Site', 'fields' => [
             ['handle' => 'name', 'type' => 'text', 'label' => 'Name'],
         ]]);
-        $site = GlobalSet::create(['handle' => 'site', 'title' => 'Site', 'blueprint_id' => $siteBlueprint->id, 'group' => 'global', 'translatable' => false]);
-        $site->values()->create(['locale' => null, 'data' => ['name' => self::SITE_NAME]]);
+        $site = $global(['handle' => 'site', 'title' => 'Site', 'blueprint_id' => $siteBlueprint->id, 'group' => 'global']);
+        $site->values()->create(['locale' => $locale, 'data' => ['name' => self::SITE_NAME]]);
 
         $footerBlueprint = Blueprint::create(['handle' => 'footer', 'title' => 'Footer', 'fields' => [
             ['handle' => 'text', 'type' => 'rich_text', 'label' => 'Text'],
         ]]);
-        $footer = GlobalSet::create(['handle' => 'footer', 'title' => 'Footer', 'blueprint_id' => $footerBlueprint->id, 'group' => 'template_part', 'translatable' => false]);
-        $footer->values()->create(['locale' => null, 'data' => ['text' => '<p>Built with Sunrice CMS.</p>']]);
+        $footer = $global(['handle' => 'footer', 'title' => 'Footer', 'blueprint_id' => $footerBlueprint->id, 'group' => 'template_part']);
+        $footer->values()->create(['locale' => $locale, 'data' => ['text' => '<p>Built with Sunrice CMS.</p>']]);
 
         $menu = Menu::create(['handle' => 'main', 'title' => 'Main menu']);
         $label = fn (string $text): array => [Locales::main() => $text];
