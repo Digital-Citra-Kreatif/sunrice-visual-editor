@@ -48,6 +48,17 @@ it('says which widths the page can be shown at, as far as the setting holds widt
     get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('widths', []));
 });
 
+it('tells the admin\'s pages whether whoever is signed in may open the editor, for an entry\'s page to offer it', function () {
+    actingAsSuperAdmin();
+    get('/cms')->assertInertia(fn (AssertableInertia $page) => $page->where('visualEditor', ['open' => true]));
+
+    // Someone in the admin who may not open it is offered nothing.
+    $user = createUser();
+    $user->givePermissionTo(Permission::findOrCreate('sunrice.access-admin', config('sunrice.auth.guard', 'web')));
+    actingAs($user, config('sunrice.auth.guard', 'web'));
+    get('/cms')->assertInertia(fn (AssertableInertia $page) => $page->where('visualEditor', null));
+});
+
 it('says where the code editor\'s script is, for the screen to fetch when code is first shown', function () {
     actingAsSuperAdmin();
 

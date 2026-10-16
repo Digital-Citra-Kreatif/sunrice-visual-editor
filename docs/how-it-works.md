@@ -50,12 +50,14 @@ everything around it is edited as usual.
 
 A file is refused as a tree when Blade itself can't be read into one: a
 syntax error, or a block whose end sits inside a tag. The editor says why,
-and the file opens in the code panel.
+and the file opens as code only, with no tree beside it.
 
 ## A change is an operation
 
-Everything the screen does to a template is sent as an operation: what to
-do, to which node, with what.
+A change made in the tree (a row dragged, duplicated or deleted) is sent as
+an operation: what to do, to which node, with what. Code saved from the
+**Template** tab is sent as the file's whole text, and checked the same
+way.
 
 ```json
 {"type": "addClass", "node": "412", "class": "hero"}
@@ -70,7 +72,8 @@ over a change it has not seen.
 
 Several operations can be sent together. They are applied all or none.
 
-The same operations are what AI agents send through the
+The API takes more operations than the screen sends: classes, attributes,
+text, inserts, wrapping. They are what AI agents send through the
 [`edit_template` tool](agents.md).
 
 ## Before anything is written
@@ -79,7 +82,9 @@ In order:
 
 1. The operations are applied to the tree.
 2. The result must open as a tree again, with no more stray tags than
-   before.
+   before. (Code saved from the **Template** tab is not held to this: a
+   file that can't be read into a tree is saved when it compiles, and
+   opens as code only.)
 3. It must compile: Blade to PHP with the site's own Blade compiler, and
    the PHP read by PHP's parser.
 4. For someone who may not edit code, it must run no PHP that it did not
@@ -122,11 +127,25 @@ someone who may use the editor, the package swaps in its own view engine:
 Everything drawn over the page, the outlines and their labels, is drawn by
 the editor above the frame. Nothing is drawn into your page. A visitor
 never sees any of this: without `?sve=1` and a signed-in editor, the
-package does nothing at all to a request.
+package does nothing to a request but one thing, which is the site's own:
+the link to its [custom CSS](styles.md#custom-css), while that file has
+something in it.
 
 After a change, the page is drawn again in a second, hidden frame, scrolled
 to where the first one is, and the two change places. That is why the page
 does not jump or go blank.
+
+## The entry's content
+
+The **Content** tab is not the editor's. It is Sunrice's own admin page for
+the entry the page in the frame shows, in a frame of its own, with
+Sunrice's fields, validation, drafts, revisions and **Publish**. The
+editor only finds which entry that is, and draws the page again when
+something is saved there. A published entry keeps a saved change as a
+draft until it is published, as it does anywhere in Sunrice, so the page
+shows the change after **Publish**. A page that is no single entry (a
+listing, the search page, an error page) has no content to show, and the
+tab says so.
 
 ## Undo
 
@@ -143,7 +162,9 @@ templates: a rule is changed in place and the rest of the file is
 untouched. The package reads a stylesheet only for where its rules and
 declarations are, and cuts into the text there. After every change it reads
 the file again and refuses the change unless the file now says what it said
-before, plus the one thing that was meant. See [Styles](styles.md).
+before, plus the one thing that was meant. The custom CSS, written as one
+text, is saved whole, and only while the file is still the version it was
+read at. See [Styles](styles.md).
 
 ## What was done to test this
 

@@ -48,13 +48,34 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom CSS
+    |--------------------------------------------------------------------------
+    |
+    | A stylesheet of the site's own, in public/sunrice-theme/, written in
+    | the editor's Custom CSS tab. It is linked from every page of the site
+    | by pushing a <link> onto the layout's `@stack('head')` (the starter
+    | layout has one): no template is changed for it.
+    |
+    | The link is added whether or not the editor is on, so the deployed
+    | site gets the same CSS as the copy it was written on. Set `inject` to
+    | false to link the file from the layout yourself instead.
+    |
+    */
+
+    'custom_css' => [
+        'file' => 'custom.css',
+        'inject' => env('SUNRICE_VISUAL_EDITOR_CUSTOM_CSS', true),
+        'stack' => 'head',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Widths
     |--------------------------------------------------------------------------
     |
-    | The widths the editor shows the page at, one at a time or side by side.
-    | A style set while a width is being edited is written for that width:
-    | under the @media condition of the site's own CSS that applies there,
-    | or, when none does, under the `media` given here.
+    | The devices the editor previews the page at, one at a time or side by
+    | side, from the top bar. `media` is the @media condition the device
+    | stands for, kept for tools that write CSS for it.
     |
     */
 

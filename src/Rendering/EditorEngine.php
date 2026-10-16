@@ -63,6 +63,10 @@ final class EditorEngine extends CompilerEngine
         }
         $marked = $this->copies[$path];
         $this->manifest->record($file, $marked !== null);
+        if ($file->role === 'entry') {
+            // The entry the page is of: its content can be edited beside the page.
+            $this->manifest->showing($data['entry'] ?? null);
+        }
         if ($marked === null) {
             return parent::get($path, $data);
         }

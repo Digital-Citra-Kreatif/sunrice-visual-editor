@@ -30,6 +30,8 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
 
     // A stylesheet is named by its path inside the theme directory: …/api/styles/files/css/print.css
     Route::get('styles', [StyleController::class, 'index'])->name('styles.index');
+    // The site's custom CSS, linked from every page (Rendering\CustomCss); saved through styles/files/{path}/source.
+    Route::get('styles/custom', [StyleController::class, 'custom'])->name('styles.custom');
     Route::post('styles/link', [StyleController::class, 'link'])->middleware($edit)->name('styles.link');
     Route::post('styles/files/{path}/changes', [StyleController::class, 'changes'])->where('path', '.+\.css')->middleware($edit)->name('styles.changes');
     Route::put('styles/files/{path}/source', [StyleController::class, 'source'])->where('path', '.+\.css')->middleware($edit)->name('styles.source');

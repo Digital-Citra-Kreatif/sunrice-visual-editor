@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Rendering;
 
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\TemplateFile;
 
 /**
@@ -17,6 +18,9 @@ final class Manifest
 
     /** @var array<string, array<string, mixed>> the ones rendered so far, by key */
     private array $files = [];
+
+    /** @var array{id: int, title: string, edit: string}|null the entry the page is of, when it is one */
+    private ?array $entry = null;
 
     /**
      * @param  list<TemplateFile>  $templates  every template of the site and of Sunrice
@@ -50,12 +54,18 @@ final class Manifest
         $this->files[self::key($file)] ??= ['key' => self::key($file)] + $file->toArray() + ['opens' => $opens];
     }
 
+    /** Notes the entry the page is of, as its own template was given it: the first one, the page's. */
+    public function showing(mixed $entry): void
+    {
+        $this->entry ??= SunriceBridge::entryLink($entry);
+    }
+
     /**
-     * @return array{files: list<array<string, mixed>>}
+     * @return array{files: list<array<string, mixed>>, entry?: array{id: int, title: string, edit: string}}
      */
     public function toArray(): array
     {
-        return ['files' => array_values($this->files)];
+        return ['files' => array_values($this->files)] + ($this->entry === null ? [] : ['entry' => $this->entry]);
     }
 
     private static function real(string $path): string

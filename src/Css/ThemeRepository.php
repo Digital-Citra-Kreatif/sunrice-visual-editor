@@ -11,8 +11,9 @@ use Sunrice\VisualEditor\Support\SunriceBridge;
  * The stylesheets the editor works with: the CSS files of the site's
  * theme, in public/sunrice-theme. Only files found by listing that
  * directory are ever read or written, so a path can't lead anywhere else;
- * the one file that may be created is the editor's own (config
- * `theme_css`), where rules that do not exist yet go.
+ * the files that may be created are the editor's own (config
+ * `theme_css`), where rules that do not exist yet go, and the site's
+ * custom CSS (config `custom_css.file`).
  */
 final class ThemeRepository
 {
@@ -63,9 +64,10 @@ final class ThemeRepository
                 return $file;
             }
         }
-        $own = $this->own();
-        if ($own !== null && $own->path === $path) {
-            return $own;
+        foreach ([$this->own(), $this->custom()] as $made) {
+            if ($made !== null && $made->path === $path) {
+                return $made;
+            }
         }
 
         throw new StylesheetNotFound("The theme has no stylesheet \"{$path}\".");
@@ -74,7 +76,19 @@ final class ThemeRepository
     /** The stylesheet new rules go into; null when the site's configuration names none that can be one. */
     public function own(): ?ThemeFile
     {
-        $path = ltrim((string) config('sunrice-visual-editor.theme_css', 'editor.css'), '/');
+        return self::made((string) config('sunrice-visual-editor.theme_css', 'editor.css'));
+    }
+
+    /** The site's custom CSS, written as a whole in the Custom CSS tab; null when the configuration names none that can be one. */
+    public function custom(): ?ThemeFile
+    {
+        return self::made((string) config('sunrice-visual-editor.custom_css.file', 'custom.css'));
+    }
+
+    /** A stylesheet the configuration names, which its first save makes. */
+    private static function made(string $configured): ?ThemeFile
+    {
+        $path = ltrim($configured, '/');
         if (preg_match(self::PATH, $path) !== 1) {
             return null;
         }

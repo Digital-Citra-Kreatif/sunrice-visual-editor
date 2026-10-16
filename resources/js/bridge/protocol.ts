@@ -38,7 +38,17 @@ export type ManifestFile = {
 };
 
 /** `status`: what the server answered the page with. A page that failed to draw is still a page: 404, 500. */
-export type Manifest = { files: ManifestFile[]; status?: number; /** Tailwind's browser build was added to the page: its CSS is a preview of what a build would make. */ preview?: boolean };
+/** The entry a page is of, with the address of its page in the admin. */
+export type ShownEntry = { id: number; title: string; edit: string };
+
+export type Manifest = {
+    files: ManifestFile[];
+    status?: number;
+    /** Tailwind's browser build was added to the page: its CSS is a preview of what a build would make. */
+    preview?: boolean;
+    /** The entry the page is of, when it is one. */
+    entry?: ShownEntry;
+};
 
 /** A marked element under the pointer or clicked. */
 export type Target = {

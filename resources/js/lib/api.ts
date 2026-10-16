@@ -330,3 +330,23 @@ export function saveStylesheet(path: string, version: string, source: string, of
 export function linkStylesheet(template: string, version: string, stylesheet: string): Promise<{ template: TemplateData; before: string }> {
     return request<{ template: TemplateData; before: string }>('POST', 'styles/link', { template, version, stylesheet });
 }
+
+/** The site's custom CSS (Rendering\CustomCss): its text, and whether pages link it by themselves. */
+export type CustomCss = {
+    path: string;
+    url: string;
+    version: string;
+    exists: boolean;
+    /** Null for a file that isn't UTF-8 text. */
+    source: string | null;
+    /** Pages link it from their layout's stack, by themselves. */
+    injected: boolean;
+    stack: string;
+};
+
+export function readCustomCss(): Promise<CustomCss> {
+    return request<{ custom: CustomCss }>('GET', 'styles/custom').then((answer) => answer.custom);
+}
+
+/** Something read from the server: not asked for yet, on its way, there, or refused. */
+export type Loaded<T> = { state: 'idle' } | { state: 'loading' } | { state: 'ready'; data: T } | { state: 'failed'; error: string };

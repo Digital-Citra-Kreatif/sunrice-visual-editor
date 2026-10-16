@@ -42,7 +42,9 @@ command there: on a staging copy, after setting
 
 **Visual editor** now appears in the admin's sidebar, under *Manage*, for
 Super Admins and for anyone given one of its permissions. It is also at `/cms/visual-editor` (`/cms` being your admin
-path), and `/cms/visual-editor?url=/about` opens it on that page.
+path), and `/cms/visual-editor?url=/about` opens it on that page. Every
+entry's page in the admin also has an **Edit with Visual Editor** button,
+which opens the editor on that entry's page.
 
 ## Where it is on
 
@@ -63,8 +65,8 @@ these in **Users → Roles**, under *Visual editor*:
 
 | Permission | Lets someone |
 | --- | --- |
-| Open the visual editor | look at the page, its templates, layers and styles |
-| Change templates and styles in the visual editor | change them without writing code |
+| Open the visual editor | look at the page, its templates, their layers and code |
+| Change templates and styles in the visual editor | move, copy and delete in the tree, write the custom CSS, without writing code |
 | Edit template code in the visual editor | write Blade and PHP |
 
 Each includes the ones above it. [Permissions](permissions.md) says exactly
@@ -89,7 +91,10 @@ php artisan vendor:publish --tag=sunrice-visual-editor-config
 | `enabled` | on when `APP_ENV` is `local` | Turns the editor on or off (`SUNRICE_VISUAL_EDITOR`). |
 | `backups` | `true` | Keeps the previous version of every file the editor writes, in `storage/app/sunrice/template-backups/`. Leave it on: undo for people without the code permission depends on it. |
 | `theme_css` | `editor.css` | The file in `public/sunrice-theme/` that receives CSS rules for classes that have none yet. |
-| `widths` | Desktop 1280, Tablet 768, Mobile 390 | The widths the page can be shown at, and for each the `@media` condition a style for that width is written under when the site's own CSS has none that fits. |
+| `custom_css.file` | `custom.css` | The site's own stylesheet in `public/sunrice-theme/`, written in the editor's **Custom CSS** tab and linked from every page. See [Styles](styles.md#custom-css). |
+| `custom_css.inject` | `true` | Links that file from every page, by pushing a `<link>` onto the layout's stack (`SUNRICE_VISUAL_EDITOR_CUSTOM_CSS`). It does so whether or not the editor is on, so the deployed site has the same CSS. Set it to `false` to link the file from the layout yourself. |
+| `custom_css.stack` | `head` | The stack the link is pushed onto: the layout's `@stack('head')` in the starter layout. |
+| `widths` | Desktop 1280, Tablet 768, Mobile 390 | The devices the page can be previewed at, from the top bar. Each may have a `media` condition; it is kept in the configuration, and the screen does not use it. |
 | `tailwind.preview` | `false` | For a site whose CSS is Tailwind built by Vite: adds Tailwind's browser build to pages drawn for the editor, so a class shows before the CSS is built again (`SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW`). See [Styles](styles.md#sites-that-build-their-css). |
 | `tailwind.entry` | `resources/css/app.css` | The site's CSS entry file, which the preview reads for the theme. |
 | `tailwind.script` | Tailwind's browser build on jsDelivr | Where the browser fetches the preview's script from. Point it at a copy of your own to work without the network. |
@@ -114,5 +119,7 @@ rm -rf public/vendor/sunrice-visual-editor
 
 Nothing of the editor is in your templates or your database, apart from its
 four permissions, which Sunrice leaves in place and which do nothing
-without the package. `public/sunrice-theme/editor.css`, if the editor made
-it, is yours: it holds CSS your pages use.
+without the package. `public/sunrice-theme/editor.css` and
+`public/sunrice-theme/custom.css`, if the editor made them, are yours: they
+hold CSS your pages use. Without the package nothing links `custom.css`
+any more, so link it from the layout if you keep it.

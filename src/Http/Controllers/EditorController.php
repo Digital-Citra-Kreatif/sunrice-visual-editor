@@ -26,6 +26,7 @@ class EditorController extends Controller
 
         return Inertia::render('VisualEditor/Editor', [
             'startPath' => static::sitePath($request->query('url')),
+            // The devices the page is previewed at.
             'widths' => Widths::configured(),
             // The code editor is a script of its own, fetched when code is first shown.
             'codeEditor' => asset(VisualEditorServiceProvider::asset('code-editor.js')),

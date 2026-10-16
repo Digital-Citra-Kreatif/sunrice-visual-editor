@@ -1,61 +1,86 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
-import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, wrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut } from './bridge/protocol';
+import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut, type ShownEntry } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
-import { ApiError, applyOperations, changeStyles, copyToSite, fieldsAt, linkStylesheet, runBuild, listFields, listInserts, listTemplates, readSite, readStyles, readTemplate, saveSource, saveStylesheet, type Built, type FieldsAt, type Insertable, type Operation, type PickVariable, type Site, type Styles, type StylesSaved, type TemplateData, type TemplateInfo, type ThemeFile, type TreeNode } from './lib/api';
+import { ApiError, applyOperations, copyToSite, fieldsAt, listTemplates, readTemplate, runBuild, saveSource, type Built, type FieldsAt, type Loaded, type Operation, type TemplateData, type TemplateInfo, type TreeNode } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
-import { asMedia, breakpoints, mediaFor, sameMedia } from './lib/media';
+import { folding, readLayout, shareOf, siding, writeLayout } from './lib/layout';
 import { pageOf, rememberPage } from './lib/memory';
-import { startRedraw, type Redraw } from './lib/redraw';
-import { actionOn, actionsFor, moveTo, type Action } from './lib/move';
-import { flownOf, folding, isFolded, readLayout, shareOf, siding, writeLayout, type Flown } from './lib/layout';
+import { actionOn, moveTo, type Action } from './lib/move';
 import { isAdminPath, sitePath } from './lib/path';
-import { classesOf } from './lib/settings';
-import { STYLE_PROPERTIES } from './lib/styleFields';
-import { layoutOf, resolve, sheetsOf, shiftedId, type StyleEdit } from './lib/styles';
+import { startRedraw, type Redraw } from './lib/redraw';
 import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
-import { boxesOf, findNode, rowFor, nodeAt } from './lib/tree';
 import { useSize } from './lib/size';
-import { activeWidth, layout, readWidths, viewOf, viewValue, type View } from './lib/widths';
+import { boxesOf, findNode, nodeAt, rowFor } from './lib/tree';
+import { layout, readWidths, type View } from './lib/widths';
 import { CodePanel, type CodePlace, type CodePut } from './panels/CodePanel';
-import { InsertPanel, type InsertTab } from './panels/InsertPanel';
-import { LayersPanel, nodeTitle } from './panels/LayersPanel';
+import { ContentPanel } from './panels/ContentPanel';
+import { CustomCssPanel } from './panels/CustomCssPanel';
 import { FieldsList } from './panels/FieldsPanel';
-import { Folds, Panel, Side } from './panels/Panel';
-import { CssRules, LookOnly } from './panels/CssPanel';
-import { StyleFields } from './panels/StylePanel';
-import { SettingsPanel, type SettingsTab } from './panels/SettingsPanel';
-import { TemplatePanel, type Loaded } from './panels/TemplatePanel';
+import { LayersPanel, nodeTitle } from './panels/LayersPanel';
+import { Folds, Side } from './panels/Panel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
 
 type Props = {
     /** Path the editor opens on, e.g. "/" or "/about". */
     startPath: string;
-    /** The widths the page can be shown at (config `widths`). */
+    /** The devices the page can be previewed at (config `widths`). */
     widths?: unknown;
     /** What whoever opened the editor may do in it: change things, and write code. What the server lets them is the server's to say. */
     can?: { edit?: boolean; code?: boolean; build?: boolean };
     /** The site's own Vite dev server is running: it keeps the CSS up with the templates. */
     devServer?: boolean;
-    /** Where the code editor's script is fetched from, when code is first shown. */
+    /** Where the code editor's script is fetched from. */
     codeEditor?: string;
 };
 
-/** A small picture of the editor with one part of it filled in: which part a button of the top bar shows and hides. */
-function ShownIcon({ part }: { part: 'left' | 'code' | 'right' }) {
+/** A small picture of the editor with one side of it filled in: which side a button of the top bar shows and hides. */
+function ShownIcon({ part }: { part: 'left' | 'right' }) {
     return (
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
             <rect x="1.5" y="2.5" width="13" height="11" rx="1.5" fill="none" stroke="currentColor" />
             {part === 'left' && <rect x="2.5" y="3.5" width="3.5" height="9" rx="0.5" fill="currentColor" />}
-            {part === 'right' && <rect x="10" y="3.5" width="3.5" height="9" rx="0.5" fill="currentColor" />}
-            {part === 'code' && <rect x="2.5" y="8.5" width="11" height="4" rx="0.5" fill="currentColor" />}
+            {part === 'right' && <rect x="8.5" y="3.5" width="5" height="9" rx="0.5" fill="currentColor" />}
         </svg>
     );
 }
 
+/** A screen as wide as a device, roughly: a phone, a tablet or a desktop. */
+function DeviceIcon({ width }: { width: number }) {
+    return (
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+            {width < 600 ? (
+                <rect x="4.5" y="1.5" width="7" height="13" rx="1.5" fill="none" stroke="currentColor" />
+            ) : width < 1100 ? (
+                <rect x="2.5" y="1.5" width="11" height="13" rx="1.5" fill="none" stroke="currentColor" />
+            ) : (
+                <>
+                    <rect x="1.5" y="2.5" width="13" height="9" rx="1" fill="none" stroke="currentColor" />
+                    <path d="M5.5 14.5h5M8 11.5v3" stroke="currentColor" />
+                </>
+            )}
+        </svg>
+    );
+}
+
+/** What a side folded away leaves at the edge: a narrow strip that opens it again. */
+function Rail({ side, label, onOpen }: { side: 'left' | 'right'; label: string; onOpen(): void }) {
+    return (
+        <button type="button" className={`sve-rail sve-rail--${side}`} onClick={onOpen} aria-label={`Show the ${label.toLowerCase()}`} title={`Show the ${label.toLowerCase()}`}>
+            <span className="sve-rail__mark" aria-hidden="true">
+                {side === 'left' ? '»' : '«'}
+            </span>
+            <span className="sve-rail__label">{label}</span>
+        </button>
+    );
+}
+
 /** The page in the frame, as its bridge described it. `status` is what the server answered it with. */
-type Page = { url: string; title: string; files: ManifestFile[]; status: number; /** Its CSS is Tailwind's browser build: a preview of what a build would make. */ preview: boolean };
+type Page = { url: string; title: string; files: ManifestFile[]; status: number; /** Its CSS is Tailwind's browser build: a preview of what a build would make. */ preview: boolean; /** The entry it is of, when it is one. */ entry: ShownEntry | null };
+
+/** What the side right of the page shows: the open template's code, what it can read, the page's content, or the site's custom CSS. */
+type CodeTab = 'template' | 'fields' | 'content' | 'css';
 
 /** How long a page gets to say it is ready after it has loaded. */
 const READY_WITHIN = 1500;
@@ -74,26 +99,28 @@ const later = (after: number, run: () => void) => {
 /** The name a template's history goes by. */
 const historyKey = (template: { origin: string; path: string }) => `${template.origin}:${template.path}`;
 
-/** The name a stylesheet's history goes by. */
-const sheetKey = (path: string) => `theme:${path}`;
-
 const message = (error: unknown) => (error instanceof ApiError || error instanceof Error ? error.message : 'Something went wrong.');
 
 /**
- * The editor's screen: the page being edited in a frame, its templates and
- * the layers of the open one on the left, and the open template on the
- * right.
+ * The editor's screen, in three parts:
  *
- * The page is rendered for the editor (`?sve=1`): its elements say which
- * template and which node they came from, and a script in it (the bridge)
- * tells this screen what the pointer is over. Everything drawn over the
- * page is drawn here, above the frame.
+ * - left, the templates that drew the page and the tree of the open one:
+ *   a click on a row selects it, outlines it on the page and scrolls the
+ *   page to it;
+ * - in the middle, the page itself, rendered for the editor (`?sve=1`):
+ *   a click on it selects what was clicked, in the tree and in the code;
+ * - right, the code: the open template, or the site's custom CSS. Saving
+ *   (Ctrl+S) writes the file and draws the page again.
+ *
+ * Everything drawn over the page is drawn here, above the frame; the
+ * page's bridge script says what the pointer is over and where things are.
  */
 export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServer }: Props) {
     const mayEdit = can?.edit !== false;
     const mayCode = mayEdit && can?.code !== false;
     /** The site has a build command, and whoever is here may run it. */
     const mayBuild = can?.build === true;
+    const editorScript = typeof codeEditor === 'string' && codeEditor !== '' ? codeEditor : null;
     // Two frames, one above the other. `frame` is the one that is seen and talked to. `spare`
     // is where the page is drawn again after a change, out of sight: when it is ready the
     // two change places, so the page is never seen to go and come back.
@@ -136,7 +163,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     /**
      * The template that is open as an answer arrives. A save, an undo or a change is answered a
      * moment later, and another template may have been opened meanwhile: the answer is then about
-     * a template the panels no longer show, and is not theirs to take.
+     * a template the editor no longer shows, and is not its to take.
      */
     const openNow = useRef(open);
     openNow.current = open;
@@ -159,9 +186,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             return text === null ? (had === undefined ? all : others) : had === text ? all : { ...others, [historyKey(of)]: text };
         });
     };
-    /** The open template has code that is not saved: the panels wait for it. */
+    /** The open template has code that is not saved: the tree waits for it. */
     const unsaved = draft !== null;
-    const anyUnsaved = Object.keys(drafts).length > 0;
+    /** The custom CSS has text that is not saved. */
+    const [cssUnsaved, setCssUnsaved] = useState(false);
+    const anyUnsaved = Object.keys(drafts).length > 0 || cssUnsaved;
     // A template that is opened is a tab from then on.
     useEffect(() => {
         if (open !== null) {
@@ -171,53 +200,30 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const [template, setTemplate] = useState<Loaded<TemplateData>>({ state: 'idle' });
     /** Bumped to read the open template from disk again. */
     const [readings, setReadings] = useState(0);
-    const [coding, setCoding] = useState(false);
-    /** Which sides are shown and what is folded to its title: as the editor was left (lib/layout.ts). */
+    /** Which sides are shown, how wide the code is and what is folded: as the editor was left (lib/layout.ts). */
     const [arranged, setArranged] = useState(readLayout);
     useEffect(() => writeLayout(arranged), [arranged]);
     const folds = useMemo(() => ({ folded: new Set(arranged.folded), toggle: (name: string) => setArranged((now) => folding(now, name)) }), [arranged.folded]);
-    /** A hidden side that is over the page for now. It is put away by Escape, by its own button, and by a click on the page or in the code. */
-    const [flownSide, setFlown] = useState<Flown>(null);
-    const flown = flownOf(arranged, flownSide);
-    /** What flies each hidden side out: where the keyboard goes when one is put away with the keyboard in it. */
-    const edges = useRef<Record<'left' | 'right', HTMLButtonElement | null>>({ left: null, right: null });
-    const wasFlown = useRef<Flown>(null);
+    const [codeTab, setCodeTab] = useState<CodeTab>('template');
+    /** The content tab holds the entry's page of the admin: drawn the first time it is asked for, and kept from then on. */
+    const [contentSeen, setContentSeen] = useState(false);
     useEffect(() => {
-        const was = wasFlown.current;
-        wasFlown.current = flown;
-        if (flownSide !== null && flown === null) {
-            // It has its room back: it is no longer something to put away.
-            setFlown(null);
+        if (codeTab === 'content') {
+            setContentSeen(true);
         }
-        if (was !== null && flown === null && (document.activeElement === null || document.activeElement === document.body)) {
-            edges.current[was]?.focus();
-        }
-        if (flown === null) {
-            return;
-        }
-        const away = () => setFlown(null);
-        const pointer = (event: PointerEvent) => {
-            if (event.target instanceof Node && canvas.current?.contains(event.target) === true) {
-                away();
-            }
-        };
-        // A click on the page is the page's own: what this window hears of it is that the keyboard went there.
-        const left = () => window.setTimeout(() => document.activeElement instanceof HTMLIFrameElement && away(), 0);
-        document.addEventListener('pointerdown', pointer, true);
-        window.addEventListener('blur', left);
-
-        return () => {
-            document.removeEventListener('pointerdown', pointer, true);
-            window.removeEventListener('blur', left);
-        };
-    }, [flown, flownSide]);
-    /** The open template's text as changed in the code panel and not saved; null when it is as on disk. */
+    }, [codeTab]);
+    /** The devices the page can be previewed at, and how it is shown now: as wide as the room, at one of them, or at all of them side by side. */
+    const widths = useMemo(() => readWidths(sentWidths), [sentWidths]);
+    const [view, setView] = useState<View>({ kind: 'full' });
+    const room = useRef<HTMLDivElement>(null);
+    const roomSize = useSize(room);
+    /** The frames beside the one being edited, when the devices are side by side: the same page, to look at. */
+    const previews = useRef<(HTMLIFrameElement | null)[]>([]);
+    /** Every template there is, for the list of those not on this page. */
     const [all, setAll] = useState<TemplateInfo[] | null>(null);
     const [copying, setCopying] = useState(false);
-    /** A change from the Settings panel is on its way to the server. */
+    /** A change from the tree (a move, a delete) or an undo is on its way to the server. */
     const [applying, setApplying] = useState(false);
-    /** How many changes the server has refused. */
-    const [refusals, setRefusals] = useState(0);
     /** What there is to tell: the last refusal, or the last thing done out of sight. */
     const [notice, setNotice] = useState<Notice | null>(null);
     const say = (kind: Notice['kind'], text: string, action?: Notice['action']) => setNotice({ kind, text, at: Date.now(), action });
@@ -237,52 +243,13 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     /** Once the page is back, bring what is selected into view: it may be new, and anywhere. */
     const revealing = useRef(false);
 
-    /** The widths the page can be shown at, and how it is shown now: as wide as the room, at one width, or at all of them side by side. */
-    const widths = useMemo(() => readWidths(sentWidths), [sentWidths]);
-    const [view, setView] = useState<View>({ kind: 'full' });
-    const room = useRef<HTMLDivElement>(null);
-    const roomSize = useSize(room);
-    /** The frames beside the one being edited, when the widths are side by side: the same page, to look at. */
-    const previews = useRef<(HTMLIFrameElement | null)[]>([]);
-    /** Goes up when a template changed: the frames beside draw the page again. */
-    const [drawn, setDrawn] = useState(0);
-    /** The @media condition the Style tab writes under, when it was picked by hand: for the width that was being edited then. */
-    const [pickedMedia, setPickedMedia] = useState<{ at: string; media: string | null } | null>(null);
-
-    /** For an element: its settings, or the rules of the stylesheets for its classes. */
-    const [settingsTab, setSettingsTab] = useState<SettingsTab>('settings');
-    /** The class whose rules are shown, when one was picked by hand. */
-    const [pickedClass, setPickedClass] = useState<string | null>(null);
-    /** What the theme's stylesheets say, about the class shown or about nothing in particular. */
-    const [styles, setStyles] = useState<Styles | null>(null);
-    const [stylesFailed, setStylesFailed] = useState<string | null>(null);
-    /** Bumped to read the stylesheets again. */
-    const [styleReadings, setStyleReadings] = useState(0);
-    /** The same, for the changes that wait their turn: each is made on the stylesheets as the one before it left them. */
-    const stylesNow = useRef<Styles | null>(null);
-    const classNow = useRef<string | null>(null);
-    const styleWork = useRef<Promise<void>>(Promise.resolve());
-    /** Undo and redo for each stylesheet changed since the editor was opened, by its path. Not state: a change reads what the one before it wrote. */
-    const sheetHistories = useRef<Record<string, History>>({});
-    const [, setSheetSteps] = useState(0);
-    /** The addresses of the stylesheets the page in the frame links; null until it has said. */
-    const [linked, setLinked] = useState<string[] | null>(null);
-    const [linking, setLinking] = useState(false);
-    /** What the page has for the properties the Style tab shows, for the element it was asked about. */
-    const [onPage, setOnPage] = useState<{ mark: string; values: Record<string, string> } | null>(null);
-
-    /** The left side lists what can be inserted, in place of the page's templates. */
-    const [inserting, setInserting] = useState(false);
-    const [insertTab, setInsertTab] = useState<InsertTab>('library');
-    const [inserts, setInserts] = useState<Loaded<Insertable[]>>({ state: 'idle' });
-
     /** The selected node of the open template, by its id in the tree. */
     const [selected, setSelected] = useState<string | null>(null);
     /** A node to select once the template it is in has been opened and read. */
     const toSelect = useRef<{ template: TemplateName; id: string } | null>(null);
     const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
 
-    /** What the pointer is over: an element of the page, a row of the template list, a row of the layers. */
+    /** What the pointer is over: an element of the page, a row of the template list, a row of the tree. */
     const [hovered, setHovered] = useState<Mark | null>(null);
     const [pointedFile, setPointedFile] = useState<string | null>(null);
     const [pointedNode, setPointedNode] = useState<string | null>(null);
@@ -307,7 +274,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             redrawing.current = false;
             setWaiting(null);
             const status = said.manifest.status ?? 200;
-            setPage({ url: said.url, title: said.title, files, status, preview: said.manifest.preview === true });
+            setPage({ url: said.url, title: said.title, files, status, preview: said.manifest.preview === true, entry: said.manifest.entry ?? null });
             // A change that compiled can still fail where the template is drawn: a variable that
             // isn't there, a collection that doesn't exist. No check before saving can know that.
             const before = statusBefore.current;
@@ -336,8 +303,6 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 setHovered(said.target?.mark ?? null);
             }
         } else if (said.type === 'select') {
-            // A click on the page: a side flown out over it has had its moment.
-            setFlown(null);
             if (applying || redrawing.current) {
                 // A change is being saved, or the page drawn again after one: what is on the
                 // page is the file as it was, and its elements are not those of the tree now.
@@ -348,21 +313,19 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             if (file === undefined) {
                 return;
             }
+            // What was clicked is shown in its code.
+            setCodeTab('template');
             if (sameTemplate(file, open)) {
                 // An element of the open template: select it.
                 if (findNode(tree, id) !== null) {
                     setSelected(id);
-                    pointCode(file, findNode(tree, id));
+                    pointCode(file, findNode(tree, id), true);
                 }
             } else {
                 // An element of another template: open that one, and select the element once it is read.
                 toSelect.current = { template: { path: file.path, origin: file.origin }, id };
                 openTemplate({ path: file.path, origin: file.origin });
             }
-        } else if (said.type === 'styles') {
-            setLinked(said.linked);
-        } else if (said.type === 'computed') {
-            setOnPage(said.values === null ? null : { mark: markValue(said.mark), values: said.values });
         } else if (said.type === 'key') {
             shortcuts.current(said.key);
         } else if (said.type === 'measured') {
@@ -384,8 +347,6 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         setHovered(null);
         setMeasured(null);
         setHolding(false);
-        setLinked(null);
-        setOnPage(null);
         // The address field shows where the frame is going, not what was being typed for the page before.
         setTyped(null);
     };
@@ -404,10 +365,10 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     }, []);
 
     /**
-     * Draws the page in the frame again, after a template changed. The
-     * panels keep what they show until the new page says what it is, and
-     * so does the frame: the page is drawn in the spare frame, scrolled
-     * to where the old one is, and the two then change places.
+     * Draws the page in the frame again, after a file changed. The editor
+     * keeps what it shows until the new page says what it is, and so does
+     * the frame: the page is drawn in the spare frame, scrolled to where
+     * the old one is, and the two then change places.
      */
     const redraw = () => {
         const shown = frame.current;
@@ -537,10 +498,9 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             return;
         }
         // Whatever was said before may have come from the page that was here a moment ago:
-        // ask the one that has loaded. A page drawn for the editor answers at once.
-        // The wait for the page before this one is over. Left running, it comes due while
-        // this page is still being asked, finds no answer yet and says the page is gone:
-        // a large page, read on the thread the timer runs on, is all that takes.
+        // ask the one that has loaded. A page drawn for the editor answers at once. The wait
+        // for the page before this one is over: left running, it would come due while this
+        // page is still being asked and say the page is gone.
         if (answerWait.current !== null) {
             window.clearTimeout(answerWait.current);
         }
@@ -586,6 +546,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
     /** Opens a template; one that isn't on this page brings the page it was last seen on. */
     const openTemplate = (name: TemplateName) => {
+        setCodeTab('template');
         if (sameTemplate(open, name)) {
             return;
         }
@@ -613,11 +574,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     }
     const codeOf = template.state === 'ready' ? template.data : template.state === 'loading' ? lastRead.current : null;
 
-    /** The room between the sides: the code and the page share it in Code mode. */
-    const canvas = useRef<HTMLElement>(null);
-    /** Dragging the line between the code and the page gives the one more room and the other less. */
+    /** The editor's whole width, which the line between the page and the code is dragged across. */
+    const shell = useRef<HTMLDivElement>(null);
+    /** Dragging the line between the page and the code gives the one more room and the other less. */
     const divide = (event: ReactPointerEvent<HTMLDivElement>) => {
-        const room = canvas.current?.getBoundingClientRect();
+        const room = shell.current?.getBoundingClientRect();
         if (room === undefined || room.width === 0) {
             return;
         }
@@ -625,11 +586,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         const line = event.currentTarget;
         line.setPointerCapture(event.pointerId);
         // The page is in a frame, which would take the pointer for itself as it passes over.
-        canvas.current?.classList.add('sve-canvas--dividing');
-        const move = (moved: PointerEvent) => setArranged((now) => ({ ...now, share: shareOf((moved.clientX - room.left) / room.width) }));
+        shell.current?.classList.add('sve-shell--dividing');
+        const move = (moved: PointerEvent) => setArranged((now) => ({ ...now, share: shareOf((room.right - moved.clientX) / room.width) }));
         const done = () => {
             line.removeEventListener('pointermove', move);
-            canvas.current?.classList.remove('sve-canvas--dividing');
+            shell.current?.classList.remove('sve-shell--dividing');
         };
         line.addEventListener('pointermove', move);
         line.addEventListener('pointerup', done, { once: true });
@@ -654,17 +615,17 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         }
     };
 
-    /** Where the code's cursor is in the text as typed, in bytes, and in which template: what the fields beside the code are asked for. */
+    /** Where the code's cursor is in the text as typed, in bytes, and in which template: what the code's completions are asked for. */
     const [codeCursor, setCodeCursor] = useState<{ of: string; byte: number } | null>(null);
     /** What can be read at the cursor, as last answered; while the next is asked it stays, most of it being the same. */
     const [codeFields, setCodeFields] = useState<{ answer: FieldsAt | null; failed: string | null }>({ answer: null, failed: null });
     const [fieldsTyped, setFieldsTyped] = useState('');
+    /** Blade to write at the code's cursor: a field picked in the Fields tab. */
     const [codePut, setCodePut] = useState<CodePut | null>(null);
 
     /**
-     * The code's cursor is somewhere else. A moment after it stops: the
-     * node it is in is the selection, shown on the page, and the fields
-     * beside the code are those for where it is.
+     * The code's cursor is somewhere else. A moment after it stops, the
+     * node it is in is the selection: shown in the tree, and on the page.
      */
     const cursorWait = useRef<number | null>(null);
     const cursorAt = (byte: number, now: number) => {
@@ -689,13 +650,12 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         }, 250);
     };
 
-    // What can be read where the cursor is, in the text as it is typed: asked a moment after the
-    // typing or the cursor stops, and only while the list that shows it is there to be seen.
+    // What can be read where the cursor is, in the text as it is typed: offered by the code editor
+    // after `$entry->` and the like. Asked a moment after the typing or the cursor stops.
     const fieldsOf = codeOf !== null && codeOf.origin === 'site' && codeOf.editable && codeOf.source !== null ? codeOf : null;
     const fieldsText = fieldsOf === null ? null : (drafts[historyKey(fieldsOf)] ?? fieldsOf.source);
     const fieldsByte = fieldsOf !== null && codeCursor !== null && codeCursor.of === historyKey(fieldsOf) ? codeCursor.byte : 0;
-    const fieldsWanted = arranged.mode === 'code' && mayCode && template.state === 'ready' && fieldsOf !== null;
-    const fieldsShown = fieldsWanted && (arranged.right || flown === 'right') && !isFolded(arranged, 'panel:Fields');
+    const fieldsWanted = mayCode && template.state === 'ready' && fieldsOf !== null;
     useEffect(() => {
         if (!fieldsWanted || fieldsOf === null || fieldsText === null) {
             return;
@@ -721,7 +681,6 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 // The site uses the copy from now on: draw the page again and open it.
                 wanted.current = { path: made.path, origin: 'site' };
                 setAll(null);
-                setDrawn((count) => count + 1);
                 if (page !== null) {
                     show(page.url);
                 } else {
@@ -734,25 +693,25 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
     /**
      * Sends the code's cursor to a node of a template: what a click on the
-     * page, or on a layer, does to the code. In Code mode the keyboard goes
-     * there too; with the code under the page it stays where it is, on the
-     * page or the layers.
+     * page, or on a row of the tree, does to the code. From the page the
+     * keyboard goes there too; from the tree it stays in the tree.
      */
-    const pointCode = (of: TemplateName, node: TreeNode | null) => {
+    const pointCode = (of: TemplateName, node: TreeNode | null, focus: boolean) => {
         if (node !== null && node.type !== 'root') {
             asked.current++;
-            setCodePlace({ path: of.path, origin: of.origin, byte: node.start, asked: asked.current, focus: arranged.mode === 'code' });
+            setCodePlace({ path: of.path, origin: of.origin, byte: node.start, asked: asked.current, focus });
         }
     };
 
-    /** Selects a layer and brings what shows it on the page into view. */
+    /** Selects a row of the tree, and scrolls the page to what it drew. */
     const select = (id: string) => {
         if (applying) {
             return;
         }
         setSelected(id);
+        setCodeTab('template');
         if (open !== null) {
-            pointCode(open, findNode(tree, id));
+            pointCode(open, findNode(tree, id), false);
         }
         const [first] = boxesOf(tree, id).ids;
         if (first !== undefined && openFile !== null) {
@@ -799,7 +758,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                     toSelect.current = null;
                     if (findNode(data.tree, waitingFor.id) !== null) {
                         setSelected(waitingFor.id);
-                        pointCode(open, findNode(data.tree, waitingFor.id));
+                        pointCode(open, findNode(data.tree, waitingFor.id), true);
                     }
                 }
             })
@@ -811,7 +770,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     }, [open?.path, open?.origin, readings]);
 
     // Undo and redo from the keyboard, wherever in the editor it is, except in a field, which has
-    // its own. Delete is not listened for here: only on a layer, or on the page (the bridge).
+    // its own (the code has its own undo). Delete is not listened for here: only on a row, or on the page (the bridge).
     useEffect(() => {
         const pressed = (event: KeyboardEvent) => {
             const shortcut = event.defaultPrevented ? null : shortcutOf(event);
@@ -825,7 +784,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         return () => window.removeEventListener('keydown', pressed);
     }, []);
 
-    // Closing the tab with changes in the code panel: the browser asks first.
+    // Closing the tab with changes in the code: the browser asks first.
     useEffect(() => {
         if (!anyUnsaved) {
             return;
@@ -836,7 +795,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         return () => window.removeEventListener('beforeunload', ask);
     }, [anyUnsaved]);
 
-    /** The code panel wrote the file: show it as it is now, in the panels and on the page. */
+    /** The code was saved: show the template as it is now, in the tree and on the page. */
     const saved = (data: TemplateData) => {
         remember(data);
         say('done', `Saved ${data.path}.`);
@@ -866,10 +825,20 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const changedRedraw = () => {
         statusBefore.current = page?.status ?? null;
         redraw();
-        setDrawn((count) => count + 1);
+        redrawPreviews();
         // On a site that builds its CSS, what was built is now behind the templates.
         setBehind(true);
     };
+
+    /** The devices beside the one being edited show the page again too. */
+    const redrawPreviews = () =>
+        previews.current.forEach((preview) => {
+            try {
+                preview?.contentWindow?.location.reload();
+            } catch {
+                // Not a page of this site any more: it is shown anew with the next page.
+            }
+        });
 
     /** A template was changed since the site's CSS was last built from here: the built CSS may lack what the change needs. */
     const [behind, setBehind] = useState(false);
@@ -944,24 +913,23 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     };
 
     /**
-     * Sends changes from the Settings or the Insert panel: the file is
-     * saved, the page drawn again, and the node the last change made or
-     * touched selected. Answers whether the changes were made.
+     * Sends a change made in the tree (a row dragged, duplicated or
+     * deleted): the file is saved, the page drawn again, and the node the
+     * change made or touched selected.
      */
-    const apply = (operations: Operation[]): Promise<boolean> => {
+    const apply = (operations: Operation[]) => {
         if (open === null || template.state !== 'ready' || applying) {
-            return Promise.resolve(false);
+            return;
         }
         setApplying(true);
         const asked = open;
 
-        return applyOperations(open.path, template.data.version, operations)
+        applyOperations(open.path, template.data.version, operations)
             .then(({ template: changed, focus }) => {
                 // The file was changed whichever template is open by now: its history has the step, and the page shows it.
                 remember(changed);
                 if (sameTemplate(openNow.current, changed)) {
                     setTemplate({ state: 'ready', data: changed });
-                    // The page shows that it worked. What was wrong with the change before it no longer is.
                     setNotice(null);
                     // The ids of the old tree mean nothing in the new one.
                     setSelected(rowFor(changed.tree, focus));
@@ -970,233 +938,24 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                     revealing.current = true;
                 }
                 changedRedraw();
-
-                return true;
             })
             .catch((error: unknown) => {
                 say('problem', message(error));
-                setRefusals((count) => count + 1);
                 if (error instanceof ApiError && error.reason === 'conflict') {
-                    // The file is not what the panels show any more: read it again.
+                    // The file is not what the editor shows any more: read it again.
                     if (sameTemplate(openNow.current, asked)) {
                         setSelected(null);
                         setReadings((count) => count + 1);
                     }
                     redraw();
                 }
-
-                return false;
             })
             .finally(() => setApplying(false));
     };
 
-    // What can be inserted, asked for each time the list is opened: the site's partials and content change.
-    useEffect(() => {
-        if (!inserting) {
-            return;
-        }
-        let stale = false;
-        setInserts((before) => (before.state === 'ready' ? before : { state: 'loading' }));
-        listInserts()
-            .then((data) => !stale && setInserts({ state: 'ready', data }))
-            .catch((error: unknown) => !stale && setInserts((before) => (before.state === 'ready' ? before : { state: 'failed', error: message(error) })));
-
-        return () => {
-            stale = true;
-        };
-    }, [inserting]);
-
-    // What can be read at the selected node, for the Settings panel to fill a control from and to
-    // say which field a value is. Asked for each node selected; what is known of the last holds meanwhile.
-    const fieldsFor = template.state === 'ready' && template.data.editable && tree !== null && selected !== null && findNode(tree, selected) !== null ? `${template.data.path}\n${template.data.version}\n${selected}` : null;
-    const [fieldsHere, setFieldsHere] = useState<{ asked: string; variables: PickVariable[] } | null>(null);
-    useEffect(() => {
-        if (fieldsFor === null || template.state !== 'ready' || selected === null) {
-            return;
-        }
-        let stale = false;
-        listFields(template.data.path, template.data.version, selected, false)
-            .then((variables) => !stale && setFieldsHere({ asked: fieldsFor, variables }))
-            .catch(() => undefined);
-
-        return () => {
-            stale = true;
-        };
-    }, [fieldsFor]);
-
-    // The site's collections and taxonomies, for the controls that choose one: asked once.
-    const [site, setSite] = useState<Site | null>(null);
-    useEffect(() => {
-        let stale = false;
-        readSite()
-            .then((read) => !stale && setSite(read))
-            .catch(() => undefined);
-
-        return () => {
-            stale = true;
-        };
-    }, []);
-
-    // --- The theme's stylesheets ------------------------------------------------------
-
-    /** The element whose classes the CSS tab is about, and the class of it whose rules are shown. */
-    const styled = template.state === 'ready' ? findNode(tree, selected) : null;
-    const classes = styled !== null && styled.type === 'element' ? classesOf(styled) : null;
-    const styleClass = classes === null || classes.length === 0 ? null : pickedClass !== null && classes.includes(pickedClass) ? pickedClass : classes[0];
-    /** What is asked of the stylesheets: about the class, while its rules are shown; otherwise only which there are. */
-    const askedClass = settingsTab === 'settings' ? null : styleClass;
-    classNow.current = askedClass;
-
-    const takeStyles = (read: Styles) => {
-        if (read.class !== classNow.current) {
-            // An answer about a class that is no longer the one shown: ask about the one that is.
-            setStyleReadings((count) => count + 1);
-
-            return;
-        }
-        stylesNow.current = read;
-        setStyles(read);
-        setStylesFailed(null);
-    };
-
-    useEffect(() => {
-        let stale = false;
-        readStyles(askedClass)
-            .then((read) => !stale && takeStyles(read))
-            .catch((error: unknown) => !stale && setStylesFailed(message(error)));
-
-        return () => {
-            stale = true;
-        };
-    }, [askedClass, styleReadings]);
-
-    // The page shows the theme's stylesheets as they are now, and says which of them it links.
-    const sheets = useMemo(() => sheetsOf(styles), [styles]);
-    useEffect(() => {
-        if (page !== null && styles !== null) {
-            tell({ type: 'styles', sheets });
-        }
-    }, [page, sheets, tell]);
-
-    // The frames beside the one being edited show the same stylesheets, and the same page as it changes.
-    const sheetsNow = useRef(sheets);
-    sheetsNow.current = sheets;
-    const tellPreview = (preview: HTMLIFrameElement | null) => preview?.contentWindow?.postMessage(wrap({ type: 'styles', sheets: sheetsNow.current }), window.location.origin);
-    useEffect(() => {
-        previews.current.forEach(tellPreview);
-    }, [sheets]);
-    useEffect(() => {
-        if (drawn > 0) {
-            previews.current.forEach((preview) => {
-                try {
-                    preview?.contentWindow?.location.reload();
-                } catch {
-                    // Not a page of this site any more: it is shown anew with the next page.
-                }
-            });
-        }
-    }, [drawn]);
-
-    /** A stylesheet was written: its history gains the file as it was. */
-    const rememberSheet = (path: string, was: string, saved: StylesSaved, how: 'change' | 'undo' | 'redo') => {
-        const all = sheetHistories.current;
-        const history = all[sheetKey(path)];
-        if (saved.before === null) {
-            // Too large to keep copies of: nothing of it can be undone.
-            delete all[sheetKey(path)];
-        } else if (how === 'change' || history === undefined) {
-            all[sheetKey(path)] = recorded(history, { source: saved.before, selected: null }, was, saved.file.version);
-        } else {
-            const left = { source: saved.before, selected: null };
-            all[sheetKey(path)] = how === 'undo' ? undone(history, left, saved.file.version) : redone(history, left, saved.file.version);
-        }
-        setSheetSteps((count) => count + 1);
-    };
-
-    /** Runs when the changes before it are done: one stylesheet change at a time, each on the file as it is then. */
-    const inTurn = (work: (now: Styles) => Promise<void>) => {
-        const forClass = classNow.current;
-        styleWork.current = styleWork.current.then(async () => {
-            const now = stylesNow.current;
-            if (now === null || now.class !== forClass || classNow.current !== forClass) {
-                return;
-            }
-            try {
-                await work(now);
-                setNotice(null);
-            } catch (error: unknown) {
-                say('problem', message(error));
-                // The rows show the file again, not what was typed.
-                setRefusals((count) => count + 1);
-                if (error instanceof ApiError && error.reason === 'conflict') {
-                    setStyleReadings((count) => count + 1);
-                }
-            }
-        });
-    };
-
-    /** A change from the CSS tab: the file is saved, and the page shows it at once. */
-    const editStyle = (edit: StyleEdit) =>
-        inTurn(async (now) => {
-            const change = resolve(now, edit);
-            if (change !== null) {
-                const saved = await changeStyles(change.file.path, change.file.version, change.changes, now.class);
-                rememberSheet(change.file.path, change.file.version, saved, 'change');
-                takeStyles(saved.styles);
-            }
-        });
-
-    const sheetFile = (now: Styles | null, path: string): ThemeFile | null => now?.files.find((file) => file.path === path) ?? (now?.own?.path === path ? now.own : null);
-
-    /** Undo or redo in one stylesheet: saves it as it was a step back, or a step forward again. */
-    const travelSheet = (path: string, direction: 'undo' | 'redo') =>
-        inTurn(async (now) => {
-            const file = sheetFile(now, path);
-            const history = sheetHistories.current[sheetKey(path)];
-            const step = file === null ? null : direction === 'undo' ? undoStep(history, file.version) : redoStep(history, file.version);
-            if (file !== null && step !== null) {
-                const saved = await saveStylesheet(path, file.version, step.source, now.class);
-                rememberSheet(path, file.version, saved, direction);
-                takeStyles(saved.styles);
-            }
-        });
-
-    const sheetSteps = (path: string) => {
-        const file = sheetFile(styles, path);
-        const history = sheetHistories.current[sheetKey(path)];
-
-        return { undo: file !== null && canUndo(history, file.version), redo: file !== null && canRedo(history, file.version) };
-    };
-
-    /** Links a stylesheet from the page's layout, and draws the page again with it. */
-    const linkSheet = (stylesheet: string) => {
-        const layout = layoutOf(page?.files ?? null);
-        if (layout === null || linking) {
-            return;
-        }
-        setLinking(true);
-        readTemplate(layout.path, 'site')
-            .then((read) =>
-                linkStylesheet(layout.path, read.version, stylesheet).then(({ template: changed, before }) => {
-                    setHistories((all) => ({ ...all, [historyKey(changed)]: recorded(all[historyKey(changed)], { source: before, selected: null }, read.version, changed.version) }));
-                    if (sameTemplate(openNow.current, changed)) {
-                        // The layout is the open template: what is selected in it has moved down by the link.
-                        setTemplate({ state: 'ready', data: changed });
-                        setSelected(rowFor(changed.tree, shiftedId(selected, before, changed.source ?? before)));
-                        setPointedNode(null);
-                        setCollapsed(new Set());
-                    }
-                    say('done', `Linked ${stylesheet} from ${layout.path}.`);
-                    changedRedraw();
-                }),
-            )
-            .catch((error: unknown) => say('problem', message(error)))
-            .finally(() => setLinking(false));
-    };
-
     // --- What is shown on the page -------------------------------------------------
 
-    /** The node under the pointer: a row of the layers, or an element of the open template on the page. */
+    /** The node under the pointer: a row of the tree, or an element of the open template on the page. */
     const litNode = pointedNode ?? (hovered !== null && hovered.file === openFile?.key && findNode(tree, hovered.id) !== null ? hovered.id : null);
     /** The template under the pointer, when it is not the open one: a row of the list, or an element of another template. */
     const litFile = pointedFile ?? (hovered !== null && hovered.file !== openFile?.key ? hovered.file : null);
@@ -1235,26 +994,6 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         }
     }, [page]);
 
-    // The width being edited, and the @media condition a style set now is written under: one of the site's own that
-    // applies at that width, else the one the width is set up with, unless another was picked by hand.
-    const editedWidth = activeWidth(view, widths);
-    const points = useMemo(() => breakpoints(styles), [styles]);
-    const widthKey = editedWidth === null ? 'full' : `${editedWidth.name}:${editedWidth.width}`;
-    const usualMedia = editedWidth === null ? null : (mediaFor(points, editedWidth.width) ?? (editedWidth.media === null ? null : asMedia(editedWidth.media)));
-    const styleMedia = pickedMedia !== null && pickedMedia.at === widthKey ? pickedMedia.media : usualMedia;
-    /** What can be picked: every width, the site's own conditions, and the one this width is set up with. */
-    const mediaChoices = [...points, ...(usualMedia !== null && !points.some((each) => sameMedia(each, usualMedia)) ? [usualMedia] : [])];
-    const plan = layout(view, widths, roomSize ?? { width: 0, height: 0 });
-    const previewAddress = page === null ? undefined : (editorAddress(page.url, window.location.href) ?? undefined);
-
-    // What the page has for the selected element, while the Style tab shows it: the first copy of it on the page.
-    const styledMark = settingsTab === 'style' && openFile !== null && selectedBoxes.ids.length > 0 && !selectedBoxes.inside ? markValue({ file: openFile.key, id: selectedBoxes.ids[0] }) : null;
-    useEffect(() => {
-        if (page !== null) {
-            tell({ type: 'computed', ask: styledMark === null || openFile === null ? null : { mark: { file: openFile.key, id: selectedBoxes.ids[0] }, properties: STYLE_PROPERTIES } });
-        }
-    }, [page, styledMark, tell]);
-
     watching.current = JSON.stringify(watch);
 
     const selectedNode = findNode(tree, selected);
@@ -1288,35 +1027,34 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
     const layersNote =
         open === null
-            ? 'No template is open.'
+            ? 'No template is open. Click a part of the page, or a template above.'
             : template.state === 'loading' || template.state === 'idle'
               ? 'Opening…'
               : template.state === 'failed'
                 ? 'The template could not be opened.'
                 : template.data.tree === null
-                  ? 'This template can only be edited as code, so it has no layers to show.'
+                  ? 'This template can only be read as code, so it has no tree to show. Its code is on the right.'
                   : null;
 
-    const codeUnsaved = 'The code of this template has changes that are not saved. Save or revert them first.';
-    /** Why the open template can't be changed from the panels right now, when it can't. */
+    /** Why the open template can't be changed from the tree right now, when it can't. */
     const fixed =
         template.state !== 'ready'
             ? (layersNote ?? 'No template is open.')
             : !mayEdit
               ? 'You may look at this template here, not change it.'
               : !template.data.editable
-              ? 'This is one of Sunrice’s own views: it can’t be changed here.'
-              : tree === null
-                ? 'This template can only be edited as code.'
-                : unsaved
-                  ? codeUnsaved
-                  : null;
+                ? 'This is one of Sunrice’s own views: it can’t be changed here.'
+                : tree === null
+                  ? 'This template can only be edited as code.'
+                  : unsaved
+                    ? 'The code of this template has changes that are not saved. Save or revert them first.'
+                    : null;
 
-    /** Moves, copies, unwraps or deletes a node, from a button or a key. */
+    /** Moves, copies, unwraps or deletes a node, from a key in the tree or on the page. */
     const act = (id: string, action: Action) => {
         const operation = fixed === null ? actionOn(tree, id, action) : null;
         if (operation !== null) {
-            void apply([operation]);
+            apply([operation]);
         }
     };
 
@@ -1334,475 +1072,400 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         }
     };
 
+    const isPackage = codeOf !== null && codeOf.origin === 'package';
+    const plan = layout(view, widths, roomSize ?? { width: 0, height: 0 });
+    const previewAddress = page === null ? undefined : (editorAddress(page.url, window.location.href) ?? undefined);
+
     return (
         <Folds.Provider value={folds}>
-        <div className={`sve-shell${arranged.left ? '' : ' sve-shell--no-left'}${arranged.right ? '' : ' sve-shell--no-right'}`} aria-busy={applying}>
-            <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
+            <div
+                ref={shell}
+                className={`sve-shell sve-shell--simple${arranged.left ? '' : ' sve-shell--no-left'}${arranged.right ? '' : ' sve-shell--no-right'}`}
+                style={{ '--sve-code-share': String(arranged.share) } as CSSProperties}
+                aria-busy={applying}
+            >
+                <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
 
-            <header className="sve-bar">
-                <Sunrice.inertia.Link
-                    href={Sunrice.adminUrl()}
-                    className="sve-bar__back"
-                    title="Back to the admin"
-                    // The admin is left without the page being left, so the browser does not ask: this does.
-                    onBefore={() => !anyUnsaved || window.confirm('Leave the editor without saving what you changed in the code?')}
-                >
-                    <span aria-hidden="true">←</span> Admin
-                </Sunrice.inertia.Link>
-                <strong className="sve-bar__title">Visual editor</strong>
-
-                <form className="sve-address" onSubmit={go}>
-                    <label className="sve-address__label" htmlFor="sve-address">
-                        Page
-                    </label>
-                    <input
-                        id="sve-address"
-                        className="sve-address__input"
-                        value={typed ?? address}
-                        onChange={(event) => setTyped(event.target.value)}
-                        onKeyDown={(event) => {
-                            if (event.key === 'Escape') {
-                                setTyped(null);
-                                setProblem(null);
-                            }
-                        }}
-                        spellCheck={false}
-                        autoComplete="off"
-                        aria-invalid={problem !== null}
-                        aria-describedby={problem !== null ? 'sve-address-problem' : undefined}
-                    />
-                    <button className="sve-button" type="submit">
-                        Open
-                    </button>
-                    {problem !== null && (
-                        <p className="sve-address__problem" id="sve-address-problem" role="alert">
-                            {problem}
-                        </p>
-                    )}
-                </form>
-
-                <div className="sve-modes" role="group" aria-label="How the template is worked on">
-                    <button type="button" className="sve-modes__mode" aria-pressed={arranged.mode === 'visual'} onClick={() => setArranged((now) => ({ ...now, mode: 'visual' }))} title="On the page, with layers and settings">
-                        Visual
-                    </button>
-                    <button type="button" className="sve-modes__mode" aria-pressed={arranged.mode === 'code'} onClick={() => setArranged((now) => ({ ...now, mode: 'code' }))} title="In the template's code, beside the page">
-                        Code
-                    </button>
-                </div>
-
-                <div className="sve-history" role="group" aria-label="Undo and redo">
-                    <button type="button" className="sve-button sve-button--quiet" disabled={!undoable} onClick={() => travel('undo')} title="Undo the last change to this template (Ctrl+Z)">
-                        Undo
-                    </button>
-                    <button type="button" className="sve-button sve-button--quiet" disabled={!redoable} onClick={() => travel('redo')} title="Redo what was undone (Ctrl+Shift+Z)">
-                        Redo
-                    </button>
-                </div>
-
-                <button
-                    type="button"
-                    className="sve-button sve-button--quiet"
-                    aria-pressed={inserting && arranged.left && !isFolded(arranged, 'panel:Insert')}
-                    onClick={() => {
-                        // What is inserted is chosen in the left side: asked for while that is hidden or folded, it is brought out.
-                        const outOfSight = !arranged.left || isFolded(arranged, 'panel:Insert');
-                        setInserting((on) => !on || outOfSight);
-                        setArranged((now) => folding(siding(now, 'left', true), 'panel:Insert', true));
-                    }}
-                    title="Add elements, Blade and components to the open template"
-                >
-                    <span aria-hidden="true">+</span> Insert
-                </button>
-
-                {widths.length > 0 && (
-                    <select className="sve-input sve-bar__width" value={viewValue(view)} onChange={(event) => setView(viewOf(event.target.value, widths, view))} aria-label="Width of the page" title="How wide the page is shown: styles set at a width are written for that width">
-                        <option value="full">Full width</option>
-                        {widths.map((each, at) => (
-                            <option key={at} value={`one:${at}`}>
-                                {each.name} · {each.width}
-                            </option>
-                        ))}
-                        {widths.length > 1 && <option value="all">Side by side</option>}
-                    </select>
-                )}
-
-                <div className="sve-modes" role="group" aria-label="What a click on the page does">
-                    <button type="button" className="sve-modes__mode" aria-pressed={mode === 'select'} onClick={() => setMode('select')} title="A click on the page picks what was clicked">
-                        Select
-                    </button>
-                    <button type="button" className="sve-modes__mode" aria-pressed={mode === 'browse'} onClick={() => setMode('browse')} title="Links and forms on the page work as usual">
-                        Browse
-                    </button>
-                </div>
-
-                {mayBuild && (
-                    <button
-                        type="button"
-                        className={`sve-button${behind && devServer !== true && !building ? '' : ' sve-button--quiet'} sve-bar__build`}
-                        disabled={building}
-                        onClick={build}
-                        title={
-                            devServer === true
-                                ? 'Run the site\'s build command. The dev server is running, so the page already has the CSS as it is now.'
-                                : behind
-                                  ? 'A template was changed since the last build: the site\'s built CSS may lack what it needs. Run the site\'s build command.'
-                                  : 'Run the site\'s build command'
-                        }
+                <header className="sve-bar">
+                    <Sunrice.inertia.Link
+                        href={Sunrice.adminUrl()}
+                        className="sve-bar__back"
+                        title="Back to the admin"
+                        // The admin is left without the page being left, so the browser does not ask: this does.
+                        onBefore={() => !anyUnsaved || window.confirm('Leave the editor without saving what you changed in the code?')}
                     >
-                        {building ? 'Building…' : behind && devServer !== true ? 'Build needed' : 'Build'}
-                    </button>
-                )}
+                        <span aria-hidden="true">←</span> Admin
+                    </Sunrice.inertia.Link>
+                    <strong className="sve-bar__title">Visual editor</strong>
 
-                {page?.preview === true && (
-                    <span className="sve-tag sve-bar__preview" title="Tailwind's browser build is added to the page here, so a class shows before the CSS is built. Visitors get what the build makes: build to see the same on the site.">
-                        Preview CSS
-                    </span>
-                )}
-
-                <div className="sve-shown" role="group" aria-label="What is shown beside the page">
-                    <button
-                        type="button"
-                        className="sve-shown__part"
-                        aria-pressed={arranged.left}
-                        onClick={() => setArranged((now) => siding(now, 'left'))}
-                        aria-label="Panels on the left"
-                        title={arranged.left ? 'Hide the panels on the left' : 'Show the panels on the left'}
-                    >
-                        <ShownIcon part="left" />
-                    </button>
-                    <button
-                        type="button"
-                        className="sve-shown__part"
-                        aria-pressed={(coding || arranged.mode === 'code') && template.state === 'ready'}
-                        disabled={template.state !== 'ready' || arranged.mode === 'code'}
-                        onClick={() => setCoding((on) => !on)}
-                        aria-label="Code under the page"
-                        title={arranged.mode === 'code' ? 'In Code mode the code is beside the page' : template.state !== 'ready' ? 'Open a template to see its code' : coding ? 'Hide the code' : 'Show the code of the open template'}
-                    >
-                        <ShownIcon part="code" />
-                    </button>
-                    <button
-                        type="button"
-                        className="sve-shown__part"
-                        aria-pressed={arranged.right}
-                        onClick={() => setArranged((now) => siding(now, 'right'))}
-                        aria-label="Panels on the right"
-                        title={arranged.right ? 'Hide the panels on the right' : 'Show the panels on the right'}
-                    >
-                        <ShownIcon part="right" />
-                    </button>
-                </div>
-
-                <a className="sve-bar__link" href={page?.url ?? firstPage} target="_blank" rel="noreferrer">
-                    View page ↗
-                </a>
-            </header>
-
-            <Side side="left" shown={arranged.left} flown={flown === 'left'} onKeep={() => setArranged((now) => siding(now, 'left', true))} onAway={() => setFlown(null)}>
-                {inserting ? (
-                    <InsertPanel
-                        template={template.state === 'ready' ? template.data : null}
-                        tab={insertTab}
-                        onTab={setInsertTab}
-                        inserts={inserts.state === 'ready' ? inserts.data : null}
-                        failed={inserts.state === 'failed' ? inserts.error : null}
-                        tree={tree}
-                        selected={selectedNode?.id ?? null}
-                        locked={fixed}
-                        busy={applying}
-                        onInsert={(operation) => apply([operation])}
-                        onClose={() => setInserting(false)}
-                    />
-                ) : (
-                    <TemplatesPanel files={page?.files ?? null} waiting={waiting} all={all} open={open} onOpen={openTemplate} onPoint={setPointedFile} />
-                )}
-                <LayersPanel
-                    tree={tree}
-                    note={layersNote}
-                    selected={selected}
-                    lit={litNode}
-                    collapsed={collapsed}
-                    fixed={applying || fixed !== null}
-                    onSelect={select}
-                    onPoint={setPointedNode}
-                    onMove={(id, drop) => void apply([moveTo(id, drop)])}
-                    onAct={act}
-                    onToggle={(id) =>
-                        setCollapsed((before) => {
-                            const after = new Set(before);
-                            if (!after.delete(id)) {
-                                after.add(id);
-                            }
-
-                            return after;
-                        })
-                    }
-                />
-            </Side>
-
-            {/* A hidden side leaves a strip at the page's edge, in the room around the page: a click flies the side out over the page. */}
-            {(['left', 'right'] as const).map(
-                (side) =>
-                    !arranged[side] &&
-                    flown !== side && (
-                        <button
-                            key={side}
-                            type="button"
-                            className={`sve-edge sve-edge--${side}`}
-                            ref={(button) => {
-                                edges.current[side] = button;
+                    <form className="sve-address" onSubmit={go}>
+                        <label className="sve-address__label" htmlFor="sve-address">
+                            Page
+                        </label>
+                        <input
+                            id="sve-address"
+                            className="sve-address__input"
+                            value={typed ?? address}
+                            onChange={(event) => setTyped(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Escape') {
+                                    setTyped(null);
+                                    setProblem(null);
+                                }
                             }}
-                            aria-expanded={false}
-                            onClick={() => setFlown(side)}
-                            aria-label={`Fly out the panels on the ${side}`}
-                            title={`Show the panels on the ${side} over the page, for now`}
-                        >
-                            <span className="sve-edge__grip" aria-hidden="true" />
+                            spellCheck={false}
+                            autoComplete="off"
+                            aria-invalid={problem !== null}
+                            aria-describedby={problem !== null ? 'sve-address-problem' : undefined}
+                        />
+                        <button className="sve-button" type="submit">
+                            Open
                         </button>
-                    ),
-            )}
+                        {problem !== null && (
+                            <p className="sve-address__problem" id="sve-address-problem" role="alert">
+                                {problem}
+                            </p>
+                        )}
+                    </form>
 
-            <main className={`sve-canvas sve-canvas--${mode}${arranged.mode === 'code' ? ' sve-canvas--beside' : ''}`} ref={canvas} style={arranged.mode === 'code' ? ({ '--sve-code-share': String(arranged.share) } as CSSProperties) : undefined}>
-                <div className={`sve-widths sve-widths--${view.kind}`} ref={room}>
-                    {/* The frame being edited is always the first here, and the others keep their places: a frame that is
-                        moved in the document loads its page anew. Where each is shown is said by `order`. */}
-                    {plan.slots.map((slot, ordinal) => {
-                        const sized = slot.at !== null;
-                        const box = sized ? { width: slot.box, height: plan.boxHeight } : undefined;
-                        const life = sized ? { width: slot.width, height: plan.height, transform: plan.scale === 1 ? undefined : `scale(${plan.scale})` } : undefined;
+                    <div className="sve-modes" role="group" aria-label="What a click on the page does">
+                        <button type="button" className="sve-modes__mode" aria-pressed={mode === 'select'} onClick={() => setMode('select')} title="A click on the page picks what was clicked, in the tree and in the code">
+                            Select
+                        </button>
+                        <button type="button" className="sve-modes__mode" aria-pressed={mode === 'browse'} onClick={() => setMode('browse')} title="Links and forms on the page work as usual">
+                            Browse
+                        </button>
+                    </div>
 
-                        return (
-                            <div key={slot.active ? 'edited' : `beside-${ordinal}`} className={`sve-slot${slot.active ? ' sve-slot--edited' : ''}`} style={sized ? { order: slot.at ?? 0, width: slot.box } : undefined}>
-                                {sized && (
-                                    <header className="sve-slot__head">
-                                        <span className="sve-slot__name">{slot.name}</span>
-                                        <span className="sve-slot__width">{slot.width}</span>
-                                        {!slot.active && (
-                                            <button type="button" className="sve-slot__edit" onClick={() => setView({ kind: 'all', at: slot.at ?? 0 })} title={`Select and style at ${slot.width} pixels`}>
-                                                Edit here
-                                            </button>
-                                        )}
-                                        {slot.active && view.kind === 'all' && <span className="sve-slot__editing">Editing</span>}
-                                    </header>
-                                )}
-                                {slot.active ? (
-                                    <div className="sve-stage" style={box}>
-                                        {frames.map((one, which) => (
-                                            <iframe
-                                                key={which}
-                                                ref={one}
-                                                className={which === front ? 'sve-frame' : 'sve-spare'}
-                                                style={life}
-                                                src={which === 0 ? firstAddress : undefined}
-                                                title={which === front ? 'Page being edited' : undefined}
-                                                aria-hidden={which === front ? undefined : true}
-                                                tabIndex={which === front ? undefined : -1}
-                                                onLoad={(event) => (event.currentTarget === frame.current ? loaded() : spareLoaded(event.currentTarget))}
-                                            />
-                                        ))}
-                                        <Outlines outlines={holding ? held.current : outlines} scale={plan.scale} />
-                                    </div>
-                                ) : (
-                                    <div className="sve-stage sve-stage--beside" style={box}>
-                                        <iframe
-                                            ref={(element) => {
-                                                previews.current[ordinal - 1] = element;
-                                            }}
-                                            className="sve-beside"
-                                            style={life}
-                                            src={previewAddress}
-                                            title={`The page at ${slot.width} pixels`}
-                                            tabIndex={-1}
-                                            onLoad={(event) => tellPreview(event.currentTarget)}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                    <NoticeBar notice={notice} onDismiss={() => setNotice(null)} />
-                    {buildFailed !== null && (
-                        <section className="sve-build" role="alert" aria-label="The build">
-                            <header className="sve-build__head">
-                                <strong>{buildFailed.message}</strong>
-                                <span className="sve-build__took">{buildFailed.seconds} s</span>
-                                <button type="button" className="sve-notice__dismiss" onClick={() => setBuildFailed(null)} aria-label="Put this away" title="Put this away">
-                                    ×
-                                </button>
-                            </header>
-                            {buildFailed.output !== '' && <pre className="sve-build__output">{buildFailed.output}</pre>}
-                        </section>
+                    <div className="sve-history" role="group" aria-label="Undo and redo">
+                        <button type="button" className="sve-button sve-button--quiet" disabled={!undoable} onClick={() => travel('undo')} title="Undo the last change to this template (Ctrl+Z)">
+                            Undo
+                        </button>
+                        <button type="button" className="sve-button sve-button--quiet" disabled={!redoable} onClick={() => travel('redo')} title="Redo what was undone (Ctrl+Shift+Z)">
+                            Redo
+                        </button>
+                    </div>
+
+                    {mayBuild && (
+                        <button
+                            type="button"
+                            className={`sve-button${behind && devServer !== true && !building ? '' : ' sve-button--quiet'} sve-bar__build`}
+                            disabled={building}
+                            onClick={build}
+                            title={
+                                devServer === true
+                                    ? 'Run the site\'s build command. The dev server is running, so the page already has the CSS as it is now.'
+                                    : behind
+                                      ? 'A template was changed since the last build: the site\'s built CSS may lack what it needs. Run the site\'s build command.'
+                                      : 'Run the site\'s build command'
+                            }
+                        >
+                            {building ? 'Building…' : behind && devServer !== true ? 'Build needed' : 'Build'}
+                        </button>
                     )}
-                </div>
-                {arranged.mode === 'code' && (
+
+                    {page?.preview === true && (
+                        <span className="sve-tag sve-bar__preview" title="Tailwind's browser build is added to the page here, so a class shows before the CSS is built. Visitors get what the build makes: build to see the same on the site.">
+                            Preview CSS
+                        </span>
+                    )}
+
+                    {widths.length > 0 && (
+                        <div className="sve-modes sve-devices" role="group" aria-label="Device to preview the page at">
+                            <button type="button" className="sve-modes__mode" aria-pressed={view.kind === 'full'} onClick={() => setView({ kind: 'full' })} title="As wide as there is room">
+                                Fit
+                            </button>
+                            {widths.map((each, at) => (
+                                <button
+                                    key={at}
+                                    type="button"
+                                    className="sve-modes__mode"
+                                    aria-pressed={view.kind === 'one' && view.at === at}
+                                    onClick={() => setView({ kind: 'one', at })}
+                                    title={`${each.name}: ${each.width} pixels wide`}
+                                >
+                                    <DeviceIcon width={each.width} />
+                                    <span className="sve-devices__name">{each.name}</span>
+                                </button>
+                            ))}
+                            {widths.length > 1 && (
+                                <button type="button" className="sve-modes__mode" aria-pressed={view.kind === 'all'} onClick={() => setView({ kind: 'all', at: view.kind === 'full' ? 0 : view.at })} title="Every device side by side">
+                                    All
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="sve-shown" role="group" aria-label="What is shown beside the page">
+                        <button
+                            type="button"
+                            className="sve-shown__part"
+                            aria-pressed={arranged.left}
+                            onClick={() => setArranged((now) => siding(now, 'left'))}
+                            aria-label="Tree on the left"
+                            title={arranged.left ? 'Hide the tree' : 'Show the tree'}
+                        >
+                            <ShownIcon part="left" />
+                        </button>
+                        <button
+                            type="button"
+                            className="sve-shown__part"
+                            aria-pressed={arranged.right}
+                            onClick={() => setArranged((now) => siding(now, 'right'))}
+                            aria-label="Code on the right"
+                            title={arranged.right ? 'Hide the code' : 'Show the code'}
+                        >
+                            <ShownIcon part="right" />
+                        </button>
+                    </div>
+
+                    <a className="sve-bar__link" href={page?.url ?? firstPage} target="_blank" rel="noreferrer">
+                        View page ↗
+                    </a>
+                </header>
+
+                {!arranged.left && <Rail side="left" label="Tree" onOpen={() => setArranged((now) => siding(now, 'left', true))} />}
+                <Side side="left" shown={arranged.left}>
+                    <button type="button" className="sve-side__fold" onClick={() => setArranged((now) => siding(now, 'left', false))} aria-label="Fold the tree to the side" title="Fold the tree to the side">
+                        <span aria-hidden="true">«</span>
+                    </button>
+                    <TemplatesPanel files={page?.files ?? null} waiting={waiting} all={all} open={open} onOpen={openTemplate} onPoint={setPointedFile} />
+                    <LayersPanel
+                        tree={tree}
+                        note={layersNote}
+                        selected={selected}
+                        lit={litNode}
+                        collapsed={collapsed}
+                        fixed={applying || fixed !== null}
+                        onSelect={select}
+                        onPoint={setPointedNode}
+                        onMove={(id, drop) => apply([moveTo(id, drop)])}
+                        onAct={act}
+                        onToggle={(id) =>
+                            setCollapsed((before) => {
+                                const after = new Set(before);
+                                if (!after.delete(id)) {
+                                    after.add(id);
+                                }
+
+                                return after;
+                            })
+                        }
+                    />
+                </Side>
+
+                <main className={`sve-canvas sve-canvas--${mode}`}>
+                    <div className={`sve-widths sve-widths--${view.kind}`} ref={room}>
+                        {/* The frame being edited is always the first here, and the others keep their places: a frame that is
+                            moved in the document loads its page anew. Where each is shown is said by `order`. */}
+                        {plan.slots.map((slot, ordinal) => {
+                            const sized = slot.at !== null;
+                            const box = sized ? { width: slot.box, height: plan.boxHeight } : undefined;
+                            const life = sized ? { width: slot.width, height: plan.height, transform: plan.scale === 1 ? undefined : `scale(${plan.scale})` } : undefined;
+
+                            return (
+                                <div key={slot.active ? 'edited' : `beside-${ordinal}`} className={`sve-slot${slot.active ? ' sve-slot--edited' : ''}`} style={sized ? { order: slot.at ?? 0, width: slot.box } : undefined}>
+                                    {sized && (
+                                        <header className="sve-slot__head">
+                                            <span className="sve-slot__name">{slot.name}</span>
+                                            <span className="sve-slot__width">{slot.width}</span>
+                                            {!slot.active && (
+                                                <button type="button" className="sve-slot__edit" onClick={() => setView({ kind: 'all', at: slot.at ?? 0 })} title={`Select on the page at ${slot.width} pixels`}>
+                                                    Select here
+                                                </button>
+                                            )}
+                                        </header>
+                                    )}
+                                    {slot.active ? (
+                                        <div className="sve-stage" style={box}>
+                                            {frames.map((one, which) => (
+                                                <iframe
+                                                    key={which}
+                                                    ref={one}
+                                                    className={which === front ? 'sve-frame' : 'sve-spare'}
+                                                    style={life}
+                                                    src={which === 0 ? firstAddress : undefined}
+                                                    title={which === front ? 'Page being edited' : undefined}
+                                                    aria-hidden={which === front ? undefined : true}
+                                                    tabIndex={which === front ? undefined : -1}
+                                                    onLoad={(event) => (event.currentTarget === frame.current ? loaded() : spareLoaded(event.currentTarget))}
+                                                />
+                                            ))}
+                                            <Outlines outlines={holding ? held.current : outlines} scale={plan.scale} />
+                                        </div>
+                                    ) : (
+                                        <div className="sve-stage sve-stage--beside" style={box}>
+                                            <iframe
+                                                ref={(element) => {
+                                                    previews.current[ordinal - 1] = element;
+                                                }}
+                                                className="sve-beside"
+                                                style={life}
+                                                src={previewAddress}
+                                                title={`The page at ${slot.width} pixels`}
+                                                tabIndex={-1}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        <NoticeBar notice={notice} onDismiss={() => setNotice(null)} />
+                        {buildFailed !== null && (
+                            <section className="sve-build" role="alert" aria-label="The build">
+                                <header className="sve-build__head">
+                                    <strong>{buildFailed.message}</strong>
+                                    <span className="sve-build__took">{buildFailed.seconds} s</span>
+                                    <button type="button" className="sve-notice__dismiss" onClick={() => setBuildFailed(null)} aria-label="Put this away" title="Put this away">
+                                        ×
+                                    </button>
+                                </header>
+                                {buildFailed.output !== '' && <pre className="sve-build__output">{buildFailed.output}</pre>}
+                            </section>
+                        )}
+                    </div>
+                </main>
+
+                {!arranged.right && <Rail side="right" label="Code" onOpen={() => setArranged((now) => siding(now, 'right', true))} />}
+                <aside className="sve-side sve-side--right sve-side--code" hidden={!arranged.right} aria-label="Code">
                     <div
                         className="sve-divider"
                         role="separator"
                         aria-orientation="vertical"
-                        aria-label="How the room is shared between the code and the page"
+                        aria-label="How wide the code is"
                         aria-valuenow={Math.round(arranged.share * 100)}
                         aria-valuemin={20}
-                        aria-valuemax={80}
+                        aria-valuemax={70}
                         tabIndex={0}
                         title="Drag to give the code more room, or less"
                         onPointerDown={divide}
                         onKeyDown={(event) => {
-                            const step = event.key === 'ArrowLeft' ? -0.05 : event.key === 'ArrowRight' ? 0.05 : 0;
+                            const step = event.key === 'ArrowLeft' ? 0.05 : event.key === 'ArrowRight' ? -0.05 : 0;
                             if (step !== 0) {
                                 event.preventDefault();
                                 setArranged((now) => ({ ...now, share: shareOf(now.share + step) }));
                             }
                         }}
                     />
-                )}
-                {arranged.mode === 'code' && codeOf === null && (
-                    <section className="sve-code sve-code--beside" aria-label="Code">
-                        <p className="sve-empty sve-code__none">{template.state === 'failed' ? template.error : template.state === 'loading' ? 'Loading…' : 'Open a template to see its code.'}</p>
-                    </section>
-                )}
-                {(coding || arranged.mode === 'code') && codeOf !== null && (
-                    <CodePanel
-                        template={codeOf}
-                        current={open}
-                        mayCode={mayCode && template.state === 'ready'}
-                        draft={drafts[historyKey(codeOf)] ?? null}
-                        onDraft={(text) => setDraft(text, codeOf)}
-                        tabs={tabs.map((tab) => ({ ...tab, unsaved: drafts[historyKey(tab)] !== undefined }))}
-                        onOpenTab={openTemplate}
-                        onCloseTab={closeTab}
-                        beside={arranged.mode === 'code'}
-                        goTo={codePlace}
-                        onCursor={cursorAt}
-                        put={codePut}
-                        fields={fieldsWanted ? (codeFields.answer?.variables ?? null) : null}
-                        onSaved={saved}
-                        onReload={() => {
-                            setDraft(null, codeOf);
-                            setSelected(null);
-                            setReadings((count) => count + 1);
-                        }}
-                        onClose={() => setCoding(false)}
-                        editorScript={typeof codeEditor === 'string' && codeEditor !== '' ? codeEditor : null}
-                    />
-                )}
-            </main>
+                    <div className="sve-code-tabs" role="tablist" aria-label="What the side shows">
+                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'template'} onClick={() => setCodeTab('template')} title="The code of the open template">
+                            Template
+                            {Object.keys(drafts).length > 0 && <span className="sve-tab__dot" aria-label="not saved" />}
+                        </button>
+                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'fields'} onClick={() => setCodeTab('fields')} title="The fields and variables the template can use where the cursor is">
+                            Fields
+                        </button>
+                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'content'} onClick={() => setCodeTab('content')} title="The content of the entry this page shows">
+                            Content
+                        </button>
+                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'css'} onClick={() => setCodeTab('css')} title="CSS of your own, added to every page of the site">
+                            Custom CSS
+                            {cssUnsaved && <span className="sve-tab__dot" aria-label="not saved" />}
+                        </button>
+                        <span className="sve-code-tabs__space" />
+                        <button type="button" className="sve-side__fold sve-side__fold--right" onClick={() => setArranged((now) => siding(now, 'right', false))} aria-label="Fold the code to the side" title="Fold the code to the side">
+                            <span aria-hidden="true">»</span>
+                        </button>
+                    </div>
 
-            <Side side="right" shown={arranged.right} flown={flown === 'right'} onKeep={() => setArranged((now) => siding(now, 'right', true))} onAway={() => setFlown(null)}>
-                {arranged.mode === 'code' && mayCode && (
-                    <Panel title="Fields" grow>
-                        <input className="sve-input sve-insert__find" type="search" value={fieldsTyped} onChange={(event) => setFieldsTyped(event.target.value)} placeholder="Find…" aria-label="Find a field or a variable" spellCheck={false} autoComplete="off" />
-                        <p className="sve-insert__where">
+                    {/* Both stay where they are while the other is shown: what is typed in either is kept. */}
+                    <div className="sve-code-pane" hidden={codeTab !== 'template'}>
+                        {codeOf === null ? (
+                            <p className="sve-empty sve-code__none">{template.state === 'failed' ? template.error : template.state === 'loading' ? 'Loading…' : 'Click a part of the page, or a template on the left, to see its code.'}</p>
+                        ) : (
+                            <CodePanel
+                                template={codeOf}
+                                current={open}
+                                mayCode={mayCode && template.state === 'ready'}
+                                draft={drafts[historyKey(codeOf)] ?? null}
+                                onDraft={(text) => setDraft(text, codeOf)}
+                                tabs={tabs.map((tab) => ({ ...tab, unsaved: drafts[historyKey(tab)] !== undefined }))}
+                                onOpenTab={openTemplate}
+                                onCloseTab={closeTab}
+                                goTo={codePlace}
+                                onCursor={cursorAt}
+                                put={codePut}
+                                fields={codeFields.answer?.variables ?? null}
+                                onSaved={saved}
+                                onReload={() => {
+                                    setDraft(null, codeOf);
+                                    setSelected(null);
+                                    setReadings((count) => count + 1);
+                                }}
+                                editorScript={editorScript}
+                            >
+                                {isPackage &&
+                                    (codeOf.copyTo !== null ? (
+                                        <div className="sve-code__banner">
+                                            <p>
+                                                This is one of Sunrice’s own views, used while the site has no <code>{codeOf.copyTo}</code>. Copy it to the site to change it: the site uses the copy from then on.
+                                            </p>
+                                            {mayEdit && (
+                                                <button type="button" className="sve-button" disabled={copying} onClick={() => copy(codeOf.path)}>
+                                                    {copying ? 'Copying…' : 'Copy to site'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="sve-code__banner">
+                                            This is one of Sunrice’s own views, drawn by Sunrice itself (a component, or its draft banner). Sunrice never looks for it among the site’s templates, so it can’t be changed here: style what it draws with Custom CSS, or change the template around it.
+                                        </p>
+                                    ))}
+                                {!isPackage && !mayCode && <p className="sve-code__banner">You may read the code here, not change it.</p>}
+                            </CodePanel>
+                        )}
+                    </div>
+                    <div className="sve-code-pane sve-fields" hidden={codeTab !== 'fields'}>
+                        <p className="sve-fields__where">
                             {fieldsOf === null
                                 ? template.state === 'ready'
-                                    ? 'This is one of Sunrice’s own views: copy it to the site to write in it.'
+                                    ? 'This is one of Sunrice’s own views: it can’t be written in, so there is nothing to put in it.'
                                     : 'Open a template to see what it can read.'
-                                : codeFields.answer !== null && !codeFields.answer.exact
-                                  ? 'The code does not read as a whole just now, so this is what the template has anywhere in it.'
-                                  : 'What can be read where the cursor is. A click writes it there.'}
+                                : !mayCode
+                                  ? 'What the template can read where the cursor is. Writing it in takes the permission to edit code.'
+                                  : codeFields.answer !== null && !codeFields.answer.exact
+                                    ? 'The code does not read as a whole just now, so this is what the template has anywhere in it.'
+                                    : 'What the template can read where the cursor is in its code. A click writes it there.'}
                         </p>
-                        {fieldsShown && (
-                            <div className="sve-pick__list">
-                                <FieldsList
-                                    variables={codeFields.answer?.variables ?? null}
-                                    failed={codeFields.failed}
-                                    typed={fieldsTyped}
-                                    off={false}
-                                    onInsert={(blade) => {
-                                        asked.current++;
-                                        setCodePut({ blade, asked: asked.current });
-                                    }}
-                                />
-                            </div>
+                        {fieldsOf !== null && (
+                            <>
+                                <input className="sve-fields__find" type="search" value={fieldsTyped} onChange={(event) => setFieldsTyped(event.target.value)} placeholder="Find a field…" aria-label="Find a field or a variable" spellCheck={false} autoComplete="off" />
+                                <div className="sve-pick__list sve-fields__list">
+                                    <FieldsList
+                                        variables={codeFields.answer?.variables ?? null}
+                                        failed={codeFields.failed}
+                                        typed={fieldsTyped}
+                                        off={!mayCode}
+                                        onInsert={(blade) => {
+                                            asked.current++;
+                                            setCodePut({ blade, asked: asked.current });
+                                            setCodeTab('template');
+                                        }}
+                                    />
+                                </div>
+                            </>
                         )}
-                    </Panel>
-                )}
-                {template.state === 'ready' && selectedNode !== null && (
-                    <SettingsPanel
-                        template={template.data}
-                        node={selectedNode}
-                        fields={fieldsHere !== null && fieldsHere.asked === fieldsFor ? fieldsHere.variables : null}
-                        site={site}
-                        busy={applying}
-                        refusals={refusals}
-                        locked={!mayEdit ? 'You may look at this here, not change it.' : unsaved ? codeUnsaved : null}
-                        can={actionsFor(tree, selectedNode.id)}
-                        code={mayCode}
-                        tab={settingsTab}
-                        onTab={setSettingsTab}
-                        styling={
-                            selectedNode.type !== 'element'
-                                ? null
-                                : {
-                                      style: (
-                                          <LookOnly.Provider value={!mayEdit}>
-                                          <StyleFields
-                                              // A change that was refused starts every control afresh.
-                                              key={`${selectedNode.id}:${refusals}`}
-                                              classes={classes}
-                                              chosen={styleClass}
-                                              onChoose={setPickedClass}
-                                              styles={styles}
-                                              failed={stylesFailed}
-                                              onPage={onPage !== null && onPage.mark === styledMark ? onPage.values : null}
-                                              media={styleMedia}
-                                              mediaChoices={mediaChoices}
-                                              width={editedWidth}
-                                              onMedia={(media) => setPickedMedia({ at: widthKey, media })}
-                                              linked={linked}
-                                              layout={layoutOf(page?.files ?? null)}
-                                              linking={linking || unsaved}
-                                              onEdit={editStyle}
-                                              onLink={linkSheet}
-                                          />
-                                          </LookOnly.Provider>
-                                      ),
-                                      css: (
-                                          <LookOnly.Provider value={!mayEdit}>
-                                          <CssRules
-                                              key={`${selectedNode.id}:${refusals}`}
-                                              classes={classes}
-                                              chosen={styleClass}
-                                              onChoose={setPickedClass}
-                                              styles={styles}
-                                              failed={stylesFailed}
-                                              linked={linked}
-                                              layout={layoutOf(page?.files ?? null)}
-                                              linking={linking || unsaved}
-                                              can={sheetSteps}
-                                              onEdit={editStyle}
-                                              onTravel={travelSheet}
-                                              onLink={linkSheet}
-                                          />
-                                          </LookOnly.Provider>
-                                      ),
-                                  }
-                        }
-                        onApply={apply}
-                        onAct={(action) => act(selectedNode.id, action)}
-                        onDeselect={() => setSelected(null)}
-                    />
-                )}
-                <TemplatePanel
-                    open={open}
-                    template={template}
-                    page={page === null ? null : pageTemplate(page.files)}
-                    onPage={openFile !== null}
-                    seenOn={open === null || openFile !== null ? null : pageOf(`${open.origin}:${open.path}`)}
-                    copying={copying || !mayEdit}
-                    coding={coding}
-                    mayCode={mayCode}
-                    unsaved={unsaved}
-                    grow={selectedNode === null}
-                    onCode={arranged.mode === 'code' ? null : () => setCoding((on) => !on)}
-                    onOpen={openTemplate}
-                    onShowPage={(path) => {
-                        wanted.current = open;
-                        show(path);
-                    }}
-                    onCopy={copy}
-                />
-            </Side>
-        </div>
+                    </div>
+                    <div className="sve-code-pane" hidden={codeTab !== 'content'}>
+                        {contentSeen && <ContentPanel entry={page?.entry ?? null} waiting={page === null} shown={codeTab === 'content'} onSaved={(title) => {
+                            say('done', `Saved ${title}.`);
+                            redraw();
+                            redrawPreviews();
+                        }} />}
+                    </div>
+                    <div className="sve-code-pane" hidden={codeTab !== 'css'}>
+                        <CustomCssPanel
+                            mayEdit={mayEdit}
+                            editorScript={editorScript}
+                            onUnsaved={setCssUnsaved}
+                            onSaved={(path) => {
+                                say('done', `Saved ${path}.`);
+                                redraw();
+                            }}
+                        />
+                    </div>
+                </aside>
+            </div>
         </Folds.Provider>
     );
 }

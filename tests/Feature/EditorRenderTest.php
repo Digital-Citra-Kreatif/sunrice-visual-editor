@@ -17,6 +17,8 @@ use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 use Workbench\App\Seeders\DemoSeeder;
 
+use Sunrice\Models\Entry;
+
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 
@@ -325,4 +327,23 @@ it('is on Sunrice\'s frontend routes, after the session', function () {
 
     expect($middleware)->toContain(EditorRender::class)
         ->and(array_search(EditorRender::class, $middleware, true))->toBeGreaterThan(array_search('web', $middleware, true));
+});
+
+it('says in the manifest which entry the page is of, with its page in the admin, and none for a listing', function () {
+    actingAsSuperAdmin();
+    $entryOf = function (string $path): ?array {
+        preg_match('#<script type="application/json" id="sve-manifest">(.*?)</script>#s', (string) get($path.'?sve=1')->assertOk()->getContent(), $match);
+
+        return json_decode($match[1] ?? '{}', true)['entry'] ?? null;
+    };
+    $about = $entryOf('/about');
+
+    expect($about)->toMatchArray(['title' => 'About'])
+        ->and($about['id'])->toBeInt()
+        ->and($about['edit'])->toBe("/cms/collections/pages/entries/{$about['id']}/edit")
+        ->and(Entry::query()->find($about['id'])?->collection?->handle)->toBe('pages')
+        // A listing draws many entries, each with its card: it is of none of them.
+        ->and($entryOf('/articles'))->toBeNull()
+        // Visitors get no manifest at all.
+        ->and((string) get('/about')->getContent())->not->toContain('sve-manifest');
 });

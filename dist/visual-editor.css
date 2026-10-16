@@ -164,30 +164,6 @@
     border-inline-start: 1px solid var(--border);
 }
 
-/* A hidden side flown out over the page for now. It takes no room: the page keeps its width, and what
-   is under the side is covered for as long as it is out. */
-.sve-side.sve-side--flown {
-    grid-area: canvas;
-    z-index: 20;
-    width: var(--sve-side);
-    max-width: calc(100% - 1.5rem);
-    border: 0;
-    box-shadow:
-        0 0 0 1px var(--border),
-        0 0.75rem 2rem rgb(0 0 0 / 0.2);
-    outline: 0;
-}
-
-.sve-side--flown.sve-side--left {
-    justify-self: start;
-    animation: sve-fly-from-left 140ms ease-out;
-}
-
-.sve-side--flown.sve-side--right {
-    justify-self: end;
-    animation: sve-fly-from-right 140ms ease-out;
-}
-
 @keyframes sve-fly-from-left {
     from {
         transform: translateX(-1.5rem);
@@ -200,115 +176,6 @@
         transform: translateX(1.5rem);
         opacity: 0;
     }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .sve-side--flown.sve-side--left,
-    .sve-side--flown.sve-side--right {
-        animation: none;
-    }
-}
-
-/* What a flown side says of itself, and the two ways out of it: to stay, and to go. */
-.sve-side__flown {
-    flex: none;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.375rem 0.25rem 0.75rem;
-    border-block-end: 1px solid var(--border);
-    background: var(--accent);
-    color: var(--accent-foreground);
-    font-size: 0.6875rem;
-}
-
-.sve-side__for-now {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.sve-side__keep,
-.sve-side__away {
-    flex: none;
-    height: 1.5rem;
-    padding-inline: 0.5rem;
-    border: 1px solid transparent;
-    border-radius: calc(var(--radius) - 2px);
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-}
-
-.sve-side__keep {
-    border-color: var(--border);
-    background: var(--card);
-    color: var(--card-foreground);
-}
-
-.sve-side__away {
-    width: 1.5rem;
-    padding: 0;
-    font-size: 0.9375rem;
-    line-height: 1;
-}
-
-.sve-side__keep:hover,
-.sve-side__away:hover {
-    border-color: var(--ring);
-}
-
-.sve-side__keep:focus-visible,
-.sve-side__away:focus-visible,
-.sve-edge:focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: -2px;
-}
-
-/* What a hidden side leaves behind: a strip in the room around the page, as tall as the page. It covers
-   nothing of the page, and at the window's edge the pointer can't overshoot it. */
-.sve-edge {
-    grid-area: canvas;
-    z-index: 10;
-    align-self: stretch;
-    display: grid;
-    place-items: center;
-    width: 0.75rem;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-}
-
-.sve-edge--left {
-    justify-self: start;
-}
-
-.sve-edge--right {
-    justify-self: end;
-}
-
-.sve-edge__grip {
-    width: 0.25rem;
-    height: 3rem;
-    border-radius: 999px;
-    background: var(--muted-foreground);
-    opacity: 0.45;
-}
-
-.sve-edge:hover,
-.sve-edge:focus-visible {
-    background: var(--accent);
-}
-
-.sve-edge:hover .sve-edge__grip,
-.sve-edge:focus-visible .sve-edge__grip {
-    background: var(--ring);
-    opacity: 1;
 }
 
 /* A panel is as tall as what it holds, up to a share of its side; one that grows takes the rest. */
@@ -469,7 +336,7 @@
     cursor: help;
 }
 
-/* What is shown beside the page: the left side, the code, the right side. */
+/* What is shown beside the page: the tree on the left, the code on the right. */
 .sve-shown {
     flex: none;
     display: flex;
@@ -725,8 +592,7 @@
 }
 
 .sve-layer__pick:focus-visible,
-.sve-layer__toggle:focus-visible,
-.sve-selection__clear:focus-visible {
+.sve-layer__toggle:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: -2px;
 }
@@ -770,135 +636,10 @@
     box-shadow: inset 0 0 0 2px var(--primary);
 }
 
-/* The selected node */
-
-.sve-selection {
-    margin: 0 0 0.75rem;
-    padding: 0.625rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: calc(var(--radius) - 2px);
-    background: var(--card);
-}
-
-.sve-selection__head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-
-.sve-selection__kind {
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.sve-selection__clear {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--muted-foreground);
-    font: inherit;
-    font-size: 0.6875rem;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.sve-selection__title {
-    display: block;
-    margin-block-start: 0.25rem;
-    overflow-wrap: anywhere;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.75rem;
-}
-
-.sve-selection__source {
-    max-height: 9rem;
-    margin: 0.5rem 0 0;
-    padding: 0.375rem 0.5rem;
-    overflow: auto;
-    border-radius: calc(var(--radius) - 4px);
-    background: var(--muted);
-    font: 0.6875rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    white-space: pre;
-}
-
-/* What can be done to the selected node as a whole */
-
-.sve-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-block-start: 0.625rem;
-}
-
-.sve-action {
-    height: 1.5rem;
-    padding-inline: 0.5rem;
-    border: 1px solid var(--input);
-    border-radius: calc(var(--radius) - 4px);
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-size: 0.75rem;
-    cursor: pointer;
-}
-
-.sve-action:hover:not(:disabled) {
-    background: var(--accent);
-    color: var(--accent-foreground);
-}
-
-.sve-action:disabled {
-    opacity: 0.45;
-    cursor: default;
-}
-
-.sve-action--delete:hover:not(:disabled) {
-    border-color: var(--destructive);
-    background: transparent;
-    color: var(--destructive);
-}
-
-.sve-action--wrap {
-    max-width: 6.5rem;
-}
-
-.sve-action:focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 1px;
-}
-
-/* Settings: a control for each thing about the selected node */
-
-.sve-settings {
-    display: grid;
-    gap: 0.75rem;
-    margin-block-start: 0.75rem;
-}
-
-.sve-settings__locked {
-    margin-block: 0.75rem 0;
-}
-
-.sve-field {
-    display: grid;
-    gap: 0.25rem;
-}
-
-.sve-field__label,
 .sve-group > legend {
     color: var(--muted-foreground);
     font-size: 0.6875rem;
     font-weight: 600;
-}
-
-.sve-field__hint {
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    line-height: 1.35;
 }
 
 .sve-input {
@@ -917,16 +658,6 @@
 textarea.sve-input {
     resize: vertical;
     line-height: 1.4;
-}
-
-.sve-input--mono {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.75rem;
-}
-
-.sve-input--tall {
-    white-space: pre;
-    overflow: auto;
 }
 
 .sve-input:focus-visible {
@@ -968,193 +699,6 @@ textarea.sve-input {
     margin-block-end: 0;
 }
 
-.sve-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-}
-
-.sve-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.125rem;
-    max-width: 100%;
-    padding: 0.0625rem 0.125rem 0.0625rem 0.4375rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: var(--card);
-    font: 0.75rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    overflow-wrap: anywhere;
-}
-
-.sve-chip__remove,
-.sve-attribute__remove {
-    flex: none;
-    width: 1.25rem;
-    height: 1.25rem;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--muted-foreground);
-    font: inherit;
-    font-size: 0.875rem;
-    line-height: 1;
-    cursor: pointer;
-}
-
-.sve-chip__remove:hover:not(:disabled),
-.sve-attribute__remove:hover:not(:disabled) {
-    background: var(--accent);
-    color: var(--destructive);
-}
-
-.sve-chips__add {
-    flex: 1 1 6rem;
-    width: auto;
-}
-
-.sve-attribute {
-    display: grid;
-    grid-template-columns: minmax(3rem, 35%) minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.sve-attribute__name {
-    overflow: hidden;
-    font: 0.75rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.sve-attribute__code {
-    grid-column: 1 / -1;
-    padding: 0.25rem 0.5rem;
-    overflow: hidden;
-    border-radius: calc(var(--radius) - 2px);
-    background: var(--muted);
-    color: var(--muted-foreground);
-    font: 0.6875rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.sve-attribute--new {
-    grid-template-columns: minmax(3rem, 35%) minmax(0, 1fr) auto;
-    margin-block-start: 0.25rem;
-}
-
-.sve-attribute--new .sve-button {
-    height: 1.75rem;
-    padding-inline: 0.5rem;
-}
-
-.sve-check {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-}
-
-.sve-check input {
-    margin: 0;
-}
-
-.sve-settings__source > summary {
-    margin-block-end: 0.375rem;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-/* The open template */
-
-.sve-trail {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.25rem;
-    margin-block-end: 0.75rem;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.75rem;
-}
-
-.sve-trail__back {
-    margin-inline-start: -0.375rem;
-    padding: 0.125rem 0.375rem;
-    border: 0;
-    border-radius: calc(var(--radius) - 2px);
-    background: transparent;
-    color: var(--muted-foreground);
-    font: inherit;
-    cursor: pointer;
-}
-
-.sve-trail__back:hover {
-    background: var(--accent);
-    color: var(--accent-foreground);
-}
-
-.sve-trail__sep {
-    color: var(--muted-foreground);
-}
-
-.sve-trail__here {
-    overflow-wrap: anywhere;
-}
-
-.sve-facts {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.25rem 0.75rem;
-    margin: 0 0 0.75rem;
-}
-
-.sve-facts dt {
-    color: var(--muted-foreground);
-}
-
-.sve-facts dd {
-    margin: 0;
-    overflow-wrap: anywhere;
-}
-
-.sve-facts code,
-.sve-note code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.75rem;
-}
-
-.sve-note {
-    margin: 0 0 0.75rem;
-    padding: 0.625rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: calc(var(--radius) - 2px);
-    background: var(--card);
-}
-
-.sve-note > p {
-    margin: 0 0 0.5rem;
-}
-
-.sve-note > :last-child {
-    margin-block-end: 0;
-}
-
-.sve-note__reason {
-    color: var(--muted-foreground);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.75rem;
-    overflow-wrap: anywhere;
-}
-
-.sve-note--problem {
-    border-color: var(--destructive);
-    color: var(--destructive);
-}
-
 .sve-button--quiet {
     border: 1px solid var(--input);
     background: transparent;
@@ -1168,58 +712,9 @@ textarea.sve-input {
 
 .sve-template:focus-visible,
 .sve-modes__mode:focus-visible,
-.sve-trail__back:focus-visible,
 .sve-others > summary:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 1px;
-}
-
-/* Insert: where the next thing goes, and what there is to put there */
-
-.sve-places {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-block-start: 0.5rem;
-    padding: 0.125rem;
-    border-radius: calc(var(--radius) - 2px);
-    background: var(--muted);
-}
-
-.sve-places__place {
-    height: 1.625rem;
-    border: 0;
-    border-radius: calc(var(--radius) - 4px);
-    background: transparent;
-    color: var(--muted-foreground);
-    font: inherit;
-    cursor: pointer;
-}
-
-.sve-places__place[aria-pressed='true'] {
-    background: var(--card);
-    color: var(--foreground);
-    font-weight: 500;
-    box-shadow: 0 0 0 1px var(--border);
-}
-
-.sve-places__place:disabled {
-    opacity: 0.45;
-    cursor: default;
-}
-
-.sve-insert__where {
-    margin: 0.375rem 0 0;
-    overflow-wrap: anywhere;
-    color: var(--muted-foreground);
-}
-
-.sve-insert__where code {
-    color: var(--foreground);
-    font-size: 0.75rem;
-}
-
-.sve-insert__find {
-    margin-block: 0.75rem 0.25rem;
 }
 
 .sve-insert__group {
@@ -1284,26 +779,6 @@ textarea.sve-input {
     font-size: 0.6875rem;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.sve-paste {
-    margin-block-start: 1rem;
-    padding-block-start: 0.75rem;
-    border-block-start: 1px solid var(--border);
-}
-
-.sve-paste > summary {
-    margin-block-end: 0.5rem;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    cursor: pointer;
-}
-
-.sve-paste .sve-button {
-    margin-block-start: 0.5rem;
 }
 
 /* --- The field picker: the CMS's fields and variables at a place ------------- */
@@ -1431,71 +906,15 @@ span.sve-pick__opener {
     background: var(--card);
 }
 
-.sve-bound {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    margin: 0 0 0.25rem;
-    min-width: 0;
-}
-
-.sve-chip--field {
-    padding-inline: 0.4375rem;
-    border-color: transparent;
-    background: color-mix(in srgb, var(--primary) 12%, transparent);
-    font-family: inherit;
-}
-
-.sve-bound__what {
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-}
-
-.sve-attribute__field {
-    grid-column: 1 / -1;
-}
-
-/* A condition built from choices: the value, what is asked of it, and against what. */
-.sve-asked {
-    display: grid;
-    gap: 0.25rem;
-    justify-items: start;
-    margin-block-end: 0.25rem;
-}
-
-.sve-asked .sve-input {
-    width: 100%;
-}
-
-/* One filter of a query for entries: field, comparison, value, and a button to take it away. */
-.sve-where {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-    gap: 0.25rem;
-    align-items: center;
-    margin-block-end: 0.375rem;
-}
-
-.sve-where > .sve-input:nth-of-type(3),
-.sve-where > input.sve-input {
-    grid-column: 1 / 3;
-}
-
 select.sve-input {
     height: 1.875rem;
     padding-block: 0;
 }
 
-.sve-attribute__field .sve-bind {
-    margin-block-start: 0;
-}
-
 .sve-pick__opener:focus-visible,
 .sve-pick__as:focus-visible,
 .sve-bind__open:focus-visible,
-.sve-places__place:focus-visible,
-.sve-insertable:focus-visible,
-.sve-paste > summary:focus-visible {
+.sve-insertable:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 1px;
 }
@@ -1563,7 +982,6 @@ select.sve-input {
     font-variant-numeric: tabular-nums;
 }
 
-.sve-slot__editing,
 .sve-slot__edit {
     margin-inline-start: auto;
     padding: 0.0625rem 0.5rem;
@@ -1571,12 +989,6 @@ select.sve-input {
     border-radius: 999px;
     font: inherit;
     font-size: 0.6875rem;
-}
-
-.sve-slot__editing {
-    border-color: var(--primary);
-    background: var(--primary);
-    color: var(--primary-foreground);
 }
 
 .sve-slot__edit {
@@ -1804,24 +1216,6 @@ select.sve-input {
     height: 1.625rem;
 }
 
-.sve-code__close {
-    width: 1.625rem;
-    height: 1.625rem;
-    border: 0;
-    border-radius: calc(var(--radius) - 2px);
-    background: transparent;
-    color: var(--muted-foreground);
-    font: inherit;
-    font-size: 1.125rem;
-    line-height: 1;
-    cursor: pointer;
-}
-
-.sve-code__close:hover {
-    background: var(--accent);
-    color: var(--accent-foreground);
-}
-
 .sve-tag--changed {
     border-color: currentColor;
     color: var(--foreground);
@@ -1852,28 +1246,6 @@ select.sve-input {
     padding: 0.75rem;
 }
 
-/* Code mode: the code beside the page, with a line between them that can be dragged. */
-.sve-canvas--beside {
-    flex-direction: row;
-    gap: 0;
-}
-
-.sve-canvas--beside > .sve-code {
-    order: 0;
-    flex: 0 0 calc(var(--sve-code-share, 0.5) * (100% - 0.75rem));
-    min-width: 0;
-    min-height: 0;
-}
-
-.sve-canvas--beside > .sve-divider {
-    order: 1;
-}
-
-.sve-canvas--beside > .sve-widths {
-    order: 2;
-    min-width: 0;
-}
-
 .sve-divider {
     flex: 0 0 0.75rem;
     position: relative;
@@ -1891,24 +1263,13 @@ select.sve-input {
 }
 
 .sve-divider:hover::after,
-.sve-divider:focus-visible::after,
-.sve-canvas--dividing > .sve-divider::after {
+.sve-divider:focus-visible::after {
     inset-block: 0.25rem;
     background: var(--ring);
 }
 
 .sve-divider:focus-visible {
     outline: 0;
-}
-
-/* While the line is dragged the page's frame lets the pointer pass: it would take it for itself. */
-.sve-canvas--dividing iframe {
-    pointer-events: none;
-}
-
-.sve-canvas--dividing {
-    cursor: col-resize;
-    user-select: none;
 }
 
 /* The templates open in the code, as tabs: each keeps what was typed in it. */
@@ -2116,325 +1477,9 @@ select.sve-input {
     color: #fed7aa;
 }
 
-.sve-button--wide {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-}
-
 .sve-button--quiet[aria-pressed='true'] {
     background: var(--accent);
     color: var(--accent-foreground);
-}
-
-.sve-dot {
-    width: 0.4375rem;
-    height: 0.4375rem;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-/* CSS: the rules of the theme's stylesheets for a class of the selected element */
-
-.sve-settings__tabs {
-    margin-block-start: 0.75rem;
-}
-
-.sve-css {
-    display: grid;
-    gap: 0.75rem;
-    margin-block-start: 0.75rem;
-}
-
-.sve-css > .sve-note,
-.sve-css > .sve-empty {
-    margin: 0;
-}
-
-.sve-css__classes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-}
-
-.sve-css__class {
-    max-width: 100%;
-    padding: 0.0625rem 0.5rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: var(--card);
-    color: var(--muted-foreground);
-    font: 0.75rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    overflow-wrap: anywhere;
-    cursor: pointer;
-}
-
-.sve-css__class[aria-pressed='true'] {
-    border-color: var(--primary);
-    background: var(--primary);
-    color: var(--primary-foreground);
-}
-
-.sve-css__file {
-    display: grid;
-    gap: 0.5rem;
-    min-width: 0;
-}
-
-.sve-css__head {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    min-width: 0;
-}
-
-.sve-css__path {
-    flex: 1;
-    min-width: 0;
-    margin: 0;
-    overflow: hidden;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.sve-css__history {
-    display: flex;
-    flex: none;
-    gap: 0.125rem;
-}
-
-.sve-css__step,
-.sve-declaration__add {
-    width: 1.375rem;
-    height: 1.375rem;
-    padding: 0;
-    border: 0;
-    border-radius: calc(var(--radius) - 4px);
-    background: transparent;
-    color: var(--muted-foreground);
-    font: inherit;
-    font-size: 0.875rem;
-    line-height: 1;
-    cursor: pointer;
-}
-
-.sve-css__step:hover:not(:disabled),
-.sve-declaration__add:hover:not(:disabled) {
-    background: var(--accent);
-    color: var(--accent-foreground);
-}
-
-.sve-css__step:disabled,
-.sve-declaration__add:disabled {
-    opacity: 0.35;
-    cursor: default;
-}
-
-.sve-css__others > summary {
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    cursor: pointer;
-}
-
-.sve-css__others > .sve-rule {
-    margin-block-start: 0.5rem;
-}
-
-.sve-css__others code,
-.sve-rule__hint code {
-    font: 0.6875rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-.sve-css__unlinked .sve-button {
-    width: 100%;
-}
-
-/* One rule: what it is inside, its selector, a row for each declaration, an empty row for the next */
-.sve-rule {
-    display: grid;
-    gap: 0.25rem;
-    min-width: 0;
-    padding: 0.5rem;
-    border: 1px solid var(--border);
-    border-radius: calc(var(--radius) - 2px);
-    background: var(--card);
-}
-
-.sve-rule--new {
-    border-style: dashed;
-}
-
-.sve-rule__within {
-    overflow-wrap: anywhere;
-    color: var(--muted-foreground);
-    font: 0.6875rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-.sve-rule__head {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    min-width: 0;
-    margin: 0 0 0.125rem;
-}
-
-.sve-rule__selector {
-    flex: 1;
-    min-width: 0;
-    overflow-wrap: anywhere;
-    font: 600 0.75rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-.sve-rule__line,
-.sve-rule__hint {
-    flex: none;
-    margin: 0;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-}
-
-.sve-declaration {
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr) 1.375rem;
-    align-items: center;
-    gap: 0.1875rem;
-}
-
-.sve-declaration .sve-input {
-    min-height: 1.5rem;
-    padding: 0.125rem 0.375rem;
-    font-size: 0.6875rem;
-}
-
-/* A declaration reads as text until it is pointed at or typed in. */
-.sve-declaration:not(.sve-declaration--new) .sve-input:not(:hover):not(:focus-visible) {
-    border-color: transparent;
-    background: transparent;
-}
-
-.sve-declaration--new .sve-input::placeholder {
-    color: var(--muted-foreground);
-    opacity: 0.7;
-}
-
-.sve-css__class:focus-visible,
-.sve-css__step:focus-visible,
-.sve-declaration__add:focus-visible,
-.sve-css__others > summary:focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 1px;
-}
-
-/* Style: a control for each of the declarations most often written, for the rule of one class */
-
-.sve-style__target {
-    margin: 0;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    line-height: 1.45;
-    overflow-wrap: anywhere;
-}
-
-.sve-style__target code {
-    color: var(--foreground);
-    font: 0.6875rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-.sve-style__group {
-    gap: 0.25rem;
-}
-
-.sve-style__row {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    align-items: center;
-    gap: 0.375rem;
-}
-
-.sve-style__label {
-    overflow: hidden;
-    color: var(--muted-foreground);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* What the rule sets stands out from what it leaves to the page. */
-.sve-style__row--set .sve-style__label {
-    color: var(--foreground);
-    font-weight: 500;
-}
-
-.sve-style__value {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    min-width: 0;
-}
-
-.sve-style__row .sve-input {
-    min-height: 1.625rem;
-    padding: 0.1875rem 0.375rem;
-    font-size: 0.75rem;
-}
-
-.sve-style__row select.sve-input {
-    padding-inline: 0.25rem;
-}
-
-.sve-style__row:not(.sve-style__row--set) select.sve-input {
-    color: var(--muted-foreground);
-}
-
-.sve-style__swatch {
-    flex: none;
-    width: 1.625rem;
-    height: 1.625rem;
-    padding: 0.125rem;
-    border: 1px solid var(--input);
-    border-radius: calc(var(--radius) - 2px);
-    background: var(--background);
-    cursor: pointer;
-}
-
-.sve-style__swatch:disabled {
-    opacity: 0.6;
-    cursor: default;
-}
-
-.sve-style__swatch:focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 1px;
-}
-
-.sve-bar__width {
-    flex: none;
-    width: auto;
-    max-width: 9.5rem;
-    height: 1.75rem;
-    min-height: 0;
-    padding-block: 0;
-}
-
-.sve-style__for {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    align-items: center;
-    gap: 0.375rem;
-}
-
-.sve-style__for .sve-input {
-    min-height: 1.625rem;
-    padding: 0.1875rem 0.25rem;
-    font-size: 0.75rem;
-}
-
-.sve-style__target--off {
-    color: var(--destructive);
 }
 
 @media (max-width: 60rem) {
@@ -2446,4 +1491,342 @@ select.sve-input {
     .sve-address__label {
         display: none;
     }
+}
+
+/* --- Three parts: the tree, the page, the code ------------------------------------ */
+
+/* The code takes a share of the editor's width, which the line at its edge is dragged to change. */
+.sve-shell--simple {
+    --sve-left: 16rem;
+    --sve-right: clamp(18rem, calc(var(--sve-code-share, 0.4) * 100vw), calc(100vw - var(--sve-left) - 16rem));
+}
+
+.sve-shell--simple.sve-shell--no-left {
+    --sve-left: var(--sve-rail);
+}
+
+.sve-shell--simple.sve-shell--no-right {
+    --sve-right: var(--sve-rail);
+}
+
+.sve-shell--simple {
+    --sve-rail: 2rem;
+}
+
+/* A side folded away leaves a narrow strip at its edge, named, that opens it again. */
+.sve-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 0;
+    padding: 0.625rem 0;
+    border: 0;
+    background: var(--sidebar);
+    color: var(--muted-foreground);
+    font: inherit;
+    cursor: pointer;
+}
+
+.sve-rail--left {
+    grid-area: left;
+    border-inline-end: 1px solid var(--border);
+}
+
+.sve-rail--right {
+    grid-area: right;
+    border-inline-start: 1px solid var(--border);
+}
+
+.sve-rail:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.sve-rail:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+.sve-rail__mark {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.sve-rail__label {
+    writing-mode: vertical-rl;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* The button that folds a side away to its strip. */
+.sve-side__fold {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 0;
+    border-radius: calc(var(--radius) - 2px);
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.sve-side--left {
+    position: relative;
+}
+
+.sve-side--left > .sve-side__fold {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: 0.375rem;
+    inset-inline-end: 0.375rem;
+}
+
+.sve-side__fold:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.sve-side__fold:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+.sve-code-tabs__space {
+    flex: 1;
+}
+
+.sve-code-tabs > .sve-side__fold {
+    align-self: center;
+    margin-block-end: 0.25rem;
+}
+
+/* The devices the page is previewed at. */
+.sve-devices .sve-modes__mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+}
+
+@media (max-width: 1400px) {
+    .sve-devices__name {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+}
+
+/* Fields: what the open template can read where the cursor is. */
+.sve-fields {
+    gap: 0.5rem;
+    padding: 0.75rem;
+    overflow: hidden;
+}
+
+.sve-fields__where {
+    flex: none;
+    margin: 0;
+    color: var(--muted-foreground);
+}
+
+.sve-fields__find {
+    flex: none;
+    height: 2rem;
+    padding: 0 0.625rem;
+    border: 1px solid var(--input, var(--border));
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--background);
+    color: var(--foreground);
+    font: inherit;
+}
+
+.sve-fields__find:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 0;
+}
+
+.sve-fields__list {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* Content: the entry's own page of the admin, beside the page. */
+.sve-content {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.sve-content__frame {
+    flex: 1 1 0;
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    background: var(--background);
+}
+
+.sve-side--code {
+    position: relative;
+    background: var(--card);
+}
+
+.sve-side--code[hidden] {
+    display: none;
+}
+
+/* The line between the page and the code, on the code's edge. */
+.sve-side--code > .sve-divider {
+    position: absolute;
+    z-index: 2;
+    inset-block: 0;
+    inset-inline-start: -0.375rem;
+    width: 0.75rem;
+}
+
+/* While the line is dragged the page's frame lets the pointer pass: it would take it for itself. */
+.sve-shell--dividing iframe {
+    pointer-events: none;
+}
+
+.sve-shell--dividing {
+    cursor: col-resize;
+    user-select: none;
+}
+
+/* What the code shows: the open template, or the site's custom CSS. */
+.sve-code-tabs {
+    flex: none;
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem 0;
+    border-block-end: 1px solid var(--border);
+}
+
+.sve-code-tabs__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-block-end: -1px;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0 0;
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.sve-code-tabs__tab:hover {
+    color: var(--foreground);
+}
+
+.sve-code-tabs__tab[aria-selected='true'] {
+    border-color: var(--border);
+    border-block-end-color: var(--card);
+    background: var(--card);
+    color: var(--foreground);
+}
+
+.sve-code-tabs__tab:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+.sve-code-pane {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.sve-code-pane[hidden] {
+    display: none;
+}
+
+/* Beside the page, the code fills its side: no frame of its own. */
+.sve-code-pane > .sve-code {
+    flex: 1 1 0;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+}
+
+.sve-code__banner,
+.sve-custom-css__note {
+    flex: none;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border-block-end: 1px solid var(--border);
+    background: var(--muted);
+    color: var(--muted-foreground);
+}
+
+.sve-code__banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sve-code__banner > p {
+    flex: 1;
+    margin: 0;
+}
+
+.sve-code__banner .sve-button {
+    flex: none;
+}
+
+/* --- "Edit with Visual Editor" on an entry's page in the admin ------------------------ */
+
+.sve-launch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.25rem;
+    padding: 0 1rem;
+    border-radius: calc(var(--radius, 0.5rem) - 2px);
+    background: #6d28d9;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 120ms ease;
+}
+
+.sve-launch:hover {
+    background: #5b21b6;
+    color: #fff;
+}
+
+.sve-launch:focus-visible {
+    outline: 2px solid var(--ring, #6d28d9);
+    outline-offset: 2px;
+}
+
+/* Where the entry's page is not as expected: in a corner, over the page. */
+.sve-launch--floating {
+    position: fixed;
+    z-index: 50;
+    inset-block-end: 1.5rem;
+    inset-inline-end: 1.5rem;
+    height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    box-shadow: 0 6px 20px rgb(109 40 217 / 0.35);
 }
