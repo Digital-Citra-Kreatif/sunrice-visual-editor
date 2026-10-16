@@ -872,7 +872,8 @@ await step('put the custom CSS back', async () => {
         holder.sveCodeEditor.setText(text);
         holder.sveCodeEditor.focus();
     }, customBefore);
-    await page.keyboard.press('Control+s');
+    // Its own Save, not Ctrl+S: the click on the page a moment ago may still be sending the keyboard to the template's code.
+    await page.locator('.sve-custom-css .sve-code__bar').getByRole('button', { name: 'Save', exact: true }).click();
     await until('The custom CSS is not as it was', async () => (await customNow()).source === customBefore || 'not yet');
     await until('The page still shows the custom CSS', async () => (await frame.locator('.hero h1').evaluate((element) => getComputedStyle(element).color)) !== 'rgb(200, 0, 100)' || 'not yet');
     await page.locator('.sve-code-tabs__tab', { hasText: 'Template' }).click();
@@ -906,7 +907,7 @@ await step('put the custom JS back', async () => {
         holder.sveCodeEditor.setText(text);
         holder.sveCodeEditor.focus();
     }, jsBefore);
-    await page.keyboard.press('Control+s');
+    await page.locator('.sve-custom-js .sve-code__bar').getByRole('button', { name: 'Save', exact: true }).click();
     await until('The custom script is not as it was', async () => (await jsNow()).source === jsBefore || 'not yet');
     await page.locator('.sve-code-tabs__tab', { hasText: 'Template' }).click();
 });
