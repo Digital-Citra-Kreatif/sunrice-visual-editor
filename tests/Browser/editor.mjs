@@ -775,7 +775,8 @@ const fieldRow = (label) => page.locator('.sve-fields .sve-pick__pick', { has: p
 await step('list what the template can read where the cursor is, and write a field there by a click', async () => {
     await frame.locator('.hero h1').click();
     await cursorLineHas('<h1>{{ $block->heading }}</h1>');
-    await code.evaluate((holder) => holder.sveCodeEditor.focus());
+    // Into the line itself: the keys pressed next are the code's, whatever the click on the page is still doing.
+    await code.locator('.cm-line', { hasText: '<h1>{{ $block->heading }}</h1>' }).first().click();
     await page.keyboard.press('End');
     await page.keyboard.press('Enter');
     await fieldsTab.click();
