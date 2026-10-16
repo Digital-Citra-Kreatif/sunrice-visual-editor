@@ -23,7 +23,10 @@ const step = async (name, action) => {
 const frame = page.frameLocator('iframe.sve-frame');
 const idle = () => page.waitForFunction(() => document.querySelector('.sve-shell')?.getAttribute('aria-busy') !== 'true');
 
-/** The header's code, as the code editor beside the page holds it, changed and saved: how a class is given on the screen. */
+/**
+ * The header's code, as the code editor beside the page holds it, changed and saved: how a class is given on the screen.
+ * The brand is found by the start of its class list: the checks before this one may have left classes of their own on it.
+ */
 const saveHeader = async (change) => {
     await frame.locator('.site-header .brand').first().click();
     await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'partials/header');
@@ -74,7 +77,7 @@ await step('show a page whose CSS comes from the dev server, marked for the edit
 });
 
 await step('add a Tailwind class no rule was written for yet, and see its colour on the page', async () => {
-    await saveHeader(['class="brand"', 'class="brand bg-sky-400"']);
+    await saveHeader(['class="brand', 'class="brand bg-sky-400']);
     await frame.locator('.site-header .bg-sky-400').first().waitFor();
     console.log(`     it is ${await coloured('.site-header .bg-sky-400')}`);
 });
@@ -92,7 +95,7 @@ await step('keep the editor in step with the page while Vite reloads it: the tem
 });
 
 await step('take the class off, and it goes from the page', async () => {
-    await saveHeader(['class="brand bg-sky-400"', 'class="brand"']);
+    await saveHeader(['class="brand bg-sky-400', 'class="brand']);
     await idle();
     for (let attempt = 0; attempt < 40 && (await frame.locator('.site-header .bg-sky-400').count()) > 0; attempt++) {
         await page.waitForTimeout(250);

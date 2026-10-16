@@ -27,7 +27,10 @@ const step = async (name, action) => {
 
 const frame = page.frameLocator('iframe.sve-frame');
 
-/** The header's code, as the code editor beside the page holds it, changed and saved: how a class is given on the screen. */
+/**
+ * The header's code, as the code editor beside the page holds it, changed and saved: how a class is given on the screen.
+ * The brand is found by the start of its class list: the checks before this one may have left classes of their own on it.
+ */
 const saveHeader = async (change) => {
     await frame.locator('.site-header .brand').first().click();
     await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'partials/header');
@@ -88,7 +91,7 @@ await step('say that a build is needed after a class is added, build from the ba
     const build = page.locator('.sve-bar__build');
     await build.getByText('Build', { exact: true }).waitFor();
 
-    await saveHeader(['class="brand"', 'class="brand mt-px"']);
+    await saveHeader(['class="brand', 'class="brand mt-px']);
     await frame.locator('.site-header .mt-px').first().waitFor();
     await build.getByText('Build needed', { exact: true }).waitFor();
 
