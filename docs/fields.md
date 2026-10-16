@@ -4,38 +4,28 @@ A Sunrice template reads its content from variables: `$entry` on an entry's
 page, `$block` in a block's partial, the site's global sets and menus
 everywhere. The editor knows which of them a template has at each place,
 what fields each one holds, and how each is written in Blade. You choose
-from a list; it writes the code.
+from a list; it writes the code at the cursor.
 
-## Where the lists are
+## Where the list is
 
-- **Insert → Fields** lists what can be read where the next thing will go.
-  A click inserts the value in its usual form; **As…** on its row lists the
-  other forms.
-- **Use a field…** in Settings, under a text, under what an echo prints and
-  under each attribute's value, fills that one thing from a field.
-- On a condition, **Ask about a field…**; on a loop, **Loop over a
-  field…**.
+The **Fields** tab, on the right of the page, lists what the open template
+can read where the code cursor is. A search box at its top finds a field
+by name.
 
-A value that came from a field says so: an echo of
-`$entry->get('cover')?->alt` is shown as **$entry › Cover › Alt text**.
-
-## In Code mode
-
-Beside the code there is a **Fields** panel with the same list, for where
-the cursor is. It reads the code as you have typed it, saved or not: a
-variable set on the line above is in the list a moment after you type the
-line.
-
-- A click on a field writes it at the cursor, the same Blade as in Visual
-  mode, indented as the line is.
-- While you type, the editor offers what a value has: after `$entry->` or
-  `$row['` the fields of that value, after `{{ ` everything there that can
-  be printed, after `$` the variables. Choosing one writes it whole, with
-  its `?->` and `?? ''`.
+- A click on a field writes it at the cursor, in its usual form, indented
+  as the line is. **As…** on its row lists the other forms.
+- It reads the code as you have typed it, saved or not: a variable set on
+  the line above is in the list a moment after you type the line.
 - While the code does not read as a whole (a tag half typed), the list is
   what the template has anywhere in it, and says so.
 
-This needs the [code permission](permissions.md).
+In the **Template** tab, while you type, the editor offers what a value
+has: after `$entry->` or `$row['` the fields of that value, after `{{ `
+everything there that can be printed, after `$` the variables. Choosing
+one writes it whole, with its `?->` and `?? ''`.
+
+Writing a field takes the [code permission](permissions.md). Without it
+the list is there to read.
 
 ## What is in the list
 
@@ -121,37 +111,10 @@ label ("Photos" has a `$photo`, "Related articles" an `$article`), never
 one that is in use at that place, and never one of Blade's or Sunrice's own
 (`$loop`, `$entry`, `$slot`).
 
-## Conditions
-
-Choose a value, then what to ask of it:
-
-| Value | Can be asked |
-| --- | --- |
-| text, rich text | is set, is not set, is, is not, contains |
-| number | is set, is not set, is, is not, is more than, is less than |
-| yes or no | is on, is off |
-| date | is set, is not set, is in the past, is in the future |
-| list | has any, has none; a select with several values also: has |
-| anything else | is set, is not set |
-
-What is written is plain PHP, such as `$entry->get('price') > 100`. A
-condition the editor wrote is read back into the choices when the template
-is opened again. One written by hand stays as code in the field below and
-is never rewritten.
-
-## Entries from the database
-
-`<x-sunrice::entries>` is set from lists: the collection, the order (as the
-collection is set, newest or oldest first, by title, by any of its fields),
-how many, in pages or not, and filters ("only those where *Featured* is
-on"). Inside the tag, `$component->entries` is in the Fields list, and a
-loop over it has the collection's fields.
-
 ## When the list does not have it
 
-Anything can still be written by hand: in an echo's expression field, in a
-condition's code field, or in the code panel. That takes the
-[code permission](permissions.md).
+Anything can still be written by hand in the **Template** tab. That takes
+the same [code permission](permissions.md).
 
 A variable the editor can't follow (set by a view composer, or computed by
 PHP it does not read) is listed as a plain value: it can be printed, and

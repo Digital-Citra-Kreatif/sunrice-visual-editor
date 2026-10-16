@@ -6,6 +6,7 @@ namespace Sunrice\VisualEditor;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 use Sunrice\Facades\Sunrice;
 use Sunrice\Permissions\PermissionRegistry;
 use Sunrice\Permissions\SyncPermissions;
@@ -13,6 +14,8 @@ use Sunrice\VisualEditor\Fields\Catalog;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Mcp\EditTemplate;
 use Sunrice\VisualEditor\Mcp\GetTemplateTree;
+use Sunrice\VisualEditor\Rendering\CustomCss;
+use Sunrice\VisualEditor\Rendering\CustomJs;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Support\RegisteredPermissions;
 use Sunrice\VisualEditor\Support\SunriceBridge;
@@ -43,7 +46,12 @@ class VisualEditorServiceProvider extends ServiceProvider
             __DIR__.'/../dist' => public_path(self::ASSETS),
         ], 'sunrice-visual-editor-assets');
 
-        // Off: no routes, no admin script, nothing different about rendering.
+        // The site's custom CSS and script are added to its pages whether or not the editor
+        // is on: the deployed site has what was written on a local copy.
+        CustomCss::register();
+        CustomJs::register();
+
+        // Off: no routes, no admin script, nothing else different about rendering.
         if (! Access::enabled()) {
             return;
         }
@@ -68,6 +76,10 @@ class VisualEditorServiceProvider extends ServiceProvider
 
         Sunrice::registerAdminScript(self::asset('visual-editor.js'));
         Sunrice::registerAdminStyle(self::asset('visual-editor.css'));
+
+        // The admin's pages are told whether whoever is signed in may open the editor: an entry's
+        // page then offers "Edit with Visual Editor" (resources/js/launch.ts).
+        Inertia::share('visualEditor', fn (): ?array => Access::allowed(request()->user(config('sunrice.auth.guard'))) ? ['open' => true] : null);
 
         Sunrice::addNavigationItem(
             label: 'Visual editor',

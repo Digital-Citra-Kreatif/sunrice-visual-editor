@@ -3,6 +3,50 @@
 Versions follow [semantic versioning](https://semver.org). Before 1.0, a
 minor version may change behaviour; what changes is said here.
 
+## Unreleased
+
+### A simpler screen
+
+- **Three parts**: the tree on the left (templates on the page, and the
+  open template's layers), the page in the middle, the code on the right.
+  A click on a row selects it, outlines it and scrolls the page to it,
+  and puts the code's cursor there; a click on the page does the same the
+  other way. Saving the code (Ctrl+S) draws the page again.
+- **Tabs on the right**: Template (the code), **Fields** (what the template
+  can read at the cursor; a click writes it there), **Content** (Sunrice's
+  own page for the entry the page shows, beside it; a save there draws the
+  page again), **Custom CSS** and **Custom JS**.
+- **Custom CSS**: `public/sunrice-theme/custom.css`, written in the editor
+  and linked from every page of the site through the layout's
+  `@stack('head')`, with no template changed for it. New settings
+  `custom_css.file`, `custom_css.inject` and `custom_css.stack`. The link
+  is added whether or not the editor is on.
+- **Custom JS**: `public/sunrice-theme/custom.js`, loaded (deferred) on
+  every page through the layout's `@stack('scripts')`. Writing it takes
+  `visual-editor.code`. Settings `custom_js.file`, `custom_js.inject` and
+  `custom_js.stack`.
+- **Devices**: Fit, Desktop, Tablet, Mobile (the `widths` setting) or all
+  of them side by side, from the top bar.
+- **Sides fold to a strip** at the edge, named, and open again from it.
+- **Edit with Visual Editor** on every entry's page in the admin, for
+  people who may open the editor.
+- Sunrice's own views say why they are read-only: a fallback offers Copy
+  to site, a view Sunrice never looks for in the site says it can't be
+  changed here.
+
+### Taken off the screen
+
+- The Settings, Insert, Style and CSS panels, Visual and Code modes, and
+  sides flown out over the page. The API behind them, and the tools for
+  AI agents, are unchanged.
+
+### Fixed
+
+- A change made from the tree, an undo, or a tab closed with unsaved text
+  could leave the code editor's own undo able to take the file's new text
+  back, leaving the code saying what the file no longer did, and later
+  clicks on the page putting the cursor at the end of the file.
+
 ## 0.1.0 — not tagged yet
 
 The first version: everything in the plan's seven phases. It is tagged once

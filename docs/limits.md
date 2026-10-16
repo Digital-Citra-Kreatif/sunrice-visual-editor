@@ -28,12 +28,19 @@ What the editor does not do, and where it stops. Version 0.1.
   attributes of an opening tag can still be changed.
 - `@php … @endphp` and directives the editor does not know are one piece of
   code: moved, copied and deleted whole, changed only as code.
-- A directive inside a tag (`<li @class([…])>`) is shown as code in that
-  element's settings. The rest of the element is edited as usual.
-- `<x-sunrice::entry-filter>` is not in the Insert list. Its filters are an
-  array written by hand.
-- Classes that Blade writes (`class="{{ $x }}"`, `@class`) can't be styled
-  from the Style and CSS tabs, which need a class written out.
+- **On the screen, a template is changed in two ways only**: in its code,
+  and by moving, duplicating and deleting rows of the tree. Classes,
+  attributes, text and inserts are written in the code. (The API and the
+  [tools for AI agents](agents.md) take those as operations.)
+- **Sunrice's own views are read-only.** Its four fallbacks
+  (`defaults/show`, `defaults/index`, `defaults/term`, `defaults/search`)
+  are used while the site has no template of its own for that page, and
+  **Copy to site** makes one. Its component views (`components/seo`,
+  `components/entries`, `components/form`) and `defaults/draft-banner`
+  are drawn by Sunrice itself, which never looks for them among the
+  site's templates: they can't be changed in the editor. Style what they
+  draw with the [custom CSS](styles.md#custom-css), or change the template
+  around them. The code's banner says so.
 
 ## What a save can't know
 
@@ -55,10 +62,17 @@ other page that uses the template.
 
 ## Styles
 
-- **The Style and CSS tabs are for plain CSS files**, in
-  `public/sunrice-theme/`, up to 2 MB each. A site whose CSS is built
-  (Tailwind through Vite) is styled with classes: with a dev server
-  running they show at once, otherwise after a build
+- **The screen writes one stylesheet**, the
+  [custom CSS](styles.md#custom-css), as text. There are no controls for
+  declarations, no rules found for a class, and no styles written for one
+  device. The theme's other CSS files are changed in the code editor of
+  your choice, or through the editor's API.
+- The custom CSS is linked through the layout's `@stack('head')`. A layout
+  without that stack, or another named in `custom_css.stack`, gets no
+  link.
+- **Plain CSS files only**, in `public/sunrice-theme/`, up to 2 MB each. A
+  site whose CSS is built (Tailwind through Vite) is styled with classes:
+  with a dev server running they show at once, otherwise after a build
   ([Styles](styles.md#sites-that-build-their-css)). An opt-in preview
   shows a new class in the editor before a build; it loads no Tailwind
   plugins. The editor does not start a dev server.
@@ -67,42 +81,44 @@ other page that uses the template.
   opened, and for templates: it does not compare the built files with the
   templates. The request waits for the build to end.
   ([Styles](styles.md#building-from-the-editor))
-- Styles are written for a class. There is no styling by id or tag from the
-  Style tab, and no inline `style` attribute written.
-- The Style tab writes the class's own rule. Rules that only mention the
-  class (`.card:hover`, `.card h2`) are in the CSS tab, to change as CSS;
-  there are no controls for hover, focus or other states.
-- A new rule goes to the end of the editor's own stylesheet, or for a width
-  into the file the class's rule is in. It can't be placed elsewhere from
-  the screen.
 - No design tokens, no colour palette read from the site's custom
-  properties, no fonts manager. A custom property can be typed as a value
-  (`var(--accent)`).
-- Widths are set up by hand in the config. They are not read from the
-  site's CSS, though the `@media` conditions the site already uses are
-  found and written under.
+  properties, no fonts manager.
+- Devices are set up by hand in the config (`widths`). They are not read
+  from the site's CSS.
 - No JavaScript files are edited.
 
 ## The screen
 
 - Dragging layers uses the browser's own drag and drop, which does not work
-  by touch. The buttons and keys do the same.
-- Things are dragged in the Layers panel, not on the page itself.
+  by touch. The keys do the same.
+- Things are dragged in the Layers tree, not on the page itself.
 - A tab's undo and its unsaved text last as long as the editor is open:
   closing the browser tab asks first, and then they are gone.
 - The code editor has search and replace, undo of its own and several
   cursors, and offers the CMS's fields while a variable is typed. It does
-  not fold code, complete HTML or PHP, or search across files. Its script is fetched when code is first shown; when that fails,
-  the code is in a plain text field, which still saves.
+  not fold code, complete HTML or PHP, or search across files. Its script
+  is fetched when code is first shown; when that fails, the code is in a
+  plain text field, which still saves.
+- What is folded and how wide the code is are kept in that browser, not
+  for the person.
+- The **Edit with Visual Editor** button is put on Sunrice's entry pages
+  by the package's admin script, as Sunrice has no place for it. Where an
+  entry's page is not laid out as expected, the button floats in a corner.
+  A new entry, with no page yet, has none.
 - The editor is for a desktop browser. It has been checked in Chromium;
   Firefox and Safari have not been tested.
 - The editor's own screen is in English only.
 
 ## Content
 
-Entries, global sets and menus are edited in the Sunrice admin, not here.
-The editor shows the page with its real content and changes how it is
-drawn.
+- The **Content** tab is Sunrice's own admin page for the entry the page
+  shows. It edits that one entry; global sets and menus are edited in the
+  Sunrice admin as usual.
+- A published entry keeps a saved change as a draft until it is
+  published, as Sunrice does anywhere: the page shows it after
+  **Publish**.
+- A page that is no single entry (a listing, the search page, an error
+  page) has no content in the tab.
 
 ## Permissions
 

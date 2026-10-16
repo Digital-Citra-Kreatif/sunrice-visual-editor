@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useId, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useId, type ReactNode } from 'react';
 
 /**
  * Which panels and sections are folded to their titles, and how one is
@@ -96,56 +96,15 @@ export function Section({ title, name, className, children }: { title: string; n
 
 type SideProps = {
     side: 'left' | 'right';
-    /** Beside the page, with room of its own. */
+    /** Beside the page, with room of its own; hidden, it takes none. */
     shown?: boolean;
-    /** Hidden, and over the page for now: the page keeps its width. */
-    flown?: boolean;
-    /** Give it its room back, to stay. */
-    onKeep?(): void;
-    /** Put it away again. */
-    onAway?(): void;
     children: ReactNode;
 };
 
-/**
- * A column of panels on one side of the page. Hidden, it takes no room at
- * all; it can then be flown out over the page for as long as it is needed.
- */
-export function Side({ side, shown = true, flown = false, onKeep, onAway, children }: SideProps) {
-    const element = useRef<HTMLElement>(null);
-    // Flown out, the keyboard goes with it: Tab walks its controls, Escape puts it away.
-    useEffect(() => {
-        if (flown) {
-            element.current?.focus();
-        }
-    }, [flown]);
-
+/** A column of panels on one side of the page. */
+export function Side({ side, shown = true, children }: SideProps) {
     return (
-        <aside
-            ref={element}
-            className={`sve-side sve-side--${side}${flown ? ' sve-side--flown' : ''}`}
-            hidden={!shown && !flown}
-            tabIndex={flown ? -1 : undefined}
-            aria-label={flown ? `The panels on the ${side}, over the page` : undefined}
-            onKeyDown={(event) => {
-                // What is inside has the key first: a field that takes Escape for itself says so.
-                if (flown && event.key === 'Escape' && !event.defaultPrevented) {
-                    event.stopPropagation();
-                    onAway?.();
-                }
-            }}
-        >
-            {flown && (
-                <div className="sve-side__flown">
-                    <span className="sve-side__for-now">Over the page, for now</span>
-                    <button type="button" className="sve-side__keep" onClick={onKeep} title="Give these panels their room beside the page again">
-                        Keep open
-                    </button>
-                    <button type="button" className="sve-side__away" onClick={onAway} aria-label="Put the panels away" title="Put the panels away (Esc)">
-                        ×
-                    </button>
-                </div>
-            )}
+        <aside className={`sve-side sve-side--${side}`} hidden={!shown}>
             {children}
         </aside>
     );

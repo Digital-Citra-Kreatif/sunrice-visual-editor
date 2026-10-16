@@ -14,7 +14,11 @@ interface SunriceApi {
     ReactDOM: typeof ReactDOMNS;
     registerPage(name: string, component: PageComponent): void;
     inertia: {
-        router: { visit(url: string, options?: Record<string, unknown>): void };
+        router: {
+            visit(url: string, options?: Record<string, unknown>): void;
+            /** Inertia's events: 'navigate' comes with each page the admin shows. Answers a function that stops listening. */
+            on?(type: 'navigate', listener: (event: { detail: { page: { component: string; props: Record<string, unknown>; url: string } } }) => void): () => void;
+        };
         /** Inertia's link. `onBefore` answering false keeps the visit from being made. */
         Link: ReactNS.ComponentType<{ href: string; className?: string; title?: string; onBefore?: () => boolean | void; children?: ReactNS.ReactNode }>;
         Head: ReactNS.ComponentType<{ title?: string; children?: ReactNS.ReactNode }>;

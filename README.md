@@ -13,8 +13,8 @@ writes the file back with nothing else disturbed.
 | --- | --- |
 | [Installation](docs/installation.md) | requiring it, turning it on, settings, updating |
 | [How it works](docs/how-it-works.md) | lossless or code, what is checked before a save, how the page knows its templates |
-| [Fields and variables](docs/fields.md) | what the lists offer at each place, and the Blade a click writes |
-| [Styles](docs/styles.md) | the CSS and Style tabs, widths, sites that build their CSS |
+| [Fields and variables](docs/fields.md) | what the Fields tab offers at each place, and the Blade a click writes |
+| [Styles](docs/styles.md) | the custom CSS, devices, sites that build their CSS |
 | [Permissions](docs/permissions.md) | open, edit, code, build; where the line is and how it is held |
 | [AI agents](docs/agents.md) | `get_template_tree` and `edit_template` |
 | [Limits](docs/limits.md) | what it does not do |
@@ -27,136 +27,102 @@ brought is in [CHANGELOG.md](CHANGELOG.md).
 
 ## What works today
 
-All three milestones of the plan's first part, and styles: the theme's CSS files, changed in place, at every width.
+The screen has three parts: the templates of the page as a tree on the
+left, the page in the middle, and on the right the code, the fields, the
+entry's content and the site's custom CSS and JS.
 
-**See a page's templates, click through them, edit them as code.**
+**See a page's templates and click through them.**
 
-- Open any page of the site in the editor. The left panel lists the Blade
-  files that draw it: layout, the page's own template, partials, blocks,
-  components.
-- Point at the page, or at a row, and the part that template draws is
-  outlined with its name. Click either to open the template. One click goes
-  back to the page's own template.
-- **Edit as code** opens the template's source under the page, in a code
-  editor: colours for Blade, search and replace, undo of its own. Saving
-  shows the change on the page at once.
-- A save is refused, and nothing is written, when the code doesn't compile or
-  the file has changed on disk since it was opened. The previous version of
-  every saved file is kept in `storage/app/sunrice/template-backups/`.
+- Open any page of the site in the editor. **Templates on this page**, on
+  the left, lists the Blade files that draw it: layout, the page's own
+  template, partials, blocks, components.
+- **Layers** below it is the open template as a tree. Pointing at a row
+  outlines what it draws on the page. A click selects it, scrolls the page
+  so the element is in the middle of the frame, and puts the code cursor
+  on it.
+- In **Select** mode a click on the page opens the template that drew what
+  was clicked, selects it in the tree and puts the code cursor, and the
+  keyboard, on that element. In **Browse** mode links work as on the site.
+- Rows of the tree can be dragged to move what they draw. On a row,
+  Alt+Up and Alt+Down move it, Ctrl+D (Cmd+D) duplicates it and Delete
+  deletes it.
+- **Undo** and **Redo** in the top bar (Ctrl+Z and Ctrl+Shift+Z outside
+  the code) cover every change, for as long as the editor is open.
+- The page keeps its place after a change: it is drawn again out of sight and
+  put in the place of the old one, scrolled to where that was.
+
+**Edit the template as code, beside the page.**
+
+- **Template**, on the right, is the open template's code in a code
+  editor: colours for Blade, search and replace, undo of its own.
+- Templates open as tabs. What is typed and not saved stays with its tab,
+  so the header can be looked at halfway through a change to the page.
+- The element the cursor is in is outlined on the page and selected in the
+  tree, in text that has been typed in since too.
+- Ctrl+S saves, and the page is drawn again. A save is refused, and nothing
+  is written, when the code doesn't compile or the file has changed on disk
+  since it was opened. The previous version of every saved file is kept in
+  `storage/app/sunrice/template-backups/`.
+- Without the code permission the code can be read and not changed.
 - Sunrice's own fallback views are shown read-only, with **Copy to site** to
   get a copy the site uses and you can edit.
 - Saves appear in the admin's activity log.
 
-**Change a template without touching code.**
+**The CMS's fields and variables, picked from a list in place of typed.**
 
-- **Layers**: the open template as a tree. Select a node there or by clicking
-  it on the page.
-- **Settings**, for what is selected: tag, id, classes, attributes, text, what
-  an echo prints, a condition, a loop, an include.
-- **Insert**: elements, Blade structures, Sunrice's components, the site's
-  partials, pasted HTML.
-- Move, duplicate, wrap, unwrap and delete, by dragging a layer, by button or
-  by key.
-- **Undo** and **Redo** for all of it, for as long as the editor is open.
-- The page keeps its place after a change: it is drawn again out of sight and
-  put in the place of the old one, scrolled to where that was.
+- **Fields** lists what the template can read where the code cursor is: the
+  entry of the page with the fields of its collection, a block's fields, the
+  item of a loop, `$sunricePage`, `$locale`, global sets and menus. It has
+  a search box, and reads text that is not saved yet too.
+- A click writes the Blade that suits the value at the cursor: a text
+  printed, rich text printed as HTML, an image as an `<img>`, a link as an
+  `<a>`, a list as a loop, a yes-or-no as a condition. All of it draws
+  without an error when the field is empty, or is not there at all.
+- While code is typed, the editor offers what a value has: after
+  `$entry->` the fields of the entry.
 
-**The same in code, beside the page.**
+**The page's content, beside the page.**
 
-- **Visual | Code** in the top bar. In Code mode the template's code is
-  beside the page, in a code editor, with a line between them to drag.
-- Templates open as tabs. What is typed and not saved stays with its tab,
-  so the header can be looked at halfway through a change to the page.
-- A click on the page opens the template that drew what was clicked and
-  puts the cursor on that element, in text that has been typed in since
-  too. The element the cursor is in is outlined on the page.
-- **Fields** beside the code lists what can be read where the cursor is, in
-  text that is not saved yet too; a click writes it there, and the editor
-  offers a value's fields while it is typed.
+- **Content** is Sunrice's own admin page for the entry the page shows, in
+  a frame: its fields, validation, drafts, revisions and **Publish** are
+  Sunrice's. When something is saved there, the page is drawn again.
+- Every entry's page in the Sunrice admin has an **Edit with Visual
+  Editor** button beside **View page** and **Publish**, which opens the
+  editor on that entry's page.
+
+**A stylesheet and a script of the site's own.**
+
+- **Custom CSS** is one stylesheet, `public/sunrice-theme/custom.css`,
+  written as text and saved with Ctrl+S.
+- Every page of the site links it, without a template being changed for
+  it: the package adds the link to the layout's `@stack('head')`. The
+  deployed site has it too ([Styles](docs/styles.md#custom-css)).
+- Each save keeps the previous file with the template backups and is in the
+  activity log.
+- **Custom JS** is the same for a script, `public/sunrice-theme/custom.js`,
+  loaded on every page through the layout's `@stack('scripts')`. It runs in
+  visitors' browsers, so writing it takes `visual-editor.code`
+  ([Styles](docs/styles.md#custom-js)).
+
+**Every device side by side.**
+
+![Desktop, tablet and mobile side by side](docs/screenshots/widths.png)
+
+- The **device** switch in the top bar shows the page as wide as there is
+  room (**Fit**), at one device (Desktop 1280, Tablet 768, Mobile 390), or
+  at **All** of them side by side, drawn at one scale. The devices are a
+  setting (`widths`).
+- Side by side, **Select here** says which frame takes the clicks. Every
+  frame is drawn again after a change.
 
 **Room for the page.**
 
-- Every panel folds to its title by a click on the title, and so does every
-  titled group inside one. Three buttons in the top bar show and hide the
-  panels on the left, the code under the page and the panels on the right.
-- A hidden side takes no room. A strip at the page's edge flies it out over
-  the page, which keeps its width; Escape or a click on the page puts it
-  away, and **Keep open** gives it its room back.
-- The editor opens the way it was left.
-
-**The CMS's fields and variables, picked from a list in place of typed.**
-
-- **Insert → Fields** lists what can be read where the next thing goes: the
-  entry of the page with the fields of its collection, a block's fields, the
-  item of a loop, what a partial is passed, global sets and menus.
-- A click writes the Blade that suits the value: a text printed, rich text
-  printed as HTML, an image as an `<img>`, a link as an `<a>`, a list as a
-  loop, a yes-or-no as a condition. All of it draws without an error when the
-  field is empty, or is not there at all.
-- **Use a field…** under a text, an echo or an attribute in Settings fills it
-  from a field, and a value that is a field says which.
-- A condition is built by choosing a field and what to ask of it ("Price is
-  more than 100"); a loop's source is chosen from the lists there are.
-- `<x-sunrice::entries>` is set from lists: the collection, the order, how
-  many, in pages or not, and filters.
-
-**The CSS for a class, changed where it stands.**
-
-![The CSS tab: the rule for .muted in app.css, a row for each declaration](docs/screenshots/css.png)
-
-- **Settings → CSS**, for a selected element: the rules of the theme's
-  stylesheets (`public/sunrice-theme/*.css`) for one of its classes, a row
-  for each declaration. The rule for the class itself first, then the rules
-  that only mention it (`.card h2`), and under which `@media` each stands.
-- Change a value or a property, add a declaration, take one out: only that
-  declaration changes in the file. Its spacing, comments and every other
-  rule stay as written. Several declarations can be pasted into the empty
-  row as CSS writes them.
-- The page shows the change at once, without being drawn again.
-- A class without a rule gets one in `public/sunrice-theme/editor.css`, and
-  when the page does not link that file yet, one click links it from the
-  layout's `<head>`.
-- **↶ ↷** beside each stylesheet undo and redo its changes. Each save keeps
-  the previous file with the template backups and is in the activity log.
-- A value that would break out of its declaration is refused, and nothing is
-  written.
-
-**The same rule, as controls.**
-
-![The Style tab: controls for layout, size, spacing, text, background and border](docs/screenshots/style.png)
-
-- **Settings → Style** has a control for each of the declarations most often
-  written: display and the flex and grid settings, width and height, margin
-  and padding, font, size, weight, alignment and colour, background, border,
-  radius and shadow.
-- Each control reads one declaration of the class's own rule and writes one.
-  What is typed is CSS (`1rem`, `0 auto`, `var(--accent)`); a colour can be
-  picked. Emptying a control takes its declaration out.
-- A control the rule says nothing for shows in grey what the page has for it
-  from elsewhere, so it is clear what there is to override.
-- Both tabs write the same file through the same changes: what one sets, the
-  other shows.
-
-**Every width side by side, and a style for one of them.**
-
-![Desktop, tablet and mobile side by side; the Style tab writing under a @media condition](docs/screenshots/widths.png)
-
-- The **width** choice in the top bar shows the page as wide as there is
-  room, at one width (Desktop 1280, Tablet 768, Mobile 390), or at all of
-  them **side by side**, drawn at one scale. The widths are a setting
-  (`widths`).
-- Side by side, one frame is the one being edited: it takes the clicks and
-  carries the outlines. **Edit here** on another makes that one it, without
-  loading a page anew. The others follow every change.
-- A style set in the **Style** tab while a width is being edited is written
-  for that width: into the class's rule under the `@media` condition of the
-  site's own CSS that applies there, or, when the site has none, under the
-  one the width is set up with (`(max-width: 640px)` for Mobile). **For**
-  at the top of the tab says which, and can be set to another, or to every
-  width.
-- A rule for a width is put where it counts: after the class's own rule, at
-  the end of a `@media` block that is there, else in a new block at the end
-  of the file.
+- « folds the tree to a narrow strip at the left edge, and » folds the
+  right side to one at the right edge; a click on the strip opens it again.
+  The two buttons in the top bar do the same. The page takes the room.
+- A line at the right side's edge drags to make the code wider or
+  narrower.
+- What is folded and how wide the code is are kept in the browser.
 
 **Permissions of its own**: who may open the editor, who may change things,
 who may write code ([Permissions](docs/permissions.md)).
@@ -164,9 +130,9 @@ who may write code ([Permissions](docs/permissions.md)).
 **Tools for AI agents**, on Sunrice's MCP server.
 
 - `get_template_tree` reads a template as the tree the editor shows, and
-  `edit_template` changes it by the same operations the editor's screen
-  sends: add a class, set a text, insert, move, wrap. An agent makes a small
-  checked change where `write_template` would rewrite the whole file.
+  `edit_template` changes it by operations: add a class, set a text,
+  insert, move, wrap. An agent makes a small checked change where
+  `write_template` would rewrite the whole file.
 - Held to what the token's user may do in the editor: changing takes
   `visual-editor.edit`, and Blade or PHP of the agent's own takes
   `visual-editor.code`, by the same check as for a person.
@@ -174,6 +140,7 @@ who may write code ([Permissions](docs/permissions.md)).
   packages
   ([sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40));
   on an older one nothing is registered and nothing fails.
+
 A site that builds its CSS (Tailwind through Vite) is styled by its
 classes. With `npm run dev` running a class added in the editor shows at
 once; otherwise after a build, or before one with the preview turned on
@@ -194,8 +161,8 @@ it, change things and write code is decided by three
 [permissions](docs/permissions.md) of its own, and who may run the site's
 build by a fourth.
 
-**Opening it.** *Visual editor* in the admin's sidebar, under Manage, or
-directly:
+**Opening it.** *Visual editor* in the admin's sidebar, under Manage,
+**Edit with Visual Editor** on an entry's page in the admin, or directly:
 
 | Address | Opens |
 | --- | --- |
@@ -393,14 +360,15 @@ src/
     Declaration.php    one `property: value`, with the place of each part
     Changes.php        applies changes sent as plain data; all of a list or none
     Selector.php       the selector for a class, and whether a selector mentions it
-    ThemeRepository.php  the CSS files in public/sunrice-theme, and the editor's own
-    Styles.php         what the stylesheets say about a class, for the CSS tab
+    ThemeRepository.php  the CSS files in public/sunrice-theme, the editor's own and the custom CSS
+    Styles.php         what the stylesheets say about a class
   Guard/               what someone who may not edit code can't get into a template (CodeGuard)
   Mcp/                 the tools for AI agents: get_template_tree, edit_template
   Templates/           the files the editor works with: the site's templates and Sunrice's views
-  Insert/              Library: what the editor offers to insert, for this site
+  Insert/              Library: what can be inserted, for this site (the API and AI agents)
   Actions/             SaveTemplate: the only place a template is written; CopyPackageView
-  Rendering/           a page rendered for the editor: elements marked with their template
+  Rendering/           a page rendered for the editor: elements marked with their template;
+                       CustomCss: the custom CSS linked from every page
   Http/                the editor's screen, and its API for templates (Controllers/Api)
   Support/             Access: who may use the editor; SunriceBridge: the one file that
                        reads Sunrice's internals (templates, field definitions)
@@ -408,8 +376,9 @@ src/
 config/              sunrice-visual-editor.php
 routes/admin.php     routes inside the Sunrice admin
 resources/js, css/   the editor UI (React from the Sunrice admin), built into dist/:
-                       Editor.tsx the screen, panels/ the columns beside the page,
-                       canvas/ what is drawn over it, lib/ the API and the frame
+                       Editor.tsx the screen, panels/ the tree and the tabs beside the page,
+                       canvas/ what is drawn over it, lib/ the API and the frame,
+                       launch.ts the Edit with Visual Editor button on entry pages
 resources/js/bridge/ the script in a page shown in the editor's frame, built into dist/bridge.js
 resources/js/code/   the code editor (CodeMirror), built into dist/code-editor.js and fetched when code is first shown
 spike/               the round-trip reports (templates, stylesheets) and their results

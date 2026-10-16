@@ -8,7 +8,7 @@
  * tab that is come back to has its text, its undo, its cursor and where it
  * was scrolled to.
  */
-import { autocompletion, completionKeymap, type CompletionContext, type CompletionResult } from '@codemirror/autocomplete';
+import { autocompletion, completionKeymap, completionStatus, startCompletion, type CompletionContext, type CompletionResult } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { bracketMatching, indentUnit } from '@codemirror/language';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
@@ -318,6 +318,12 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
         },
         setFields: (variables) => {
             fields = variables;
+            // What was typed a moment ago may be waiting for exactly these: offer them now.
+            const { head } = view.state.selection.main;
+            const line = view.state.doc.lineAt(head);
+            if (view.hasFocus && completionStatus(view.state) === null && offersFor(line.text.slice(0, head - line.from), fields) !== null) {
+                startCompletion(view);
+            }
         },
         goTo: (place, focus) => {
             const { saved, changes } = view.state.field(since);

@@ -12,6 +12,7 @@ use Sunrice\VisualEditor\Actions\SaveStylesheet;
 use Sunrice\VisualEditor\Css\Changes;
 use Sunrice\VisualEditor\Css\Styles;
 use Sunrice\VisualEditor\Css\ThemeRepository;
+use Sunrice\VisualEditor\Rendering\CustomCss;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
 
@@ -35,6 +36,32 @@ class StyleController extends Controller
     public function index(Request $request): JsonResponse
     {
         return $this->answer(fn () => ['styles' => $this->styles->for($this->class($request->query('class')))]);
+    }
+
+    /**
+     * The site's custom CSS: its whole text, the version to save it
+     * against, and whether pages link it by themselves. It is saved like
+     * any stylesheet, through `source`.
+     */
+    public function custom(): JsonResponse
+    {
+        return $this->answer(function () {
+            $file = $this->theme->custom();
+            if ($file === null) {
+                throw new InvalidRequest('The configuration names no stylesheet for custom CSS (custom_css.file).');
+            }
+            $source = $file->source();
+
+            return ['custom' => [
+                'path' => $file->path,
+                'url' => $file->url,
+                'version' => ThemeRepository::version($source),
+                'exists' => $file->exists,
+                'source' => mb_check_encoding($source, 'UTF-8') ? $source : null,
+                'injected' => CustomCss::injected(),
+                'stack' => CustomCss::stack(),
+            ]];
+        });
     }
 
     /**

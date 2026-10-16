@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sunrice\VisualEditor\Support;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
 use Laravel\Mcp\Server\Tool;
@@ -13,6 +14,7 @@ use Sunrice\Fields\CustomField;
 use Sunrice\Fields\FieldRegistry;
 use Sunrice\Mcp\Templates;
 use Sunrice\Models\Collection;
+use Sunrice\Models\Entry;
 use Sunrice\Models\Fieldset;
 use Sunrice\Models\Form;
 use Sunrice\Models\GlobalSet;
@@ -28,6 +30,29 @@ use Sunrice\Sunrice;
  */
 final class SunriceBridge
 {
+    /**
+     * An entry as the editor links to it: its id, its title and the address
+     * of its page in Sunrice's admin. Null for anything that is no entry.
+     *
+     * @return array{id: int, title: string, edit: string}|null
+     */
+    public static function entryLink(mixed $entry): ?array
+    {
+        if (! $entry instanceof Entry || ! is_int($entry->getKey())) {
+            return null;
+        }
+        $collection = $entry->collection;
+        if (! $collection instanceof Collection || ! Route::has('sunrice.admin.entries.edit')) {
+            return null;
+        }
+
+        return [
+            'id' => $entry->getKey(),
+            'title' => (string) ($entry->title ?? ''),
+            'edit' => route('sunrice.admin.entries.edit', ['collection' => $collection->handle, 'entry' => $entry->getKey()], false),
+        ];
+    }
+
     /** The site's templates: view names "sunrice.…". */
     public static function templateDirectory(): string
     {

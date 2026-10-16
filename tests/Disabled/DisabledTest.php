@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Sunrice\Facades\Sunrice;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
@@ -45,4 +46,20 @@ it('renders every page as always when turned off, whatever the address says', fu
 
     expect((string) get('/?sve=1')->assertOk()->getContent())->not->toContain('data-sve', 'sve-manifest')
         ->and(Route::getRoutes()->getByName('sunrice.frontend.home')->gatherMiddleware())->not->toContain(EditorRender::class);
+});
+
+it('still links the site\'s custom CSS when turned off: it is the site\'s, and the deployed site has it', function () {
+    $this->setUpStarterSite();
+    File::put($this->theme.'/custom.css', '.hero { color: tomato; }');
+
+    expect((string) get('/')->assertOk()->getContent())->toContain('/sunrice-theme/custom.css?v=', 'data-sunrice-custom-css');
+});
+
+it('still loads the site\'s custom script when turned off, and offers no way to write it', function () {
+    $this->setUpStarterSite();
+    File::put($this->theme.'/custom.js', 'console.log(1);');
+    actingAsSuperAdmin();
+
+    expect((string) get('/')->assertOk()->getContent())->toContain('/sunrice-theme/custom.js?v=', 'data-sunrice-custom-js');
+    getJson('/cms/visual-editor/api/scripts/custom')->assertNotFound();
 });

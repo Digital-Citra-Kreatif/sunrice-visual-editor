@@ -27,12 +27,12 @@ Today a developer writes the templates in a code editor while fields and content
 - The editor writes files that run PHP on the server, and those files live in the project's git repository. It is therefore a development tool: it is meant for a local or staging copy of the site, followed by a commit and a deploy.
 - `sunrice-visual-editor.enabled` turns it on. The default is on when `APP_ENV` is `local` and off otherwise; `SUNRICE_VISUAL_EDITOR=true` turns it on elsewhere.
 - Who may open it, change things in it and write code in it is decided by its own permissions (see Permissions).
-- When it is off, the package registers no routes and changes nothing about how pages render.
+- When it is off, the package registers no routes and changes nothing about how pages render, except the links to the site's custom CSS and script (see Styling).
 
 ### Files it reads and writes
 
 - Templates: `resources/views/sunrice/**/*.blade.php`, the same directory Sunrice resolves site templates from.
-- Theme files: `public/sunrice-theme/**` (CSS in the first releases).
+- Theme files: `public/sunrice-theme/**` (CSS in the first releases), the site's custom CSS among them.
 - Package fallback views (`sunrice::defaults.*`) are shown read-only, with **Copy to site**, which writes the copy into `resources/views/sunrice/` at the path Sunrice resolves first.
 - It never writes anywhere else.
 
@@ -42,7 +42,7 @@ Today a developer writes the templates in a code editor while fields and content
 - Tags that don't nest cleanly are kept as they are written: a tag opened in one `@if` and closed in another, an element left open across `@else`, an end tag left out, the two halves of a layout split over a header file and a footer file. Each such tag is shown as code, with the reason, and stays where it is; so does anything that holds one. When it is an opening tag its attributes can still be edited. Everything around it is visual.
 - A file is refused, and opens in the code panel only, when Blade itself can't be read into the tree: a Blade syntax error, or a block (`@if`, a component tag) whose end the tree can't find. The reason is shown.
 - What is inserted or pasted has to nest cleanly on its own.
-- Every node is one of:
+- Every node is one of (the last column is what the operations of the API offer for it; on the screen every kind is edited in the code):
 
   | Kind | Examples | Edited with |
   | --- | --- | --- |
@@ -62,40 +62,46 @@ Today a developer writes the templates in a code editor while fields and content
 - Regions come from marks the editor adds while rendering for itself. They exist only in that render and are never written to a file or served to visitors.
 - The frame has two modes: **Select**, where a click picks an element, and **Browse**, where links work and the panel follows to the new page.
 
-### Editing visually
+### The screen
 
-- With a template open, a **Layers** panel shows its tree and the frame highlights the selected node. Selecting works from either side.
-- A **Settings** panel edits the selection: tag, id, classes, attributes, text; the expression of an echo; the condition of an `@if`; the source and item name of a `@foreach`; the view and data of an `@include`.
-- **Insert** adds elements (section, container, heading, text, link, image, button, list), Blade structures (condition, loop, include, section), Sunrice components (`<x-sunrice::entries>`, `<x-sunrice::terms>`, `<x-sunrice::form>`) and fields. It goes before, inside or after the selection, and becomes the selection. What is inserted can be drawn as it is: a new condition is true, a new loop goes over nothing, a component is offered for each collection, taxonomy and form the site has, and a partial is offered with the variables it needs.
-- Nodes can be moved by dragging in the Layers panel, duplicated, wrapped, unwrapped and deleted; the same from buttons and from the keyboard. Comments are nodes like any other. Text is edited where it is: deleting it empties it. Arms of a block (`@else`, `@empty`, `@case`) are not moved or deleted on their own; each one holds its own children, and what is added to a `@case` goes before the `@break` that ends it.
-- Where an edit would put a directive directly against a letter or digit (`@else@endif`, `@elseText`), the editor adds one space so Blade still reads it.
-- Pasting HTML inserts it as nodes.
+The editor is three parts side by side: the tree on the left, the page in the middle, the code on the right (decided October 2026, in place of the panels of the first design: Settings, Insert, Style and CSS).
+
+- **Left, the tree.** *Templates on this page*, and **Layers**: the open template as a tree. Clicking a row selects it, outlines it on the page, scrolls the page to it (to the middle of the frame where the page can scroll that far) and puts the code's cursor on it. Selecting works from either side: a click on the page selects the row and the code.
+- Rows are moved by dragging, and by keys on a row: Alt+Up and Alt+Down move, Ctrl+D duplicates, Delete deletes. Comments are nodes like any other. Arms of a block (`@else`, `@empty`, `@case`) are not moved or deleted on their own; what is added to a `@case` goes before the `@break` that ends it. Where an edit would put a directive directly against a letter or digit (`@else@endif`), the editor adds one space so Blade still reads it.
+- **Middle, the page**, at the width of the room or at one of the configured devices (Desktop, Tablet, Mobile by default), or at all of them side by side, drawn at one scale. Side by side, one frame takes the clicks and the others show the same page; every frame is drawn again after a change.
+- **Right, in tabs:** the open template's code (**Template**), what it can read at the cursor (**Fields**), the content of the entry the page shows (**Content**), and the site's **Custom CSS** and **Custom JS**.
 
 ### Room for the page
 
-- Everything beside the page can be put out of the way and brought back with one click, so the page, or the code, has the room when it is what is being looked at.
-- Every panel (Templates on this page, Layers, Insert, Settings, Template) folds to its title by a click on the title, and opens again the same way. So does every titled group inside a panel: the groups of controls in Settings and Style, the kinds of thing in Insert, where a field comes from in Fields.
-- Three buttons in the top bar show and hide the panels on the left, the code under the page, and the panels on the right. A side that is hidden gives its room to the page.
-- A hidden side takes no room at all, and can be looked into without giving it any: a strip at the page's edge, in the room around the page, flies the side out **over** the page. The page keeps its width, so nothing on it moves. The side goes away again by Escape, by its own button, or by a click on the page or in the code; **Keep open** gives it its room back. Only one side is flown out at a time, and none is when the editor is opened again.
-- Asking for something that lives in a hidden or folded place brings the place back: **Insert** shows the left side.
-- The editor opens the way it was left: what is hidden and what is folded is remembered in the browser.
-- What is folded keeps its state: a list stays scrolled, a field half typed stays typed.
+- Each side folds to a narrow strip at its edge, named, by a button on the side or in the top bar; a click on the strip opens it again. A folded side gives its room to the page.
+- The line between the page and the code is dragged to share the room between them.
+- Every panel on the left (Templates on this page, Layers) folds to its title by a click on the title.
+- The editor opens the way it was left: what is folded and how wide the code is are remembered in the browser.
 
 ### Editing as code
 
-- The editor has two modes, chosen in the top bar: **Visual** (layers, settings, insert) and **Code**. Both work on the same files, show the same page and find the same templates.
-- In Code mode the open template is text in a code editor beside the page: line numbers, colours for Blade, HTML and PHP, undo of its own, search and replace, several cursors.
+- The open template is text in a code editor beside the page: line numbers, colours for Blade, HTML and PHP, undo of its own, search and replace, several cursors.
 - Templates open as tabs. Each keeps the text that was typed and not saved, so the header can be looked at halfway through a change to the page's template. A tab with unsaved text says so, and leaving the editor with one asks first.
-- The templates of the page are listed as in Visual mode, and a click on the page opens the template that drew what was clicked and puts the cursor on that element. The element the cursor is in is outlined on the page.
-- **Fields** lists what can be read where the cursor is, in text that is not saved yet too, and a click writes the same Blade there as it would in Visual mode. After `$entry->` and the like, the editor offers what that value has.
+- A click on the page opens the template that drew what was clicked and puts the cursor, and the keyboard, on that element. The element the cursor is in is outlined on the page and selected in the tree.
+- When the file changes otherwise (from the tree, an undo, read again) with nothing typed, the code shows it as it is now; its own undo does not take that change back.
+- After `$entry->` and the like, the editor offers what that value has.
 - Saving is one step for a tab (Ctrl+S): the text is checked as any save is (it compiles, the file is still the version it was read as), written, and the page drawn again. Nothing is saved while typing.
-- Code mode is for people who may edit code (`visual-editor.code`). Others can read the code and not change it.
-- The code editor is CodeMirror, in a script of its own that is fetched the first time Code mode is opened: the rest of the admin does not carry it.
+- Writing code is for people who may edit code (`visual-editor.code`). Others can read the code and not change it.
+- The code editor is CodeMirror, in a script of its own that is fetched the first time the editor opens: the rest of the admin does not carry it.
 - It does not try to be an IDE: no search across files, no git, no terminal.
+
+### Content beside the page
+
+- The **Content** tab shows Sunrice's own admin page for the entry the page in the frame is of, in a frame: its fields, validation, drafts, revisions and publishing are Sunrice's. A save there draws the page again. A published entry keeps what is saved as a draft until it is published, as in the admin.
+- The editor learns which entry it is while the page renders for it: the entry its page template was given. A page of no single entry (a listing, a search, an error) says so.
+
+### From the admin
+
+- Every entry's page in the Sunrice admin has an **Edit with Visual Editor** button beside its own buttons, for people who may open the editor. It opens the editor on the entry's public page, in the language being edited. A new entry, which has no page yet, has none. Sunrice has no place for a package's button there: the package's admin script adds it, and where the page is not as expected it floats in a corner.
 
 ### Fields and variables
 
-- The **Fields** list shows what can be used at the selected position:
+- The **Fields** tab lists what can be read where the code's cursor is, in text that is not saved yet too, and a click writes it there:
   - by file: `$entry` and `$collection` in entry templates, `$entries` in listing templates, `$term` and `$taxonomy` in term templates, `$block` in `blocks/{fieldset}`, and `$sunricePage`, `$locale`, globals and menus everywhere;
   - by position: the item of every enclosing `@foreach`, and `$component` inside a Sunrice component tag.
 - Fields come from the blueprints of the collections that use the template (Sunrice's template map), the fieldset for a block, the taxonomy blueprint for a term, and the blueprint of each global set.
@@ -118,6 +124,7 @@ Today a developer writes the templates in a code editor while fields and content
 - A template shared by several collections (`sunrice.show`) lists fields per collection and marks those that not every collection has.
 - Built-ins are listed with the fields: title, URL, dates, author, terms; globals as `sunrice_global('set')->field`; menus as a loop over `sunrice_menu('handle')`; interface text as `__('…')`.
 - Any PHP expression can still be typed by hand.
+- The server API keeps every operation of the first design (attributes, text, conditions, loops, includes, inserting elements, components and fields), for AI agents and for what a later screen may offer; each is checked as any change is.
 
 ### Saving
 
@@ -132,11 +139,12 @@ Today a developer writes the templates in a code editor while fields and content
 
 ### Styling
 
-- First releases: classes are edited on the element, and a **CSS** panel shows and edits the rule for the selected element's first class in the theme's CSS files. A rule that does not exist yet is added to `public/sunrice-theme/editor.css`, which the layout must link.
-- CSS files are held to the same rule as Blade: a rule is changed in place and the rest of the file is untouched.
-- Sites that build their CSS get class editing; see *Sites that build their CSS* below.
-- A style panel has controls for layout, size, spacing, text, background and border; each reads and writes one declaration of the rule for a class.
-- The page can be shown at several widths side by side. One of the frames is edited; a style set while a width is edited is written under the `@media` condition for that width.
+- Classes are edited in the template's code. CSS files are held to the same rule as Blade: what the editor writes changes only what it names.
+- **Custom CSS**: a stylesheet of the site's own, `public/sunrice-theme/custom.css` (setting `custom_css.file`), written as one text in the editor and saved with Ctrl+S. Every page of the site links it: the package pushes a `<link>` to it onto the layout's `@stack('head')` while a site template renders, once a page, only while the file has something in it, with the file's version in its address. No template is changed for it. With `custom_css.inject` off the site links the file itself.
+- The link is added whether or not the editor is on: the CSS is the site's, written on a local copy and deployed with it. It is the one thing the package adds to pages when the editor is off; removing the package drops the link, and the file stays.
+- Saving the custom CSS takes `visual-editor.edit`: CSS runs no PHP.
+- **Custom JS**: the same for a script, `public/sunrice-theme/custom.js` (setting `custom_js.file`), loaded deferred on every page from a `<script>` pushed onto the layout's `@stack('scripts')`, in the same way and on the same terms as the custom CSS. It is global; a script one template needs is written in that template with `@push('scripts')`. It runs in every visitor's browser, so writing it takes `visual-editor.code`.
+- The server API that changes the rules of the theme's stylesheets in place, and links a stylesheet from the layout, is kept for tools that use it.
 
 ### Sites that build their CSS (Vite, Tailwind)
 
@@ -166,7 +174,7 @@ Tailwind writes CSS only for the classes it finds in the site's files, so a clas
 - Storing templates, drafts or history in the database.
 - Editing templates outside `resources/views/sunrice/`, or non-Blade views.
 - A design system, design tokens, motion, or a component library of its own.
-- Editing content: entries, globals and menus stay in the Sunrice admin. The editor links to them.
+- Editing content with a form of the editor's own: entries are edited with Sunrice's own entry page (the Content tab); globals and menus stay in the Sunrice admin.
 - Rendering the page inside the editor without the server (every change is a real render).
 - Multi-user editing of one file at the same time.
 - Running on production by default.
@@ -179,5 +187,5 @@ Tailwind writes CSS only for the classes it finds in the site's files, so a clas
 | 2 | Plain CSS or a Tailwind build as the main styling path? | Both are served: plain CSS in `public/sunrice-theme/` with the Style and CSS tabs, as the starter templates use; Tailwind through Vite with classes, a preview and a build button (decided October 2026). |
 | 3 | May Sunrice core gain the three small public APIs in `EXECUTION_PLAN.md` Phase 0? | Yes; until they merge the package wraps the internals in one adapter class. |
 | 4 | Licence of this package. | Same as Sunrice (MIT); not stated in the repository yet. |
-| 5 | Is the code panel's own small editor enough, or is CodeMirror wanted (search and replace, several cursors, folding)? | CodeMirror, with a Code mode around it (decided October 2026). |
-| 6 | Should a draft's banner on the site carry an **Edit visually** link? Sunrice would need a hook for it. | No link; the editor is opened from the admin or by `?url=`. |
+| 5 | Is the code panel's own small editor enough, or is CodeMirror wanted (search and replace, several cursors, folding)? | CodeMirror, always beside the page (decided October 2026). |
+| 6 | Should a draft's banner on the site carry an **Edit visually** link? Sunrice would need a hook for it. | No link on the site; the editor is opened from the admin (an entry's page has **Edit with Visual Editor**) or by `?url=`. |

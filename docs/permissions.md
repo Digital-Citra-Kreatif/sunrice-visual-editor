@@ -8,9 +8,9 @@ running the site's build. They are given to roles in Sunrice's admin
 
 | Permission | Name in the admin | Lets someone |
 | --- | --- | --- |
-| `visual-editor.open` | Open the visual editor | look: the page, its templates, their layers, their styles |
-| `visual-editor.edit` | Change templates and styles in the visual editor | change templates and stylesheets without writing code |
-| `visual-editor.code` | Edit template code in the visual editor | write Blade and PHP |
+| `visual-editor.open` | Open the visual editor | look: the page, its templates, their layers, their code, the fields |
+| `visual-editor.edit` | Change templates and styles in the visual editor | change templates without writing code, and write the custom CSS |
+| `visual-editor.code` | Edit template code in the visual editor | write Blade and PHP, and the custom JS |
 
 Each includes the ones above it, so a role needs only the highest it should
 have.
@@ -42,24 +42,36 @@ So the promise for someone with `edit` and without `code` is:
 
 ## What `edit` can do
 
-- Add, move, copy, wrap and delete elements; change tags, ids, classes,
-  attributes and text.
-- Insert what the Insert list offers, apart from its PHP item.
-- Print a field chosen from the Fields list, build a condition or a loop
-  from choices, set up `<x-sunrice::entries>` from its lists.
-- Move, copy and delete code that is already in the template.
-- Everything in the Style and CSS tabs.
+On the editor's screen:
+
+- Move, duplicate and delete in the tree, by dragging a row or by key.
+  That includes code that is already in the template.
 - Undo and redo.
+- Write and save the [custom CSS](styles.md#custom-css). CSS runs no PHP.
+- **Copy to site**: get a copy of one of Sunrice's fallback views that the
+  site uses.
+- Read the code of every template.
+
+Through the editor's API and the [tools for AI agents](agents.md), which
+take more operations than the screen sends, also: change tags, ids,
+classes, attributes and text, and insert what the editor's own lists
+offer, such as a field from the picker or a condition built from choices.
 
 ## What `edit` cannot do
 
-- Write in the code panel. It opens as **View the code** and takes no
+- Write in the **Template** tab. The code opens read-only and takes no
   typing.
-- Rewrite a node as code.
-- Type what an echo prints, a condition, a loop's source, an include, or an
-  attribute written in Blade. Those controls are shown and not changed; the
-  lists beside them are still there to choose from.
-- Insert the "PHP" item, or paste Blade that would run something.
+- Write a field from the **Fields** tab: that writes Blade at the cursor.
+- Write the [custom JS](styles.md#custom-js). It is no template, but it runs
+  in every visitor's browser, so it is code: they can read it, not change
+  it (`PUT …/api/scripts/custom` answers 403).
+- Through the API: rewrite a node as code, type what an echo prints, a
+  condition, a loop's source, an include or an attribute written in
+  Blade, or insert Blade that would run something.
+
+What a person's [content](how-it-works.md#the-entrys-content) can be
+changed to is Sunrice's to say, by its own permissions: the **Content** tab
+is Sunrice's admin page.
 
 ## How it is held
 
@@ -70,8 +82,9 @@ depend on the first.
 
 1. **What may be new.** Each operation is looked at for the code it brings.
    That code counts only if the editor offers exactly it, at that place: a
-   field from the picker, an item of the Insert list, a condition or a loop
-   built from choices, a plain value for one of Sunrice's components.
+   field from the picker, an item the editor offers to insert, a condition
+   or a loop built from choices, a plain value for one of Sunrice's
+   components.
    Anything typed counts for nothing.
 2. **What is new.** The template before the change and after it are both
    compiled by Laravel's own Blade compiler, and every piece of PHP in the

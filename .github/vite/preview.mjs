@@ -26,6 +26,29 @@ const step = async (name, action) => {
 };
 
 const frame = page.frameLocator('iframe.sve-frame');
+
+/**
+ * The header's code, as the code editor beside the page holds it, changed and saved: how a class is given on the screen.
+ * The brand is found by the start of its class list: the checks before this one may have left classes of their own on it.
+ */
+const saveHeader = async (change) => {
+    await frame.locator('.site-header .brand').first().click();
+    await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'partials/header');
+    // The header's own code: until it has been read, the code beside the page still shows the template before.
+    const code = page.locator('section[aria-label="Code of partials/header.blade.php"] .sve-code__editor');
+    await code.locator('.cm-editor').waitFor();
+    await page.waitForFunction((from) => document.querySelector('section[aria-label="Code of partials/header.blade.php"] .sve-code__editor')?.sveCodeEditor?.text().includes(from) === true, change[0]);
+    await code.evaluate((holder, [from, to]) => {
+        const text = holder.sveCodeEditor.text();
+        if (!text.includes(from)) {
+            throw new Error(`The header has no ${from}`);
+        }
+        holder.sveCodeEditor.setText(text.replace(from, to));
+    }, change);
+    await page.locator('section[aria-label^="Code of"] .sve-code__bar').getByRole('button', { name: 'Save', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('section[aria-label^="Code of"] .sve-code__bar .sve-tag') === null);
+};
+
 /** The top padding of the site's header: the class the check added is `pt-9`, which is 36 pixels. */
 const padding = (where) => where.locator('header.site-header').first().evaluate((element) => getComputedStyle(element).paddingTop);
 
@@ -68,12 +91,7 @@ await step('say that a build is needed after a class is added, build from the ba
     const build = page.locator('.sve-bar__build');
     await build.getByText('Build', { exact: true }).waitFor();
 
-    await frame.locator('.site-header .brand').first().click();
-    await page.waitForFunction(() => document.querySelector('.sve-trail__here')?.textContent === 'partials/header');
-    await page.locator('.sve-layer[aria-selected="true"]').waitFor();
-    const settings = page.locator('.sve-side--right');
-    await settings.getByLabel('Add a class').fill('mt-px');
-    await settings.getByLabel('Add a class').press('Enter');
+    await saveHeader(['class="brand', 'class="brand mt-px']);
     await frame.locator('.site-header .mt-px').first().waitFor();
     await build.getByText('Build needed', { exact: true }).waitFor();
 

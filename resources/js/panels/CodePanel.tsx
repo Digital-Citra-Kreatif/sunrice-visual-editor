@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { CodeEditor } from '../code/index';
 import { byteOfIndex, indentOf, indexOfByte } from '../code/text';
 import { ApiError, saveSource, type PickVariable, type TemplateData } from '../lib/api';
@@ -20,15 +20,12 @@ type Props = {
     mayCode: boolean;
     /** Read the file again as it is on disk, dropping what was typed. */
     onReload(): void;
-    onClose(): void;
     /** Where the code editor's script is fetched from; null for the plain text field alone. */
     editorScript: string | null;
     /** The templates opened since the editor was: each keeps its text as typed. The open one is among them. */
     tabs: CodeTab[];
     onOpenTab(name: TemplateName): void;
     onCloseTab(name: TemplateName): void;
-    /** Whether the code is beside the page (Code mode) and not under it: it is then always there, with nothing to close. */
-    beside: boolean;
     /** A place of the open template the cursor is asked to go to: an element clicked on the page, or a layer. */
     goTo: CodePlace | null;
     /** The cursor is somewhere else: where that is in the file as saved, and in the text as it is now, in bytes as nodes are counted. */
@@ -37,6 +34,8 @@ type Props = {
     put: CodePut | null;
     /** What can be read where the cursor is: offered while a variable is typed. */
     fields: PickVariable[] | null;
+    /** Said above the code: why it can't be changed, and what to do about it. */
+    children?: ReactNode;
 };
 
 /** Blade to put in at the cursor. `asked` tells one asking from the next for the same Blade. */
@@ -56,16 +55,11 @@ const WAIT = 3000;
 type Trouble = { kind: 'syntax' | 'conflict' | 'other'; message: string };
 
 /**
- * The open template as code. This is where a template the tree can't hold
- * is edited, and where anything can be when a panel falls short.
- *
- * Saving sends the text as it is; the server refuses it when the file has
- * changed since it was read or when the text doesn't compile, and nothing
- * is written.
+ * The code editor's script, as far as it has come. Until it has, a panel
+ * waits a moment, then shows the plain text field, and keeps to it: nobody
+ * has the field changed under their hands.
  */
-export function CodePanel({ template, current: opened, draft, onDraft, onSaved, mayCode, onReload, onClose, editorScript, tabs, onOpenTab, onCloseTab, beside, goTo, onCursor, put, fields }: Props) {
-    // The code editor is a script of its own. Until it has come the panel waits a moment, then shows
-    // the plain text field, and keeps to it: nobody has the field changed under their hands.
+export function useCodeScript(editorScript: string | null): CodeEditorScript | 'waiting' | 'none' {
     const [script, setScript] = useState<CodeEditorScript | 'waiting' | 'none'>(editorScript === null ? 'none' : 'waiting');
     useEffect(() => {
         if (editorScript === null) {
@@ -82,6 +76,20 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
             window.clearTimeout(late);
         };
     }, [editorScript]);
+
+    return script;
+}
+
+/**
+ * The open template as code, beside the page: the one place a template is
+ * changed by hand.
+ *
+ * Saving sends the text as it is; the server refuses it when the file has
+ * changed since it was read or when the text doesn't compile, and nothing
+ * is written.
+ */
+export function CodePanel({ template, current: opened, draft, onDraft, onSaved, mayCode, onReload, editorScript, tabs, onOpenTab, onCloseTab, goTo, onCursor, put, fields, children }: Props) {
+    const script = useCodeScript(editorScript);
     const [saving, setSaving] = useState(false);
     const [trouble, setTrouble] = useState<Trouble | null>(null);
     // The open template's tab is in sight, however many there are.
@@ -116,7 +124,7 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
     };
 
     return (
-        <section className={`sve-code${beside ? ' sve-code--beside' : ''}`} aria-label={`Code of ${template.path}`}>
+        <section className="sve-code sve-code--beside" aria-label={`Code of ${template.path}`}>
             <header className="sve-code__bar">
                 <div className="sve-tabs" role="tablist" aria-label="Open templates">
                     {tabs.map((tab) => {
@@ -149,12 +157,9 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
                         </button>
                     </>
                 )}
-                {!beside && (
-                    <button type="button" className="sve-code__close" onClick={onClose} aria-label="Close the code panel" title="Close">
-                        ×
-                    </button>
-                )}
             </header>
+
+            {children}
 
             {trouble !== null && (
                 <div className="sve-code__trouble" role="alert">
@@ -198,7 +203,7 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
     );
 }
 
-type CodeProps = {
+export type CodeProps = {
     text: string;
     readOnly: boolean;
     label: string;
@@ -206,7 +211,7 @@ type CodeProps = {
     onSave(): void;
 };
 
-type RichProps = CodeProps & {
+export type RichProps = CodeProps & {
     script: CodeEditorScript;
     /** What the text is kept under while another is shown: the template it is of. */
     name: string;
@@ -225,7 +230,7 @@ type RichProps = CodeProps & {
  * its own, several cursors. One editor for as long as the panel is there;
  * it keeps each template's text as it was left while another is shown.
  */
-function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, put, fields }: RichProps) {
+export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, put, fields }: RichProps) {
     const holder = useRef<HTMLDivElement>(null);
     const editor = useRef<CodeEditor | null>(null);
     // The editor is made once and calls whatever the panel's functions are by then.
@@ -266,6 +271,14 @@ function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, 
             return;
         }
         if (shown.current.name !== name) {
+            now.show(name, { text, saved, readOnly });
+        } else if (text === saved && text !== shown.current.text) {
+            // The text is the file again, from outside the editor: the file was changed otherwise (from
+            // the tree, an undo, read again), or what was typed was dropped (Revert, the tab closed).
+            // The editor starts afresh on it. Its own undo would only take that back in the code and
+            // leave it saying something the file does not, and places in the file would no longer map
+            // through the text replaced as a whole.
+            now.forget(name);
             now.show(name, { text, saved, readOnly });
         } else {
             if (text !== shown.current.text) {
@@ -312,7 +325,7 @@ function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, 
 }
 
 /** The code in a plain text field, coloured: what is shown when the code editor's script is not there. */
-function PlainCode({ text, readOnly, label, onText, onSave }: CodeProps) {
+export function PlainCode({ text, readOnly, label, onText, onSave }: CodeProps) {
     const tokens = useMemo(() => highlight(text), [text]);
     const lines = useMemo(() => text.split('\n').length, [text]);
 

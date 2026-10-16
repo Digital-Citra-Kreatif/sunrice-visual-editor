@@ -115,7 +115,10 @@ function manifest(): Manifest {
     try {
         const parsed = JSON.parse(document.getElementById(MANIFEST_ID)?.textContent ?? '') as Manifest;
 
-        return Array.isArray(parsed.files) ? { files: parsed.files, ...(typeof parsed.status === 'number' ? { status: parsed.status } : {}), ...(parsed.preview === true ? { preview: true } : {}) } : { files: [] };
+        const entry = parsed.entry;
+        const shown = typeof entry === 'object' && entry !== null && typeof entry.id === 'number' && typeof entry.title === 'string' && typeof entry.edit === 'string' ? { entry: { id: entry.id, title: entry.title, edit: entry.edit } } : {};
+
+        return Array.isArray(parsed.files) ? { files: parsed.files, ...(typeof parsed.status === 'number' ? { status: parsed.status } : {}), ...(parsed.preview === true ? { preview: true } : {}), ...shown } : { files: [] };
     } catch {
         return { files: [] };
     }
@@ -297,7 +300,7 @@ window.addEventListener('message', (event) => {
         asked = typeof message.ask !== 'object' || message.ask === null || typeof message.ask.mark !== 'object' || message.ask.mark === null || parseMark(markValue(message.ask.mark)) === null || !Array.isArray(message.ask.properties) ? null : { mark: message.ask.mark, properties: message.ask.properties.filter((property) => typeof property === 'string').slice(0, 100) };
         reportComputed();
     } else if (message.type === 'reveal') {
-        copiesOf(message.mark)[0]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        copiesOf(message.mark)[0]?.scrollIntoView({ block: 'center', inline: 'nearest' });
         reportSoon();
     }
 });
