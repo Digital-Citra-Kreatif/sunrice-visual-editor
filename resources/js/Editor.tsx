@@ -16,7 +16,7 @@ import { boxesOf, findNode, nodeAt, rowFor } from './lib/tree';
 import { layout, readWidths, type View } from './lib/widths';
 import { CodePanel, type CodePlace, type CodePut } from './panels/CodePanel';
 import { ContentPanel } from './panels/ContentPanel';
-import { CustomCssPanel } from './panels/CustomCssPanel';
+import { CustomFilePanel } from './panels/CustomFilePanel';
 import { FieldsList } from './panels/FieldsPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Folds, Side } from './panels/Panel';
@@ -80,7 +80,7 @@ function Rail({ side, label, onOpen }: { side: 'left' | 'right'; label: string; 
 type Page = { url: string; title: string; files: ManifestFile[]; status: number; /** Its CSS is Tailwind's browser build: a preview of what a build would make. */ preview: boolean; /** The entry it is of, when it is one. */ entry: ShownEntry | null };
 
 /** What the side right of the page shows: the open template's code, what it can read, the page's content, or the site's custom CSS. */
-type CodeTab = 'template' | 'fields' | 'content' | 'css';
+type CodeTab = 'template' | 'fields' | 'content' | 'css' | 'js';
 
 /** How long a page gets to say it is ready after it has loaded. */
 const READY_WITHIN = 1500;
@@ -190,7 +190,9 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const unsaved = draft !== null;
     /** The custom CSS has text that is not saved. */
     const [cssUnsaved, setCssUnsaved] = useState(false);
-    const anyUnsaved = Object.keys(drafts).length > 0 || cssUnsaved;
+    /** The custom script has text that is not saved. */
+    const [jsUnsaved, setJsUnsaved] = useState(false);
+    const anyUnsaved = Object.keys(drafts).length > 0 || cssUnsaved || jsUnsaved;
     // A template that is opened is a tab from then on.
     useEffect(() => {
         if (open !== null) {
@@ -1362,6 +1364,10 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                             Custom CSS
                             {cssUnsaved && <span className="sve-tab__dot" aria-label="not saved" />}
                         </button>
+                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'js'} onClick={() => setCodeTab('js')} title="JavaScript of your own, loaded on every page of the site">
+                            Custom JS
+                            {jsUnsaved && <span className="sve-tab__dot" aria-label="not saved" />}
+                        </button>
                         <span className="sve-code-tabs__space" />
                         <button type="button" className="sve-side__fold sve-side__fold--right" onClick={() => setArranged((now) => siding(now, 'right', false))} aria-label="Fold the code to the side" title="Fold the code to the side">
                             <span aria-hidden="true">»</span>
@@ -1454,13 +1460,29 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         }} />}
                     </div>
                     <div className="sve-code-pane" hidden={codeTab !== 'css'}>
-                        <CustomCssPanel
+                        <CustomFilePanel
+                            kind="css"
                             mayEdit={mayEdit}
                             editorScript={editorScript}
                             onUnsaved={setCssUnsaved}
                             onSaved={(path) => {
                                 say('done', `Saved ${path}.`);
                                 redraw();
+                                redrawPreviews();
+                            }}
+                        />
+                    </div>
+                    <div className="sve-code-pane" hidden={codeTab !== 'js'}>
+                        {/* It runs in every visitor's browser: writing it is code. */}
+                        <CustomFilePanel
+                            kind="js"
+                            mayEdit={mayCode}
+                            editorScript={editorScript}
+                            onUnsaved={setJsUnsaved}
+                            onSaved={(path) => {
+                                say('done', `Saved ${path}.`);
+                                redraw();
+                                redrawPreviews();
                             }}
                         />
                     </div>

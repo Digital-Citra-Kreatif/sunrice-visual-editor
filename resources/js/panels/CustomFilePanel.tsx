@@ -1,9 +1,34 @@
 import { useEffect, useState } from 'react';
-import { ApiError, readCustomCss, saveStylesheet, type CustomCss, type Loaded } from '../lib/api';
+import { ApiError, readCustomCss, readCustomJs, saveCustomJs, saveStylesheet, type CustomFile, type Loaded } from '../lib/api';
 import { PlainCode, RichCode, useCodeScript } from './CodePanel';
 
+/** What each kind of custom file is: how it is read and saved, and what is said about it. */
+const KINDS = {
+    css: {
+        label: 'Custom CSS',
+        read: readCustomCss,
+        save: (file: CustomFile, text: string) => saveStylesheet(file.path, file.version, text, null).then((written) => written.file.version),
+        note: (file: CustomFile) =>
+            file.injected
+                ? `Every page of the site links this file through its layout’s @stack('${file.stack}'). Save to see it on the page.`
+                : `Pages don’t link this file by themselves here (custom_css.inject is off): link ${file.url} from your layout.`,
+        locked: 'You may read the custom CSS here, not change it.',
+    },
+    js: {
+        label: 'Custom JS',
+        read: readCustomJs,
+        save: (file: CustomFile, text: string) => saveCustomJs(file.version, text).then((written) => written.version),
+        note: (file: CustomFile) =>
+            file.injected
+                ? `Every page of the site loads this script, deferred, through its layout’s @stack('${file.stack}'). For a script one template needs, write @push('${file.stack}') … @endpush in that template instead.`
+                : `Pages don’t load this script by themselves here (custom_js.inject is off): load ${file.url} from your layout.`,
+        locked: 'The custom script runs in every visitor’s browser: changing it takes the permission to edit code.',
+    },
+} as const;
+
 type Props = {
-    /** Whether whoever is editing may change stylesheets: without it the CSS is shown, not changed. */
+    kind: keyof typeof KINDS;
+    /** Whether whoever is editing may change this file: without it the text is shown, not changed. */
     mayEdit: boolean;
     /** Where the code editor's script is fetched from; null for the plain text field alone. */
     editorScript: string | null;
@@ -18,14 +43,16 @@ type Trouble = { conflict: boolean; message: string };
 const message = (error: unknown) => (error instanceof Error ? error.message : 'Something went wrong.');
 
 /**
- * The site's custom CSS as one text, beside the page. It is a file of the
- * theme (public/sunrice-theme/custom.css) that every page of the site
- * links by itself, through the layout's `@stack('head')`: no template is
- * changed for it. Saving writes the file and draws the page again.
+ * The site's custom CSS, or its custom script, as one text beside the
+ * page. Each is a file of the theme (public/sunrice-theme/custom.css and
+ * custom.js) that every page of the site loads by itself, through a stack
+ * of its layout: no template is changed for it. Saving writes the file
+ * and draws the page again.
  */
-export function CustomCssPanel({ mayEdit, editorScript, onUnsaved, onSaved }: Props) {
+export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSaved }: Props) {
+    const how = KINDS[kind];
     const script = useCodeScript(editorScript);
-    const [file, setFile] = useState<Loaded<CustomCss>>({ state: 'idle' });
+    const [file, setFile] = useState<Loaded<CustomFile>>({ state: 'idle' });
     const [readings, setReadings] = useState(0);
     const [draft, setDraft] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
@@ -34,7 +61,7 @@ export function CustomCssPanel({ mayEdit, editorScript, onUnsaved, onSaved }: Pr
     useEffect(() => {
         let stale = false;
         setFile((was) => (was.state === 'ready' ? was : { state: 'loading' }));
-        readCustomCss()
+        how.read()
             .then((data) => !stale && setFile({ state: 'ready', data }))
             .catch((error: unknown) => !stale && setFile({ state: 'failed', error: message(error) }));
 
@@ -64,9 +91,9 @@ export function CustomCssPanel({ mayEdit, editorScript, onUnsaved, onSaved }: Pr
         }
         setSaving(true);
         setTrouble(null);
-        saveStylesheet(css.path, css.version, text, null)
-            .then((written) => {
-                setFile({ state: 'ready', data: { ...css, source: text, version: written.file.version, exists: true } });
+        how.save(css, text)
+            .then((version) => {
+                setFile({ state: 'ready', data: { ...css, source: text, version, exists: true } });
                 setDraft(null);
                 onSaved(css.path);
             })
@@ -75,7 +102,7 @@ export function CustomCssPanel({ mayEdit, editorScript, onUnsaved, onSaved }: Pr
     };
 
     return (
-        <section className="sve-code sve-code--beside sve-custom-css" aria-label="Custom CSS">
+        <section className={`sve-code sve-code--beside sve-custom sve-custom-${kind}`} aria-label={how.label}>
             <header className="sve-code__bar">
                 <span className="sve-code__name" title={css.url}>
                     sunrice-theme/{css.path}
@@ -94,11 +121,8 @@ export function CustomCssPanel({ mayEdit, editorScript, onUnsaved, onSaved }: Pr
                 )}
             </header>
 
-            <p className="sve-custom-css__note">
-                {css.injected
-                    ? `Every page of the site links this file through its layout’s @stack('${css.stack}'). Save to see it on the page.`
-                    : `Pages don’t link this file by themselves here (custom_css.inject is off): link ${css.url} from your layout.`}
-            </p>
+            <p className="sve-custom-css__note">{how.note(css)}</p>
+            {readOnly && <p className="sve-code__banner">{how.locked}</p>}
 
             {trouble !== null && (
                 <div className="sve-code__trouble" role="alert">
@@ -125,18 +149,18 @@ export function CustomCssPanel({ mayEdit, editorScript, onUnsaved, onSaved }: Pr
             {script === 'waiting' ? (
                 <div className="sve-code__scroll" aria-busy="true" />
             ) : script === 'none' ? (
-                <PlainCode text={text} readOnly={readOnly} label="Custom CSS" onText={typed} onSave={save} />
+                <PlainCode text={text} readOnly={readOnly} label={how.label} onText={typed} onSave={save} />
             ) : (
                 <RichCode
                     script={script}
-                    name={`theme:${css.path}`}
+                    name={`${kind}:${css.path}`}
                     text={text}
                     saved={saved}
                     readOnly={readOnly}
-                    label="Custom CSS"
+                    label={how.label}
                     onText={typed}
                     onSave={save}
-                    kept={[`theme:${css.path}`]}
+                    kept={[`${kind}:${css.path}`]}
                     goTo={null}
                     onCursor={() => {}}
                     put={null}

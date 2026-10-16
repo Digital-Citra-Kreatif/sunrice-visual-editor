@@ -878,6 +878,39 @@ await step('put the custom CSS back', async () => {
     await page.locator('.sve-code-tabs__tab', { hasText: 'Template' }).click();
 });
 
+const customJs = page.locator('.sve-custom-js .sve-code__editor');
+const jsApi = `${base}/cms/visual-editor/api/scripts/custom`;
+const jsNow = async () => (await (await page.request.get(jsApi)).json()).custom;
+let jsBefore = '';
+
+await step('write custom JS beside the page, save it, and see it run on the page', async () => {
+    jsBefore = (await jsNow()).source;
+    await page.locator('.sve-code-tabs__tab', { hasText: 'Custom JS' }).click();
+    await customJs.locator('.cm-editor').waitFor();
+    await page.locator('.sve-custom-js .sve-custom-css__note').getByText("@push('scripts')").waitFor();
+    await customJs.evaluate((holder, text) => {
+        holder.sveCodeEditor.setText(text);
+        holder.sveCodeEditor.focus();
+    }, `${jsBefore}document.querySelector('.hero h1')?.setAttribute('data-custom-js', 'ran');\n`);
+    await page.locator('.sve-code-tabs__tab', { hasText: 'Custom JS' }).locator('.sve-tab__dot').waitFor();
+    await page.keyboard.press('Control+s');
+    await page.locator('.sve-notice--done', { hasText: 'Saved custom.js.' }).waitFor();
+    await onPage('.hero h1[data-custom-js="ran"]');
+    if (!(await (await page.request.get(`${base}/`)).text()).includes('data-sunrice-custom-js')) {
+        throw new Error('The site does not load the custom script');
+    }
+});
+
+await step('put the custom JS back', async () => {
+    await customJs.evaluate((holder, text) => {
+        holder.sveCodeEditor.setText(text);
+        holder.sveCodeEditor.focus();
+    }, jsBefore);
+    await page.keyboard.press('Control+s');
+    await until('The custom script is not as it was', async () => (await jsNow()).source === jsBefore || 'not yet');
+    await page.locator('.sve-code-tabs__tab', { hasText: 'Template' }).click();
+});
+
 // --- From an entry's page ----------------------------------------------------------------
 
 await step('offer "Edit with Visual Editor" on an entry\'s page, beside View page', async () => {
@@ -1036,6 +1069,16 @@ await step('show them the code to read, not to change', async () => {
     if ((await codeText()) !== heroCode || (await codeBar.getByRole('button', { name: 'Save' }).count()) !== 0) {
         throw new Error('The code can be typed in');
     }
+});
+
+await step('let them read the custom JS, which runs in visitors\' browsers, and not change it', async () => {
+    await page.locator('.sve-code-tabs__tab', { hasText: 'Custom JS' }).click();
+    await page.locator('.sve-custom-js').getByText('changing it takes the permission to edit code').waitFor();
+    await page.locator('.sve-custom-js .sve-code__bar').getByText('Read-only').waitFor();
+    // The custom CSS runs nothing: theirs to write.
+    await page.locator('.sve-code-tabs__tab', { hasText: 'Custom CSS' }).click();
+    await page.locator('.sve-custom-css .sve-code__bar').getByRole('button', { name: 'Save' }).waitFor();
+    await page.locator('.sve-code-tabs__tab', { hasText: 'Template' }).click();
 });
 
 await step('let them move what is there in the tree, and undo it', async () => {

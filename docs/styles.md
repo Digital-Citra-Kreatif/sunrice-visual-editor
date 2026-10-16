@@ -47,6 +47,42 @@ The API for it is `GET {admin}/visual-editor/api/styles/custom`, which
 gives the file's text and version, and
 `PUT {admin}/visual-editor/api/styles/files/{path}/source`, which saves it.
 
+## Custom JS
+
+**Custom JS**, beside Custom CSS, is the same for a script:
+`public/sunrice-theme/custom.js`, written as one text and saved with
+Ctrl+S. Every page of the site loads it: while a site template is drawn,
+the package pushes
+
+```html
+<script src="…/sunrice-theme/custom.js?v=…" defer data-sunrice-custom-js></script>
+```
+
+onto the layout's `@stack('scripts')`, which the starter layout has at the
+end of its body. As for the CSS, it is there whether or not the editor is
+on, only while the file has something in it, once a page, and with the
+file's version as `?v=`. `custom_js.file`, `custom_js.inject`
+(`SUNRICE_VISUAL_EDITOR_CUSTOM_JS`) and `custom_js.stack` are its
+[settings](installation.md#settings).
+
+It is global: one script for every page. A script that one template needs
+goes in that template instead, in the **Template** tab:
+
+```blade
+@push('scripts')
+    <script>/* only on pages this template draws */</script>
+@endpush
+```
+
+The layout prints it in the same place, on the pages that template draws.
+
+The script runs in every visitor's browser, so writing it takes
+`visual-editor.code`. Others can read it in the tab and not change it. The
+save is checked against the version that was read, the previous file is
+kept with the backups, and the save is in the activity log. The API is
+`GET {admin}/visual-editor/api/scripts/custom` and
+`PUT {admin}/visual-editor/api/scripts/custom` with `{version, source}`.
+
 ## Which files
 
 Every `*.css` file under `public/sunrice-theme/` (up to 2 MB each) can be

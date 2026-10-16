@@ -94,6 +94,9 @@ php artisan vendor:publish --tag=sunrice-visual-editor-config
 | `custom_css.file` | `custom.css` | The site's own stylesheet in `public/sunrice-theme/`, written in the editor's **Custom CSS** tab and linked from every page. See [Styles](styles.md#custom-css). |
 | `custom_css.inject` | `true` | Links that file from every page, by pushing a `<link>` onto the layout's stack (`SUNRICE_VISUAL_EDITOR_CUSTOM_CSS`). It does so whether or not the editor is on, so the deployed site has the same CSS. Set it to `false` to link the file from the layout yourself. |
 | `custom_css.stack` | `head` | The stack the link is pushed onto: the layout's `@stack('head')` in the starter layout. |
+| `custom_js.file` | `custom.js` | The site's own script in `public/sunrice-theme/`, written in the editor's **Custom JS** tab by people who may edit code, and loaded on every page. See [Styles](styles.md#custom-js). |
+| `custom_js.inject` | `true` | Loads that file, deferred, on every page, by pushing a `<script>` onto the layout's stack (`SUNRICE_VISUAL_EDITOR_CUSTOM_JS`), whether or not the editor is on. Set it to `false` to load the file from the layout yourself. |
+| `custom_js.stack` | `scripts` | The stack the script is pushed onto: the layout's `@stack('scripts')`, at the end of the body in the starter layout. |
 | `widths` | Desktop 1280, Tablet 768, Mobile 390 | The devices the page can be previewed at, from the top bar. Each may have a `media` condition; it is kept in the configuration, and the screen does not use it. |
 | `tailwind.preview` | `false` | For a site whose CSS is Tailwind built by Vite: adds Tailwind's browser build to pages drawn for the editor, so a class shows before the CSS is built again (`SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW`). See [Styles](styles.md#sites-that-build-their-css). |
 | `tailwind.entry` | `resources/css/app.css` | The site's CSS entry file, which the preview reads for the theme. |

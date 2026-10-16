@@ -192,6 +192,19 @@ it('lets someone who may edit change stylesheets, link one and copy a view: none
     postJson('/cms/visual-editor/api/templates/defaults/term.blade.php/copy')->assertCreated();
 });
 
+it('lets only someone who may edit code write the custom script, which runs in every visitor\'s browser', function () {
+    $script = $this->theme.'/custom.js';
+
+    ($this->as)(Access::EDIT);
+    getJson('/cms/visual-editor/api/scripts/custom')->assertOk();
+    putJson('/cms/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'alert(document.cookie);'])->assertForbidden();
+    expect(File::exists($script))->toBeFalse();
+
+    ($this->as)(Access::CODE);
+    putJson('/cms/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'console.log(1);'])->assertOk();
+    expect(File::get($script))->toBe('console.log(1);');
+});
+
 // --- Code can't be got in: each operation ------------------------------------------
 
 it('refuses code inserted into a template', function (string $type, string $code) {

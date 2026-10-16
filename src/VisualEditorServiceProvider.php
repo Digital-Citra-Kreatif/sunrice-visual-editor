@@ -15,6 +15,7 @@ use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Mcp\EditTemplate;
 use Sunrice\VisualEditor\Mcp\GetTemplateTree;
 use Sunrice\VisualEditor\Rendering\CustomCss;
+use Sunrice\VisualEditor\Rendering\CustomJs;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Support\RegisteredPermissions;
 use Sunrice\VisualEditor\Support\SunriceBridge;
@@ -45,9 +46,10 @@ class VisualEditorServiceProvider extends ServiceProvider
             __DIR__.'/../dist' => public_path(self::ASSETS),
         ], 'sunrice-visual-editor-assets');
 
-        // The site's custom CSS is linked from its pages whether or not the editor is on:
-        // the deployed site has the CSS that was written on a local copy.
+        // The site's custom CSS and script are added to its pages whether or not the editor
+        // is on: the deployed site has what was written on a local copy.
         CustomCss::register();
+        CustomJs::register();
 
         // Off: no routes, no admin script, nothing else different about rendering.
         if (! Access::enabled()) {

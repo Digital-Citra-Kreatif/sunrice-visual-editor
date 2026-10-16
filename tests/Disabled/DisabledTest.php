@@ -54,3 +54,12 @@ it('still links the site\'s custom CSS when turned off: it is the site\'s, and t
 
     expect((string) get('/')->assertOk()->getContent())->toContain('/sunrice-theme/custom.css?v=', 'data-sunrice-custom-css');
 });
+
+it('still loads the site\'s custom script when turned off, and offers no way to write it', function () {
+    $this->setUpStarterSite();
+    File::put($this->theme.'/custom.js', 'console.log(1);');
+    actingAsSuperAdmin();
+
+    expect((string) get('/')->assertOk()->getContent())->toContain('/sunrice-theme/custom.js?v=', 'data-sunrice-custom-js');
+    getJson('/cms/visual-editor/api/scripts/custom')->assertNotFound();
+});

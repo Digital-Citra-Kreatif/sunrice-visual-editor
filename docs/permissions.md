@@ -10,7 +10,7 @@ running the site's build. They are given to roles in Sunrice's admin
 | --- | --- | --- |
 | `visual-editor.open` | Open the visual editor | look: the page, its templates, their layers, their code, the fields |
 | `visual-editor.edit` | Change templates and styles in the visual editor | change templates without writing code, and write the custom CSS |
-| `visual-editor.code` | Edit template code in the visual editor | write Blade and PHP |
+| `visual-editor.code` | Edit template code in the visual editor | write Blade and PHP, and the custom JS |
 
 Each includes the ones above it, so a role needs only the highest it should
 have.
@@ -62,6 +62,9 @@ offer, such as a field from the picker or a condition built from choices.
 - Write in the **Template** tab. The code opens read-only and takes no
   typing.
 - Write a field from the **Fields** tab: that writes Blade at the cursor.
+- Write the [custom JS](styles.md#custom-js). It is no template, but it runs
+  in every visitor's browser, so it is code: they can read it, not change
+  it (`PUT …/api/scripts/custom` answers 403).
 - Through the API: rewrite a node as code, type what an echo prints, a
   condition, a loop's source, an include or an attribute written in
   Blade, or insert Blade that would run something.

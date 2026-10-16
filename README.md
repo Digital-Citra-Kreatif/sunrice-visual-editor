@@ -29,7 +29,7 @@ brought is in [CHANGELOG.md](CHANGELOG.md).
 
 The screen has three parts: the templates of the page as a tree on the
 left, the page in the middle, and on the right the code, the fields, the
-entry's content and the site's custom CSS.
+entry's content and the site's custom CSS and JS.
 
 **See a page's templates and click through them.**
 
@@ -90,7 +90,7 @@ entry's content and the site's custom CSS.
   Editor** button beside **View page** and **Publish**, which opens the
   editor on that entry's page.
 
-**A stylesheet of the site's own.**
+**A stylesheet and a script of the site's own.**
 
 - **Custom CSS** is one stylesheet, `public/sunrice-theme/custom.css`,
   written as text and saved with Ctrl+S.
@@ -99,6 +99,10 @@ entry's content and the site's custom CSS.
   deployed site has it too ([Styles](docs/styles.md#custom-css)).
 - Each save keeps the previous file with the template backups and is in the
   activity log.
+- **Custom JS** is the same for a script, `public/sunrice-theme/custom.js`,
+  loaded on every page through the layout's `@stack('scripts')`. It runs in
+  visitors' browsers, so writing it takes `visual-editor.code`
+  ([Styles](docs/styles.md#custom-js)).
 
 **Every device side by side.**
 

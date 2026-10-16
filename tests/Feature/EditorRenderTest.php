@@ -10,14 +10,13 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Testing\TestResponse;
 use Spatie\Permission\Models\Permission;
+use Sunrice\Models\Entry;
 use Sunrice\VisualEditor\Actions\SaveTemplate;
 use Sunrice\VisualEditor\Blade\Rules;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 use Workbench\App\Seeders\DemoSeeder;
-
-use Sunrice\Models\Entry;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;

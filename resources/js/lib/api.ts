@@ -331,7 +331,9 @@ export function linkStylesheet(template: string, version: string, stylesheet: st
     return request<{ template: TemplateData; before: string }>('POST', 'styles/link', { template, version, stylesheet });
 }
 
-/** The site's custom CSS (Rendering\CustomCss): its text, and whether pages link it by themselves. */
+/** The site's custom CSS or script (Rendering\CustomCss, CustomJs): its text, and whether pages load it by themselves. */
+export type CustomFile = CustomCss;
+
 export type CustomCss = {
     path: string;
     url: string;
@@ -350,3 +352,12 @@ export function readCustomCss(): Promise<CustomCss> {
 
 /** Something read from the server: not asked for yet, on its way, there, or refused. */
 export type Loaded<T> = { state: 'idle' } | { state: 'loading' } | { state: 'ready'; data: T } | { state: 'failed'; error: string };
+
+export function readCustomJs(): Promise<CustomCss> {
+    return request<{ custom: CustomCss }>('GET', 'scripts/custom').then((answer) => answer.custom);
+}
+
+/** Saves the custom script's whole text: what it is now. */
+export function saveCustomJs(version: string, source: string): Promise<CustomCss> {
+    return request<{ custom: CustomCss }>('PUT', 'scripts/custom', { version, source }).then((answer) => answer.custom);
+}

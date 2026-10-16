@@ -70,6 +70,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom JS
+    |--------------------------------------------------------------------------
+    |
+    | A script of the site's own, in public/sunrice-theme/, written in the
+    | editor's Custom JS tab by people who may edit code. Every page of the
+    | site loads it (deferred) from a <script> pushed onto the layout's
+    | `@stack('scripts')` (the starter layout has one, at the end of the
+    | body): no template is changed for it. For a script one template needs,
+    | write `@push('scripts')` in that template instead.
+    |
+    | As for the custom CSS, it is added whether or not the editor is on.
+    | Set `inject` to false to load the file from the layout yourself.
+    |
+    */
+
+    'custom_js' => [
+        'file' => 'custom.js',
+        'inject' => env('SUNRICE_VISUAL_EDITOR_CUSTOM_JS', true),
+        'stack' => 'scripts',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Widths
     |--------------------------------------------------------------------------
     |

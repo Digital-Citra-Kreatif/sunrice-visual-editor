@@ -15,12 +15,16 @@ minor version may change behaviour; what changes is said here.
 - **Tabs on the right**: Template (the code), **Fields** (what the template
   can read at the cursor; a click writes it there), **Content** (Sunrice's
   own page for the entry the page shows, beside it; a save there draws the
-  page again) and **Custom CSS**.
+  page again), **Custom CSS** and **Custom JS**.
 - **Custom CSS**: `public/sunrice-theme/custom.css`, written in the editor
   and linked from every page of the site through the layout's
   `@stack('head')`, with no template changed for it. New settings
   `custom_css.file`, `custom_css.inject` and `custom_css.stack`. The link
   is added whether or not the editor is on.
+- **Custom JS**: `public/sunrice-theme/custom.js`, loaded (deferred) on
+  every page through the layout's `@stack('scripts')`. Writing it takes
+  `visual-editor.code`. Settings `custom_js.file`, `custom_js.inject` and
+  `custom_js.stack`.
 - **Devices**: Fit, Desktop, Tablet, Mobile (the `widths` setting) or all
   of them side by side, from the top bar.
 - **Sides fold to a strip** at the edge, named, and open again from it.

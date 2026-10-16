@@ -27,7 +27,7 @@ Today a developer writes the templates in a code editor while fields and content
 - The editor writes files that run PHP on the server, and those files live in the project's git repository. It is therefore a development tool: it is meant for a local or staging copy of the site, followed by a commit and a deploy.
 - `sunrice-visual-editor.enabled` turns it on. The default is on when `APP_ENV` is `local` and off otherwise; `SUNRICE_VISUAL_EDITOR=true` turns it on elsewhere.
 - Who may open it, change things in it and write code in it is decided by its own permissions (see Permissions).
-- When it is off, the package registers no routes and changes nothing about how pages render, except the link to the site's custom CSS (see Styling).
+- When it is off, the package registers no routes and changes nothing about how pages render, except the links to the site's custom CSS and script (see Styling).
 
 ### Files it reads and writes
 
@@ -69,7 +69,7 @@ The editor is three parts side by side: the tree on the left, the page in the mi
 - **Left, the tree.** *Templates on this page*, and **Layers**: the open template as a tree. Clicking a row selects it, outlines it on the page, scrolls the page to it (to the middle of the frame where the page can scroll that far) and puts the code's cursor on it. Selecting works from either side: a click on the page selects the row and the code.
 - Rows are moved by dragging, and by keys on a row: Alt+Up and Alt+Down move, Ctrl+D duplicates, Delete deletes. Comments are nodes like any other. Arms of a block (`@else`, `@empty`, `@case`) are not moved or deleted on their own; what is added to a `@case` goes before the `@break` that ends it. Where an edit would put a directive directly against a letter or digit (`@else@endif`), the editor adds one space so Blade still reads it.
 - **Middle, the page**, at the width of the room or at one of the configured devices (Desktop, Tablet, Mobile by default), or at all of them side by side, drawn at one scale. Side by side, one frame takes the clicks and the others show the same page; every frame is drawn again after a change.
-- **Right, in tabs:** the open template's code (**Template**), what it can read at the cursor (**Fields**), the content of the entry the page shows (**Content**), and the site's **Custom CSS**.
+- **Right, in tabs:** the open template's code (**Template**), what it can read at the cursor (**Fields**), the content of the entry the page shows (**Content**), and the site's **Custom CSS** and **Custom JS**.
 
 ### Room for the page
 
@@ -143,6 +143,7 @@ The editor is three parts side by side: the tree on the left, the page in the mi
 - **Custom CSS**: a stylesheet of the site's own, `public/sunrice-theme/custom.css` (setting `custom_css.file`), written as one text in the editor and saved with Ctrl+S. Every page of the site links it: the package pushes a `<link>` to it onto the layout's `@stack('head')` while a site template renders, once a page, only while the file has something in it, with the file's version in its address. No template is changed for it. With `custom_css.inject` off the site links the file itself.
 - The link is added whether or not the editor is on: the CSS is the site's, written on a local copy and deployed with it. It is the one thing the package adds to pages when the editor is off; removing the package drops the link, and the file stays.
 - Saving the custom CSS takes `visual-editor.edit`: CSS runs no PHP.
+- **Custom JS**: the same for a script, `public/sunrice-theme/custom.js` (setting `custom_js.file`), loaded deferred on every page from a `<script>` pushed onto the layout's `@stack('scripts')`, in the same way and on the same terms as the custom CSS. It is global; a script one template needs is written in that template with `@push('scripts')`. It runs in every visitor's browser, so writing it takes `visual-editor.code`.
 - The server API that changes the rules of the theme's stylesheets in place, and links a stylesheet from the layout, is kept for tools that use it.
 
 ### Sites that build their CSS (Vite, Tailwind)
