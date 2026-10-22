@@ -48,7 +48,8 @@ final class AdminPanelProvider extends PanelProvider
     }
 }
 PHP
-sed -i 's/App\\Providers\\AppServiceProvider::class,/App\\Providers\\AppServiceProvider::class,\n    App\\Providers\\AdminPanelProvider::class,/' bootstrap/providers.php
+# Laravel lists its providers as `AppServiceProvider::class` (imported) or by their full name.
+sed -i -E 's/^(    (App\\Providers\\)?AppServiceProvider::class,)$/\1\n    App\\Providers\\AdminPanelProvider::class,/' bootstrap/providers.php
 grep -q AdminPanelProvider bootstrap/providers.php
 
 # 3. The install command, the starter templates and the demo content.
