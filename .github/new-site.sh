@@ -1,21 +1,57 @@
 #!/usr/bin/env bash
-# new-site.sh <directory>: a new Laravel application with Sunrice installed
-# as Sunrice's own installation page says, its starter templates and three
-# demo articles (at /demo). The checks that need a site begin from this.
+# new-site.sh <directory>: a new Laravel application with the Sunrice panel
+# and CMS installed as their installation page says, from a checkout of the
+# Sunrice monorepo (SUNRICE_PATH, else ../sunrice beside this package): the
+# CMS's starter templates and its demo content (an About page at /about).
+# The checks that need a site begin from this.
 set -euo pipefail
 
 site=$1
+sunrice=${SUNRICE_PATH:-$(cd "$(dirname "$0")/../../sunrice" && pwd)}
+[ -d "$sunrice/packages/cms" ] || { echo "No Sunrice checkout at $sunrice: set SUNRICE_PATH."; exit 1; }
+
 rm -rf "$site"
 composer create-project laravel/laravel "$site" --no-interaction --prefer-dist --no-ansi
 cd "$site"
 touch database/database.sqlite
 
-composer config repositories.sunrice-cms vcs https://github.com/littleboy130491/sunrice-cms
-# SUNRICE_REF tries a branch of Sunrice in place of main: "dev-some-branch as dev-main".
-composer require "sunrice/cms:${SUNRICE_REF:-dev-main}" --no-interaction --no-ansi
-# The user model needs Spatie's roles; Sunrice's installer says so.
+# Sunrice is not on Packagist yet: its packages come from the checkout.
+composer config minimum-stability dev
+composer config prefer-stable true
+composer config repositories.sunrice path "$sunrice/packages/*"
+composer require "sunrice/cms:@dev" --no-interaction --no-ansi
+
+# 1. The user model needs Spatie's roles.
 sed -i 's/use HasFactory, Notifiable;/use HasFactory, Notifiable, \\Spatie\\Permission\\Traits\\HasRoles;/' app/Models/User.php
 grep -q HasRoles app/Models/User.php
-php artisan sunrice:install --no-user --no-ansi
-php artisan vendor:publish --tag=sunrice-templates --no-ansi
-php artisan sunrice:demo-content 3 --no-ansi
+
+# 2. The panel provider, with the CMS.
+cat > app/Providers/AdminPanelProvider.php <<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Providers;
+
+use Sunrice\Admin\Panel;
+use Sunrice\Admin\PanelProvider;
+use Sunrice\Cms\CmsPlugin;
+
+final class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->path('admin')
+            ->brand('Acme')
+            ->plugin(CmsPlugin::make());
+    }
+}
+PHP
+sed -i 's/App\\Providers\\AppServiceProvider::class,/App\\Providers\\AppServiceProvider::class,\n    App\\Providers\\AdminPanelProvider::class,/' bootstrap/providers.php
+grep -q AdminPanelProvider bootstrap/providers.php
+
+# 3. The install command, the starter templates and the demo content.
+php artisan sunrice:install --roles --no-user --no-interaction --no-ansi
+php artisan vendor:publish --tag=sunrice-cms-templates --no-ansi
+php artisan sunrice:demo-content --no-ansi

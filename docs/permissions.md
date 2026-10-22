@@ -2,9 +2,9 @@
 
 The editor has four permissions of its own: three for working on
 templates, each including the one before it, and one apart from them for
-running the site's build. They are given to roles in Sunrice's admin
-(**Users → Roles**, under *Visual editor*), and exist after
-`php artisan sunrice:sync-permissions` has run.
+running the site's build. The plugin registers them with the panel; they
+are given to roles in **Users → Roles**, under *Visual editor*, and exist
+after `php artisan sunrice:sync-permissions` has run.
 
 | Permission | Name in the admin | Lets someone |
 | --- | --- | --- |
@@ -23,8 +23,10 @@ None of the three includes this one, not even `code`, and it includes none
 of them: someone needs one of the three to be in the editor at all, and
 this one to build. [Building](#building) says why.
 
-Super Admins have all four. The user also needs to get into the
-admin at all (`sunrice.access-admin`). While the editor is
+Super admins have all four, and so does the built-in administrator role.
+The user also needs to get into the panel at all (`sunrice.access`).
+`visual-editor.code` and `visual-editor.build` are privileged: the panel's
+security alerts email about anyone given them. While the editor is
 [off](installation.md#where-it-is-on), none of them lets anyone do
 anything.
 
@@ -48,7 +50,7 @@ On the editor's screen:
   That includes code that is already in the template.
 - Undo and redo.
 - Write and save the [custom CSS](styles.md#custom-css). CSS runs no PHP.
-- **Copy to site**: get a copy of one of Sunrice's fallback views that the
+- **Copy to site**: get a copy of one of the CMS's fallback views that the
   site uses.
 - Read the code of every template.
 
@@ -70,8 +72,8 @@ offer, such as a field from the picker or a condition built from choices.
   Blade, or insert Blade that would run something.
 
 What a person's [content](how-it-works.md#the-entrys-content) can be
-changed to is Sunrice's to say, by its own permissions: the **Content** tab
-is Sunrice's admin page.
+changed to is the CMS's to say, by its own permissions: the **Content** tab
+is the CMS's page for the entry in the panel.
 
 ## How it is held
 
@@ -83,7 +85,7 @@ depend on the first.
 1. **What may be new.** Each operation is looked at for the code it brings.
    That code counts only if the editor offers exactly it, at that place: a
    field from the picker, an item the editor offers to insert, a condition
-   or a loop built from choices, a plain value for one of Sunrice's
+   or a loop built from choices, a plain value for one of the CMS's
    components.
    Anything typed counts for nothing.
 2. **What is new.** The template before the change and after it are both

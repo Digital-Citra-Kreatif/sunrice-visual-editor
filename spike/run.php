@@ -27,8 +27,10 @@ require __DIR__.'/bootstrap.php';
 
 // The checks themselves live in tests/Support/RoundTrip.php, shared with the Pest tests.
 $corpora = [
-    'starter' => ['Starter templates (stubs/templates)', RoundTrip::fixtures('sunrice-starter')],
-    'package' => ['Package views (defaults, components, error pages)', RoundTrip::fixtures('sunrice-package')],
+    'cms-starter' => ['The CMS\'s starter templates (sunrice/cms stubs/templates)', RoundTrip::fixtures('cms-starter')],
+    'cms-package' => ['The CMS\'s own views (fallback pages, components, comments)', RoundTrip::fixtures('cms-package')],
+    'starter' => ['Starter templates of Sunrice before the split into panel and CMS', RoundTrip::fixtures('sunrice-starter')],
+    'package' => ['Package views of Sunrice before the split (defaults, components, error pages)', RoundTrip::fixtures('sunrice-package')],
     'edge' => ['Edge cases written for this test', RoundTrip::fixtures('edge')],
 ];
 // Blade written by other people: Laravel's own views, when a framework checkout is around.

@@ -6,17 +6,18 @@ use App\Models\User;
 use Illuminate\Support\Facades\File;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Sunrice\Admin\Actions\Permissions\SyncPermissions;
 use Tests\TestCase;
 
 /**
- * Run inside a new Laravel application on which Sunrice and the visual
- * editor were installed as docs/installation.md says (.github/install-check.sh
- * does that and copies this file in). It works on the site as installed:
- * its database, its templates, its theme.
+ * Run inside a new Laravel application on which the Sunrice panel, the CMS
+ * and the visual editor were installed as docs/installation.md says
+ * (.github/install-check.sh does that and copies this file in). It works on
+ * the site as installed: its database, its templates, its theme.
  */
 class InstalledTest extends TestCase
 {
-    private const HEADER = 'partials/header.blade.php';
+    private const HEADER = 'partials/menu.blade.php';
 
     private string $header;
 
@@ -25,7 +26,7 @@ class InstalledTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->header = resource_path('views/sunrice/'.self::HEADER);
+        $this->header = resource_path('views/cms/'.self::HEADER);
         $this->original = (string) file_get_contents($this->header);
     }
 
@@ -51,9 +52,10 @@ class InstalledTest extends TestCase
     {
         $this->actingAs($this->someone('admin@example.com', superAdmin: true));
 
-        $page = $this->get('/cms/visual-editor?url=/demo')->assertOk()->getContent();
+        $page = $this->get('/admin/visual-editor?url=/about')->assertOk()->getContent();
         $this->assertStringContainsString('VisualEditor\/Editor', $page);
-        $this->assertStringContainsString('vendor/sunrice-visual-editor/visual-editor.js', $page);
+        // The panel loads the plugin's bundle for its pages.
+        $this->assertStringContainsString('vendor\/sunrice-visual-editor\/visual-editor.js', $page);
         // Where the code editor's script will be fetched from, when code is first shown.
         $this->assertStringContainsString('vendor\/sunrice-visual-editor\/code-editor.js', $page);
         $this->assertStringContainsString('Visual editor', $page);
@@ -61,32 +63,32 @@ class InstalledTest extends TestCase
 
     public function test_a_page_is_marked_for_the_editor_and_for_nobody_else(): void
     {
-        $this->assertStringNotContainsString('data-sve', $this->get('/demo?sve=1')->assertOk()->getContent());
+        $this->assertStringNotContainsString('data-sve', $this->get('/about?sve=1')->assertOk()->getContent());
 
         $this->actingAs($this->someone('admin@example.com', superAdmin: true));
-        $this->assertStringNotContainsString('data-sve', $this->get('/demo')->assertOk()->getContent());
+        $this->assertStringNotContainsString('data-sve', $this->get('/about')->assertOk()->getContent());
 
-        $marked = $this->get('/demo?sve=1')->assertOk()->getContent();
+        $marked = $this->get('/about?sve=1')->assertOk()->getContent();
         $this->assertStringContainsString('data-sve="', $marked);
         $this->assertStringContainsString('vendor/sunrice-visual-editor/bridge.js', $marked);
     }
 
     public function test_someone_without_a_permission_is_kept_out(): void
     {
-        $this->actingAs($this->someone('author@example.com', permissions: ['sunrice.access-admin']));
+        $this->actingAs($this->someone('author@example.com', permissions: ['sunrice.access']));
 
-        $this->get('/cms/visual-editor')->assertForbidden();
-        $this->getJson('/cms/visual-editor/api/templates')->assertForbidden();
+        $this->get('/admin/visual-editor')->assertForbidden();
+        $this->getJson('/admin/visual-editor/api/templates')->assertForbidden();
     }
 
     public function test_a_designer_changes_a_template_and_only_what_was_meant(): void
     {
-        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit']));
+        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access', 'visual-editor.edit']));
 
-        $template = $this->getJson('/cms/visual-editor/api/templates/'.self::HEADER)->assertOk()->json('template');
+        $template = $this->getJson('/admin/visual-editor/api/templates/'.self::HEADER)->assertOk()->json('template');
         $element = $this->firstElement($template['tree']);
 
-        $this->postJson('/cms/visual-editor/api/templates/'.self::HEADER.'/operations', [
+        $this->postJson('/admin/visual-editor/api/templates/'.self::HEADER.'/operations', [
             'version' => $template['version'],
             'operations' => [['type' => 'addClass', 'node' => $element['id'], 'class' => 'installed-check']],
         ])->assertOk();
@@ -95,47 +97,47 @@ class InstalledTest extends TestCase
         $this->assertStringContainsString('installed-check', $now);
         // One class went in, and nothing else is different.
         $this->assertSame($this->original, preg_replace('/ ?installed-check/', '', $now, 1));
-        $this->assertNotEmpty(File::allFiles(storage_path('app/sunrice/template-backups')));
+        $this->assertNotEmpty(File::allFiles(storage_path('app/sunrice-cms/template-backups')));
 
         // The page is still drawn.
-        $this->get('/demo')->assertOk();
+        $this->get('/about')->assertOk();
     }
 
     public function test_a_designer_cannot_write_code(): void
     {
-        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit']));
+        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access', 'visual-editor.edit']));
 
-        $template = $this->getJson('/cms/visual-editor/api/templates/'.self::HEADER)->assertOk()->json('template');
+        $template = $this->getJson('/admin/visual-editor/api/templates/'.self::HEADER)->assertOk()->json('template');
         $element = $this->firstElement($template['tree']);
 
-        $this->postJson('/cms/visual-editor/api/templates/'.self::HEADER.'/operations', [
+        $this->postJson('/admin/visual-editor/api/templates/'.self::HEADER.'/operations', [
             'version' => $template['version'],
             'operations' => [['type' => 'insertBefore', 'node' => $element['id'], 'blade' => "@php(file_put_contents(storage_path('owned'), '1'))"]],
         ])->assertStatus(422);
 
-        $this->putJson('/cms/visual-editor/api/templates/'.self::HEADER.'/source', [
+        $this->putJson('/admin/visual-editor/api/templates/'.self::HEADER.'/source', [
             'version' => $template['version'],
             'source' => "{{ config('app.key') }}\n".$this->original,
         ])->assertStatus(422);
 
         $this->assertSame($this->original, file_get_contents($this->header));
-        $this->get('/demo');
+        $this->get('/about');
         $this->assertFileDoesNotExist(storage_path('owned'));
     }
 
     public function test_a_style_is_changed_in_the_theme_s_own_file(): void
     {
-        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit']));
-        $css = public_path('sunrice-theme/app.css');
+        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access', 'visual-editor.edit']));
+        $css = public_path('cms/site.css');
         $before = (string) file_get_contents($css);
 
         try {
-            $styles = $this->getJson('/cms/visual-editor/api/styles?class=site-header')->assertOk()->json('styles');
+            $styles = $this->getJson('/admin/visual-editor/api/styles?class=site-header')->assertOk()->json('styles');
             $rule = $styles['rules'][0];
             $file = collect($styles['files'])->firstWhere('path', $rule['file']);
             $declaration = $rule['declarations'][0];
 
-            $this->postJson('/cms/visual-editor/api/styles/files/'.$rule['file'].'/changes', [
+            $this->postJson('/admin/visual-editor/api/styles/files/'.$rule['file'].'/changes', [
                 'version' => $file['version'],
                 'changes' => [['type' => 'set', 'declaration' => $declaration['id'], 'value' => 'var(--installed-check)']],
             ])->assertOk();
@@ -154,10 +156,9 @@ class InstalledTest extends TestCase
     private function someone(string $email, bool $superAdmin = false, array $permissions = []): User
     {
         $user = User::query()->firstOrCreate(['email' => $email], ['name' => $email, 'password' => bcrypt('password')]);
-        $guard = config('sunrice.auth.guard', 'web');
         $role = $superAdmin
-            ? Role::findOrCreate(config('sunrice.super_admin_role'), $guard)
-            : Role::findOrCreate('Check '.implode(' ', $permissions), $guard)->syncPermissions($permissions);
+            ? Role::findOrCreate(SyncPermissions::superAdminRole(), 'web')
+            : Role::findOrCreate('check-'.md5(implode(' ', $permissions)), 'web')->syncPermissions($permissions);
 
         return $user->syncRoles([$role]);
     }

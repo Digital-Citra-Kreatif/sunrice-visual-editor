@@ -11,17 +11,17 @@ template's code, in the **Template** tab.
 ## Custom CSS
 
 **Custom CSS**, on the right of the page, is one file:
-`public/sunrice-theme/custom.css`. It is written as one text, in a code
+`public/cms/custom.css`. It is written as one text, in a code
 editor, and saved with Ctrl+S. The page is drawn again with it.
 
 Every page of the site links it, and no template is changed for that.
 While a site template is drawn, the package pushes
 
 ```html
-<link rel="stylesheet" href="…/sunrice-theme/custom.css?v=…" data-sunrice-custom-css>
+<link rel="stylesheet" href="…/cms/custom.css?v=…" data-sunrice-custom-css>
 ```
 
-onto the layout's `@stack('head')`, which the starter layout has. The
+onto the layout's `@stack('head')`, which the CMS's starter layout has. The
 link is there:
 
 - whether or not the editor is on, so the deployed site has the same CSS
@@ -35,7 +35,7 @@ A layout without `@stack('head')` gets no link. Add the stack to its
 `<head>`, name another one in `custom_css.stack`, or set
 `custom_css.inject` to `false` (`SUNRICE_VISUAL_EDITOR_CUSTOM_CSS=false`)
 and link the file from the layout yourself. `custom_css.file` names
-another file in `public/sunrice-theme/`. See the
+another file in `public/cms/`. See the
 [settings](installation.md#settings).
 
 Saving it takes `visual-editor.edit`: CSS runs no PHP. As for any
@@ -50,16 +50,17 @@ gives the file's text and version, and
 ## Custom JS
 
 **Custom JS**, beside Custom CSS, is the same for a script:
-`public/sunrice-theme/custom.js`, written as one text and saved with
+`public/cms/custom.js`, written as one text and saved with
 Ctrl+S. Every page of the site loads it: while a site template is drawn,
 the package pushes
 
 ```html
-<script src="…/sunrice-theme/custom.js?v=…" defer data-sunrice-custom-js></script>
+<script src="…/cms/custom.js?v=…" defer data-sunrice-custom-js></script>
 ```
 
-onto the layout's `@stack('scripts')`, which the starter layout has at the
-end of its body. As for the CSS, it is there whether or not the editor is
+onto the layout's `@stack('head')`, which the CMS's starter layout has.
+Deferred, it runs once the page has been read, as a script at the end of
+the body would. As for the CSS, it is there whether or not the editor is
 on, only while the file has something in it, once a page, and with the
 file's version as `?v=`. `custom_js.file`, `custom_js.inject`
 (`SUNRICE_VISUAL_EDITOR_CUSTOM_JS`) and `custom_js.stack` are its
@@ -69,8 +70,8 @@ It is global: one script for every page. A script that one template needs
 goes in that template instead, in the **Template** tab:
 
 ```blade
-@push('scripts')
-    <script>/* only on pages this template draws */</script>
+@push('head')
+    <script defer>/* only on pages this template draws */</script>
 @endpush
 ```
 
@@ -85,9 +86,9 @@ kept with the backups, and the save is in the activity log. The API is
 
 ## Which files
 
-Every `*.css` file under `public/sunrice-theme/` (up to 2 MB each) can be
+Every `*.css` file under `public/cms/` (up to 2 MB each) can be
 changed through the editor's API, and one file of the editor's own takes
-rules that do not exist yet: `public/sunrice-theme/editor.css`
+rules that do not exist yet: `public/cms/editor.css`
 (`theme_css` in the [settings](installation.md#settings)). The screen
 writes only the custom CSS.
 
@@ -141,12 +142,6 @@ The editor writes the real template file. Tailwind sees the new class and
 the dev server serves its rule; the page in the editor's frame shows it
 within a moment. Vite also reloads a page whose Blade file changed, and the
 editor stays in step with that: what was selected stays selected.
-
-This needs a Sunrice from 12 October 2026 or later
-([sunrice-cms#41](https://github.com/littleboy130491/sunrice-cms/pull/41)).
-Before it, Sunrice's admin was blank for as long as the site's dev server
-ran, the editor with it: `composer update sunrice/cms` if that is what you
-see.
 
 **Without a dev server, the class shows after a build.** The editor's frame
 and the site both use the built CSS (`public/build`), which does not have
@@ -233,14 +228,14 @@ in the site's configuration and nothing else.
 
 **The layout opens as usual.** `@vite(…)` is one piece of code in the
 tree, like any directive. Tailwind finds
-classes in `resources/views/sunrice/` without being told where to look.
+classes in `resources/views/cms/` without being told where to look.
 
 Two things to know:
 
 - A layout with `@vite` needs either a build or a running dev server.
   With neither, Laravel can't draw the page at all. That is Laravel's
   rule, not the editor's.
-- The custom CSS is a plain CSS file in `public/sunrice-theme/`, linked
+- The custom CSS is a plain CSS file in `public/cms/`, linked
   beside what Vite builds. It has nothing to do with classes Tailwind
   generates. On such a site, style with classes in the template's code; a
   rule of your own still goes into the custom CSS, and the editor will not

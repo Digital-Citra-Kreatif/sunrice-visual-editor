@@ -22,9 +22,15 @@ function templateDataset(string $directory, ?string $prefix = null): array
     return $dataset;
 }
 
-dataset('sunrice templates', fn () => templateDataset('sunrice-starter') + templateDataset('sunrice-package'));
-dataset('templates that open', fn () => templateDataset('sunrice-starter') + templateDataset('sunrice-package') + templateDataset('edge', 'ok-') + templateDataset('edge', 'stray-'));
-dataset('templates that nest cleanly', fn () => templateDataset('sunrice-starter') + templateDataset('sunrice-package') + templateDataset('edge', 'ok-'));
+/** The CMS's starter templates and own views, and those of Sunrice before it was split into a panel and a CMS. */
+function sunriceTemplates(): array
+{
+    return templateDataset('cms-starter') + templateDataset('cms-package') + templateDataset('sunrice-starter') + templateDataset('sunrice-package');
+}
+
+dataset('sunrice templates', fn () => sunriceTemplates());
+dataset('templates that open', fn () => sunriceTemplates() + templateDataset('edge', 'ok-') + templateDataset('edge', 'stray-'));
+dataset('templates that nest cleanly', fn () => sunriceTemplates() + templateDataset('edge', 'ok-'));
 dataset('templates with stray tags', fn () => templateDataset('edge', 'stray-'));
 dataset('templates that are refused', fn () => templateDataset('edge', 'locked-'));
 

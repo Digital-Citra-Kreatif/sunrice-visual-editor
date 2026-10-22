@@ -1,6 +1,6 @@
 # Sunrice visual editor
 
-A visual template editor for [Sunrice CMS](https://github.com/littleboy130491/sunrice-cms), as a separate package.
+A visual template editor for [Sunrice](https://github.com/Digital-Citra-Kreatif/sunrice), as a separate package: a plugin for the Sunrice panel (`sunrice/admin`) that works on the CMS's (`sunrice/cms`) site templates.
 
 It works on the Blade files themselves: no copy of a template in the database
 and no second file beside it. A developer can keep editing the same file in a
@@ -86,20 +86,19 @@ entry's content and the site's custom CSS and JS.
 - **Content** is Sunrice's own admin page for the entry the page shows, in
   a frame: its fields, validation, drafts, revisions and **Publish** are
   Sunrice's. When something is saved there, the page is drawn again.
-- Every entry's page in the Sunrice admin has an **Edit with Visual
-  Editor** button beside **View page** and **Publish**, which opens the
-  editor on that entry's page.
+- Every live entry's page in the panel has **Edit with Visual Editor** in
+  its ⋮ menu, which opens the editor on that entry's page.
 
 **A stylesheet and a script of the site's own.**
 
-- **Custom CSS** is one stylesheet, `public/sunrice-theme/custom.css`,
+- **Custom CSS** is one stylesheet, `public/cms/custom.css`,
   written as text and saved with Ctrl+S.
 - Every page of the site links it, without a template being changed for
   it: the package adds the link to the layout's `@stack('head')`. The
   deployed site has it too ([Styles](docs/styles.md#custom-css)).
 - Each save keeps the previous file with the template backups and is in the
   activity log.
-- **Custom JS** is the same for a script, `public/sunrice-theme/custom.js`,
+- **Custom JS** is the same for a script, `public/cms/custom.js`,
   loaded on every page through the layout's `@stack('scripts')`. It runs in
   visitors' browsers, so writing it takes `visual-editor.code`
   ([Styles](docs/styles.md#custom-js)).
@@ -136,10 +135,9 @@ who may write code ([Permissions](docs/permissions.md)).
 - Held to what the token's user may do in the editor: changing takes
   `visual-editor.edit`, and Blade or PHP of the agent's own takes
   `visual-editor.code`, by the same check as for a person.
-- They need a Sunrice from 11 October 2026 or later, which takes tools from
-  packages
-  ([sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40));
-  on an older one nothing is registered and nothing fails.
+- They are on the panel's own MCP server (`/mcp`), as
+  `visual_editor_get_template_tree` and `visual_editor_edit_template`, for
+  access tokens of people who may use the editor.
 
 A site that builds its CSS (Tailwind through Vite) is styled by its
 classes. With `npm run dev` running a class added in the editor shows at
@@ -161,15 +159,15 @@ it, change things and write code is decided by three
 [permissions](docs/permissions.md) of its own, and who may run the site's
 build by a fourth.
 
-**Opening it.** *Visual editor* in the admin's sidebar, under Manage,
-**Edit with Visual Editor** on an entry's page in the admin, or directly:
+**Opening it.** *Visual editor* in the panel's sidebar, under Structure,
+**Edit with Visual Editor** in the ⋮ menu of an entry's page, or directly:
 
 | Address | Opens |
 | --- | --- |
-| `/cms/visual-editor` | the homepage |
-| `/cms/visual-editor?url=/about` | that page of the site |
+| `/admin/visual-editor` | the homepage |
+| `/admin/visual-editor?url=/about` | that page of the site |
 
-`/cms` stands for the site's admin path. The `url` has to be a path on the
+`/admin` stands for the panel's path. The `url` has to be a path on the
 site; anything else opens the homepage. A link like the second one can be put
 wherever it is handy, for instance in a bookmark for the page being worked on.
 
@@ -179,19 +177,22 @@ The approach holds. Full numbers are in [spike/RESULTS.md](spike/RESULTS.md).
 
 | Templates | Files | Open and print back byte for byte | Refused | Edits passed |
 | --- | ---: | ---: | ---: | ---: |
-| Sunrice starter templates (`stubs/templates`) | 19 | 19 | 0 | 3,695 of 3,695 |
-| Sunrice package views (defaults, components, error pages) | 11 | 11 | 0 | 2,031 of 2,031 |
-| Laravel framework's own Blade views | 129 | 127 | 2 | 11,733 of 11,733 |
-| Edge cases written for this test | 20 | 18 | 2, as intended | 1,132 of 1,132 |
+| The CMS's starter templates (`sunrice/cms` `stubs/templates`) | 13 | 13 | 0 | 2,074 of 2,074 |
+| The CMS's own views (fallback pages, components, comments) | 13 | 13 | 0 | 4,754 of 4,754 |
+| Sunrice's starter templates before the split into panel and CMS | 19 | 19 | 0 | 3,925 of 3,925 |
+| Sunrice's package views before the split | 11 | 11 | 0 | 2,078 of 2,078 |
+| Laravel framework's own Blade views | 129 | 127 | 2 | 12,115 of 12,115 |
+| Edge cases written for this test | 20 | 18 | 2, as intended | 1,171 of 1,171 |
 
 The two Laravel files refused are test fixtures that are malformed on purpose.
 
-In the 19 starter templates, 85% of the 379 nodes are fully visual (elements,
-text, conditions, loops, `@switch` arms, includes, plain field echoes,
-translation strings), 5% are echoes of a longer PHP expression, 4% are
-elements with a directive inside the tag, and 5% are code, mostly `@php`
-lines. Code covers 6.5% of the bytes. It was 17% while `@switch` was kept as
-code: the form block and the filter form are now edited arm by arm.
+In the CMS's 13 starter templates, 86% of the 195 nodes are fully visual
+(elements, text, conditions, loops, includes, plain field echoes,
+translation strings), 6% are echoes of a longer PHP expression, 5% are
+elements with a directive inside the tag, and 4% are code, mostly `@php`
+lines. Code covers 5.5% of the bytes. (In Sunrice's starter templates from
+before the split it was 6.5%: the form block and the filter form are edited
+arm by arm since `@switch` stopped being kept as code.)
 
 ## What was tested
 
@@ -299,11 +300,21 @@ npm run test:css       # the stylesheet reader's rules and changes, put to Chrom
 `dist/` is committed. On a pull request, CI rebuilds it and commits the
 result to the branch, so it doesn't have to be built by hand.
 
-To look at the site the tests use, with the admin at `/cms` (sign in as
-`admin@example.com` / `password`) and the editor at `/cms/visual-editor`:
+The package is developed against a checkout of Sunrice beside it
+(`../sunrice`, the monorepo): Composer installs `sunrice/admin` and
+`sunrice/cms` from there (`composer.json`'s path repository), as Sunrice is
+not on Packagist yet.
 
 ```bash
-composer serve     # builds the workbench (assets, templates, database, demo content) and serves it
+git clone https://github.com/Digital-Citra-Kreatif/sunrice ../sunrice
+composer install
+```
+
+To look at the site the tests use, with the panel at `/admin` (sign in as
+`admin@example.com` / `password`) and the editor at `/admin/visual-editor`:
+
+```bash
+composer serve     # builds the workbench (assets, the CMS's starter templates, database, demo content) and serves it
 ```
 
 To try the installation page on a new Laravel application (it makes one in
@@ -360,29 +371,32 @@ src/
     Declaration.php    one `property: value`, with the place of each part
     Changes.php        applies changes sent as plain data; all of a list or none
     Selector.php       the selector for a class, and whether a selector mentions it
-    ThemeRepository.php  the CSS files in public/sunrice-theme, the editor's own and the custom CSS
+    ThemeRepository.php  the CSS files in public/cms, the editor's own and the custom CSS
     Styles.php         what the stylesheets say about a class
   Guard/               what someone who may not edit code can't get into a template (CodeGuard)
-  Mcp/                 the tools for AI agents: get_template_tree, edit_template
-  Templates/           the files the editor works with: the site's templates and Sunrice's views
+  Mcp/                 the tools for AI agents: visual_editor_get_template_tree, visual_editor_edit_template
+  Templates/           the files the editor works with: the site's templates and the CMS's views
   Insert/              Library: what can be inserted, for this site (the API and AI agents)
   Actions/             SaveTemplate: the only place a template is written; CopyPackageView
   Rendering/           a page rendered for the editor: elements marked with their template;
                        CustomCss: the custom CSS linked from every page
   Http/                the editor's screen, and its API for templates (Controllers/Api)
   Support/             Access: who may use the editor; SunriceBridge: the one file that
-                       reads Sunrice's internals (templates, field definitions)
-  VisualEditorServiceProvider.php
+                       reads Sunrice (its @api classes: templates, field definitions);
+                       Launch: "Edit with Visual Editor" on an entry's page
+  VisualEditorPlugin.php           what it adds to the panel: permissions, routes, its bundle, tools
+  VisualEditorServiceProvider.php  config, assets, the custom CSS and JS, pages drawn for the editor
 config/              sunrice-visual-editor.php
-routes/admin.php     routes inside the Sunrice admin
-resources/js, css/   the editor UI (React from the Sunrice admin), built into dist/:
+routes/admin.php     routes inside the panel ($panel->routes())
+resources/js, css/   the editor UI, a plugin bundle of the panel (its React and Inertia), built into dist/:
                        Editor.tsx the screen, panels/ the tree and the tabs beside the page,
-                       canvas/ what is drawn over it, lib/ the API and the frame,
-                       launch.ts the Edit with Visual Editor button on entry pages
+                       canvas/ what is drawn over it, lib/ the API and the frame
 resources/js/bridge/ the script in a page shown in the editor's frame, built into dist/bridge.js
 resources/js/code/   the code editor (CodeMirror), built into dist/code-editor.js and fetched when code is first shown
 spike/               the round-trip reports (templates, stylesheets) and their results
 tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fixtures/ holds
-                     sunrice-starter and sunrice-package (copied from sunrice-cms at 8c9794e) and edge
-workbench/           the Testbench app: user model, migrations, demo content
+                     cms-starter and cms-package (copied from the Sunrice monorepo's packages/cms),
+                     sunrice-starter and sunrice-package (from sunrice-cms at 8c9794e, before the split),
+                     site (block views and a footer of a site's own, for the tests) and edge
+workbench/           the Testbench app: its panel provider, user model, demo content
 ```

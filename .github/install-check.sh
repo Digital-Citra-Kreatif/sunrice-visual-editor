@@ -4,10 +4,11 @@
 #
 #   .github/install-check.sh [directory for the site]
 #
-# The package is required from this checkout, at the commit checked out, in
-# place of `dev-main` from GitHub: that is the one step that differs from
-# the page. INSTALL_SKIP_CREATE=1 takes a site that has Laravel and Sunrice
-# already, to try the rest again.
+# The package is required from this checkout, at the commit checked out, as
+# a git repository: that is the one step that differs from the page, which
+# takes it from a checkout beside the site. Sunrice comes from SUNRICE_PATH
+# (else ../sunrice), as .github/new-site.sh says. INSTALL_SKIP_CREATE=1
+# takes a site that has Laravel and Sunrice already, to try the rest again.
 set -euo pipefail
 
 package=$(pwd)
@@ -16,7 +17,7 @@ step() { printf '\n=== %s\n' "$1"; }
 
 step "What Composer will be given: the built script, and none of the tests"
 shipped=$(git archive --format=tar HEAD | tar -t)
-for needed in composer.json src/VisualEditorServiceProvider.php config/sunrice-visual-editor.php routes/admin.php dist/visual-editor.js dist/visual-editor.css dist/bridge.js dist/code-editor.js docs/installation.md; do
+for needed in composer.json src/VisualEditorServiceProvider.php src/VisualEditorPlugin.php config/sunrice-visual-editor.php routes/admin.php dist/visual-editor.js dist/visual-editor.css dist/bridge.js dist/code-editor.js docs/installation.md; do
     echo "$shipped" | grep -qx "$needed" || { echo "Not in the archive: $needed"; exit 1; }
 done
 for kept_out in tests/ workbench/ spike/ node_modules/ resources/js/; do
@@ -34,9 +35,10 @@ step "docs/installation.md: Install"
 git -C "$package" branch -f install-check HEAD
 composer config repositories.sunrice-visual-editor vcs "$package"
 composer require sunrice/visual-editor:dev-install-check --no-interaction --no-ansi
+# The plugin, after the CMS, in the panel provider.
+sed -i 's/->plugin(CmsPlugin::make());/->plugin(CmsPlugin::make())\n            ->plugin(\\Sunrice\\VisualEditor\\VisualEditorPlugin::make());/' app/Providers/AdminPanelProvider.php
+grep -q VisualEditorPlugin app/Providers/AdminPanelProvider.php
 php artisan vendor:publish --tag=sunrice-visual-editor-assets --force --no-ansi
-php artisan sunrice:sync-permissions --no-ansi
-# A second time: Sunrice's sync used to fail on a package's permissions that exist.
 php artisan sunrice:sync-permissions --no-ansi
 
 step "docs/installation.md: Where it is on"
@@ -56,6 +58,8 @@ SUNRICE_VISUAL_EDITOR=true DB_CONNECTION=sqlite DB_DATABASE="$site/database/data
 tests=$(grep -E '^OK \(' "$site/storage/logs/installed-test.log")
 
 step "docs/installation.md: Removing"
+sed -i '/VisualEditorPlugin::make()/d' app/Providers/AdminPanelProvider.php
+sed -i 's/->plugin(CmsPlugin::make())$/->plugin(CmsPlugin::make());/' app/Providers/AdminPanelProvider.php
 composer remove sunrice/visual-editor --no-interaction --no-ansi
 rm -rf public/vendor/sunrice-visual-editor tests/Feature/InstalledTest.php
 [ "$(routes)" -eq 0 ]
