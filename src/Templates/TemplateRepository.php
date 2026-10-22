@@ -11,24 +11,25 @@ use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * The Blade files the editor works with: the site's templates, which it
- * edits, and Sunrice's own views, which it shows read-only.
+ * edits, and the CMS's own views, which it shows read-only.
  *
  * A template is named by its path inside its directory and where it is
- * from: ("partials/header.blade.php", site), ("defaults/show.blade.php",
+ * from: ("partials/card.blade.php", site), ("entry.blade.php",
  * package). Only files found by listing those directories are ever read, so
  * a path can't lead anywhere else.
  */
 final class TemplateRepository
 {
-    /** The folders of Sunrice's own views that draw pages of the site. The rest are the admin's and mail. */
-    private const PACKAGE_FOLDERS = ['defaults', 'components', 'errors'];
+    /** What of the CMS's own views draws pages of the site: its fallback pages (at the top), its components and comments. Mail is not. */
+    private const PACKAGE_FOLDERS = ['', 'components', 'comments'];
 
-    /** Where a copy of a fallback view goes in the site: the path Sunrice looks at first. */
+    /** Where a copy of a fallback view goes in the site: the view the CMS tries before it. */
     private const COPIES = [
-        'defaults/show.blade.php' => 'show.blade.php',
-        'defaults/index.blade.php' => 'index.blade.php',
-        'defaults/term.blade.php' => 'taxonomies/show.blade.php',
-        'defaults/search.blade.php' => 'search.blade.php',
+        'entry.blade.php' => 'entry.blade.php',
+        'listing.blade.php' => 'listing.blade.php',
+        'term.blade.php' => 'term.blade.php',
+        'search.blade.php' => 'search.blade.php',
+        'comment-unsubscribe.blade.php' => 'comment-unsubscribe.blade.php',
     ];
 
     private const PATH = '#^(?:[A-Za-z0-9][A-Za-z0-9_-]*/)*[A-Za-z0-9][A-Za-z0-9_.-]*\.blade\.php$#';
@@ -82,7 +83,7 @@ final class TemplateRepository
             }
         }
 
-        throw new TemplateNotFound($origin === TemplateFile::PACKAGE ? "Sunrice has no view \"{$path}\"." : "The site has no template \"{$path}\".");
+        throw new TemplateNotFound($origin === TemplateFile::PACKAGE ? "The CMS has no view \"{$path}\"." : "The site has no template \"{$path}\".");
     }
 
     /**
@@ -98,7 +99,7 @@ final class TemplateRepository
         $files = [];
         $directory = SunriceBridge::templateDirectory();
         foreach ($this->scan($directory) as $path) {
-            $view = 'sunrice.'.self::dotted($path);
+            $view = SunriceBridge::VIEW_PREFIX.'.'.self::dotted($path);
             $files[] = new TemplateFile($path, TemplateFile::SITE, $view, self::role($path, $uses[$view] ?? []), $uses[$view] ?? [], $directory.'/'.$path);
         }
 
@@ -106,13 +107,13 @@ final class TemplateRepository
         $seen = [];
         foreach (SunriceBridge::packageViewDirectories() as $directory) {
             foreach (self::PACKAGE_FOLDERS as $folder) {
-                foreach ($this->scan($directory.'/'.$folder) as $path) {
-                    $path = $folder.'/'.$path;
+                foreach ($this->scan($directory.($folder === '' ? '' : '/'.$folder), deep: $folder !== '') as $path) {
+                    $path = $folder === '' ? $path : $folder.'/'.$path;
                     if (isset($seen[$path])) {
                         continue;
                     }
                     $seen[$path] = true;
-                    $view = 'sunrice::'.self::dotted($path);
+                    $view = SunriceBridge::PACKAGE_NAMESPACE.'::'.self::dotted($path);
                     $files[] = new TemplateFile($path, TemplateFile::PACKAGE, $view, self::role($path, $uses[$view] ?? []), $uses[$view] ?? [], $directory.'/'.$path, self::COPIES[$path] ?? null);
                 }
             }
@@ -146,13 +147,13 @@ final class TemplateRepository
      *
      * @return list<string>
      */
-    private function scan(string $directory): array
+    private function scan(string $directory, bool $deep = true): array
     {
         if (! is_dir($directory)) {
             return [];
         }
         $paths = [];
-        foreach (File::allFiles($directory) as $file) {
+        foreach ($deep ? File::allFiles($directory) : File::files($directory) as $file) {
             if (str_ends_with($file->getFilename(), '.blade.php')) {
                 $paths[] = str_replace('\\', '/', $file->getRelativePathname());
             }
@@ -180,18 +181,17 @@ final class TemplateRepository
         $name = basename($path, '.blade.php');
 
         return match (true) {
-            $folder === 'layouts' => 'layout',
-            $folder === 'partials' => 'partial',
+            $folder === 'layouts' || $path === 'layout.blade.php' => 'layout',
+            $folder === 'partials' || $folder === 'comments' => 'partial',
             $folder === 'blocks' => 'block',
             $folder === 'errors' => 'error',
             $folder === 'components' => 'component',
             $usedBy !== [] => $usedBy[0]['role'],
-            // Not used right now, but named the way Sunrice looks for it.
-            $folder === 'taxonomies' || $name === 'term' => 'term',
+            // Not used right now, but named the way the CMS looks for it.
+            $name === 'term' || str_starts_with($name, 'taxonomy-') => 'term',
             $name === 'search' => 'search',
-            $name === 'show' => 'entry',
-            $name === 'index' => 'listing',
-            $folder === 'defaults' => 'partial',
+            $name === 'listing' || str_ends_with($name, '-listing') => 'listing',
+            $name === 'entry' => 'entry',
             default => 'other',
         };
     }

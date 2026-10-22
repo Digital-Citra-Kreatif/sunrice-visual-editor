@@ -15,17 +15,17 @@ use function Pest\Laravel\putJson;
 
 uses(WithStarterSite::class);
 
-const SVE_API = '/cms/visual-editor/api/templates';
+const SVE_API = '/admin/visual-editor/api/templates';
 const SVE_FOOTER = 'partials/footer.blade.php';
 
 beforeEach(function () {
     $this->setUpStarterSite();
     $this->footer = $this->templates.'/'.SVE_FOOTER;
     $this->original = File::get($this->footer);
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 /** The id of the first element of a template's source. */
 function firstElement(string $source): string
@@ -117,7 +117,7 @@ it('applies operations, saves, and answers with the new template', function () {
     $focus = Template::open($saved)->find((string) $response->json('focus'));
     expect($focus?->print())->toBe('<p class="sve-added">{{ $note ?? \'\' }}</p>')
         // The old version is kept.
-        ->and(glob(storage_path('app/sunrice/template-backups/*/sunrice/'.SVE_FOOTER)))->toHaveCount(1);
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/cms/'.SVE_FOOTER)))->toHaveCount(1);
 });
 
 it('refuses operations made for another version of the file', function () {
@@ -152,7 +152,7 @@ it('refuses an operation that can\'t be made, and says which', function (array $
         ->assertJsonPath('message', fn (string $text) => str_contains($text, $message));
 
     expect(File::get($this->footer))->toBe($this->original)
-        ->and(glob(storage_path('app/sunrice/template-backups/*/sunrice/'.SVE_FOOTER)))->toBe([]);
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/cms/'.SVE_FOOTER)))->toBe([]);
 })->with([
     'a node that isn\'t there' => [[['type' => 'remove', 'node' => '99999']], 0, 'no node "99999"'],
     'an unknown operation, after a good one' => [[['type' => 'addClass', 'node' => 'first', 'class' => 'a'], ['type' => 'explode', 'node' => 'first']], 1, 'no operation "explode"'],
@@ -305,14 +305,14 @@ it('lets only those who may use the editor in', function (string $method, string
 
     // Someone who may use the admin, but is no Super Admin.
     $user = createUser();
-    $user->givePermissionTo(Permission::findOrCreate('sunrice.access-admin', config('sunrice.auth.guard', 'web')));
-    actingAs($user, config('sunrice.auth.guard', 'web'));
+    $user->givePermissionTo(Permission::findOrCreate('sunrice.access', 'web'));
+    actingAs($user);
     $this->json($method, $uri, $body)->assertForbidden()->assertJsonPath('reason', 'forbidden');
 
     expect(File::get($this->footer))->toBe($this->original);
 })->with([
     ['GET', SVE_API],
-    ['GET', '/cms/visual-editor/api/inserts'],
+    ['GET', '/admin/visual-editor/api/inserts'],
     ['GET', SVE_API.'/'.SVE_FOOTER],
     ['POST', SVE_API.'/'.SVE_FOOTER.'/operations'],
     ['PUT', SVE_API.'/'.SVE_FOOTER.'/source'],

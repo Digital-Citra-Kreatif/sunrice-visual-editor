@@ -8,18 +8,19 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+use Sunrice\Admin\Ai\Tool;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\TemplateFile;
 use Sunrice\VisualEditor\Templates\TemplateNotFound;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
 
 #[IsReadOnly]
-#[Description('Read a Blade template as a tree of nodes, to change it with edit_template: small checked edits in place of rewriting the file with write_template. Without a path: the site\'s templates and whether each opens as a tree. With a path: its "version" and "tree". Each node has an "id" (pass it to edit_template with the version it came from), a "type" (element, text, block such as @if…@endif, branch: one arm of a block, atom: an echo, a directive, a component tag), what it holds (name, text, expression, arguments, attributes, source) and "can": what may be done to it. A template that does not open as a tree ("opens": false, with the reason) can only be written whole.')]
-class GetTemplateTree extends Tool
+#[Description('Read a Blade template as a tree of nodes, to change it with visual_editor_edit_template: small checked edits in place of rewriting the file with cms_write_template. Without a path: the site\'s templates and whether each opens as a tree. With a path: its "version" and "tree". Each node has an "id" (pass it to visual_editor_edit_template with the version it came from), a "type" (element, text, block such as @if…@endif, branch: one arm of a block, atom: an echo, a directive, a component tag), what it holds (name, text, expression, arguments, attributes, source) and "can": what may be done to it. A template that does not open as a tree ("opens": false, with the reason) can only be written whole.')]
+final class GetTemplateTree extends Tool
 {
-    protected string $name = 'get_template_tree';
+    protected string $name = 'visual_editor_get_template_tree';
 
     public function handle(Request $request, TemplateRepository $templates): Response
     {
@@ -27,7 +28,7 @@ class GetTemplateTree extends Tool
             'path' => ['nullable', 'string', 'max:255'],
             'origin' => ['nullable', 'in:site,package'],
         ]);
-        if (! Access::may($request->user(), Access::OPEN)) {
+        if (! Access::may(SunriceBridge::user(), Access::OPEN)) {
             return Response::error('You may not use the visual editor (it needs the "Open the visual editor" permission, and the editor to be on for this site).');
         }
 
@@ -45,7 +46,7 @@ class GetTemplateTree extends Tool
         try {
             $template = $templates->read($args['path'], ($args['origin'] ?? 'site') === 'package' ? TemplateFile::PACKAGE : TemplateFile::SITE);
         } catch (TemplateNotFound $e) {
-            return Response::error($e->getMessage().' Call get_template_tree without a path for the list.');
+            return Response::error($e->getMessage().' Call visual_editor_get_template_tree without a path for the list.');
         }
 
         return Response::json([
@@ -53,7 +54,7 @@ class GetTemplateTree extends Tool
             'origin' => $template['origin'],
             'view' => $template['view'],
             'role' => $template['role'],
-            // Sunrice's own views are read-only: copy one to the site to change it.
+            // The CMS's own views are read-only: copy one to the site to change it.
             'editable' => $template['editable'],
             'version' => $template['version'],
             'opens' => $template['opens'],
@@ -68,8 +69,8 @@ class GetTemplateTree extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'path' => $schema->string()->description('The template, inside resources/views/sunrice: "partials/header.blade.php". Leave out for the list of templates.'),
-            'origin' => $schema->string()->enum(['site', 'package'])->description('"site" (default): the site\'s templates. "package": Sunrice\'s own fallback views, read-only.'),
+            'path' => $schema->string()->description('The template, inside resources/views/cms: "partials/header.blade.php". Leave out for the list of templates.'),
+            'origin' => $schema->string()->enum(['site', 'package'])->description('"site" (default): the site\'s templates. "package": the CMS\'s own fallback views and components, read-only.'),
         ];
     }
 }

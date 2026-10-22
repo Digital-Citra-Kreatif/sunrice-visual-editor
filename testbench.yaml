@@ -1,43 +1,48 @@
+# The demo site for `composer serve`: the panel, the CMS and the editor,
+# with the CMS's starter templates and demo content. Sign in at
+# /_workbench/login/admin@example.com (or admin@example.com / password at /admin).
 laravel: '@testbench'
 
 providers:
-  - Sunrice\SunriceServiceProvider
-  - Inertia\ServiceProvider
-  - Spatie\Permission\PermissionServiceProvider
+  - Sunrice\Admin\AdminServiceProvider
+  - Sunrice\Cms\CmsServiceProvider
   - Spatie\Honeypot\HoneypotServiceProvider
-  - Laravel\Mcp\Server\McpServiceProvider
   - Sunrice\VisualEditor\VisualEditorServiceProvider
-
-migrations:
-  - workbench/database/migrations
+  - Workbench\App\Providers\AdminPanelProvider
 
 seeders:
   - Workbench\Database\Seeders\DatabaseSeeder
 
 workbench:
-  start: '/'
+  start: '/admin/visual-editor'
+  user: admin@example.com
   install: true
+  auth: true
   health: false
   discovers:
-    web: true
+    web: false
     api: false
     commands: false
     components: false
-    factories: true
+    factories: false
     views: false
   build:
-    - asset-publish
-    - storage-link:
-        --force: true
     - create-sqlite-db
     - db-wipe
     - migrate-fresh:
         --seed: true
         --seeder: Workbench\Database\Seeders\DatabaseSeeder
-  assets:
-    - sunrice-assets
-    - sunrice-templates
-    - sunrice-visual-editor-assets
+    - sunrice:assets
+    - vendor:publish:
+        --tag: sunrice-cms-assets
+        --force: true
+    - vendor:publish:
+        --tag: sunrice-cms-templates
+        --force: true
+    - vendor:publish:
+        --tag: sunrice-visual-editor-assets
+        --force: true
+    - storage:link
   sync:
     - from: storage
       to: workbench/storage
@@ -46,9 +51,7 @@ workbench:
 # One KEY=value per line, as in a .env file.
 env:
   - 'AUTH_MODEL="Workbench\\App\\Models\\User"'
-  - 'SUNRICE_USER_MODEL="Workbench\\App\\Models\\User"'
   - DB_CONNECTION=sqlite
-  - SUNRICE_ADMIN_PATH=cms
   - SUNRICE_VISUAL_EDITOR=true
   # A build command that harms nothing, so the editor's Build button can be tried on the demo site.
   - 'SUNRICE_VISUAL_EDITOR_BUILD="php -v"'

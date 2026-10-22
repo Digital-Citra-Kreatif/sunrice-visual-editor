@@ -287,7 +287,7 @@ final class Attributes
             return $last['end'];
         }
 
-        // After the tag's name: "<section", "<x-sunrice::entries".
+        // After the tag's name: "<section", "<x-sunrice-cms::entries".
         return Rules::isComponentTag($element) ? strcspn($element->open, " \t\r\n/>") : 1 + strlen($element->name);
     }
 

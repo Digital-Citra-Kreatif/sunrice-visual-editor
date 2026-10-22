@@ -49,28 +49,28 @@ beforeEach(function () {
         }
     };
     $variable = fn (string $code, Shape $shape) => Reading::of(new Variable($code, $shape, Variable::PAGE, ''));
-    $collect($variable('$entry', Shape::entry(['things'])), '', 2);
+    $collect($variable('$values', Shape::values('collection', ['things'])), '', 2);
+    $collect($variable('$entry', Shape::entry(['things'])), 'entry.', 2);
     $collect($variable('$collection', Shape::collection('things')), 'collection.', 2);
-    $collect($variable("sunrice_global('site')", Shape::globals('site')), 'site.', 0);
-    $collect($variable("sunrice_global('footer')", Shape::globals('footer')), 'footer.', 0);
-    $collect($variable('$sunricePage', Shape::of(Shape::PAGE)), 'page.', 1);
-    $fragments['menu#Menu'] = $emit->inserts($variable("sunrice_menu('main')", Shape::listOf(Shape::of(Shape::MENU_ITEM))), 'Main menu')[0]->blade;
+    $collect($variable("cms_global('footer')", Shape::globals('footer')), 'footer.', 0);
+    $collect(Reading::of(new Variable('cms_page()', Shape::of(Shape::PAGE), Variable::SITE, '', sure: false)), 'page.', 1);
+    $fragments['menu#Menu'] = $emit->inserts($variable("cms_menu('main')", Shape::listOf(Shape::of(Shape::MENU_ITEM))), 'Main menu')[0]->blade;
     $this->fragments = $fragments;
 
     $template = '';
     foreach ($fragments as $key => $blade) {
         $template .= '<section data-key="'.$key.'">'."\n".$blade."\n</section>\n";
     }
-    @mkdir($this->templates.'/things');
-    file_put_contents($this->templates.'/things/show.blade.php', $template);
+    // The collection's own template (cms.{handle}).
+    file_put_contents($this->templates.'/things.blade.php', $template);
 
     /** What each fragment drew on a page, by its key, with runs of spaces made one. */
     $this->drawn = function (string $path): array {
         $html = $this->get($path)->assertOk()->getContent();
         preg_match_all('/<section data-key="([^"]+)">(.*?)<\/section>/s', $html, $sections, PREG_SET_ORDER);
 
-        // Files are linked with the address of the site, which is the test's own: left out.
-        $tidy = fn (string $drawn): string => trim((string) preg_replace(['/\s+/', '#https?://[^/"]+/storage/#'], [' ', '/storage/'], $drawn));
+        // Pages and files are linked with the address of the site, which is the test's own: left out.
+        $tidy = fn (string $drawn): string => trim((string) preg_replace(['/\s+/', '#https?://localhost(?=/)#', '#https?://localhost(?=["<])#'], [' ', '', '/'], $drawn));
 
         return array_combine(array_column($sections, 1), array_map(fn (array $section) => $tidy($section[2]), $sections));
     };
@@ -90,16 +90,7 @@ it('draws every field of a thing that has them all', function () {
 
     expect(array_keys($drawn))->toBe(array_keys($this->fragments));
     $expected = [
-        // What every entry has.
-        'title#Text' => 'Everything',
-        'title#Only when it is set' => '[shown]',
-        'url#Text' => '/things/everything',
-        'published_at#Date' => now()->translatedFormat('j F Y'),
-        'published_at.year#print' => (string) now()->year,
-        'author#Name' => '',                                              // no one is signed in as its author
-        'terms#Each one, in a loop' => '<a href="/topics/news">News</a>',
-        'slug#Text' => 'everything',
-        // Each type of field.
+        // Each type of field, from the page's $values.
         'summary#Text' => 'A thing with everything.',
         'summary#Only when it is set' => '[shown]',
         'notes#Text' => 'First line. Second line.',
@@ -119,37 +110,52 @@ it('draws every field of a thing that has them all', function () {
         'more.url#print' => 'https://example.com/more',
         'more.label#print' => 'More about it',
         'more.new_tab#Only when it is on' => '[shown]',
-        'cover#Image' => '<img src="/storage/sunrice/cover.jpg?v=1" alt="Alt of cover">',
-        'cover#Link to the file' => '<a href="/storage/sunrice/cover.jpg?v=1">cover.jpg</a>',
+        'cover#Image' => '<img src="/storage/media/cover.jpg?v=1" alt="Alt of cover">',
+        'cover#Link to the file' => '<a href="/storage/media/cover.jpg?v=1">cover.jpg</a>',
         'cover#Only when it is set' => '[shown]',
-        'cover.url:large#print' => '/storage/sunrice/cover.jpg?v=1',
+        'cover.url:large#print' => '/storage/media/cover.jpg?v=1',
         'cover.alt#print' => 'Alt of cover',
-        'cover.width#print' => '800',
-        'photos#Each one, in a loop' => '<img src="/storage/sunrice/photo-one.jpg?v=1" alt="Alt of photo-one"> <img src="/storage/sunrice/photo-two.jpg?v=1" alt="Alt of photo-two">',
+        'cover.width#print' => '1600',
+        'cover.isImage#Only when it is on' => '[shown]',
+        'photos#Each one, in a loop' => '<img src="/storage/media/photo-one.jpg?v=1" alt="Alt of photo-one"> <img src="/storage/media/photo-two.jpg?v=1" alt="Alt of photo-two">',
         'related#Each one, in a loop' => '<a href="/articles/first-post">First post</a> <a href="/articles/second-post">Second post</a>',
         'see_also#Each one, in a loop' => '<a href="/articles/third-post">Third post</a>',
+        'mentor#Only when it is set' => '[shown]',
         'topics#Each one, in a loop' => '<a href="/topics/news">News</a> <a href="/topics/tips">Tips</a>',
         'topics#Only when there are any' => '[shown]',
         'details.material#Text' => 'Oak',
         'details.weight#Text' => '12',
-        'details.picture#Image' => '<img src="/storage/sunrice/detail.jpg?v=1" alt="Alt of detail">',
+        'details.picture#Image' => '<img src="/storage/media/detail.jpg?v=1" alt="Alt of detail">',
         'details.picture.alt#print' => 'Alt of detail',
-        'steps#Each one, in a loop' => '<div> Cut <p>Cut the wood.</p> <img src="/storage/sunrice/saw.jpg?v=1" alt="Alt of saw"> </div> <div> Sand <p>Sand it down.</p> </div>',
+        'steps#Each one, in a loop' => '<div> Cut <p>Cut the wood.</p> <img src="/storage/media/saw.jpg?v=1" alt="Alt of saw"> </div> <div> Sand <p>Sand it down.</p> </div>',
+        // What every entry has, and its fields from values().
+        'entry.title#Text' => 'Everything',
+        'entry.title#Only when it is set' => '[shown]',
+        'entry.url#Text' => '/things/everything',
+        'entry.published_at#Date' => now()->translatedFormat('j F Y'),
+        'entry.published_at.year#print' => (string) now()->year,
+        'entry.slug#Text' => 'everything',
+        'entry.summary#Text' => 'A thing with everything.',
+        'entry.cover#Image' => '<img src="/storage/media/cover.jpg?v=1" alt="Alt of cover">',
+        'entry.entry.terms#Each one, in a loop' => '<a href="/topics/news">News</a>',
+        'entry.entry.collection.title#print' => 'Things',
         // The collection, the site, the page.
         'collection.title#Text' => 'Things',
-        'site.name#Text' => 'Sunrice Demo',
-        'footer.text#Rich text' => '<p>Built with Sunrice CMS.</p>',
+        'collection.listingUrl#Text' => '/things',
+        'footer.text#Text' => 'Built with Sunrice.',
         'page.entry.title#print' => 'Everything',
-        'page.term.name#print' => '',
+        'page.term.title#print' => '',
         'page.collection.title#print' => 'Things',
+        'page.home#Only when it is off' => '[shown]',
         'menu#Menu' => '<ul> <li><a href="/">Home</a></li> <li><a href="/articles">Articles</a></li> <li><a href="/about">About</a></li> </ul>',
     ];
     foreach ($expected as $key => $html) {
         expect($drawn[$key] ?? 'NOT DRAWN')->toBe($html, $key);
     }
 
-    // The blocks of the thing, each by its own template: the hero's, and for the one without a template the fallback.
-    expect($drawn['sections#Each block, drawn by its own template'])->toContain('A hero in a thing')->toContain('Under it.');
+    // The blocks of the thing, each by its own template: the hero's, and for the one without a template the starter's partial.
+    expect($drawn['sections#Each block, drawn by its own template'])->toContain('<h1 class="hero-heading">A hero in a thing</h1>')->toContain('Under it.')
+        ->toContain('<a class="button" href="https://example.com/buy">Buy</a>');
 });
 
 it('draws a thing with nothing in it without a word, a tag or an error', function () {
@@ -157,18 +163,17 @@ it('draws a thing with nothing in it without a word, a tag or an error', functio
 
     // What is there whatever the fields hold.
     $there = [
-        'title#Text' => 'Nothing', 'title#Only when it is set' => '[shown]', 'title#print' => 'Nothing',
-        'url#Text' => '/things/nothing', 'url#Only when it is set' => '[shown]', 'url#print' => '/things/nothing',
-        'slug#Text' => 'nothing', 'slug#Only when it is set' => '[shown]', 'slug#print' => 'nothing',
-        'published_at#Date' => now()->translatedFormat('j F Y'), 'published_at#Only when it is set' => '[shown]',
-        // Off is what a switch nobody touched is.
-        'featured#Only when it is off' => '[shown]', 'more.new_tab#Only when it is off' => '[shown]',
+        'entry.title#Text' => 'Nothing', 'entry.title#Only when it is set' => '[shown]', 'entry.title#print' => 'Nothing',
+        'entry.url#Text' => '/things/nothing', 'entry.url#Only when it is set' => '[shown]', 'entry.url#print' => '/things/nothing',
+        'entry.slug#Text' => 'nothing', 'entry.slug#Only when it is set' => '[shown]', 'entry.slug#print' => 'nothing',
+        'entry.published_at#Date' => now()->translatedFormat('j F Y'), 'entry.published_at#Only when it is set' => '[shown]',
     ];
     foreach ($drawn as $key => $html) {
-        if (str_starts_with($key, 'published_at.') || preg_match('/^(collection|site|footer|page|menu)[.#]/', $key) === 1) {
+        if (str_starts_with($key, 'entry.published_at.') || str_starts_with($key, 'entry.entry.') || preg_match('/^(collection|footer|page|menu)[.#]/', $key) === 1) {
             continue;
         }
-        expect($html)->toBe($there[$key] ?? '', $key);
+        // Off is what a switch nobody touched is, and what one of a file that isn't there is.
+        expect($html)->toBe($there[$key] ?? (str_ends_with($key, '#Only when it is off') ? '[shown]' : ''), $key);
     }
 
     expect($drawn['page.entry.title#print'])->toBe('Nothing')
@@ -177,11 +182,11 @@ it('draws a thing with nothing in it without a word, a tag or an error', functio
 
 it('draws a page that is not a thing with a thing\'s fields in its template', function () {
     // The template two collections share reads fields only one of them has.
-    file_put_contents($this->templates.'/show.blade.php', (string) file_get_contents($this->templates.'/things/show.blade.php'));
-    unlink($this->templates.'/things/show.blade.php');
+    file_put_contents($this->templates.'/entry.blade.php', (string) file_get_contents($this->templates.'/things.blade.php'));
+    unlink($this->templates.'/things.blade.php');
 
     $about = ($this->drawn)('/about');
-    expect($about['title#Text'])->toBe('About')
+    expect($about['entry.title#Text'])->toBe('About')
         ->and($about['summary#Text'])->toBe('')
         ->and($about['cover#Image'])->toBe('')
         ->and($about['steps#Each one, in a loop'])->toBe('')

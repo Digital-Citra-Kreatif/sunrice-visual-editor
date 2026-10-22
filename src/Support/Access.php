@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Support;
 
-use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Access\Authorizable;
 
 /**
  * Who may use the editor, and for what. Three permissions, registered
- * with Sunrice and given to roles in its admin (Users → Roles):
+ * with the panel (VisualEditorPlugin) and given to roles in Users → Roles:
  *
  *   visual-editor.open   look: the page, its templates, their layers
  *   visual-editor.edit   change templates and stylesheets without writing code
  *   visual-editor.code   write code: the code panel, and Blade or PHP typed anywhere
  *
- * Each includes the ones above it. Super Admins have all three, as they
- * have every permission. None of it holds while the package is off.
+ * Each includes the ones above it. Administrators and super admins have
+ * all of them, as they have every permission. None of it holds while the package is off.
  *
  * And one apart from those, in none of them and holding none of them:
  *
@@ -42,7 +42,7 @@ final class Access
         self::BUILD => [self::BUILD],
     ];
 
-    /** What Sunrice's role editor lists: each permission and what it says there. */
+    /** What the panel's role editor lists: each permission and what it says there. */
     public const LABELS = [
         self::OPEN => 'Open the visual editor',
         self::EDIT => 'Change templates and styles in the visual editor',
@@ -56,15 +56,15 @@ final class Access
     }
 
     /** Whether someone may use the editor at all. */
-    public static function allowed(?Authenticatable $user): bool
+    public static function allowed(mixed $user): bool
     {
         return self::may($user, self::OPEN);
     }
 
     /** Whether someone has one of the editor's permissions, by its own name or by one that includes it. */
-    public static function may(?Authenticatable $user, string $permission): bool
+    public static function may(mixed $user, string $permission): bool
     {
-        if (! self::enabled() || $user === null || ! method_exists($user, 'can')) {
+        if (! self::enabled() || ! $user instanceof Authorizable) {
             return false;
         }
         foreach (self::INCLUDED_IN[$permission] ?? [] as $enough) {

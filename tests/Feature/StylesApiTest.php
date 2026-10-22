@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 use Spatie\Permission\Models\Permission;
-use Sunrice\Models\ActivityLog;
+use Sunrice\Admin\Activity\Activity as ActivityLog;
 use Sunrice\VisualEditor\Css\Stylesheet;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 
@@ -15,13 +15,13 @@ use function Pest\Laravel\putJson;
 
 uses(WithStarterSite::class);
 
-const SVE_STYLES = '/cms/visual-editor/api/styles';
+const SVE_STYLES = '/admin/visual-editor/api/styles';
 
 beforeEach(function () {
     $this->setUpStarterSite();
     $this->css = $this->theme.'/app.css';
     $this->original = File::get($this->css);
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
 
     /** Where the first declaration of a property starts, in the first rule for a selector. */
     $this->at = fn (string $selector, ?string $property = null): int => $property === null
@@ -30,7 +30,7 @@ beforeEach(function () {
     $this->change = fn (array $changes, array $more = []) => postJson(SVE_STYLES.'/files/app.css/changes', ['version' => sha1(File::get($this->css)), 'changes' => $changes] + $more);
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 // --- What the stylesheets say ---------------------------------------------------
 
@@ -140,8 +140,8 @@ it('changes one declaration and nothing else in the file', function () {
         ->and($response->json('before'))->toBe($this->original)
         ->and($response->json('styles.rules.0.declarations.2.value'))->toBe('32px')
         ->and($response->json('styles.files.0.version'))->toBe(sha1($expected))
-        ->and(glob(storage_path('app/sunrice/template-backups/*/sunrice-theme/app.css')))->toHaveCount(1)
-        ->and(File::get(glob(storage_path('app/sunrice/template-backups/*/sunrice-theme/app.css'))[0]))->toBe($this->original)
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/sunrice-theme/app.css')))->toHaveCount(1)
+        ->and(File::get(glob(storage_path('app/sunrice-cms/template-backups/*/sunrice-theme/app.css'))[0]))->toBe($this->original)
         ->and(ActivityLog::query()->where('subject_type', 'template')->sole())->toMatchArray(['action' => 'updated', 'subject_label' => 'sunrice-theme/app.css', 'user_id' => $admin->getKey()]);
 });
 
@@ -179,7 +179,7 @@ it('puts a rule that does not exist yet into the editor\'s own stylesheet, which
         ->and($response->json('styles.rules.0'))->toMatchArray(['file' => 'editor.css', 'selector' => '.brand-new', 'exact' => true])
         ->and($response->json('before'))->toBe('')
         // Nothing was there to keep a copy of.
-        ->and(glob(storage_path('app/sunrice/template-backups/*/sunrice-theme/editor.css')))->toBe([])
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/sunrice-theme/editor.css')))->toBe([])
         ->and(ActivityLog::query()->where('subject_type', 'template')->sole()->action)->toBe('created');
 
     // The next one goes after it, into the file as it is now.
@@ -337,8 +337,8 @@ it('is for those who may use the editor only', function (string $method, string 
 
     // Someone who may use the admin, but is no Super Admin.
     $user = createUser();
-    $user->givePermissionTo(Permission::findOrCreate('sunrice.access-admin', config('sunrice.auth.guard', 'web')));
-    actingAs($user, config('sunrice.auth.guard', 'web'));
+    $user->givePermissionTo(Permission::findOrCreate('sunrice.access', 'web'));
+    actingAs($user);
     $this->json($method, $uri, $body)->assertForbidden()->assertJsonPath('reason', 'forbidden');
 
     expect(File::get($this->css))->toBe($this->original);

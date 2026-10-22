@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Actions;
 
-use Sunrice\Activity\ActivityLogger;
 use Sunrice\VisualEditor\Support\Files;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 use Throwable;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * Runs the site's build command: what makes the CSS of a site that builds
@@ -80,7 +80,7 @@ final class Build
             $seconds = round(microtime(true) - $started, 1);
             $ok = $code === 0;
 
-            app(ActivityLogger::class)->record('updated', 'Site build', ['note' => 'Visual editor: ran "'.$command.'" ('.($ok ? 'done' : 'failed').", {$seconds} s)"], 'build');
+            SunriceBridge::changed('ran', 'build', '"'.$command.'" ('.($ok ? 'done' : 'failed').", {$seconds} s)");
 
             return ['ok' => $ok, 'seconds' => $seconds, 'output' => self::readable($output), 'code' => $code, 'message' => $message];
         } finally {

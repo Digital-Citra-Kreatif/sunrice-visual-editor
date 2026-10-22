@@ -7,7 +7,7 @@ namespace Sunrice\VisualEditor\Fields;
 /**
  * Reads a PHP expression as far as it says what its value is:
  * `$entry->get('related') ?? []` is a list of articles when `$entry` is a
- * thing. It knows variables, the ways Sunrice's values are read (the
+ * thing. It knows variables, the ways the CMS's values are read (the
  * catalog), `??`, `?:`, and a few functions and list methods. Anything
  * else comes out as unknown (null), never as a guess.
  *
@@ -107,7 +107,7 @@ final class Expression
 
     /**
      * The arguments of a call, each as it is written: from
-     * `'sunrice.partials.card', ['entry' => $item]` two pieces.
+     * `'cms.partials.card', ['item' => $item]` two pieces.
      *
      * @return list<string>
      */
@@ -264,9 +264,11 @@ final class Expression
                 $this->at++;
                 $this->expression();
                 $key = $this->at === $from + 1 && is_array($this->tokens[$from]) && $this->tokens[$from][0] === T_CONSTANT_ENCAPSED_STRING ? self::literal($this->tokens[$from][1]) : null;
-                if ($this->is(']')) {
-                    $this->at++;
+                if (! $this->is(']')) {
+                    // Not closed: not read.
+                    return null;
                 }
+                $this->at++;
                 $shape = $key === null ? ($shape?->isList() ? $shape->item : null) : $this->member($shape, 'key', $key, '', $key);
             } elseif ($this->is(T_DOUBLE_COLON)) {
                 $this->at++;
@@ -311,6 +313,21 @@ final class Expression
         if ($this->is(T_STRING) || $this->is(T_NAME_QUALIFIED) || $this->is(T_NAME_FULLY_QUALIFIED)) {
             $name = ltrim($this->text(), '\\');
             $this->at++;
+            // Cms::global('footer'), the same as cms_global('footer').
+            if (in_array($name, ['Cms', 'Sunrice\\Cms\\Content'], true) && $this->is(T_DOUBLE_COLON) && is_array($this->tokens[$this->at + 1] ?? null) && preg_match('/^[A-Za-z_]\w*$/', $this->tokens[$this->at + 1][1]) === 1) {
+                // Its method's name may be a keyword to PHP's tokens: Cms::global().
+                $method = $this->tokens[$this->at + 1][1];
+                $this->at += 2;
+                if (! $this->is('(')) {
+                    return null;
+                }
+                $arguments = [];
+                [, $literal] = $this->call($arguments);
+
+                return in_array($method, ['global', 'menu', 'page', 'localeUrls', 'bodyClass'], true)
+                    ? $this->called('cms_'.strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $method)), $literal, $arguments)
+                    : null;
+            }
             if (! $this->is('(')) {
                 return in_array(strtolower($name), ['true', 'false'], true) ? Shape::of(Shape::BOOL) : null;
             }
@@ -431,12 +448,13 @@ final class Expression
     private function called(string $function, ?string $literal, array $arguments): ?Shape
     {
         return match ($function) {
-            'sunrice_global' => $literal === null ? null : Shape::globals($literal),
-            'sunrice_menu' => Shape::listOf(Shape::of(Shape::MENU_ITEM)),
-            'sunrice_entries' => Shape::listOf(Shape::entry($literal === null ? [] : [$literal])),
+            'cms_global' => $literal === null ? null : Shape::globals($literal),
+            'cms_menu' => Shape::listOf(Shape::of(Shape::MENU_ITEM)),
+            'cms_page' => Shape::of(Shape::PAGE),
+            'cms_locale_urls' => Shape::listOf(Shape::of(Shape::TEXT)),
             'collect', 'array_values', 'array_filter', 'array_reverse', 'array_slice', 'array_unique' => ($arguments[0] ?? null)?->isList() ? $arguments[0] : null,
             'now', 'today' => Shape::of(Shape::DATE),
-            '__', 'trans', 'trans_choice', 'e', 'route', 'url', 'asset', 'config', 'implode', 'ucfirst', 'strtoupper', 'strtolower', 'trim', 'nl2br', 'strip_tags', 'number_format', 'sunrice_body_class' => Shape::of(Shape::TEXT),
+            '__', 'trans', 'trans_choice', 'e', 'route', 'url', 'asset', 'config', 'implode', 'ucfirst', 'strtoupper', 'strtolower', 'trim', 'nl2br', 'strip_tags', 'number_format', 'cms_body_class' => Shape::of(Shape::TEXT),
             'count', 'strlen', 'mb_strlen', 'round', 'floor', 'ceil', 'abs', 'min', 'max' => Shape::of(Shape::NUMBER),
             'is_array', 'is_string', 'is_null', 'in_array', 'array_key_exists', 'str_contains', 'str_starts_with', 'str_ends_with', 'filled', 'blank' => Shape::of(Shape::BOOL),
             default => null,
@@ -463,6 +481,15 @@ final class Expression
                 in_array($name, self::SAME_LIST, true) => $owner,
                 in_array($name, ['count', 'total'], true) => Shape::of(Shape::NUMBER),
                 in_array($name, ['isEmpty', 'isNotEmpty', 'contains', 'has', 'hasPages', 'hasMorePages'], true) => Shape::of(Shape::BOOL),
+                default => null,
+            };
+        }
+
+        // $item->values(): an entry's or a term's fields, by handle.
+        if ($how === 'call' && $name === 'values' && $written === '') {
+            return match ($owner->kind) {
+                Shape::ENTRY => Shape::values('collection', $owner->of),
+                Shape::TERM_PAGE => Shape::values('taxonomy', $owner->of),
                 default => null,
             };
         }

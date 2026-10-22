@@ -7,13 +7,15 @@ namespace Sunrice\VisualEditor\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Lets a request to the editor's API through only for someone who has the
  * permission it takes: `EditorAccess::class.':edit'` for what changes a
  * file, nothing more than opening the editor for what reads. Comes after
- * the admin's own sign-in middleware.
+ * the panel's own sign-in middleware. A page gets the panel's 403 page,
+ * the editor's API a JSON answer it can show.
  */
 final class EditorAccess
 {
@@ -25,7 +27,10 @@ final class EditorAccess
             'edit' => Access::EDIT,
             default => Access::OPEN,
         };
-        if (! Access::may($request->user(config('sunrice.auth.guard')), $permission)) {
+        if (! Access::may(SunriceBridge::user(), $permission)) {
+            // The editor's screen: the panel's own error page.
+            abort_unless($request->expectsJson(), 403);
+
             return response()->json([
                 'reason' => 'forbidden',
                 'message' => match ($permission) {

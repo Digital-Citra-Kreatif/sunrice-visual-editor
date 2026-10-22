@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
-use Sunrice\Models\ActivityLog;
+use Sunrice\Admin\Activity\Activity as ActivityLog;
 use Sunrice\VisualEditor\Actions\Build;
 use Sunrice\VisualEditor\Support\Access;
 
@@ -18,7 +18,7 @@ use function Pest\Laravel\postJson;
  * it, one at a time and not for ever.
  */
 
-const SVE_BUILD = '/cms/visual-editor/api/build';
+const SVE_BUILD = '/admin/visual-editor/api/build';
 
 /** A command that PHP itself runs, wherever the tests are run. */
 function phpDoes(string $code): string
@@ -30,10 +30,10 @@ function phpDoes(string $code): string
 function builder(string ...$permissions): void
 {
     $user = createUser(email: 'someone'.count($permissions).substr(md5(implode(',', $permissions)), 0, 6).'@example.com');
-    foreach (['sunrice.access-admin', ...$permissions] as $name) {
-        $user->givePermissionTo(Permission::findOrCreate($name, config('sunrice.auth.guard', 'web')));
+    foreach (['sunrice.access', ...$permissions] as $name) {
+        $user->givePermissionTo(Permission::findOrCreate($name));
     }
-    actingAs($user, config('sunrice.auth.guard', 'web'));
+    actingAs($user);
 }
 
 beforeEach(function () {
@@ -161,14 +161,14 @@ it('has nothing to run where no command is set', function (mixed $command) {
 
     expect(Build::command())->toBeNull();
     postJson(SVE_BUILD)->assertStatus(422)->assertJsonPath('reason', 'rejected');
-    get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('can.build', false));
+    get('/admin/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('can.build', false));
 })->with([null, '', '   ', false, [['npm', 'run', 'build']]]);
 
 it('is no part of editing, however much of it someone may do', function () {
     foreach ([[Access::OPEN], [Access::EDIT], [Access::CODE]] as $permissions) {
         builder(...$permissions);
         postJson(SVE_BUILD)->assertForbidden()->assertJsonPath('reason', 'forbidden');
-        get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('can.build', false));
+        get('/admin/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('can.build', false));
     }
     expect(ActivityLog::query()->where('subject_type', 'build')->count())->toBe(0);
 });
@@ -176,7 +176,7 @@ it('is no part of editing, however much of it someone may do', function () {
 it('takes its own permission, and that of using the editor at all', function () {
     builder(Access::OPEN, Access::BUILD);
     postJson(SVE_BUILD)->assertOk()->assertJsonPath('ok', true);
-    get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('can.build', true)->where('can.edit', false)->where('can.code', false));
+    get('/admin/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('can.build', true)->where('can.edit', false)->where('can.code', false));
 
     // Building alone opens nothing: the editor is not theirs to use.
     builder(Access::BUILD);
@@ -185,11 +185,11 @@ it('takes its own permission, and that of using the editor at all', function () 
 
 it('says whether the site\'s dev server is running, which leaves nothing to build', function () {
     actingAsSuperAdmin();
-    get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('devServer', false)->where('can.build', true));
+    get('/admin/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('devServer', false)->where('can.build', true));
 
     file_put_contents(public_path('hot'), 'http://localhost:5173');
     try {
-        get('/cms/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('devServer', true));
+        get('/admin/visual-editor')->assertInertia(fn (AssertableInertia $page) => $page->where('devServer', true));
     } finally {
         unlink(public_path('hot'));
     }

@@ -3,6 +3,7 @@
  * and copied. A refusal comes back as an ApiError with the server's reason.
  */
 import type { ManifestFile } from '../bridge/protocol';
+import { adminUrl } from './panel.ts';
 
 /** A template as the list has it. */
 export type TemplateInfo = Omit<ManifestFile, 'key'> & {
@@ -133,7 +134,7 @@ export class ApiError extends Error {
 }
 
 function root(): string {
-    return Sunrice.adminUrl('visual-editor/api');
+    return adminUrl('visual-editor/api');
 }
 
 /** "partials/header.blade.php" as part of an address: slashes kept, the rest escaped. */

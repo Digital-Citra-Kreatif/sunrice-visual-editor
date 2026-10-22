@@ -12,6 +12,7 @@ use Sunrice\VisualEditor\Rendering\EditorEngine;
 use Sunrice\VisualEditor\Rendering\Manifest;
 use Sunrice\VisualEditor\Rendering\TailwindPreview;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
 use Sunrice\VisualEditor\VisualEditorServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,7 +40,7 @@ final class EditorRender
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->query(self::PARAMETER) !== '1' || ! Access::allowed($request->user(config('sunrice.auth.guard')))) {
+        if ($request->query(self::PARAMETER) !== '1' || ! Access::allowed(SunriceBridge::user())) {
             return $next($request);
         }
 

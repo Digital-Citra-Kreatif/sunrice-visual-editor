@@ -62,7 +62,7 @@ function marksIn(TestResponse $response): array
 function editorRender(string $uri, Closure $respond): array
 {
     $request = Request::create($uri);
-    $request->setUserResolver(fn () => auth(config('sunrice.auth.guard', 'web'))->user());
+    $request->setUserResolver(fn () => auth('web')->user());
 
     return [app(EditorRender::class)->handle($request, $respond), $request];
 }
@@ -143,8 +143,8 @@ it('renders as always for everyone else, and for the editor without the paramete
 
     // So does someone signed in who may not use the editor.
     $user = createUser();
-    $user->givePermissionTo(Permission::findOrCreate('sunrice.access-admin', config('sunrice.auth.guard', 'web')));
-    actingAs($user, config('sunrice.auth.guard', 'web'));
+    $user->givePermissionTo(Permission::findOrCreate('sunrice.access', 'web'));
+    actingAs($user);
     $response = get('/?sve=1')->assertOk();
     expect((string) $response->getContent())->not->toContain('data-sve', 'sve-manifest')
         ->and((string) $response->headers->get('X-Robots-Tag'))->not->toContain('noindex');
@@ -339,7 +339,7 @@ it('says in the manifest which entry the page is of, with its page in the admin,
 
     expect($about)->toMatchArray(['title' => 'About'])
         ->and($about['id'])->toBeInt()
-        ->and($about['edit'])->toBe("/cms/collections/pages/entries/{$about['id']}/edit")
+        ->and($about['edit'])->toBe("/admin/collections/pages/entries/{$about['id']}/edit")
         ->and(Entry::query()->find($about['id'])?->collection?->handle)->toBe('pages')
         // A listing draws many entries, each with its card: it is of none of them.
         ->and($entryOf('/articles'))->toBeNull()

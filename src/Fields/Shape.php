@@ -33,6 +33,15 @@ final class Shape
 
     public const TERM = 'term';
 
+    /** What an entry is in every language (an Entry): its collection, its terms. */
+    public const RECORD = 'record';
+
+    /** The term a term page shows, in its language (a TermTranslation): its title, address and fields. */
+    public const TERM_PAGE = 'term_page';
+
+    /** Fields by handle, as templates get them: an entry page's `$values`, a listing page's, a term page's. */
+    public const VALUES = 'values';
+
     public const USER = 'user';
 
     public const GROUP = 'group';
@@ -59,12 +68,14 @@ final class Shape
     /**
      * @param  list<string>  $of  entry: its collections; term: its taxonomies; block: its fieldsets; global: its set. None means any.
      * @param  list<Field>  $fields  group, row: the fields it holds, which belong to nothing else
+     * @param  string|null  $subject  values: whose fields they are (collection, listing or taxonomy)
      */
     private function __construct(
         public readonly string $kind,
         public readonly ?Shape $item = null,
         public readonly array $of = [],
         public readonly array $fields = [],
+        public readonly ?string $subject = null,
     ) {}
 
     public static function of(string $kind): self
@@ -87,6 +98,29 @@ final class Shape
     public static function term(array $taxonomies = []): self
     {
         return new self(self::TERM, of: $taxonomies);
+    }
+
+    /** @param  list<string>  $collections */
+    public static function record(array $collections = []): self
+    {
+        return new self(self::RECORD, of: $collections);
+    }
+
+    /** @param  list<string>  $taxonomies */
+    public static function termPage(array $taxonomies = []): self
+    {
+        return new self(self::TERM_PAGE, of: $taxonomies);
+    }
+
+    /**
+     * The fields of an entry, a listing page or a term, by handle.
+     *
+     * @param  'collection'|'listing'|'taxonomy'  $subject
+     * @param  list<string>  $handles  the collections or taxonomies they may be of; none: any
+     */
+    public static function values(string $subject, array $handles = []): self
+    {
+        return new self(self::VALUES, of: $handles, subject: $subject);
     }
 
     /** @param  list<string>  $fieldsets */
@@ -146,6 +180,9 @@ final class Shape
             self::BOOL => 'yes or no',
             self::ASSET => 'file',
             self::GLOBALS => 'global set',
+            self::TERM_PAGE => 'term',
+            self::RECORD => 'entry in every language',
+            self::VALUES => 'fields',
             self::MENU_ITEM => 'menu item',
             default => $this->kind,
         };
@@ -160,6 +197,7 @@ final class Shape
         return match (true) {
             $this->isList() => 'list<'.($this->item?->spell() ?? '?').'>',
             $this->fields !== [] => $this->kind.'{'.implode(', ', array_map(fn (Field $field) => $field->handle, $this->fields)).'}',
+            $this->subject !== null => $this->kind.'('.$this->subject.($this->of === [] ? '' : ':'.implode('|', $this->of)).')',
             $this->of !== [] => $this->kind.'('.implode('|', $this->of).')',
             default => $this->kind,
         };
@@ -173,6 +211,7 @@ final class Shape
             'item' => $this->item?->toArray(),
             'of' => $this->of,
             'fields' => array_map(fn (Field $field) => $field->toArray(), $this->fields),
+            'subject' => $this->subject,
         ], fn ($value) => $value !== null && $value !== []);
     }
 }

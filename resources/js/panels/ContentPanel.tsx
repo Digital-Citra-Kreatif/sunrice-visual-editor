@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ShownEntry } from '../bridge/protocol';
+import { adminUrl } from '../lib/panel.ts';
 
 type Props = {
     /** The entry the page in the frame is of; null when it is of none (a listing, a search). */
@@ -12,18 +13,21 @@ type Props = {
     onSaved(title: string): void;
 };
 
-/** What the admin's page in the frame has of Inertia's router, as far as it is listened to here. */
+/** What the panel's page in the frame has of Inertia's router, as far as it is listened to here. */
 type Router = { on(type: string, listener: (event: { detail: { visit?: { method?: string } } }) => void): () => void };
 
+/** The panel's runtime in the frame, as far as its router goes. */
+type InFrame = Window & { Sunrice?: { modules?: Record<string, { router?: Router } | undefined> } };
+
 /**
- * The content of the entry the page shows, edited beside it: Sunrice's own
+ * The content of the entry the page shows, edited beside it: the CMS's own
  * page for the entry, in a frame. Its fields, its validation, its drafts
- * and revisions are Sunrice's; the editor only listens for a save there,
+ * and revisions are the CMS's; the editor only listens for a save there,
  * and draws the page again when one is made.
  */
 export function ContentPanel({ entry: said, waiting, shown, onSaved }: Props) {
     // Only a page of this admin is drawn here: what the page in the frame says is checked.
-    const entry = said !== null && said.edit.startsWith(`${Sunrice.adminUrl()}/`) ? said : null;
+    const entry = said !== null && said.edit.startsWith(`${adminUrl()}/`) ? said : null;
     const holder = useRef<HTMLIFrameElement>(null);
     /** The entry whose page is in the frame: kept while the page in the editor is on its way, or shows none. */
     const [held, setHeld] = useState<ShownEntry | null>(entry);
@@ -39,7 +43,7 @@ export function ContentPanel({ entry: said, waiting, shown, onSaved }: Props) {
     const listen = () => {
         let router: Router | undefined;
         try {
-            router = (holder.current?.contentWindow as (Window & { Sunrice?: { inertia?: { router?: Router } } }) | null)?.Sunrice?.inertia?.router;
+            router = (holder.current?.contentWindow as InFrame | null)?.Sunrice?.modules?.['@inertiajs/react']?.router;
         } catch {
             return;
         }

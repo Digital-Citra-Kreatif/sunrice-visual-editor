@@ -16,7 +16,7 @@ use Sunrice\VisualEditor\Templates\TemplateRepository;
  * What a template can read at one place in it, and what each of those is.
  *
  * It comes from three sides. From the file: an entry's template has the
- * `$entry` of the collections it draws, a block's has its `$block`, and a
+ * `$entry` and `$values` of the collections it draws, a block's has its `$block`, and a
  * partial has what the templates that include it pass on. From the place:
  * the item of every loop around it, what the template has set above it,
  * what a component gives to what is inside its tag. And from the site:
@@ -27,8 +27,8 @@ use Sunrice\VisualEditor\Templates\TemplateRepository;
  */
 final class Scope
 {
-    /** What a variable is taken to be by its name alone, when nothing passes it on: Sunrice's own names for them. */
-    private const BY_NAME = ['entry' => 'entry', 'entries' => 'entries', 'term' => 'term', 'terms' => 'terms', 'block' => 'block', 'collection' => 'collection', 'taxonomy' => 'taxonomy'];
+    /** What a variable is taken to be by its name alone, when nothing passes it on: the CMS's own names for them. */
+    private const BY_NAME = ['entry' => 'entry', 'entries' => 'entries', 'term' => 'term_page', 'terms' => 'terms', 'block' => 'block', 'collection' => 'collection', 'taxonomy' => 'taxonomy', 'item' => 'entry', 'blocks' => 'blocks', 'items' => 'menu'];
 
     private const INCLUDES = ['include' => 0, 'includeif' => 0, 'includefirst' => 0, 'includewhen' => 1, 'includeunless' => 1, 'each' => 0];
 
@@ -166,8 +166,8 @@ final class Scope
         if ($node->kind === 'component') {
             $attribute = fn (string $attribute): array => preg_match('/(?<![:\w-])'.$attribute.'="([^"{}$]+)"/', $node->open, $match) === 1 ? [$match[1]] : [];
             $gives = match ($name) {
-                'sunrice::entries', 'sunrice::entry-filter' => new Field('entries', 'Entries', 'list', Shape::listOf(Shape::entry($attribute('collection'))), '%s->entries', builtIn: true),
-                'sunrice::terms' => new Field('terms', 'Terms', 'list', Shape::listOf(Shape::term($attribute('taxonomy'))), '%s->terms', builtIn: true),
+                'sunrice-cms::entries', 'sunrice-cms::entry-filter' => new Field('entries', 'Entries', 'list', Shape::listOf(Shape::entry($attribute('collection'))), '%s->entries', builtIn: true),
+                'sunrice-cms::terms' => new Field('terms', 'Terms', 'list', Shape::listOf(Shape::term($attribute('taxonomy'))), '%s->terms', builtIn: true),
                 default => null,
             };
             if ($gives !== null) {
@@ -183,7 +183,7 @@ final class Scope
                 $brought[$loop['item']] = new Variable('$'.$loop['item'], $loop['shape'] ?? Shape::of(Shape::VALUE), Variable::LOOP, 'Each of '.$over);
             }
         } elseif ($node->kind === 'directive' && in_array($name, ['if', 'elseif'], true)) {
-            // @if ($excerpt = $entry->get('excerpt')): inside, it is there.
+            // @if ($cta = $values['cta']): inside, it is there.
             foreach (Expression::read((string) $node->args, $shapes, $this->catalog)[1] as $set => $shape) {
                 $brought[$set] = new Variable('$'.$set, $shape ?? Shape::of(Shape::VALUE), Variable::SET, 'Set by the condition: '.self::brief((string) $node->args));
             }
@@ -209,24 +209,37 @@ final class Scope
         $collection = fn (array $handles, bool $sure = true): Variable => new Variable('$collection', Shape::collection(count($handles) === 1 ? $handles[0] : null), Variable::PAGE, 'The collection of the page', $sure);
 
         $given = [];
+        $text = fn (string $name, string $what): Variable => new Variable('$'.$name, Shape::of(Shape::TEXT), Variable::PAGE, $what);
+        $yes = fn (string $name, string $what): Variable => new Variable('$'.$name, Shape::of(Shape::BOOL), Variable::PAGE, $what);
         if ($draws('entry')) {
             $given['entry'] = new Variable('$entry', Shape::entry($of('entry')), Variable::PAGE, 'The entry the page shows');
+            $given['title'] = $text('title', 'The title of the entry (its draft\'s in a preview)');
+            $given['values'] = new Variable('$values', Shape::values('collection', $of('entry')), Variable::PAGE, 'The fields of the entry');
             $given['collection'] = $collection($of('entry'));
+            $given['preview'] = $yes('preview', 'Whether this is a preview of the draft');
+            $given['fallback'] = $yes('fallback', 'Whether the page shows the main language\'s content, untranslated');
         }
         if ($draws('listing')) {
             $given['entries'] = new Variable('$entries', Shape::listOf(Shape::entry($of('listing'))), Variable::PAGE, 'The entries listed on the page');
+            $given['title'] ??= $text('title', 'The title of the listing page');
+            $given['values'] ??= new Variable('$values', Shape::values('listing', $of('listing')), Variable::PAGE, 'The fields of the listing page');
             $given['collection'] = $collection([...$of('entry'), ...$of('listing')]);
         }
         if ($draws('term')) {
-            $given['term'] = new Variable('$term', Shape::term($of('term')), Variable::PAGE, 'The term the page shows');
+            $given['term'] = new Variable('$term', Shape::termPage($of('term')), Variable::PAGE, 'The term the page shows');
             $given['taxonomy'] = new Variable('$taxonomy', Shape::of(Shape::TAXONOMY), Variable::PAGE, 'The taxonomy of the term');
+            $given['title'] ??= $text('title', 'The title of the term');
+            $given['values'] ??= new Variable('$values', Shape::values('taxonomy', $of('term')), Variable::PAGE, 'The fields of the term');
             $given['entries'] ??= new Variable('$entries', Shape::listOf(Shape::entry()), Variable::PAGE, 'The entries listed on the page');
-            // One collection's term page, or the term's page across all of them.
-            $given['collection'] ??= $collection([], sure: false);
+            $given['fallback'] ??= $yes('fallback', 'Whether the page shows the main language\'s content, untranslated');
+        }
+        if (isset($given['values'])) {
+            $given['richText'] = new Variable('$richText', Shape::listOf(Shape::of(Shape::TEXT)), Variable::PAGE, 'The handles of the rich text fields, the only HTML to print as it is');
         }
         if ($file->role === 'search') {
             $given['query'] = new Variable('$query', Shape::of(Shape::TEXT), Variable::PAGE, 'What was searched for');
             $given['results'] = new Variable('$results', Shape::listOf(Shape::entry()), Variable::PAGE, 'The entries found');
+            $given['title'] ??= $text('title', 'The title of the search page');
         }
         if ($file->role === 'block') {
             $fieldset = basename($file->path, '.blade.php');
@@ -242,10 +255,12 @@ final class Scope
             $shape = $passed[$name] ?? match (self::BY_NAME[$name] ?? null) {
                 'entry' => Shape::entry(),
                 'entries' => Shape::listOf(Shape::entry()),
-                'term' => Shape::term(),
+                'term_page' => Shape::termPage(),
                 'terms' => Shape::listOf(Shape::term()),
                 'block' => Shape::block(),
                 'collection' => Shape::collection(),
+                'blocks' => Shape::listOf(Shape::block()),
+                'menu' => Shape::listOf(Shape::of(Shape::MENU_ITEM)),
                 'taxonomy' => Shape::of(Shape::TAXONOMY),
                 default => Shape::of(Shape::VALUE),
             };
@@ -324,14 +339,14 @@ final class Scope
     private function everywhere(): array
     {
         $everywhere = [
-            new Variable('$sunricePage', Shape::of(Shape::PAGE), Variable::SITE, 'The page being shown'),
+            new Variable('cms_page()', Shape::of(Shape::PAGE), Variable::SITE, 'The page being shown', sure: false),
             new Variable('$locale', Shape::of(Shape::TEXT), Variable::SITE, 'The language of the page'),
         ];
         foreach (SunriceBridge::globals() as $set) {
-            $everywhere[] = new Variable("sunrice_global('".addcslashes($set['handle'], "'\\")."')", Shape::globals($set['handle']), Variable::SITE, $set['title']);
+            $everywhere[] = new Variable("cms_global('".addcslashes($set['handle'], "'\\")."')", Shape::globals($set['handle']), Variable::SITE, $set['title']);
         }
         foreach (SunriceBridge::menus() as $menu) {
-            $everywhere[] = new Variable("sunrice_menu('".addcslashes($menu['handle'], "'\\")."')", Shape::listOf(Shape::of(Shape::MENU_ITEM)), Variable::SITE, $menu['title']);
+            $everywhere[] = new Variable("cms_menu('".addcslashes($menu['handle'], "'\\")."')", Shape::listOf(Shape::of(Shape::MENU_ITEM)), Variable::SITE, $menu['title']);
         }
 
         return $everywhere;
@@ -392,7 +407,7 @@ final class Scope
 
             return $item === null ? $a : Shape::listOf($item);
         }
-        if ($a->kind !== $b->kind || ! in_array($a->kind, [Shape::ENTRY, Shape::TERM, Shape::BLOCK], true)) {
+        if ($a->kind !== $b->kind || ! in_array($a->kind, [Shape::ENTRY, Shape::TERM, Shape::TERM_PAGE, Shape::BLOCK, Shape::VALUES], true)) {
             return $a;
         }
         // Of any at all in one place: of any at all.
@@ -401,6 +416,8 @@ final class Scope
         return match ($a->kind) {
             Shape::ENTRY => Shape::entry($of),
             Shape::TERM => Shape::term($of),
+            Shape::TERM_PAGE => Shape::termPage($of),
+            Shape::VALUES => $a->subject === $b->subject ? Shape::values($a->subject ?? 'collection', $of) : $a,
             default => Shape::block($of),
         };
     }

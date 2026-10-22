@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
-use Sunrice\Models\Form;
-use Sunrice\Models\Taxonomy;
+use Sunrice\Cms\Models\Blueprint;
+use Sunrice\Cms\Models\Form;
+use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Insert\Library;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
@@ -20,27 +21,28 @@ uses(WithStarterSite::class);
  * put into a template through the API and drawn on a page.
  */
 
-const SVE_INSERTS = '/cms/visual-editor/api/inserts';
+const SVE_INSERTS = '/admin/visual-editor/api/inserts';
 
 beforeEach(function () {
     $this->setUpStarterSite();
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 /** A taxonomy and a form, which the demo site doesn't have. */
 function sveTaxonomyAndForm(): void
 {
-    Taxonomy::create(['handle' => 'topics', 'title' => 'Topics', 'settings' => []]);
-    Form::create(['handle' => 'contact', 'title' => 'Contact', 'settings' => [], 'fields' => [
+    Taxonomy::query()->create(['handle' => 'topics', 'title' => 'Topics', 'route' => '/topics/{slug}']);
+    Blueprint::query()->create(['handle' => 'contact_form', 'title' => 'Contact form', 'fields' => [
         ['handle' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => true],
         ['handle' => 'message', 'type' => 'textarea', 'label' => 'Message'],
-        ['handle' => 'topic', 'type' => 'select', 'label' => 'Topic', 'config' => ['options' => [['value' => 'sales', 'label' => 'Sales'], 'support']]],
+        ['handle' => 'topic', 'type' => 'select', 'label' => 'Topic', 'config' => ['options' => [['value' => 'sales', 'label' => 'Sales'], ['value' => 'support', 'label' => 'Support']]]],
         ['handle' => 'news', 'type' => 'toggle', 'label' => 'Send me news'],
         ['handle' => 'cv', 'type' => 'file', 'label' => 'CV'],
         ['handle' => 'day', 'type' => 'date', 'label' => 'Day'],
     ]]);
+    Form::query()->create(['handle' => 'contact', 'title' => 'Contact', 'blueprint' => 'contact_form']);
 }
 
 it('lists what can be inserted into the templates of this site', function () {
@@ -54,10 +56,10 @@ it('lists what can be inserted into the templates of this site', function () {
         ->and($inserts)->toHaveKeys(['sunrice.entries.articles', 'sunrice.entries.pages', 'sunrice.search', 'sunrice.seo'])
         ->and($inserts['sunrice.entries.articles']['title'])->toBe('Entries: Articles')
         // The site's partials, each with what it needs.
-        ->and($inserts['partial.sunrice.partials.card'])->toMatchArray(['title' => 'partials/card', 'hint' => 'Needs $entry', 'blade' => "@include('sunrice.partials.card')"])
-        ->and($inserts)->toHaveKey('partial.sunrice.partials.header')
-        // Neither layouts nor blocks nor Sunrice's own views.
-        ->and($inserts->keys()->filter(fn (string $id) => str_contains($id, 'layouts') || str_contains($id, 'blocks') || str_contains($id, 'sunrice::'))->all())->toBe([])
+        ->and($inserts['partial.cms.partials.card'])->toMatchArray(['title' => 'partials/card', 'hint' => 'Needs $item', 'blade' => "@include('cms.partials.card')"])
+        ->and($inserts)->toHaveKey('partial.cms.partials.language-switcher')
+        // Neither the layout nor blocks nor the CMS's own views.
+        ->and($inserts->keys()->filter(fn (string $id) => str_contains($id, 'layout') || str_contains($id, 'cms.blocks.') || str_contains($id, 'sunrice-cms::'))->all())->toBe([])
         // The demo site has no taxonomy and no form.
         ->and($inserts->keys()->filter(fn (string $id) => str_starts_with($id, 'sunrice.terms.') || str_starts_with($id, 'sunrice.form.'))->all())->toBe([]);
 
@@ -72,7 +74,7 @@ it('draws a page with each thing inserted into its template', function () {
     actingAsSuperAdmin();
     sveTaxonomyAndForm();
 
-    $path = 'show.blade.php';
+    $path = 'entry.blade.php';
     $file = $this->templates.'/'.$path;
     $original = File::get($file);
     $article = Template::open($original)->elements()[0];
@@ -80,37 +82,30 @@ it('draws a page with each thing inserted into its template', function () {
 
     $drawn = [];
     foreach (app(Library::class)->all() as $insert) {
-        if (str_starts_with($insert['hint'], 'Needs ') && ! in_array($insert['hint'], ['Needs $entry'], true)) {
+        if (str_starts_with($insert['hint'], 'Needs ') && ! in_array($insert['hint'], ['Needs $values, $richText'], true)) {
             // A partial that needs what this page doesn't have: it says so, and is for another place.
             continue;
         }
         File::put($file, $original);
 
-        $response = postJson('/cms/visual-editor/api/templates/'.$path.'/operations', [
+        $response = postJson('/admin/visual-editor/api/templates/'.$path.'/operations', [
             'version' => sha1($original),
             'operations' => [['type' => 'append', 'node' => $article->id(), 'blade' => $insert['blade']]],
         ]);
-        if ($insert['id'] === 'blade.php') {
-            // This template has a @php(…) further up. Blade would take that for the start of the new block and
-            // show the code between the two as text: the block is refused here, with the reason.
-            $response->assertStatus(422)->assertJsonPath('reason', 'rejected');
-            expect($response->json('message'))->toContain('@php(…) above');
-
-            continue;
-        }
         $response->assertOk();
 
         $response = get('/about');
         expect($response->getStatusCode())->toBe(200, $insert['id'].': '.substr(strip_tags((string) $response->getContent()), 0, 400));
         $drawn[$insert['id']] = (string) $response->getContent();
     }
-    // Where no @php(…) stands before it, a block of PHP goes in like the rest.
-    File::put($file, "<article>\n    <h1>{{ \$entry->title }}</h1>\n</article>\n");
-    postJson('/cms/visual-editor/api/templates/'.$path.'/operations', [
+    // Where a @php(…) stands further up, Blade would take it for the start of a new block of PHP and show the
+    // code between the two as text: the block is refused there, with the reason.
+    File::put($file, "@php(\$a = 1)\n<article>\n    <h1>{{ \$entry->title }}</h1>\n</article>\n");
+    $refused = postJson('/admin/visual-editor/api/templates/'.$path.'/operations', [
         'version' => sha1(File::get($file)),
         'operations' => [['type' => 'append', 'node' => Template::open(File::get($file))->elements()[0]->id(), 'blade' => "@php\n@endphp"]],
-    ])->assertOk();
-    get('/about')->assertOk();
+    ])->assertStatus(422)->assertJsonPath('reason', 'rejected');
+    expect($refused->json('message'))->toContain('@php(…) above');
     File::put($file, $original);
 
     expect(count($drawn))->toBeGreaterThan(45)
@@ -121,6 +116,5 @@ it('draws a page with each thing inserted into its template', function () {
         ->and($drawn['sunrice.terms.topics'])->toContain('<ul>')
         ->and($drawn['sunrice.search'])->toContain('role="search"')
         // The form, with an input for each kind of field it has.
-        ->and($drawn['sunrice.form.contact'])->toContain('name="data[name]"', '<textarea id="contact-message"', '<option value="sales"', '<option value="support"', 'type="checkbox"', 'type="file"', 'type="date"', '>Send me news</label>')
-        ->and($drawn['partial.sunrice.partials.card'])->toContain('<time class="meta"');
+        ->and($drawn['sunrice.form.contact'])->toContain('<textarea', '<option value="sales"', 'type="checkbox"', 'type="file"', 'type="date"', 'Send me news');
 });

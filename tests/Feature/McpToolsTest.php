@@ -8,7 +8,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Testing\TestListResponse;
 use Laravel\Mcp\Server\Testing\TestResponse;
 use Spatie\Permission\Models\Permission;
-use Sunrice\Models\ActivityLog;
+use Sunrice\Admin\Activity\Activity as ActivityLog;
 use Sunrice\Sunrice;
 use Sunrice\VisualEditor\Blade\Operation;
 use Sunrice\VisualEditor\Blade\Template;
@@ -41,14 +41,14 @@ const SVE_MCP_FOOTER = 'partials/footer.blade.php';
 
 beforeEach(function () {
     $this->setUpStarterSite();
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
     $this->footer = $this->templates.'/'.SVE_MCP_FOOTER;
     $this->original = File::get($this->footer);
 
     $this->with = function (string ...$permissions) {
         $user = createUser(email: 'agent'.count($permissions).'@example.com');
-        foreach (['sunrice.access-admin', ...$permissions] as $name) {
-            $user->givePermissionTo(Permission::findOrCreate($name, config('sunrice.auth.guard', 'web')));
+        foreach (['sunrice.access', ...$permissions] as $name) {
+            $user->givePermissionTo(Permission::findOrCreate($name));
         }
 
         return $user;
@@ -68,7 +68,7 @@ beforeEach(function () {
     };
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 // --- get_template_tree ----------------------------------------------------------
 
@@ -134,7 +134,7 @@ it('changes one thing in a template and leaves the rest as written', function ()
         // The node that was changed, by its id in the file as it is now, and the tree to go on from.
         ->and($answer['focus'])->toBe(($this->node)('<footer'))
         ->and($answer['tree']['id'])->toBe('root')
-        ->and(glob(storage_path('app/sunrice/template-backups/*/sunrice/'.SVE_MCP_FOOTER)))->toHaveCount(1)
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/cms/'.SVE_MCP_FOOTER)))->toHaveCount(1)
         ->and(ActivityLog::query()->where('subject_type', 'template')->sole())->toMatchArray(['action' => 'updated', 'subject_label' => SVE_MCP_FOOTER, 'user_id' => $admin->getKey()]);
 
     // The page is drawn with it.

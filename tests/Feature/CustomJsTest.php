@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
-use Sunrice\Models\ActivityLog;
+use Sunrice\Admin\Activity\Activity as ActivityLog;
 use Sunrice\VisualEditor\Rendering\CustomJs;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 
@@ -13,15 +13,15 @@ use function Pest\Laravel\putJson;
 
 uses(WithStarterSite::class);
 
-const SVE_CUSTOM_JS = '/cms/visual-editor/api/scripts/custom';
+const SVE_CUSTOM_JS = '/admin/visual-editor/api/scripts/custom';
 
 beforeEach(function () {
     $this->setUpStarterSite();
     $this->custom = $this->theme.'/custom.js';
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 /** The scripts tags for the custom script in a page of the site. */
 function customScripts(string $path = '/'): array
@@ -67,7 +67,7 @@ it('writes the custom script, and every page of the site loads it at the end of 
 
     // A second save keeps the first as a backup.
     putJson(SVE_CUSTOM_JS, ['version' => sha1($script), 'source' => "// nothing\n"])->assertOk();
-    expect(File::allFiles(storage_path('app/sunrice/template-backups')))->toHaveCount(1);
+    expect(File::allFiles(storage_path('app/sunrice-cms/template-backups')))->toHaveCount(1);
 });
 
 it('loads nothing while the custom script is empty, or when the site loads it itself', function () {

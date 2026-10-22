@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Testing\TestResponse;
 use Spatie\Permission\Models\Permission;
-use Sunrice\Models\Fieldset;
+use Sunrice\Cms\Models\Fieldset;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
@@ -45,9 +45,9 @@ beforeEach(function () {
 });
 
 it('lists what can be picked in a block, with what a click writes', function () {
-    $response = ($this->ask)('blocks/hero.blade.php', '<h1>')->assertOk();
+    $response = ($this->ask)('blocks/hero.blade.php', '<h1')->assertOk();
 
-    expect(array_column($response->json('variables'), 'code'))->toBe(['$image', '$block', '$sunricePage', '$locale', "sunrice_global('footer')", "sunrice_global('site')", "sunrice_menu('main')"]);
+    expect(array_column($response->json('variables'), 'code'))->toBe(['$block', 'cms_page()', '$locale', "cms_global('footer')", "cms_menu('footer')", "cms_menu('main')"]);
 
     $block = ($this->variable)($response, '$block');
     expect($block['title'])->toBe('The Hero block being drawn')
@@ -77,41 +77,48 @@ it('lists what can be picked in a block, with what a click writes', function () 
         ->and(($this->field)($button, 'url')['expression'])->toBe("\$block->button['url'] ?? ''");
 });
 
-it('lists a page\'s entry with the fields of each collection it may be of, and says which lack one', function () {
-    $entry = ($this->variable)(($this->ask)('show.blade.php')->assertOk(), '$entry');
+it('lists a page\'s fields with those of each collection it may be of, and says which lack one', function () {
+    $values = ($this->variable)(($this->ask)('entry.blade.php')->assertOk(), '$values');
 
-    expect($entry['of'])->toBe(['Pages', 'Things'])
-        ->and(array_column($entry['groups'], 'title'))->toBe(['Every entry', 'Pages', 'Things'])
+    expect($values['of'])->toBe(['Articles', 'Pages', 'Things'])
+        ->and(array_column($values['groups'], 'title'))->toBe(['Articles', 'Pages', 'Things'])
+        ->and(($this->field)($values, 'summary')['note'])->toBe('Not in Articles, Pages')
+        ->and(collect($values['groups'][0]['fields'])->firstWhere('handle', 'body')['note'])->toBeNull()       // all of them have a body
+        ->and(($this->field)($values, 'summary')['print'])->toBe("{{ \$values['summary'] ?? '' }}");
+
+    // The entry itself: what every entry has, then its fields read from it.
+    $entry = ($this->variable)(($this->ask)('entry.blade.php')->assertOk(), '$entry');
+    expect(array_column($entry['groups'], 'title'))->toBe(['Every entry', 'Articles', 'Pages', 'Things'])
         ->and(($this->field)($entry, 'title')['note'])->toBeNull()
-        ->and(($this->field)($entry, 'summary')['note'])->toBe('Not in Pages')
-        ->and(collect($entry['groups'][1]['fields'])->firstWhere('handle', 'body')['note'])->toBeNull()       // both have a body
-        ->and(collect($entry['groups'][1]['fields'])->firstWhere('handle', 'sections')['note'])->toBeNull();
+        ->and(($this->field)($entry, 'excerpt')['print'])->toBe("{{ \$entry->values()['excerpt'] ?? '' }}");
 
     // One collection: nothing to say.
-    $article = ($this->variable)(($this->ask)('articles/show.blade.php')->assertOk(), '$entry');
-    expect(($this->field)($article, 'excerpt')['note'])->toBeNull();
+    file_put_contents($this->templates.'/articles.blade.php', '<h1>{{ $title }}</h1>');
+    $article = ($this->variable)(($this->ask)('articles.blade.php')->assertOk(), '$values');
+    expect(($this->field)($article, 'excerpt')['note'])->toBeNull()
+        ->and($article['of'])->toBe(['Articles']);
 });
 
 it('reads on into a file, a group and a date, and stops at a list and at another entry', function () {
-    $entry = ($this->variable)(($this->ask)('show.blade.php')->assertOk(), '$entry');
+    $values = ($this->variable)(($this->ask)('entry.blade.php')->assertOk(), '$values');
 
-    $cover = ($this->field)($entry, 'cover');
+    $cover = ($this->field)($values, 'cover');
     expect(array_column($cover['inserts'], 'title'))->toBe(['Image', 'Link to the file', 'Only when it is set'])
-        ->and(($this->field)($cover, 'alt')['print'])->toBe("{{ \$entry->get('cover')?->alt }}")
-        ->and(($this->field)(($this->field)(($this->field)($entry, 'details'), 'picture'), 'alt')['print'])->toBe("{{ (\$entry->get('details')['picture'] ?? null)?->alt }}")
-        ->and(($this->field)(($this->field)($entry, 'made_on'), 'year')['print'])->toBe("{{ \$entry->get('made_on')?->year }}")
-        ->and(($this->field)(($this->field)($entry, 'author'), 'name')['print'])->toBe('{{ $entry->author?->name }}');
+        ->and(($this->field)($cover, 'alt')['print'])->toBe("{{ (\$values['cover'] ?? null)?->altIn() }}")
+        ->and(($this->field)(($this->field)(($this->field)($values, 'details'), 'picture'), 'alt')['print'])->toBe("{{ (\$values['details']['picture'] ?? null)?->altIn() }}")
+        ->and(($this->field)(($this->field)($values, 'made_on'), 'year')['print'])->toBe("{{ (\$values['made_on'] ?? null)?->year }}");
 
     // A list is looped over, not read into; neither is an entry reached from an entry.
-    expect(($this->field)($entry, 'steps')['groups'])->toBe([])
-        ->and(($this->field)($entry, 'steps')['what'])->toBe('list of rows')
-        ->and(($this->field)($entry, 'related')['of'])->toBe(['Articles']);
+    expect(($this->field)($values, 'steps')['groups'])->toBe([])
+        ->and(($this->field)($values, 'steps')['what'])->toBe('list of rows')
+        ->and(($this->field)($values, 'related')['of'])->toBe(['Articles'])
+        ->and(($this->field)($values, 'mentor')['groups'])->toBe([]);
 
     // The page's own entry is read into, once.
-    $page = ($this->variable)(($this->ask)('partials/header.blade.php')->assertOk(), '$sunricePage');
+    $page = ($this->variable)(($this->ask)('layout.blade.php')->assertOk(), 'cms_page()');
     $pageEntry = ($this->field)($page, 'entry');
-    expect(($this->field)($pageEntry, 'title')['print'])->toBe('{{ $sunricePage->entry?->title }}')
-        ->and(($this->field)(($this->field)($pageEntry, 'cover'), 'alt')['print'])->toBe("{{ \$sunricePage->entry?->get('cover')?->alt }}");
+    expect(($this->field)($pageEntry, 'title')['print'])->toBe('{{ cms_page()?->entry?->title }}')
+        ->and(($this->field)(($this->field)($pageEntry, 'cover'), 'alt')['print'])->toBe("{{ (cms_page()?->entry?->values()['cover'] ?? null)?->altIn() }}");
 });
 
 it('has a loop\'s item for what goes into the loop', function () {
@@ -124,40 +131,42 @@ it('has a loop\'s item for what goes into the loop', function () {
     $image = ($this->variable)($inside, '$image');
     expect($image['from'])->toBe('loop')
         ->and($image['what'])->toBe('file')
-        ->and($image['inserts'][0]['blade'])->toBe("<img src=\"{{ \$image->url('large') }}\" alt=\"{{ \$image->alt }}\">")
-        ->and(($this->field)($image, 'alt')['print'])->toBe('{{ $image->alt }}');
+        ->and($image['inserts'][0]['blade'])->toBe("<img src=\"{{ \$image->url('large') }}\" alt=\"{{ \$image->altIn() }}\">")
+        ->and(($this->field)($image, 'alt')['print'])->toBe('{{ $image->altIn() }}');
 });
 
 it('gives a new variable no name the place already has', function () {
     // $image is set at the top of the hero: an image field inserted there is held in another.
     Fieldset::query()->where('handle', 'hero')->firstOrFail()->update(['fields' => [
         ['handle' => 'heading', 'type' => 'text', 'label' => 'Heading'],
-        ['handle' => 'image', 'type' => 'asset', 'label' => 'Image'],
+        ['handle' => 'image', 'type' => 'media', 'label' => 'Image'],
     ]]);
-    $block = ($this->variable)(($this->ask)('blocks/hero.blade.php', '<h1>')->assertOk(), '$block');
+    $hero = (string) file_get_contents($this->templates.'/blocks/hero.blade.php');
+    file_put_contents($this->templates.'/blocks/hero.blade.php', str_replace('<div class="hero">', "@php(\$image = null)\n<div class=\"hero\">", $hero));
+    $block = ($this->variable)(($this->ask)('blocks/hero.blade.php', '<h1')->assertOk(), '$block');
 
     expect(($this->field)($block, 'image')['inserts'][0]['blade'])->toStartWith('@if ($image2 = $block->image)');
 });
 
 it('lists globals and menus with what a click writes', function () {
-    $response = ($this->ask)('partials/header.blade.php')->assertOk();
+    $response = ($this->ask)('layout.blade.php')->assertOk();
 
-    $site = ($this->variable)($response, "sunrice_global('site')");
-    expect($site['title'])->toBe('Site')
-        ->and($site['from'])->toBe('site')
-        ->and(($this->field)($site, 'name')['print'])->toBe("{{ sunrice_global('site')->name }}");
+    $footer = ($this->variable)($response, "cms_global('footer')");
+    expect($footer['title'])->toBe('Footer')
+        ->and($footer['from'])->toBe('site')
+        ->and(($this->field)($footer, 'text')['print'])->toBe("{{ cms_global('footer')['text'] ?? '' }}");
 
-    $menu = ($this->variable)($response, "sunrice_menu('main')");
+    $menu = ($this->variable)($response, "cms_menu('main')");
     expect($menu['what'])->toBe('list of menu items')
         ->and($menu['inserts'][0]['title'])->toBe('Menu')
         ->and($menu['groups'])->toBe([]);
 });
 
 it('refuses a place of another version, a node that is not there, and a template without a tree', function () {
-    ($this->ask)('show.blade.php', version: 'an-older-one')->assertStatus(409)->assertJsonPath('reason', 'conflict');
+    ($this->ask)('entry.blade.php', version: 'an-older-one')->assertStatus(409)->assertJsonPath('reason', 'conflict');
 
-    $version = TemplateRepository::version((string) file_get_contents($this->templates.'/show.blade.php'));
-    $route = fn (array $more) => route('sunrice.admin.visual-editor.api.templates.fields', ['path' => 'show.blade.php', ...$more]);
+    $version = TemplateRepository::version((string) file_get_contents($this->templates.'/entry.blade.php'));
+    $route = fn (array $more) => route('sunrice.admin.visual-editor.api.templates.fields', ['path' => 'entry.blade.php', ...$more]);
     $this->getJson($route(['version' => $version, 'node' => '999999']))->assertStatus(422)->assertJsonPath('reason', 'invalid');
     $this->getJson($route([]))->assertStatus(422)->assertJsonPath('reason', 'invalid');
     $this->getJson(route('sunrice.admin.visual-editor.api.templates.fields', ['path' => 'nope.blade.php', 'version' => 'x']))->assertStatus(404);
@@ -171,9 +180,9 @@ it('refuses a place of another version, a node that is not there, and a template
 
 it('is for those who may use the editor only', function () {
     auth()->logout();
-    $this->actingAs(createUser(email: 'editor@example.com'), config('sunrice.auth.guard', 'web'));
+    $this->actingAs(createUser(email: 'editor@example.com'));
 
-    ($this->ask)('show.blade.php')->assertStatus(403);
+    ($this->ask)('entry.blade.php')->assertStatus(403);
 });
 
 // --- At a place in text that is not saved: what the code editor asks ----------------
@@ -190,11 +199,11 @@ function askAt(string $path, string $marked): TestResponse
 it('says what can be read at a place in text that is not saved, with what was typed above it', function () {
     $hero = (string) file_get_contents($this->templates.'/blocks/hero.blade.php');
     // A line typed above the heading, and the cursor after it.
-    $typed = str_replace('    <h1>', "    @php(\$kicker = \$block->heading)\n    |\n    <h1>", $hero);
+    $typed = str_replace('    <h1', "    @php(\$kicker = \$block->heading)\n    |\n    <h1", $hero);
 
     $response = askAt('blocks/hero.blade.php', $typed)->assertOk()->assertJsonPath('exact', true);
 
-    expect(array_column($response->json('variables'), 'code'))->toBe(['$kicker', '$image', '$block', '$sunricePage', '$locale', "sunrice_global('footer')", "sunrice_global('site')", "sunrice_menu('main')"])
+    expect(array_column($response->json('variables'), 'code'))->toBe(['$kicker', '$block', 'cms_page()', '$locale', "cms_global('footer')", "cms_menu('footer')", "cms_menu('main')"])
         ->and(($this->variable)($response, '$kicker')['from'])->toBe('set')
         ->and(($this->field)(($this->variable)($response, '$block'), 'heading')['expression'])->toBe('$block->heading')
         // Nothing of it was written.
@@ -221,7 +230,7 @@ it('has a loop\'s item inside a loop that was only just typed, and not beside it
 it('answers while something is only half typed', function (string $halfway) {
     $response = askAt('blocks/hero.blade.php', $halfway)->assertOk();
 
-    expect(array_column($response->json('variables'), 'code'))->toContain('$block', '$sunricePage', "sunrice_global('site')");
+    expect(array_column($response->json('variables'), 'code'))->toContain('$block', 'cms_page()', "cms_global('footer')");
 })->with([
     'a loop that is not closed yet' => ["<section>\n    @foreach (\$block->images as \$item)\n        |\n</section>\n"],
     'a condition half typed' => ["<section>\n    @if (\$block->heading |\n</section>\n"],
@@ -236,7 +245,7 @@ it('answers with what the file is given when the text does not open as a tree, a
     $response = askAt('blocks/hero.blade.php', $source.'|')->assertOk()->assertJsonPath('exact', false);
 
     expect($response->json('why'))->toBeString()->not->toBe('')
-        ->and(array_column($response->json('variables'), 'code'))->toContain('$block', '$sunricePage', "sunrice_global('site')");
+        ->and(array_column($response->json('variables'), 'code'))->toContain('$block', 'cms_page()', "cms_global('footer')");
 });
 
 it('is for those who may edit code, and reads only what it is sent', function () {
@@ -250,21 +259,24 @@ it('is for those who may edit code, and reads only what it is sent', function ()
 
     foreach ([Access::OPEN, Access::EDIT] as $permission) {
         $user = createUser(email: $permission.'@example.com');
-        foreach (['sunrice.access-admin', $permission] as $name) {
-            $user->givePermissionTo(Permission::findOrCreate($name, config('sunrice.auth.guard', 'web')));
+        foreach (['sunrice.access', $permission] as $name) {
+            $user->givePermissionTo(Permission::findOrCreate($name));
         }
-        actingAs($user, config('sunrice.auth.guard', 'web'));
+        actingAs($user);
         askAt('blocks/hero.blade.php', $source)->assertForbidden()->assertJsonPath('reason', 'forbidden');
     }
 });
 
 it('says what a value is asked for and compared as in a condition, and gone over in a loop', function () {
-    $entry = ($this->variable)(($this->ask)('show.blade.php')->assertOk(), '$entry');
+    $response = ($this->ask)('entry.blade.php')->assertOk();
+    $values = ($this->variable)($response, '$values');
+    $entry = ($this->variable)($response, '$entry');
 
-    expect(($this->field)($entry, 'summary'))->toMatchArray(['asked' => "\$entry->get('summary')", 'compared' => "\$entry->get('summary')", 'looped' => null])
-        ->and(($this->field)($entry, 'photos'))->toMatchArray(['asked' => "collect(\$entry->get('photos'))->isNotEmpty()", 'looped' => "\$entry->get('photos') ?? []"])
-        ->and(($this->field)($entry, 'terms'))->toMatchArray(['asked' => '$entry->terms->isNotEmpty()', 'looped' => '$entry->terms'])
-        ->and(($this->field)(($this->field)($entry, 'details'), 'material'))->toMatchArray(['asked' => "! empty(\$entry->get('details')['material'])", 'compared' => "(\$entry->get('details')['material'] ?? null)"]);
+    expect(($this->field)($values, 'summary'))->toMatchArray(['asked' => "! empty(\$values['summary'])", 'compared' => "(\$values['summary'] ?? null)", 'looped' => null])
+        ->and(($this->field)($values, 'photos'))->toMatchArray(['asked' => "collect(\$values['photos'] ?? [])->isNotEmpty()", 'looped' => "\$values['photos'] ?? []"])
+        ->and(($this->field)(($this->field)($entry, 'entry'), 'terms'))->toMatchArray(['asked' => 'collect($entry->entry?->terms)->isNotEmpty()', 'looped' => '$entry->entry?->terms ?? []'])
+        ->and(($this->field)($entry, 'title'))->toMatchArray(['asked' => '$entry->title', 'compared' => '$entry->title'])
+        ->and(($this->field)(($this->field)($values, 'details'), 'material'))->toMatchArray(['asked' => "! empty(\$values['details']['material'])", 'compared' => "(\$values['details']['material'] ?? null)"]);
 });
 
 it('lists the site\'s collections with their fields, and its taxonomies', function () {
@@ -279,6 +291,6 @@ it('lists the site\'s collections with their fields, and its taxonomies', functi
         ->and($site->json('taxonomies'))->toBe([['handle' => 'topics', 'title' => 'Topics', 'archive' => true]]);
 
     auth()->logout();
-    $this->actingAs(createUser(email: 'editor@example.com'), config('sunrice.auth.guard', 'web'));
+    $this->actingAs(createUser(email: 'editor@example.com'));
     $this->getJson(route('sunrice.admin.visual-editor.api.site'))->assertStatus(403);
 });

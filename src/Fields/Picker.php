@@ -18,11 +18,11 @@ use Sunrice\VisualEditor\Templates\TemplateFile;
  */
 final class Picker
 {
-    /** How far in from a variable the tree goes: $sunricePage → entry → cover → alt text. */
+    /** How far in from a variable the tree goes: cms_page() → entry → cover → alt text. */
     private const DEPTH = 4;
 
     /** Read further into, as far as the tree goes. An entry or a term only once: an entry's author, not the entries of its related entries. */
-    private const OPENS = [Shape::ASSET, Shape::LINK, Shape::DATE, Shape::GROUP, Shape::ROW, Shape::USER, Shape::GLOBALS, Shape::COLLECTION, Shape::TAXONOMY, Shape::PAGE, Shape::BLOCK];
+    private const OPENS = [Shape::ASSET, Shape::LINK, Shape::DATE, Shape::GROUP, Shape::ROW, Shape::USER, Shape::GLOBALS, Shape::COLLECTION, Shape::TAXONOMY, Shape::PAGE, Shape::BLOCK, Shape::VALUES, Shape::TERM_PAGE, Shape::RECORD];
 
     public function __construct(private readonly Catalog $catalog, private readonly Scope $scope, private readonly Emit $emit) {}
 
@@ -80,8 +80,9 @@ final class Picker
         $shape = $reading->shape;
         $one = $shape->isList() ? ($shape->item ?? $shape) : $shape;
         $subject = match ($one->kind) {
-            Shape::ENTRY, Shape::COLLECTION => 'collection',
-            Shape::TERM => 'taxonomy',
+            Shape::ENTRY, Shape::RECORD, Shape::COLLECTION => 'collection',
+            Shape::TERM, Shape::TERM_PAGE => 'taxonomy',
+            Shape::VALUES => $one->subject ?? 'collection',
             Shape::BLOCK => 'fieldset',
             Shape::GLOBALS => 'global',
             default => null,

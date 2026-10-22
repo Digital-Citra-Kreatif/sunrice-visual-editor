@@ -7,6 +7,7 @@ namespace Sunrice\VisualEditor\Rendering;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\View as Views;
 use Sunrice\VisualEditor\Css\ThemeRepository;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * Links the site's custom CSS (config `custom_css.file`, written in the
@@ -29,7 +30,7 @@ final class CustomCss
             return;
         }
         // The site's templates, and Sunrice's fallbacks for them; not its admin page or its mail.
-        Views::composer(['sunrice.*', 'sunrice::defaults.*'], fn (View $view) => self::push());
+        Views::composer([SunriceBridge::VIEW_PREFIX.'.*', SunriceBridge::PACKAGE_NAMESPACE.'::*'], fn (View $view) => self::push());
     }
 
     /** Whether the configuration has the link added to pages. */

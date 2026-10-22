@@ -11,6 +11,7 @@ use Sunrice\VisualEditor\Blade\Unsupported;
 use Sunrice\VisualEditor\Css\StylesheetNotFound;
 use Sunrice\VisualEditor\Css\ThemeFile;
 use Sunrice\VisualEditor\Css\ThemeRepository;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\DoesNotCompile;
 use Sunrice\VisualEditor\Templates\TemplateNotFound;
@@ -70,7 +71,7 @@ final class LinkStylesheet
             if ($node->type !== 'element' || strtolower($node->name) !== 'link' || ! str_contains(strtolower((string) $node->attributeValue('rel')), 'stylesheet')) {
                 continue;
             }
-            if (str_contains((string) $node->attributeValue('href'), 'sunrice-theme/'.$sheet->path)) {
+            if (str_contains((string) $node->attributeValue('href'), SunriceBridge::THEME_URL.'/'.$sheet->path)) {
                 throw new EditRejected("\"{$template}\" links {$sheet->path} already.");
             }
             $last = $node;
@@ -97,7 +98,7 @@ final class LinkStylesheet
      */
     public static function link(ThemeFile $sheet): string
     {
-        $path = "'sunrice-theme/{$sheet->path}'";
+        $path = "'".SunriceBridge::THEME_URL."/{$sheet->path}'";
         $variable = '$sunrice'.str_replace(' ', '', ucwords((string) preg_replace('/[^A-Za-z0-9]+/', ' ', $sheet->path)));
 
         return "@if (is_file({$variable} = public_path({$path})))\n    <link rel=\"stylesheet\" href=\"{{ asset({$path}) }}?v={{ filemtime({$variable}) }}\">\n@endif";

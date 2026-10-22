@@ -14,7 +14,7 @@ use Sunrice\VisualEditor\Support\SunriceBridge;
  * editor's Custom JS tab) on every page of the site.
  *
  * As CustomCss does for the stylesheet: a deferred <script> is pushed
- * onto the layout's stack (`@stack('scripts')` in the starter layout)
+ * onto the layout's stack (`@stack('head')` in the CMS's starter layout)
  * while a site template renders, once a page, only while the file has
  * something in it, with the file's version in its address. No template
  * is changed for it.
@@ -35,7 +35,7 @@ final class CustomJs
             return;
         }
         // The site's templates, and Sunrice's fallbacks for them; not its admin page or its mail.
-        Views::composer(['sunrice.*', 'sunrice::defaults.*'], fn (View $view) => self::push());
+        Views::composer([SunriceBridge::VIEW_PREFIX.'.*', SunriceBridge::PACKAGE_NAMESPACE.'::*'], fn (View $view) => self::push());
     }
 
     /** Whether the configuration has the script added to pages. */
@@ -47,9 +47,9 @@ final class CustomJs
     /** The stack the script is pushed onto. */
     public static function stack(): string
     {
-        $stack = config('sunrice-visual-editor.custom_js.stack', 'scripts');
+        $stack = config('sunrice-visual-editor.custom_js.stack', 'head');
 
-        return is_string($stack) && $stack !== '' ? $stack : 'scripts';
+        return is_string($stack) && $stack !== '' ? $stack : 'head';
     }
 
     /** The custom script's file in the theme directory; null when the configuration names none that can be one. */
@@ -61,7 +61,7 @@ final class CustomJs
         }
         $file = SunriceBridge::themeDirectory().'/'.$path;
 
-        return new ThemeFile($path, $file, asset('sunrice-theme/'.$path), is_file($file));
+        return new ThemeFile($path, $file, SunriceBridge::themeUrl($path), is_file($file));
     }
 
     /** The same bytes, the same version: what a save is checked against. */

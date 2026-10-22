@@ -12,10 +12,11 @@ use Sunrice\VisualEditor\Http\Controllers\Api\TemplateController;
 use Sunrice\VisualEditor\Http\Controllers\EditorController;
 use Sunrice\VisualEditor\Http\Middleware\EditorAccess;
 
-// Inside Sunrice::adminRoutes(): under the admin path, named
-// sunrice.admin.…, signed in, set up for Inertia.
+// Inside $panel->routes() (VisualEditorPlugin): under the panel's path,
+// named sunrice.admin.…, for people signed in who may open the panel.
+// Each route says which of the editor's permissions it takes (EditorAccess).
 
-Route::get('visual-editor', [EditorController::class, 'show'])->name('visual-editor.show');
+Route::get('visual-editor', [EditorController::class, 'show'])->middleware(EditorAccess::class)->name('visual-editor.show');
 
 // The editor's API. A template is named by its path inside its directory,
 // slashes and all: …/api/templates/partials/header.blade.php

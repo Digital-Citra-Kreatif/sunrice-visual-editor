@@ -30,7 +30,7 @@ use function Pest\Laravel\putJson;
 uses(WithStarterSite::class, WithEveryField::class);
 
 const SVE_HERO = 'blocks/hero.blade.php';
-const SVE_HERO_API = '/cms/visual-editor/api/templates/'.SVE_HERO;
+const SVE_HERO_API = '/admin/visual-editor/api/templates/'.SVE_HERO;
 
 /** What would run on the server if it got into a template as code. */
 const SVE_CODE = [
@@ -54,17 +54,17 @@ const SVE_CODE = [
 beforeEach(function () {
     $this->setUpStarterSite();
     $this->setUpEveryField();
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
     $this->hero = $this->templates.'/'.SVE_HERO;
     $this->original = File::get($this->hero);
 
     /** Signs in someone who may use the admin and has these of the editor's permissions. */
     $this->as = function (string ...$permissions) {
         $user = createUser(email: implode('-', array_map(fn (string $name) => substr($name, 14), $permissions) ?: ['nobody']).'@example.com');
-        foreach (['sunrice.access-admin', ...$permissions] as $name) {
-            $user->givePermissionTo(Permission::findOrCreate($name, config('sunrice.auth.guard', 'web')));
+        foreach (['sunrice.access', ...$permissions] as $name) {
+            $user->givePermissionTo(Permission::findOrCreate($name));
         }
-        actingAs($user, config('sunrice.auth.guard', 'web'));
+        actingAs($user);
 
         return $user;
     };
@@ -98,7 +98,7 @@ beforeEach(function () {
     };
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 // --- Who may what --------------------------------------------------------------
 
@@ -138,8 +138,8 @@ it('tells the screen what whoever opened it may do', function (array $has, ?arra
     ($this->as)(...$has);
 
     $can === null
-        ? get('/cms/visual-editor')->assertForbidden()
-        : get('/cms/visual-editor')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('can', $can));
+        ? get('/admin/visual-editor')->assertForbidden()
+        : get('/admin/visual-editor')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('can', $can));
 })->with([
     'none' => [[], null],
     'open' => [[Access::OPEN], ['edit' => false, 'code' => false, 'build' => false]],
@@ -153,7 +153,7 @@ it('lets someone who may only open the editor read everything and change nothing
     $version = sha1($this->original);
 
     foreach (['templates', 'templates/'.SVE_HERO, 'templates/'.SVE_HERO.'/fields?version='.$version, 'inserts', 'site', 'styles?class=card'] as $read) {
-        getJson('/cms/visual-editor/api/'.$read)->assertOk();
+        getJson('/admin/visual-editor/api/'.$read)->assertOk();
     }
 
     $css = File::get($this->theme.'/app.css');
@@ -166,7 +166,7 @@ it('lets someone who may only open the editor read everything and change nothing
         ['PUT', 'styles/files/app.css/source', ['version' => sha1($css), 'source' => '']],
         ['POST', 'styles/link', ['template' => 'layouts/app.blade.php', 'version' => sha1($layout), 'stylesheet' => 'app.css']],
     ] as [$method, $uri, $body]) {
-        $this->json($method, '/cms/visual-editor/api/'.$uri, $body)->assertForbidden()->assertJsonPath('reason', 'forbidden');
+        $this->json($method, '/admin/visual-editor/api/'.$uri, $body)->assertForbidden()->assertJsonPath('reason', 'forbidden');
     }
 
     expect(File::get($this->hero))->toBe($this->original)
@@ -177,8 +177,8 @@ it('lets someone who may only open the editor read everything and change nothing
 it('lets nobody in who has none of the permissions', function () {
     ($this->as)();
 
-    getJson('/cms/visual-editor/api/templates')->assertForbidden()->assertJsonPath('reason', 'forbidden');
-    getJson('/cms/visual-editor/api/styles')->assertForbidden();
+    getJson('/admin/visual-editor/api/templates')->assertForbidden()->assertJsonPath('reason', 'forbidden');
+    getJson('/admin/visual-editor/api/styles')->assertForbidden();
 });
 
 it('lets someone who may edit change stylesheets, link one and copy a view: none of it is code', function () {
@@ -186,22 +186,22 @@ it('lets someone who may edit change stylesheets, link one and copy a view: none
     $css = File::get($this->theme.'/app.css');
     File::delete($this->templates.'/taxonomies/show.blade.php');
 
-    postJson('/cms/visual-editor/api/styles/files/app.css/changes', ['version' => sha1($css), 'changes' => [['type' => 'rule', 'selector' => '.x', 'declarations' => [['color', 'red']]]]])->assertOk();
-    postJson('/cms/visual-editor/api/styles/files/editor.css/changes', ['version' => sha1(''), 'changes' => [['type' => 'rule', 'selector' => '.y']]])->assertOk();
-    postJson('/cms/visual-editor/api/styles/link', ['template' => 'layouts/app.blade.php', 'version' => sha1(File::get($this->templates.'/layouts/app.blade.php')), 'stylesheet' => 'editor.css'])->assertOk();
-    postJson('/cms/visual-editor/api/templates/defaults/term.blade.php/copy')->assertCreated();
+    postJson('/admin/visual-editor/api/styles/files/app.css/changes', ['version' => sha1($css), 'changes' => [['type' => 'rule', 'selector' => '.x', 'declarations' => [['color', 'red']]]]])->assertOk();
+    postJson('/admin/visual-editor/api/styles/files/editor.css/changes', ['version' => sha1(''), 'changes' => [['type' => 'rule', 'selector' => '.y']]])->assertOk();
+    postJson('/admin/visual-editor/api/styles/link', ['template' => 'layouts/app.blade.php', 'version' => sha1(File::get($this->templates.'/layouts/app.blade.php')), 'stylesheet' => 'editor.css'])->assertOk();
+    postJson('/admin/visual-editor/api/templates/defaults/term.blade.php/copy')->assertCreated();
 });
 
 it('lets only someone who may edit code write the custom script, which runs in every visitor\'s browser', function () {
     $script = $this->theme.'/custom.js';
 
     ($this->as)(Access::EDIT);
-    getJson('/cms/visual-editor/api/scripts/custom')->assertOk();
-    putJson('/cms/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'alert(document.cookie);'])->assertForbidden();
+    getJson('/admin/visual-editor/api/scripts/custom')->assertOk();
+    putJson('/admin/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'alert(document.cookie);'])->assertForbidden();
     expect(File::exists($script))->toBeFalse();
 
     ($this->as)(Access::CODE);
-    putJson('/cms/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'console.log(1);'])->assertOk();
+    putJson('/admin/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'console.log(1);'])->assertOk();
     expect(File::get($script))->toBe('console.log(1);');
 });
 
@@ -339,7 +339,7 @@ it('checks a whole text against the version it replaces, not against what the fi
 
 it('takes everything the Insert library offers', function () {
     ($this->as)(Access::EDIT);
-    $inserts = getJson('/cms/visual-editor/api/inserts')->assertOk()->json('inserts');
+    $inserts = getJson('/admin/visual-editor/api/inserts')->assertOk()->json('inserts');
     // All but the block of PHP, which is for those who may write PHP.
     expect(count($inserts))->toBeGreaterThan(20)
         ->and(array_column($inserts, 'id'))->not->toContain('blade.php')->toContain('blade.if', 'blade.foreach');
@@ -476,7 +476,7 @@ it('takes the wrappers the Settings panel offers, which are the ones it lists', 
 
 it('takes plain values for what a component is given, and refuses code there', function () {
     ($this->as)(Access::EDIT);
-    $entries = collect(getJson('/cms/visual-editor/api/inserts')->json('inserts'))->first(fn (array $insert) => str_contains($insert['blade'], '<x-sunrice::entries'));
+    $entries = collect(getJson('/admin/visual-editor/api/inserts')->json('inserts'))->first(fn (array $insert) => str_contains($insert['blade'], '<x-sunrice::entries'));
     ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<h1>'), 'blade' => $entries['blade']])->assertOk();
     $this->original = File::get($this->hero);
     $tag = fn () => ($this->node)('<x-sunrice::entries');

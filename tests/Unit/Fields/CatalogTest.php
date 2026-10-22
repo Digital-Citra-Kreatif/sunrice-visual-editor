@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-use Sunrice\Fields\CustomField;
-use Sunrice\Models\Fieldset;
+use Sunrice\Cms\Fields\CustomField;
+use Sunrice\Cms\Fields\FieldTypes;
+use Sunrice\Cms\Models\Fieldset;
 use Sunrice\VisualEditor\Fields\Catalog;
 use Sunrice\VisualEditor\Fields\Field;
 use Sunrice\VisualEditor\Fields\Members;
@@ -30,8 +31,7 @@ it('lists the fields of the demo site\'s blueprints as the blueprints have them'
         ->and(shapes($this->catalog->fields('collection', 'articles')))->toBe(['excerpt' => 'text', 'body' => 'rich text'])
         ->and(shapes($this->catalog->fields('fieldset', 'hero')))->toBe(['heading' => 'text', 'subheading' => 'text', 'button' => 'link'])
         ->and(shapes($this->catalog->fields('fieldset', 'gallery')))->toBe(['title' => 'text', 'images' => 'list of files'])
-        ->and(shapes($this->catalog->fields('global', 'site')))->toBe(['name' => 'text'])
-        ->and(shapes($this->catalog->fields('global', 'footer')))->toBe(['text' => 'rich text']);
+        ->and(shapes($this->catalog->fields('global', 'footer')))->toBe(['text' => 'text']);
 
     $sections = $this->catalog->fields('collection', 'pages')[1];
     expect($sections->label)->toBe('Sections')
@@ -57,6 +57,7 @@ it('knows what every type of field gives a template', function () {
         'photos' => 'list of files',
         'related' => 'list of entries',
         'see_also' => 'list of entries',
+        'mentor' => 'entry',
         'topics' => 'list of terms',
         'details' => 'group',
         'steps' => 'list of rows',
@@ -65,7 +66,8 @@ it('knows what every type of field gives a template', function () {
 
     $by = array_combine(array_map(fn (Field $field) => $field->handle, $fields), $fields);
     expect($by['related']->shape->item->of)->toBe(['articles'])
-        ->and($by['see_also']->shape->item->of)->toBe([])   // any collection
+        ->and($by['see_also']->shape->item->of)->toBe(['articles', 'pages'])
+        ->and($by['mentor']->shape->of)->toBe(['articles'])   // one entry
         ->and($by['topics']->shape->item->of)->toBe(['topics'])
         ->and($by['sections']->shape->item->of)->toBe(['hero', 'text', 'cta'])
         ->and(shapes($by['details']->children()))->toBe(['material' => 'text', 'weight' => 'number', 'picture' => 'file'])
@@ -77,24 +79,26 @@ it('knows what every type of field gives a template', function () {
 it('says how each field is read from what has it', function () {
     $from = fn (string $subject, string $handle, string $field, string $owner) => collect($this->catalog->fields($subject, $handle))->firstOrFail(fn (Field $one) => $one->handle === $field)->from($owner);
 
-    expect($from('collection', 'things', 'summary', '$entry'))->toBe("\$entry->get('summary')")
-        ->and($from('taxonomy', 'topics', 'description', '$term'))->toBe("\$term->get('description')")
+    // A page's own fields are its $values; an entry in a list has them from values().
+    expect($from('collection', 'things', 'summary', '$values'))->toBe("\$values['summary']")
+        ->and($from('taxonomy', 'topics', 'description', '$values'))->toBe("\$values['description']")
+        ->and($from('listing', 'things', 'image', '$values'))->toBe("\$values['image']")
         ->and($from('fieldset', 'hero', 'heading', '$block'))->toBe('$block->heading')
-        ->and($from('global', 'site', 'name', "sunrice_global('site')"))->toBe("sunrice_global('site')->name")
-        ->and($from('listing', 'things', 'image', '$collection'))->toBe("\$collection->archive('image')");
+        ->and($from('global', 'footer', 'text', "cms_global('footer')"))->toBe("cms_global('footer')['text']")
+        ->and(collect($this->catalog->fields('collection', 'things', 'values'))->firstOrFail(fn (Field $one) => $one->handle === 'summary')->from('$item'))->toBe("\$item->values()['summary']");
 
     // What is inside a group or a row is read from an array.
     $details = collect($this->catalog->fields('collection', 'things'))->firstOrFail(fn (Field $one) => $one->handle === 'details');
-    expect($details->children()[0]->from("\$entry->get('details')"))->toBe("\$entry->get('details')['material']");
+    expect($details->children()[0]->from("\$values['details']"))->toBe("\$values['details']['material']");
 
     // From something that may not be there, nothing is read.
     $alt = $this->catalog->member(Shape::of(Shape::ASSET), 'alt');
-    expect($alt->from("\$entry->get('cover')", ownerMayBeMissing: true))->toBe("\$entry->get('cover')?->alt")
-        ->and($alt->from('$image'))->toBe('$image->alt');
+    expect($alt->from("(\$values['cover'] ?? null)", ownerMayBeMissing: true))->toBe("(\$values['cover'] ?? null)?->altIn()")
+        ->and($alt->from('$image'))->toBe('$image->altIn()');
 });
 
 it('reads a handle that is no name for a property with get', function () {
-    Fieldset::create(['handle' => 'odd', 'title' => 'Odd', 'fields' => [
+    Fieldset::query()->create(['handle' => 'odd', 'title' => 'Odd', 'fields' => [
         ['handle' => 'sub-title', 'type' => 'text', 'label' => 'Subtitle'],
         ['handle' => "it's", 'type' => 'text', 'label' => 'Quoted'],
     ]]);
@@ -109,7 +113,8 @@ it('lists what every entry has, then the fields of each collection it may be of'
 
     $any = $this->catalog->members(Shape::entry());
     expect($titles($any))->toBe(['Every entry', 'Articles', 'Pages', 'Things'])
-        ->and(array_map(fn (Field $field) => $field->handle, $any[0]->fields))->toBe(['title', 'url', 'published_at', 'author', 'terms', 'slug'])
+        ->and(array_map(fn (Field $field) => $field->handle, $any[0]->fields))->toBe(['title', 'url', 'published_at', 'slug', 'entry'])
+        ->and($any[1]->fields[0]->from('$item'))->toBe("\$item->values()['excerpt']")
         ->and($any[0]->fields[0]->builtIn)->toBeTrue()
         ->and($any[1]->subject)->toBe('collection')
         ->and($any[1]->handle)->toBe('articles');
@@ -125,24 +130,27 @@ it('lists what every entry has, then the fields of each collection it may be of'
 it('lists what terms, blocks, globals, files, links, dates and menu items have', function () {
     $handles = fn (Shape $shape) => array_map(fn (Members $members) => array_map(fn (Field $field) => $field->handle, $members->fields), $this->catalog->members($shape));
 
-    expect($handles(Shape::term(['topics'])))->toBe([['name', 'url', 'slug', 'parent', 'children'], ['description']])
+    expect($handles(Shape::term(['topics'])))->toBe([['title', 'url', 'parent', 'children']])
+        ->and($handles(Shape::termPage(['topics'])))->toBe([['title', 'url', 'slug', 'term'], ['description']])
         ->and($handles(Shape::block(['hero'])))->toBe([['heading', 'subheading', 'button'], ['type', 'key', 'id']])
-        ->and($handles(Shape::globals('site')))->toBe([['name']])
-        ->and($handles(Shape::of(Shape::ASSET)))->toBe([['url:large', 'url:medium', 'url:thumbnail', 'url', 'alt', 'title', 'caption', 'width', 'height']])
-        ->and($handles(Shape::of(Shape::LINK)))->toBe([['url', 'label', 'new_tab']])
+        ->and($handles(Shape::globals('footer')))->toBe([['text']])
+        ->and($handles(Shape::of(Shape::ASSET)))->toBe([['url:large', 'url:medium', 'url:thumbnail', 'url', 'alt', 'caption', 'title', 'width', 'height', 'isImage']])
+        ->and($handles(Shape::of(Shape::LINK)))->toBe([['url', 'label', 'title', 'new_tab']])
         ->and($handles(Shape::of(Shape::DATE)))->toBe([['long', 'short', 'time', 'year', 'machine']])
-        ->and($handles(Shape::of(Shape::MENU_ITEM)))->toBe([['label', 'url', 'newTab', 'isActive', 'isActiveOrAncestor', 'children']])
-        ->and($handles(Shape::of(Shape::USER)))->toBe([['name']])
-        ->and($handles(Shape::of(Shape::PAGE)))->toBe([['entry', 'term', 'collection', 'taxonomy']])
-        ->and($handles(Shape::collection('things')))->toBe([['title', 'listing'], ['image', 'description']])
-        ->and($handles(Shape::collection('articles')))->toBe([['title', 'listing']])   // no listing blueprint
-        ->and($handles(Shape::collection()))->toBe([['title', 'listing']])
+        ->and($handles(Shape::of(Shape::MENU_ITEM)))->toBe([['label', 'url', 'new_tab', 'active', 'active_trail', 'children']])
+        ->and($handles(Shape::of(Shape::PAGE)))->toBe([['entry', 'term', 'collection', 'home', 'locale', 'pageNumber']])
+        ->and($handles(Shape::collection('things')))->toBe([['title', 'listingUrl', 'handle']])
+        ->and($handles(Shape::values('collection', ['articles'])))->toBe([['excerpt', 'body']])
+        ->and($handles(Shape::values('listing', ['things'])))->toBe([['image', 'description']])
+        ->and($handles(Shape::values('listing', ['articles'])))->toBe([])   // no listing blueprint
+        ->and($handles(Shape::values('taxonomy', ['topics'])))->toBe([['description']])
         ->and($handles(Shape::of(Shape::TEXT)))->toBe([]);
 
     expect($this->catalog->member(Shape::of(Shape::ASSET), 'url:large')->from('$image'))->toBe("\$image->url('large')")
         ->and($this->catalog->member(Shape::of(Shape::ASSET), 'url')->from('$image'))->toBe('$image->url()')
         ->and($this->catalog->member(Shape::of(Shape::LINK), 'url')->from('$block->button'))->toBe("\$block->button['url']")
-        ->and($this->catalog->member(Shape::collection('things'), 'image')->from('$collection'))->toBe("\$collection->archive('image')")
+        ->and($this->catalog->member(Shape::values('listing', ['things']), 'image')->from('$values'))->toBe("\$values['image']")
+        ->and($this->catalog->member(Shape::of(Shape::MENU_ITEM), 'url')->from('$item'))->toBe("\$item['url']")
         ->and($this->catalog->member(Shape::entry(), 'nope'))->toBeNull();
 });
 
@@ -156,20 +164,19 @@ it('follows a field of a group and a row to what is inside', function () {
 });
 
 it('takes a site\'s own field type for the built-in one it is made of', function () {
-    $rating = new class extends CustomField
+    app(FieldTypes::class)->register(new class extends CustomField
     {
-        public static function type(): string
+        public function type(): string
         {
             return 'rating';
         }
 
-        public static function baseType(): string
+        public function baseType(): string
         {
             return 'number';
         }
-    };
-    Sunrice\Facades\Sunrice::registerField($rating::class);
-    Fieldset::create(['handle' => 'review', 'title' => 'Review', 'fields' => [
+    });
+    Fieldset::query()->create(['handle' => 'review', 'title' => 'Review', 'fields' => [
         ['handle' => 'stars', 'type' => 'rating', 'label' => 'Stars'],
         ['handle' => 'mystery', 'type' => 'no_such_type', 'label' => 'Mystery'],
     ]]);
@@ -188,5 +195,5 @@ it('has nothing for what is not there, and comes out as plain data', function ()
     expect(json_decode(json_encode($data), true))->toBe($data)
         ->and($data[0])->toBe(['handle' => 'summary', 'label' => 'Summary', 'type' => 'text', 'shape' => ['kind' => 'text']])
         ->and($data[6]['multiple'])->toBeTrue()
-        ->and(array_column($data[14]['children'], 'handle'))->toBe(['material', 'weight', 'picture']);
+        ->and(array_column($data[15]['children'], 'handle'))->toBe(['material', 'weight', 'picture']);
 });

@@ -5,37 +5,28 @@ declare(strict_types=1);
 namespace Workbench\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Sunrice\Permissions\SyncPermissions;
+use Sunrice\Admin\Actions\Permissions\SyncPermissions;
+use Sunrice\Admin\Panel;
 use Sunrice\VisualEditor\Support\Access;
 use Workbench\App\Models\User;
 use Workbench\App\Seeders\DemoSeeder;
 
 class DatabaseSeeder extends Seeder
 {
-    public function run(): void
+    public function run(SyncPermissions $sync): void
     {
-        // Same setup as `sunrice:install`: permissions, the Super Admin
-        // role and a user holding it (admin@example.com / password).
-        app(SyncPermissions::class)->handle();
-        $role = Role::findOrCreate(
-            config('sunrice.super_admin_role', 'Super Admin'),
-            config('sunrice.auth.guard', 'web'),
-        );
-
+        // As `sunrice:install` does: the permissions, and a super admin (admin@example.com / password).
+        $sync->handle();
         User::query()->firstOrCreate(
             ['email' => 'admin@example.com'],
             ['name' => 'Admin', 'password' => bcrypt('password')],
-        )->assignRole($role);
+        )->assignRole(SyncPermissions::superAdminRole());
 
         // Someone who may change templates in the visual editor and not write code
         // (designer@example.com / password): what the editor holds such a person to can be tried.
-        $designer = Role::findOrCreate('Designer', config('sunrice.auth.guard', 'web'));
-        $designer->syncPermissions(array_map(
-            fn (string $name) => Permission::findOrCreate($name, config('sunrice.auth.guard', 'web')),
-            ['sunrice.access-admin', Access::EDIT],
-        ));
+        $designer = Role::findOrCreate('designer', 'web');
+        $designer->syncPermissions([Panel::ACCESS, Access::EDIT]);
         User::query()->firstOrCreate(
             ['email' => 'designer@example.com'],
             ['name' => 'Designer', 'password' => bcrypt('password')],

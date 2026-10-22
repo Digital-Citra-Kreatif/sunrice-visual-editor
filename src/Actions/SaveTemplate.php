@@ -6,7 +6,6 @@ namespace Sunrice\VisualEditor\Actions;
 
 use Illuminate\Support\Facades\View;
 use Illuminate\View\Compilers\BladeCompiler;
-use Sunrice\Activity\ActivityLogger;
 use Sunrice\VisualEditor\Blade\Syntax;
 use Sunrice\VisualEditor\Support\Files;
 use Sunrice\VisualEditor\Support\SunriceBridge;
@@ -65,8 +64,8 @@ final class SaveTemplate
             Files::replace($file->file, $newSource);
             $this->forgetCompiled($file);
 
-            // Beside the content changes in Manage → Activity log.
-            app(ActivityLogger::class)->record('updated', $file->path, ['note' => 'Visual editor'], 'template');
+            // In the panel's activity log, and the site's kept pages forgotten.
+            SunriceBridge::changed('updated', 'template', $file->path);
 
             return TemplateRepository::version($newSource);
         });

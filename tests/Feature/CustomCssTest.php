@@ -14,15 +14,15 @@ use function Pest\Laravel\putJson;
 
 uses(WithStarterSite::class);
 
-const SVE_CUSTOM = '/cms/visual-editor/api/styles/custom';
+const SVE_CUSTOM = '/admin/visual-editor/api/styles/custom';
 
 beforeEach(function () {
     $this->setUpStarterSite();
     $this->custom = $this->theme.'/custom.css';
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 /** The links to the custom CSS in a page of the site. */
 function customLinks(string $path = '/'): array
@@ -50,7 +50,7 @@ it('writes the custom CSS, and every page of the site links it from the layout w
     $layout = File::get($this->templates.'/layouts/app.blade.php');
     expect(customLinks())->toBe([]);
 
-    putJson('/cms/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => ".hero { color: tomato; }\n"])
+    putJson('/admin/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => ".hero { color: tomato; }\n"])
         ->assertOk()
         ->assertJsonPath('file.version', sha1(".hero { color: tomato; }\n"));
 
@@ -86,19 +86,19 @@ it('refuses a save made against another version of the custom CSS', function () 
     actingAsSuperAdmin();
     File::put($this->custom, '.a { color: red; }');
 
-    putJson('/cms/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => '.b {}'])->assertStatus(409);
+    putJson('/admin/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => '.b {}'])->assertStatus(409);
 
     expect(File::get($this->custom))->toBe('.a { color: red; }');
 });
 
 it('lets someone who may only look read the custom CSS, not write it', function () {
     $user = createUser();
-    $guard = config('sunrice.auth.guard', 'web');
-    $user->givePermissionTo(Permission::findOrCreate('sunrice.access-admin', $guard), Permission::findOrCreate('visual-editor.open', $guard));
+    $guard = 'web';
+    $user->givePermissionTo(Permission::findOrCreate('sunrice.access', $guard), Permission::findOrCreate('visual-editor.open', $guard));
     actingAs($user, $guard);
 
     getJson(SVE_CUSTOM)->assertOk();
-    putJson('/cms/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => '.b {}'])->assertForbidden();
+    putJson('/admin/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => '.b {}'])->assertForbidden();
 
     expect(File::exists($this->custom))->toBeFalse();
 });

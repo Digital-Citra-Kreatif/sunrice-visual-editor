@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Sunrice\VisualEditor\Insert\Library;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * What can be inserted into a template of this site: each a piece of
@@ -18,6 +19,6 @@ class InsertController extends Controller
 {
     public function __invoke(Request $request, Library $library): JsonResponse
     {
-        return response()->json(['inserts' => $library->all(code: Access::may($request->user(config('sunrice.auth.guard')), Access::CODE))]);
+        return response()->json(['inserts' => $library->all(code: Access::may(SunriceBridge::user(), Access::CODE))]);
     }
 }

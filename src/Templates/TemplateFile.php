@@ -22,7 +22,7 @@ final class TemplateFile
         public readonly string $path,
         /** site: one of the site's templates. package: one of Sunrice's own, read-only. */
         public readonly string $origin,
-        /** The name Blade knows it by: "sunrice.partials.header", "sunrice::defaults.show". */
+        /** The name Blade knows it by: "cms.partials.card", "sunrice-cms::entry". */
         public readonly string $view,
         /** layout, partial, block, entry, listing, term, search, error, component or other. */
         public readonly string $role,

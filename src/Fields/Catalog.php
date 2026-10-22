@@ -8,18 +8,23 @@ use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * What the site's content is made of, as a template reads it: the fields
- * of each blueprint, and what Sunrice gives every entry, term, image and
- * menu item besides.
+ * of each blueprint, and what the CMS gives every entry, term, file and
+ * menu link besides.
+ *
+ * The CMS hands a page's fields to its template as `$values`, by handle
+ * (`$values['excerpt']`); an entry in a list has them as
+ * `$item->values()['excerpt']`, a block as `$block->heading` and a global
+ * set as `cms_global('footer')['text']`.
  */
 final class Catalog
 {
     /** How a blueprint's fields are read from the value that has them. */
     private const READS = [
-        'collection' => 'get',      // $entry->get('excerpt')
-        'taxonomy' => 'get',        // $term->get('description')
+        'collection' => 'key',      // $values['excerpt']
+        'listing' => 'key',         // $values['intro'] on a listing page
+        'taxonomy' => 'key',        // $values['description'] on a term page
         'fieldset' => 'property',   // $block->heading
-        'global' => 'property',     // sunrice_global('site')->name
-        'listing' => 'archive',     // $collection->archive('image')
+        'global' => 'key',          // cms_global('footer')['text']
     ];
 
     /** @var array<string, list<Field>> */
@@ -32,11 +37,14 @@ final class Catalog
      * The fields of a blueprint, in its order.
      *
      * @param  string  $subject  collection (its entries' fields), listing (its listing page's), fieldset, taxonomy or global
+     * @param  string|null  $how  how they are read when not as the subject's own are: values (an entry's, `->values()['excerpt']`)
      * @return list<Field>
      */
-    public function fields(string $subject, string $handle): array
+    public function fields(string $subject, string $handle, ?string $how = null): array
     {
-        return $this->read[$subject.':'.$handle] ??= $this->convert(SunriceBridge::fields($subject, $handle), self::READS[$subject] ?? 'get');
+        $how ??= self::READS[$subject] ?? 'key';
+
+        return $this->read[$subject.':'.$handle.':'.$how] ??= $this->convert(SunriceBridge::fields($subject, $handle), $how);
     }
 
     /**
@@ -49,8 +57,24 @@ final class Catalog
     public function members(Shape $shape): array
     {
         return match ($shape->kind) {
-            Shape::ENTRY => [new Members('Every entry', $this->ofEveryEntry()), ...$this->blueprints('collection', $shape->of)],
-            Shape::TERM => [new Members('Every term', $this->ofEveryTerm($shape->of)), ...$this->blueprints('taxonomy', $shape->of)],
+            Shape::ENTRY => [new Members('Every entry', $this->ofEveryEntry($shape->of)), ...$this->blueprints('collection', $shape->of, 'values')],
+            Shape::VALUES => array_values(array_filter(
+                $this->blueprints($shape->subject ?? 'collection', $shape->of),
+                fn (Members $members) => $shape->subject !== 'listing' || $members->fields !== [],
+            )),
+            Shape::TERM => [new Members('Every term', $this->ofEveryTerm($shape->of))],
+            Shape::RECORD => [new Members('In every language', [
+                $this->builtIn('collection', 'Collection', Shape::collection(count($shape->of) === 1 ? $shape->of[0] : null), '%s->collection'),
+                $this->builtIn('terms', 'Terms', Shape::listOf(Shape::term()), '%s->terms'),
+                $this->builtIn('parent', 'Entry above it', Shape::record($shape->of), '%s->parent'),
+                $this->builtIn('id', 'ID', Shape::of(Shape::NUMBER), '%s->id'),
+            ])],
+            Shape::TERM_PAGE => [new Members('The term', [
+                $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->title'),
+                $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), '%s->url()'),
+                $this->builtIn('slug', 'Slug', Shape::of(Shape::TEXT), '%s->slug'),
+                $this->builtIn('term', 'Term', Shape::term($shape->of), '%s->term'),
+            ]), ...$this->blueprints('taxonomy', $shape->of, 'values')],
             // A block's own fields first: its type, key and id are seldom what is wanted.
             Shape::BLOCK => [...$this->blueprints('fieldset', $shape->of), new Members('Every block', [
                 $this->builtIn('type', 'Block type', Shape::of(Shape::TEXT), '%s->type'),
@@ -59,24 +83,27 @@ final class Catalog
             ])],
             Shape::GLOBALS => $this->blueprints('global', $shape->of),
             Shape::COLLECTION => [new Members('Collection', [
-                $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->titleIn($locale)'),
-                $this->builtIn('listing', 'Listing page text', Shape::group([
-                    $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), "%s['title']"),
-                    $this->builtIn('intro', 'Intro', Shape::of(Shape::TEXT), "%s['intro']"),
-                ]), '%s->archiveText($locale)'),
-            ]), ...array_values(array_filter($this->blueprints('listing', $shape->of), fn (Members $members) => $shape->of !== [] && $members->fields !== []))],
-            Shape::TAXONOMY => [new Members('Taxonomy', [$this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->titleIn($locale)')])],
+                $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->titleIn()'),
+                $this->builtIn('listingUrl', 'Listing page URL', Shape::of(Shape::TEXT), '%s->listingUrl()'),
+                $this->builtIn('handle', 'Handle', Shape::of(Shape::TEXT), '%s->handle'),
+            ])],
+            Shape::TAXONOMY => [new Members('Taxonomy', [
+                $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->titleIn()'),
+                $this->builtIn('handle', 'Handle', Shape::of(Shape::TEXT), '%s->handle'),
+            ])],
             Shape::ASSET => [new Members('File', [
                 ...$this->urls(),
-                $this->builtIn('alt', 'Alt text', Shape::of(Shape::TEXT), '%s->alt'),
+                $this->builtIn('alt', 'Alt text', Shape::of(Shape::TEXT), '%s->altIn()'),
+                $this->builtIn('caption', 'Caption', Shape::of(Shape::TEXT), '%s->captionIn()'),
                 $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->title'),
-                $this->builtIn('caption', 'Caption', Shape::of(Shape::TEXT), '%s->caption'),
                 $this->builtIn('width', 'Width', Shape::of(Shape::NUMBER), '%s->width'),
                 $this->builtIn('height', 'Height', Shape::of(Shape::NUMBER), '%s->height'),
+                $this->builtIn('isImage', 'Is an image', Shape::of(Shape::BOOL), '%s->isImage()'),
             ])],
             Shape::LINK => [new Members('Link', [
                 $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), "%s['url']"),
                 $this->builtIn('label', 'Label', Shape::of(Shape::TEXT), "%s['label']"),
+                $this->builtIn('title', 'Title of the entry linked to', Shape::of(Shape::TEXT), "%s['title']"),
                 $this->builtIn('new_tab', 'Opens in a new tab', Shape::of(Shape::BOOL), "%s['new_tab']"),
             ])],
             Shape::DATE => [new Members('Date', [
@@ -87,19 +114,21 @@ final class Catalog
                 $this->builtIn('machine', 'For a datetime attribute', Shape::of(Shape::TEXT), '%s->toAtomString()'),
             ])],
             Shape::USER => [new Members('User', [$this->builtIn('name', 'Name', Shape::of(Shape::TEXT), '%s->name')])],
-            Shape::MENU_ITEM => [new Members('Menu item', [
-                $this->builtIn('label', 'Label', Shape::of(Shape::TEXT), '%s->label'),
-                $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), '%s->url'),
-                $this->builtIn('newTab', 'Opens in a new tab', Shape::of(Shape::BOOL), '%s->newTab'),
-                $this->builtIn('isActive', 'Is the page being shown', Shape::of(Shape::BOOL), '%s->isActive'),
-                $this->builtIn('isActiveOrAncestor', 'Is the page being shown, or above it', Shape::of(Shape::BOOL), '%s->isActiveOrAncestor()'),
-                $this->builtIn('children', 'Items below it', Shape::listOf(Shape::of(Shape::MENU_ITEM)), '%s->children'),
+            Shape::MENU_ITEM => [new Members('Menu link', [
+                $this->builtIn('label', 'Label', Shape::of(Shape::TEXT), "%s['label']"),
+                $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), "%s['url']"),
+                $this->builtIn('new_tab', 'Opens in a new tab', Shape::of(Shape::BOOL), "%s['new_tab']"),
+                $this->builtIn('active', 'Is the page being shown', Shape::of(Shape::BOOL), "%s['active']"),
+                $this->builtIn('active_trail', 'Is the page being shown, or above it', Shape::of(Shape::BOOL), "%s['active_trail']"),
+                $this->builtIn('children', 'Links below it', Shape::listOf(Shape::of(Shape::MENU_ITEM)), "%s['children']"),
             ])],
             Shape::PAGE => [new Members('The page being shown', [
                 $this->builtIn('entry', 'Entry', Shape::entry(), '%s->entry'),
-                $this->builtIn('term', 'Term', Shape::term(), '%s->term'),
+                $this->builtIn('term', 'Term', Shape::termPage(), '%s->term'),
                 $this->builtIn('collection', 'Collection', Shape::collection(), '%s->collection'),
-                $this->builtIn('taxonomy', 'Taxonomy', Shape::of(Shape::TAXONOMY), '%s->taxonomy'),
+                $this->builtIn('home', 'Is the homepage', Shape::of(Shape::BOOL), '%s->home'),
+                $this->builtIn('locale', 'Language', Shape::of(Shape::TEXT), '%s->locale'),
+                $this->builtIn('pageNumber', 'Page number', Shape::of(Shape::NUMBER), '%s->pageNumber'),
             ])],
             Shape::GROUP, Shape::ROW => $shape->fields === [] ? [] : [new Members('Fields', $shape->fields)],
             default => [],
@@ -139,45 +168,49 @@ final class Catalog
      * The fields of each blueprint named, or of every one there is.
      *
      * @param  list<string>  $handles
+     * @param  string|null  $how  as fields()
      * @return list<Members>
      */
-    private function blueprints(string $subject, array $handles): array
+    private function blueprints(string $subject, array $handles, ?string $how = null): array
     {
         $titles = $this->titles($subject);
         $members = [];
         foreach ($handles === [] ? array_keys($titles) : $handles as $handle) {
             $handle = (string) $handle;
             if (isset($titles[$handle])) {
-                $members[] = new Members($subject === 'listing' ? 'Listing page of '.$titles[$handle] : $titles[$handle], $this->fields($subject, $handle), $subject, $handle);
+                $members[] = new Members($subject === 'listing' ? 'Listing page of '.$titles[$handle] : $titles[$handle], $this->fields($subject, $handle, $how), $subject, $handle);
             }
         }
 
         return $members;
     }
 
-    /** @return list<Field> */
-    private function ofEveryEntry(): array
+    /**
+     * @param  list<string>  $collections  the entry's: its collection is one of those
+     * @return list<Field>
+     */
+    private function ofEveryEntry(array $collections): array
     {
         return [
             $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->title'),
-            $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), '%s->url'),
+            $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), '%s->url()'),
             $this->builtIn('published_at', 'Published', Shape::of(Shape::DATE), '%s->published_at'),
-            $this->builtIn('author', 'Author', Shape::of(Shape::USER), '%s->author'),
-            $this->builtIn('terms', 'Terms', Shape::listOf(Shape::term()), '%s->terms'),
             $this->builtIn('slug', 'Slug', Shape::of(Shape::TEXT), '%s->slug'),
+            $this->builtIn('entry', 'In every language', Shape::record($collections), '%s->entry'),
         ];
     }
 
     /**
+     * A term as fields and relations give it (a Term, in the page's language).
+     *
      * @param  list<string>  $taxonomies  the term's own: the terms above and below it are of the same
      * @return list<Field>
      */
     private function ofEveryTerm(array $taxonomies): array
     {
         return [
-            $this->builtIn('name', 'Name', Shape::of(Shape::TEXT), '%s->name'),
-            $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), '%s->url'),
-            $this->builtIn('slug', 'Slug', Shape::of(Shape::TEXT), '%s->slug'),
+            $this->builtIn('title', 'Title', Shape::of(Shape::TEXT), '%s->title()'),
+            $this->builtIn('url', 'URL', Shape::of(Shape::TEXT), '%s->url()'),
             $this->builtIn('parent', 'Term above it', Shape::term($taxonomies), '%s->parent'),
             $this->builtIn('children', 'Terms below it', Shape::listOf(Shape::term($taxonomies)), '%s->children'),
         ];
@@ -190,8 +223,8 @@ final class Catalog
      */
     private function urls(): array
     {
-        $sizes = (array) config('sunrice.assets.image_sizes', []);
-        uasort($sizes, fn ($a, $b) => (int) ($b[0] ?? 0) <=> (int) ($a[0] ?? 0));
+        $sizes = SunriceBridge::imageSizes();
+        uasort($sizes, fn ($a, $b) => (int) (is_array($b) ? ($b[0] ?? 0) : 0) <=> (int) (is_array($a) ? ($a[0] ?? 0) : 0));
         $urls = [];
         foreach (array_keys($sizes) as $size) {
             $urls[] = $this->builtIn('url:'.$size, 'URL, '.$size, Shape::of(Shape::TEXT), "%s->url('".$this->quoted((string) $size)."')");
@@ -208,7 +241,7 @@ final class Catalog
 
     /**
      * @param  list<array<string, mixed>>  $definitions  as SunriceBridge::fields() gives them
-     * @param  string  $how  get, property, archive or key
+     * @param  string  $how  key, property or values
      * @return list<Field>
      */
     private function convert(array $definitions, string $how): array
@@ -234,12 +267,12 @@ final class Catalog
                 'select' => $several ? Shape::listOf(Shape::of(Shape::TEXT)) : Shape::of(Shape::TEXT),
                 'date' => Shape::of(Shape::DATE),
                 'link' => Shape::of(Shape::LINK),
-                'asset' => $several ? Shape::listOf(Shape::of(Shape::ASSET)) : Shape::of(Shape::ASSET),
-                'entries' => Shape::listOf(Shape::entry($handles($config['collections'] ?? []))),
-                'terms' => Shape::listOf(Shape::term($handles($config['taxonomy'] ?? []))),
+                'media' => $several ? Shape::listOf(Shape::of(Shape::ASSET)) : Shape::of(Shape::ASSET),
+                'entries' => $several ? Shape::listOf(Shape::entry($handles($config['collections'] ?? []))) : Shape::entry($handles($config['collections'] ?? [])),
+                'terms' => $several ? Shape::listOf(Shape::term($handles($config['taxonomy'] ?? []))) : Shape::term($handles($config['taxonomy'] ?? [])),
                 'group' => Shape::group($inside()),
                 'repeater' => Shape::listOf(Shape::row($inside())),
-                'flexible' => Shape::listOf(Shape::block($handles($config['fieldsets'] ?? []))),
+                'flexible' => Shape::listOf(Shape::block($handles($config['blocks'] ?? []))),
                 default => Shape::of(Shape::VALUE),
             };
 
@@ -255,11 +288,11 @@ final class Catalog
         $quoted = "'".$this->quoted($handle)."'";
 
         return match ($how) {
-            'key' => '%s['.$quoted.']',
-            'archive' => '%s->archive('.$quoted.')',
+            // An entry's or a term's fields, from the entry itself: $item->values()['excerpt'].
+            'values' => '%s->values()['.$quoted.']',
             // A property when the handle can be one: $block->heading. `get` reads any handle.
             'property' => $named ? '%s->'.$handle : '%s->get('.$quoted.')',
-            default => '%s->get('.$quoted.')',
+            default => '%s['.$quoted.']',
         };
     }
 

@@ -11,6 +11,7 @@ use Inertia\Response;
 use Sunrice\VisualEditor\Actions\Build;
 use Sunrice\VisualEditor\Rendering\TailwindPreview;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Support\Widths;
 use Sunrice\VisualEditor\VisualEditorServiceProvider;
 
@@ -21,8 +22,7 @@ class EditorController extends Controller
      */
     public function show(Request $request): Response
     {
-        $user = $request->user(config('sunrice.auth.guard'));
-        abort_unless(Access::allowed($user), 403);
+        $user = SunriceBridge::user();
 
         return Inertia::render('VisualEditor/Editor', [
             'startPath' => static::sitePath($request->query('url')),
@@ -57,7 +57,7 @@ class EditorController extends Controller
             return '/';
         }
 
-        $admin = '/'.trim((string) config('sunrice.admin.path', 'cms'), '/');
+        $admin = '/'.trim(SunriceBridge::adminPath(), '/');
         $path = (string) parse_url($url, PHP_URL_PATH);
         if ($path === $admin || str_starts_with($path, $admin.'/')) {
             return '/';

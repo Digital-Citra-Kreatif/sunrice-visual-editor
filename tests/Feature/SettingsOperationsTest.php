@@ -41,7 +41,7 @@ it('changes what a control names and nothing else', function (array $operation, 
     $arm = str_starts_with($operation['node'], 'b:');
     $operation['node'] = ($arm ? 'b' : '').strpos(SVE_SETTINGS_TEMPLATE, $arm ? substr($operation['node'], 2) : $operation['node']);
 
-    $response = postJson('/cms/visual-editor/api/templates/partials/sve-settings.blade.php/operations', [
+    $response = postJson('/admin/visual-editor/api/templates/partials/sve-settings.blade.php/operations', [
         'version' => sha1(SVE_SETTINGS_TEMPLATE),
         'operations' => [$operation],
     ])->assertOk();

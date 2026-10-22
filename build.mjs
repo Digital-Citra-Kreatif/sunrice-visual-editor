@@ -1,55 +1,57 @@
 // Builds the editor's admin script and stylesheet, the frame's bridge script and the code editor into dist/.
 //
-// The script runs inside the Sunrice admin and must use the admin's own
-// React (a second copy breaks hooks). JSX compiles to
-// Sunrice.React.createElement, and any `react` / `react-dom` import, ours
-// or a bundled library's, resolves to the copies on window.Sunrice.
+// The script is a plugin bundle of the Sunrice panel (runtime version 3) and
+// must use the panel's own React and Inertia (a second React breaks hooks;
+// a second Inertia doesn't see the panel's pages). As @sunrice/admin-sdk's
+// Vite plugin does, every import of a module the panel shares resolves to
+// its copy on window.Sunrice.modules: ours, and a bundled library's.
 import { build } from 'esbuild';
 import { copyFile, mkdir } from 'node:fs/promises';
 
-const reactNames = [
-    'Children', 'Component', 'Fragment', 'Profiler', 'PureComponent', 'StrictMode', 'Suspense',
-    'cloneElement', 'createContext', 'createElement', 'createRef', 'forwardRef', 'isValidElement',
-    'lazy', 'memo', 'startTransition', 'use', 'useActionState', 'useCallback', 'useContext',
-    'useDebugValue', 'useDeferredValue', 'useEffect', 'useId', 'useImperativeHandle',
-    'useInsertionEffect', 'useLayoutEffect', 'useMemo', 'useOptimistic', 'useReducer', 'useRef',
-    'useState', 'useSyncExternalStore', 'useTransition', 'version',
-];
-const reactDomNames = ['createPortal', 'flushSync', 'unstable_batchedUpdates', 'version'];
+/** The modules the panel shares (@sunrice/admin-sdk's SHARED_MODULES), as far as the editor imports them. */
+const shared = ['react', 'react/jsx-runtime', 'react-dom', 'react-dom/client', '@inertiajs/react'];
 
-const shim = (global, names) => `const m = ${global};\nexport default m;\n${names.map((name) => `export const ${name} = m.${name};`).join('\n')}\n`;
-
-const adminReact = {
-    name: 'admin-react',
+const panelModules = {
+    name: 'panel-modules',
     setup(build) {
-        build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => ({ path: args.path, namespace: 'admin-react' }));
-        build.onLoad({ filter: /.*/, namespace: 'admin-react' }, (args) => {
-            if (args.path === 'react') {
-                return { contents: shim('window.Sunrice.React', reactNames), loader: 'js' };
-            }
-            if (args.path === 'react-dom') {
-                return { contents: shim('window.Sunrice.ReactDOM', reactDomNames), loader: 'js' };
-            }
-            if (args.path === 'react/jsx-runtime' || args.path === 'react/jsx-dev-runtime') {
-                return {
-                    contents: `const R = window.Sunrice.React;
-export const Fragment = R.Fragment;
-const element = (type, { children, ...props }, key) => {
-    const all = key === undefined ? props : { ...props, key };
-    return Array.isArray(children) ? R.createElement(type, all, ...children) : children === undefined ? R.createElement(type, all) : R.createElement(type, all, children);
-};
-export const jsx = element;
-export const jsxs = element;
-export const jsxDEV = element;
-`,
-                    loader: 'js',
-                };
+        build.onResolve({ filter: /^(react|react-dom|@inertiajs\/react)(\/.*)?$/ }, (args) => ({ path: args.path, namespace: 'panel-modules' }));
+        build.onLoad({ filter: /.*/, namespace: 'panel-modules' }, (args) => {
+            const name = args.path === 'react/jsx-dev-runtime' ? 'react/jsx-runtime' : args.path;
+            if (!shared.includes(name)) {
+                return { errors: [{ text: `The panel shares no "${args.path}": import it from one it does, or add it to build.mjs.` }] };
             }
 
-            return { errors: [{ text: `No admin copy of "${args.path}": import it from window.Sunrice or add it to build.mjs.` }] };
+            return {
+                contents: [
+                    'const s = globalThis.Sunrice;',
+                    "if (!s) throw new Error('[sunrice-visual-editor] This script runs only inside the Sunrice admin panel (window.Sunrice is missing).');",
+                    `const m = s.modules[${JSON.stringify(name)}];`,
+                    'export default m;',
+                    // Every name the module has, so `import { useState } from 'react'` reads the panel's.
+                    ...namesOf(name).map((key) => `export const ${key} = m.${key};`),
+                ].join('\n'),
+                loader: 'js',
+            };
         });
     },
 };
+
+/** The names each shared module exports, as @sunrice/admin-sdk lists them. */
+function namesOf(name) {
+    return {
+        react: [
+            'Activity', 'Children', 'Component', 'Fragment', 'Profiler', 'PureComponent', 'StrictMode', 'Suspense',
+            'cloneElement', 'createContext', 'createElement', 'createRef', 'forwardRef', 'isValidElement', 'lazy', 'memo',
+            'startTransition', 'use', 'useActionState', 'useCallback', 'useContext', 'useDebugValue', 'useDeferredValue',
+            'useEffect', 'useEffectEvent', 'useId', 'useImperativeHandle', 'useInsertionEffect', 'useLayoutEffect', 'useMemo',
+            'useOptimistic', 'useReducer', 'useRef', 'useState', 'useSyncExternalStore', 'useTransition', 'version',
+        ],
+        'react/jsx-runtime': ['Fragment', 'jsx', 'jsxs'],
+        'react-dom': ['createPortal', 'flushSync', 'unstable_batchedUpdates', 'version'],
+        'react-dom/client': ['createRoot', 'hydrateRoot', 'version'],
+        '@inertiajs/react': ['Head', 'Link', 'router', 'usePage'],
+    }[name];
+}
 
 await mkdir('dist', { recursive: true });
 
@@ -61,15 +63,13 @@ await build({
     target: 'es2022',
     minify: true,
     legalComments: 'none',
-    jsx: 'transform',
-    jsxFactory: 'Sunrice.React.createElement',
-    jsxFragment: 'Sunrice.React.Fragment',
-    plugins: [adminReact],
+    jsx: 'automatic',
+    plugins: [panelModules],
     logLevel: 'info',
 });
 
 // The script loaded in a page rendered for the editor's frame. It runs in
-// the site's own pages, not in the admin: no React, nothing global.
+// the site's own pages, not in the panel: no React, nothing global.
 await build({
     entryPoints: ['resources/js/bridge/index.ts'],
     outfile: 'dist/bridge.js',

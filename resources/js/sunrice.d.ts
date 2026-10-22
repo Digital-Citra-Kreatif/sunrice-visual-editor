@@ -1,54 +1,23 @@
-// The part of window.Sunrice (the Sunrice admin's extension API, version 2)
-// that the editor uses. See sunrice-cms docs/packages.md.
-import type * as ReactNS from 'react';
-import type * as ReactDOMNS from 'react-dom';
+// The panel's runtime on window.Sunrice (sunrice/admin, runtime version 3),
+// as far as the editor uses it. See the panel's docs, "Admin pages in React",
+// and @sunrice/admin-sdk, which this mirrors: the editor's bundle is built
+// with esbuild (build.mjs), not the SDK's Vite plugin.
+import type { ComponentType, ReactNode } from 'react';
 
-type PageComponent = ReactNS.ComponentType<any> & {
-    /** null: no admin layout (sidebar, header) around the page. */
-    layout?: ((page: ReactNS.ReactNode) => ReactNS.ReactNode) | null;
-};
+/** A page component; `bare` draws it without the panel's layout (sidebar, header). */
+type PageComponent = ComponentType<any> & { bare?: boolean };
 
-interface SunriceApi {
+interface SunriceRuntime {
     version: number;
-    React: typeof ReactNS;
-    ReactDOM: typeof ReactDOMNS;
+    /** The modules shared with plugin bundles: react, react-dom, @inertiajs/react … */
+    modules: Record<string, Record<string, unknown>>;
     registerPage(name: string, component: PageComponent): void;
-    inertia: {
-        router: {
-            visit(url: string, options?: Record<string, unknown>): void;
-            /** Inertia's events: 'navigate' comes with each page the admin shows. Answers a function that stops listening. */
-            on?(type: 'navigate', listener: (event: { detail: { page: { component: string; props: Record<string, unknown>; url: string } } }) => void): () => void;
-        };
-        /** Inertia's link. `onBefore` answering false keeps the visit from being made. */
-        Link: ReactNS.ComponentType<{ href: string; className?: string; title?: string; onBefore?: () => boolean | void; children?: ReactNS.ReactNode }>;
-        Head: ReactNS.ComponentType<{ title?: string; children?: ReactNS.ReactNode }>;
-        usePage(): { props: Record<string, unknown> };
-    };
-    /** 'visual-editor' → '/cms/visual-editor', with the site's admin path. */
+    /** 'visual-editor' → '/admin/visual-editor', with the panel's path. */
     adminUrl(path?: string): string;
-    fetchJson<T = unknown>(url: string, init?: RequestInit): Promise<T>;
 }
 
 declare global {
-    const Sunrice: SunriceApi;
-
-    interface Window {
-        Sunrice: SunriceApi;
-    }
-
-    // JSX compiles to Sunrice.React.createElement (tsconfig.json), so
-    // TypeScript looks for the JSX types globally: they are React's.
-    namespace JSX {
-        type ElementType = ReactNS.JSX.ElementType;
-        type Element = ReactNS.JSX.Element;
-        type ElementClass = ReactNS.JSX.ElementClass;
-        type ElementAttributesProperty = ReactNS.JSX.ElementAttributesProperty;
-        type ElementChildrenAttribute = ReactNS.JSX.ElementChildrenAttribute;
-        type LibraryManagedAttributes<C, P> = ReactNS.JSX.LibraryManagedAttributes<C, P>;
-        type IntrinsicAttributes = ReactNS.JSX.IntrinsicAttributes;
-        type IntrinsicClassAttributes<T> = ReactNS.JSX.IntrinsicClassAttributes<T>;
-        type IntrinsicElements = ReactNS.JSX.IntrinsicElements;
-    }
+    var Sunrice: SunriceRuntime | undefined;
 }
 
 export {};

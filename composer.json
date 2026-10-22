@@ -1,6 +1,6 @@
 {
     "name": "sunrice/visual-editor",
-    "description": "Visual template editor for Sunrice CMS: edits the site's Blade files in the browser.",
+    "description": "Visual template editor for Sunrice: a plugin for the panel (sunrice/admin) and the CMS (sunrice/cms) that edits the site's Blade files in the browser.",
     "type": "library",
     "keywords": [
         "sunrice",
@@ -10,9 +10,10 @@
         "visual-editor"
     ],
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "stillat/blade-parser": "^2.1",
-        "sunrice/cms": "^1.0 || dev-main"
+        "sunrice/admin": "@dev",
+        "sunrice/cms": "@dev"
     },
     "require-dev": {
         "larastan/larastan": "^3.0",
@@ -23,8 +24,11 @@
     },
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/littleboy130491/sunrice-cms"
+            "type": "path",
+            "url": "../sunrice/packages/*",
+            "options": {
+                "symlink": true
+            }
         }
     ],
     "autoload": {

@@ -16,6 +16,7 @@ use Sunrice\VisualEditor\Blade\Unsupported;
 use Sunrice\VisualEditor\Fields\Picker;
 use Sunrice\VisualEditor\Guard\CodeGuard;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\Backups;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\TemplateFile;
@@ -211,7 +212,7 @@ class TemplateController extends Controller
     /** Whether whoever asks may edit code: put Blade and PHP of their own into a template. */
     private function mayCode(Request $request): bool
     {
-        return Access::may($request->user(config('sunrice.auth.guard')), Access::CODE);
+        return Access::may(SunriceBridge::user(), Access::CODE);
     }
 
     private function origin(Request $request): string

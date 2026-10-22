@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor;
 
-use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
-use Inertia\Inertia;
-use Sunrice\Facades\Sunrice;
-use Sunrice\Permissions\PermissionRegistry;
-use Sunrice\Permissions\SyncPermissions;
+use Sunrice\Cms\Site\PageCache;
 use Sunrice\VisualEditor\Fields\Catalog;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
-use Sunrice\VisualEditor\Mcp\EditTemplate;
-use Sunrice\VisualEditor\Mcp\GetTemplateTree;
 use Sunrice\VisualEditor\Rendering\CustomCss;
 use Sunrice\VisualEditor\Rendering\CustomJs;
 use Sunrice\VisualEditor\Support\Access;
-use Sunrice\VisualEditor\Support\RegisteredPermissions;
-use Sunrice\VisualEditor\Support\SunriceBridge;
 
+/**
+ * What the editor does whether or not a panel is set up: its settings, its
+ * built files to publish, the site's custom CSS and script on every page,
+ * and pages drawn for its frame. What it adds to the panel is the
+ * plugin's (VisualEditorPlugin).
+ */
 class VisualEditorServiceProvider extends ServiceProvider
 {
     /** Where the admin script and stylesheet are published, under public/. */
@@ -32,8 +31,15 @@ class VisualEditorServiceProvider extends ServiceProvider
         // The site's blueprints are read once for a request, whoever asks.
         $this->app->scoped(Catalog::class);
 
-        // Sunrice's sync creates a package's permission a second time and fails (see RegisteredPermissions).
-        $this->app->when(SyncPermissions::class)->needs(PermissionRegistry::class)->give(RegisteredPermissions::class);
+        // The CMS reads its site middleware when it adds the site's routes, in its
+        // provider's boot(): before any provider boots, every config is merged.
+        $this->app->booting(function (): void {
+            if (! Access::enabled()) {
+                return;
+            }
+            $middleware = config('sunrice-cms.site.middleware', ['web']);
+            config(['sunrice-cms.site.middleware' => [...(is_array($middleware) ? $middleware : ['web']), EditorRender::class]]);
+        });
     }
 
     public function boot(): void
@@ -42,73 +48,40 @@ class VisualEditorServiceProvider extends ServiceProvider
             __DIR__.'/../config/sunrice-visual-editor.php' => config_path('sunrice-visual-editor.php'),
         ], 'sunrice-visual-editor-config');
 
+        // Also "laravel-assets", which Laravel apps publish on every composer update.
         $this->publishes([
             __DIR__.'/../dist' => public_path(self::ASSETS),
-        ], 'sunrice-visual-editor-assets');
+        ], ['sunrice-visual-editor-assets', 'laravel-assets']);
 
         // The site's custom CSS and script are added to its pages whether or not the editor
         // is on: the deployed site has what was written on a local copy.
         CustomCss::register();
         CustomJs::register();
 
-        // Off: no routes, no admin script, nothing else different about rendering.
-        if (! Access::enabled()) {
-            return;
+        if (Access::enabled()) {
+            // A page drawn for the editor is never served from the CMS's page cache, nor kept in it.
+            $this->callAfterResolving(PageCache::class, fn (PageCache $cache) => $cache->skipWhen(
+                fn (Request $request): bool => $request->query(EditorRender::PARAMETER) === '1',
+            ));
         }
-
-        // Roles are given these in Sunrice's admin; `sunrice:sync-permissions` creates them.
-        foreach (Access::LABELS as $permission => $label) {
-            Sunrice::registerPermission($permission, $label, 'Visual editor');
-        }
-
-        Sunrice::adminRoutes(fn () => $this->loadRoutesFrom(__DIR__.'/../routes/admin.php'));
-
-        // Sunrice reads this list once every provider has booted, when it
-        // adds its frontend routes. The middleware does nothing unless a
-        // page is asked for by the editor (see EditorRender).
-        config(['sunrice.frontend.middleware' => [
-            ...(array) config('sunrice.frontend.middleware', ['web']),
-            EditorRender::class,
-        ]]);
-
-        // Tools for AI agents, on Sunrice's MCP server.
-        SunriceBridge::registerMcpTools(self::mcpTools());
-
-        Sunrice::registerAdminScript(self::asset('visual-editor.js'));
-        Sunrice::registerAdminStyle(self::asset('visual-editor.css'));
-
-        // The admin's pages are told whether whoever is signed in may open the editor: an entry's
-        // page then offers "Edit with Visual Editor" (resources/js/launch.ts).
-        Inertia::share('visualEditor', fn (): ?array => Access::allowed(request()->user(config('sunrice.auth.guard'))) ? ['open' => true] : null);
-
-        Sunrice::addNavigationItem(
-            label: 'Visual editor',
-            href: 'visual-editor',
-            icon: 'layout-template',
-            group: 'Manage',
-            can: fn (?Authenticatable $user): bool => Access::allowed($user),
-        );
     }
 
-    /**
-     * The tools the package has for AI agents: a template read as a tree,
-     * and changed by operations on it.
-     *
-     * @return list<class-string>
-     */
-    public static function mcpTools(): array
-    {
-        return [GetTemplateTree::class, EditTemplate::class];
-    }
+    /** @var array<string, string|null> each built file's version, looked at once per process */
+    private static array $versions = [];
 
     /**
-     * Public path of a built file, with the build's fingerprint so browsers
-     * fetch the new one after an upgrade.
+     * Public path of a built file, with the build's version so browsers
+     * fetch the new one after an upgrade. The panel asks on every page, so
+     * the file is only looked at, not read.
      */
     public static function asset(string $file): string
     {
-        $built = __DIR__.'/../dist/'.$file;
+        if (! array_key_exists($file, self::$versions)) {
+            $stat = @stat(__DIR__.'/../dist/'.$file);
+            self::$versions[$file] = $stat === false ? null : substr(md5($stat['mtime'].'-'.$stat['size']), 0, 10);
+        }
+        $version = self::$versions[$file];
 
-        return self::ASSETS.'/'.$file.(is_file($built) ? '?v='.substr((string) md5_file($built), 0, 10) : '');
+        return self::ASSETS.'/'.$file.($version === null ? '' : '?v='.$version);
     }
 }
