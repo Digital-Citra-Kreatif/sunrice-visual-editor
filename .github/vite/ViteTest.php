@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Spatie\Permission\Models\Role;
+use Sunrice\Admin\Actions\Permissions\SyncPermissions;
 use Tests\TestCase;
 
 /**
@@ -13,13 +14,14 @@ use Tests\TestCase;
  */
 class ViteTest extends TestCase
 {
-    private const HEADER = 'partials/header.blade.php';
+    /** The CMS's starter layout, which holds the site's header. */
+    private const LAYOUT = 'layout.blade.php';
 
     public function test_the_layout_opens_as_a_tree_with_vite_as_one_piece_of_code(): void
     {
         $this->actingAs($this->someone('admin@example.com', superAdmin: true));
 
-        $layout = $this->getJson('/cms/visual-editor/api/templates/layouts/app.blade.php')->assertOk()->json('template');
+        $layout = $this->getJson('/admin/visual-editor/api/templates/'.self::LAYOUT)->assertOk()->json('template');
 
         $this->assertTrue($layout['opens'], (string) ($layout['reason'] ?? ''));
         $vite = $this->find($layout['tree'], fn (array $node) => ($node['name'] ?? null) === 'vite');
@@ -32,7 +34,7 @@ class ViteTest extends TestCase
         $this->assertFileDoesNotExist(public_path('hot'));
         $this->actingAs($this->someone('admin@example.com', superAdmin: true));
 
-        $page = $this->get('/demo?sve=1')->assertOk()->getContent();
+        $page = $this->get('/about?sve=1')->assertOk()->getContent();
 
         $this->assertStringContainsString('data-sve="', $page);
         $this->assertMatchesRegularExpression('#<link[^>]+href="[^"]*/build/assets/[^"]+\.css"#', $page);
@@ -44,13 +46,13 @@ class ViteTest extends TestCase
         $server = trim((string) file_get_contents(public_path('hot')));
         $this->actingAs($this->someone('admin@example.com', superAdmin: true));
 
-        $page = $this->get('/demo?sve=1')->assertOk()->getContent();
+        $page = $this->get('/about?sve=1')->assertOk()->getContent();
 
         $this->assertStringContainsString('data-sve="', $page);
         $this->assertStringContainsString($server.'/@vite/client', $page);
         $this->assertStringContainsString($server.'/resources/css/app.css', $page);
         // And for a visitor: the same CSS, no marks.
-        $this->assertStringNotContainsString('data-sve', $this->get('/demo')->assertOk()->getContent());
+        $this->assertStringNotContainsString('data-sve', $this->get('/about')->assertOk()->getContent());
     }
 
     public function test_preview_a_page_for_the_editor_has_tailwind_s_browser_build_and_a_visitor_s_has_not(): void
@@ -58,25 +60,25 @@ class ViteTest extends TestCase
         $this->assertFileDoesNotExist(public_path('hot'));
         $this->actingAs($this->someone('admin@example.com', superAdmin: true));
 
-        $page = $this->get('/demo?sve=1')->assertOk()->getContent();
+        $page = $this->get('/about?sve=1')->assertOk()->getContent();
         $this->assertStringContainsString('@tailwindcss/browser', $page);
         // The site's own entry file, for its theme: Laravel's has the font in it.
         $this->assertStringContainsString('<style type="text/tailwindcss" data-sve-preview>', $page);
         $this->assertStringContainsString('--font-sans', $page);
         $this->assertStringNotContainsString('@source', substr($page, (int) strpos($page, 'data-sve-preview>'), 2000));
 
-        $visitor = $this->get('/demo')->assertOk()->getContent();
+        $visitor = $this->get('/about')->assertOk()->getContent();
         $this->assertStringNotContainsString('data-sve-preview', $visitor);
         $this->assertStringNotContainsString('@tailwindcss/browser', $visitor);
     }
 
     public function test_build_the_site_s_command_is_run_from_the_editor_by_whoever_may(): void
     {
-        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit']));
-        $this->postJson('/cms/visual-editor/api/build')->assertForbidden();
+        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access', 'visual-editor.edit']));
+        $this->postJson('/admin/visual-editor/api/build')->assertForbidden();
 
-        $this->actingAs($this->someone('builder@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit', 'visual-editor.build']));
-        $built = $this->postJson('/cms/visual-editor/api/build')->assertOk()->json();
+        $this->actingAs($this->someone('builder@example.com', permissions: ['sunrice.access', 'visual-editor.edit', 'visual-editor.build']));
+        $built = $this->postJson('/admin/visual-editor/api/build')->assertOk()->json();
 
         $this->assertTrue($built['ok'], $built['message']."\n".$built['output']);
         $this->assertSame(0, $built['code']);
@@ -86,8 +88,8 @@ class ViteTest extends TestCase
 
     public function test_no_build_a_command_that_is_not_on_the_server_says_so(): void
     {
-        $this->actingAs($this->someone('builder@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit', 'visual-editor.build']));
-        $built = $this->postJson('/cms/visual-editor/api/build')->assertOk()->json();
+        $this->actingAs($this->someone('builder@example.com', permissions: ['sunrice.access', 'visual-editor.edit', 'visual-editor.build']));
+        $built = $this->postJson('/admin/visual-editor/api/build')->assertOk()->json();
 
         $this->assertFalse($built['ok']);
         $this->assertSame(127, $built['code']);
@@ -95,23 +97,23 @@ class ViteTest extends TestCase
         $this->assertStringContainsString('no-such-build-command', $built['output']);
     }
 
-    /** Adds the class named in SVE_CLASS to the header's first element, through the editor, as a designer. It stays. */
+    /** Adds the class named in SVE_CLASS to the layout's <header>, through the editor, as a designer. It stays. */
     public function test_a_class_is_added_in_the_editor(): void
     {
         $class = (string) getenv('SVE_CLASS');
         $this->assertNotSame('', $class, 'Say which class in SVE_CLASS.');
-        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access-admin', 'visual-editor.edit']));
+        $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access', 'visual-editor.edit']));
 
-        $template = $this->getJson('/cms/visual-editor/api/templates/'.self::HEADER)->assertOk()->json('template');
-        $element = $this->find($template['tree'], fn (array $node) => ($node['type'] ?? null) === 'element' && ($node['can']['attributes'] ?? false));
+        $template = $this->getJson('/admin/visual-editor/api/templates/'.self::LAYOUT)->assertOk()->json('template');
+        $element = $this->find($template['tree'], fn (array $node) => ($node['type'] ?? null) === 'element' && ($node['name'] ?? null) === 'header');
         $this->assertNotNull($element);
 
-        $this->postJson('/cms/visual-editor/api/templates/'.self::HEADER.'/operations', [
+        $this->postJson('/admin/visual-editor/api/templates/'.self::LAYOUT.'/operations', [
             'version' => $template['version'],
             'operations' => [['type' => 'addClass', 'node' => $element['id'], 'class' => $class]],
         ])->assertOk();
 
-        $this->assertStringContainsString($class, (string) file_get_contents(resource_path('views/sunrice/'.self::HEADER)));
+        $this->assertStringContainsString($class, (string) file_get_contents(resource_path('views/cms/'.self::LAYOUT)));
     }
 
     /**
@@ -120,10 +122,9 @@ class ViteTest extends TestCase
     private function someone(string $email, bool $superAdmin = false, array $permissions = []): User
     {
         $user = User::query()->firstOrCreate(['email' => $email], ['name' => $email, 'password' => bcrypt('password')]);
-        $guard = config('sunrice.auth.guard', 'web');
         $role = $superAdmin
-            ? Role::findOrCreate(config('sunrice.super_admin_role'), $guard)
-            : Role::findOrCreate('Check '.implode(' ', $permissions), $guard)->syncPermissions($permissions);
+            ? Role::findOrCreate(SyncPermissions::superAdminRole(), 'web')
+            : Role::findOrCreate('check-'.md5(implode(' ', $permissions)), 'web')->syncPermissions($permissions);
 
         return $user->syncRoles([$role]);
     }

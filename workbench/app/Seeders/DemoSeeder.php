@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Workbench\App\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
 use Sunrice\Cms\Actions\Entries\CreateEntry;
 use Sunrice\Cms\Actions\Entries\PublishEntry;
 use Sunrice\Cms\Actions\Entries\SetHomepage;
@@ -16,6 +17,7 @@ use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\Cms\Models\Fieldset;
 use Sunrice\Cms\Models\GlobalSet;
 use Sunrice\Cms\Models\Menu;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * A small site to edit, made through the CMS's own actions: the content
@@ -33,6 +35,10 @@ class DemoSeeder extends Seeder
 
     public function run(): void
     {
+        // The blocks' own templates, beside the CMS's starter templates that
+        // the workbench build publishes: the editor has a hero to work on.
+        File::copyDirectory(dirname(__DIR__, 3).'/tests/fixtures/site', SunriceBridge::templateDirectory());
+
         // Safe to run again: Testbench seeds once for `seeders:` in
         // testbench.yaml and once for `migrate-fresh --seeder`.
         if (Fieldset::query()->where('handle', 'hero')->exists()) {
