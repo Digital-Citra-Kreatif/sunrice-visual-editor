@@ -5,6 +5,60 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+### On the new Sunrice: a plugin of the panel, for the CMS
+
+Sunrice is now two packages, the panel (`sunrice/admin`) and the CMS
+(`sunrice/cms`) as its plugin, and the editor is rebuilt as another plugin
+of the panel that requires the CMS. It uses only their public (`@api`) API.
+
+**Breaking changes**, with what to do:
+
+- **Add the plugin to the panel**, after the CMS:
+  `$panel->plugin(CmsPlugin::make())->plugin(VisualEditorPlugin::make())`.
+  The service provider no longer adds anything to the admin by itself.
+- **Requires** `sunrice/admin` and `sunrice/cms` (the monorepo), PHP 8.4 and
+  Laravel 13. Neither Sunrice package is on Packagist yet: Composer takes
+  them from a checkout of the monorepo (a path repository, `../sunrice`).
+- **Templates are the CMS's**: `resources/views/cms` (the views `cms.…`),
+  not `resources/views/sunrice`. The CMS's own views (`sunrice-cms::entry`,
+  `listing`, `term`, `search`, `comment-unsubscribe`) are the read-only
+  fallbacks, and **Copy to site** puts a copy at `cms/entry.blade.php` and
+  so on. Which view each page uses follows the CMS's rules (an entry's own
+  template, the collection's, `cms.{handle}`, `cms.entry`).
+- **Theme files are in `public/cms/`** (beside the starter's `site.css`),
+  not `public/sunrice-theme/`: the custom CSS and JS, and `editor.css`. Move
+  yours there.
+- **The custom JS is pushed onto `@stack('head')`**, deferred, as the CMS's
+  starter layout has no `@stack('scripts')` (`custom_js.stack`).
+- **The editor is at `/admin/visual-editor`** (the panel's path), in the
+  sidebar under *Structure*. Its page is a plugin bundle of the panel
+  (runtime 3), loaded only on the editor's own page.
+- **Edit with Visual Editor** is in the ⋮ menu of an entry's page, through
+  the CMS's new `Cms::entryLinksUsing()`. The admin script that added a
+  button to every entry page is gone.
+- **AI tools** are on the panel's MCP server as
+  `visual_editor_get_template_tree` and `visual_editor_edit_template`. The
+  new setting `agents` (`SUNRICE_VISUAL_EDITOR_AGENTS`) replaces Sunrice's
+  `sunrice.mcp.templates` for them.
+- **Fields and inserts are the CMS's**: a page's fields are `$values['…']`,
+  an entry in a list has them from `$item->values()['…']`, global sets and
+  menus are `cms_global('…')['…']` and `cms_menu('…')`, the page is
+  `cms_page()`, files are the panel's media (`->url('large')`,
+  `->altIn()`), terms read `->title()`, and the components are
+  `<x-sunrice-cms::entries>`, `terms`, `form`, `search`, `seo`, `code`
+  (`place="head"`) and `comments`. Blocks are drawn by `cms/blocks/{type}`,
+  else the starter's `cms.partials.block`.
+- **Backups** go to `storage/app/sunrice-cms/template-backups/`, beside the
+  CMS's copies of templates written by agents. Saves are in the panel's
+  activity log and clear the CMS's page cache; pages drawn for the editor
+  are never kept in it.
+- **Permissions** keep their names and are registered with the panel even
+  where the editor is off, so roles keep them; `visual-editor.code` and
+  `visual-editor.build` are privileged (security alerts). The workaround for
+  the old Sunrice's permission sync (`RegisteredPermissions`) is gone.
+- The round-trip report covers the CMS's starter templates and own views
+  too.
+
 ### A simpler screen
 
 - **Three parts**: the tree on the left (templates on the page, and the

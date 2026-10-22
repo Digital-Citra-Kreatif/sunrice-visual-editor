@@ -30,6 +30,13 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
+      # sunrice/admin and sunrice/cms are not on Packagist yet: composer.json takes
+      # them from a checkout of the Sunrice monorepo beside this package.
+      - name: Sunrice beside the package
+        run: git clone --depth 1 --branch "${SUNRICE_REF:-main}" https://github.com/Digital-Citra-Kreatif/sunrice ../sunrice
+        env:
+          SUNRICE_REF: ${{ vars.SUNRICE_REF }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

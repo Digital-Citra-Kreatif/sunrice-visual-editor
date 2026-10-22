@@ -335,11 +335,6 @@ running.
 .github/vite-check.sh
 ```
 
-Where Packagist and npm can't be reached but GitHub can, everything above
-still runs: the `ci/lock` branch of this repository holds a `composer.lock`
-that CI resolved, and a script that fetches each locked package from GitHub
-and installs `vendor/` from the copies. Its README says how.
-
 ## Layout
 
 ```

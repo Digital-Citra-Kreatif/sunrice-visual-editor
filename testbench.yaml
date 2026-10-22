@@ -14,13 +14,12 @@ seeders:
   - Workbench\Database\Seeders\DatabaseSeeder
 
 workbench:
-  start: '/admin/visual-editor'
-  user: admin@example.com
+  start: '/'
   install: true
   auth: true
   health: false
   discovers:
-    web: false
+    web: true
     api: false
     commands: false
     components: false
@@ -33,14 +32,9 @@ workbench:
         --seed: true
         --seeder: Workbench\Database\Seeders\DatabaseSeeder
     - sunrice:assets
+    # One step: Testbench keeps one build step per command.
     - vendor:publish:
-        --tag: sunrice-cms-assets
-        --force: true
-    - vendor:publish:
-        --tag: sunrice-cms-templates
-        --force: true
-    - vendor:publish:
-        --tag: sunrice-visual-editor-assets
+        --tag: [sunrice-cms-assets, sunrice-cms-templates, sunrice-visual-editor-assets]
         --force: true
     - storage:link
   sync:
