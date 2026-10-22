@@ -11,15 +11,14 @@ uses(WithStarterSite::class);
 
 beforeEach(fn () => $this->setUpStarterSite());
 
-it('renders the homepage from the layout, header, footer and block partials', function () {
+it('renders the homepage from the layout, its menus and a template per block', function () {
     get('/')
         ->assertOk()
-        ->assertSee(DemoSeeder::SITE_NAME)                  // partials/header: the `site` global
         ->assertSee('Articles')                             // partials/menu: the `main` menu
         ->assertSee(DemoSeeder::HERO_HEADING)               // blocks/hero
         ->assertSee('href="'.DemoSeeder::HERO_LINK.'"', false) // blocks/hero: link field
-        ->assertSee('<code>blocks/</code>', false)          // blocks/text: rich text
-        ->assertSee('Built with Sunrice CMS.');             // partials/footer: the `footer` global
+        ->assertSee('<code>cms/blocks/{type}.blade.php</code>', false) // blocks/text: rich text
+        ->assertSee(DemoSeeder::FOOTER_TEXT);               // the layout: the `footer` global
 });
 
 it('renders a page, the article listing and an article', function () {

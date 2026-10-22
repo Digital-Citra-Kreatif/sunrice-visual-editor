@@ -38,9 +38,9 @@ it('lists the templates', function () {
 
     $templates = collect(getJson(SVE_API)->assertOk()->json('templates'));
 
-    expect($templates->where('origin', 'site')->pluck('path'))->toContain(SVE_FOOTER, 'layouts/app.blade.php', 'show.blade.php')
-        ->and($templates->where('origin', 'package')->pluck('path'))->toContain('defaults/show.blade.php')
-        ->and($templates->firstWhere('path', SVE_FOOTER))->toMatchArray(['origin' => 'site', 'view' => 'sunrice.partials.footer', 'role' => 'partial', 'editable' => true, 'opens' => true])
+    expect($templates->where('origin', 'site')->pluck('path'))->toContain(SVE_FOOTER, 'layout.blade.php', 'entry.blade.php')
+        ->and($templates->where('origin', 'package')->pluck('path'))->toContain('entry.blade.php')
+        ->and($templates->firstWhere('path', SVE_FOOTER))->toMatchArray(['origin' => 'site', 'view' => 'cms.partials.footer', 'role' => 'partial', 'editable' => true, 'opens' => true])
         // The list says what there is; sources and trees come one template at a time.
         ->and($templates->first())->not->toHaveKeys(['source', 'tree']);
 });
@@ -61,12 +61,12 @@ it('reads a template of the site', function () {
 it('reads one of Sunrice\'s own views', function () {
     actingAsSuperAdmin();
 
-    getJson(SVE_API.'/defaults/show.blade.php?origin=package')
+    getJson(SVE_API.'/draft-banner.blade.php?origin=package')
         ->assertOk()
         ->assertJsonPath('template.origin', 'package')
-        ->assertJsonPath('template.view', 'sunrice::defaults.show')
+        ->assertJsonPath('template.view', 'sunrice-cms::draft-banner')
         ->assertJsonPath('template.editable', false)
-        ->assertJsonPath('template.copyTo', 'show.blade.php');
+        ->assertJsonPath('template.copyTo', null);
 });
 
 it('answers 404 for a template that isn\'t there, whatever the path tries', function (string $path) {
@@ -81,7 +81,7 @@ it('answers 404 for a template that isn\'t there, whatever the path tries', func
     'nothing there' => ['partials/nope.blade.php'],
     'up and out' => ['..%2Fsecret.blade.php'],
     'up and out, written plainly' => ['partials/../../secret.blade.php'],
-    'a package view without saying so' => ['defaults/show.blade.php'],
+    'a package view without saying so' => ['draft-banner.blade.php'],
     'a file that is no template' => ['partials/footer.php'],
 ]);
 
@@ -261,30 +261,30 @@ it('refuses source for another version of the file, or none at all', function ()
     expect(File::get($this->footer))->toBe($this->original);
 });
 
-it('changes none of Sunrice\'s own views', function () {
+it('changes none of the CMS\'s own views', function () {
     actingAsSuperAdmin();
-    $view = getJson(SVE_API.'/defaults/show.blade.php?origin=package')->json('template');
+    $view = getJson(SVE_API.'/draft-banner.blade.php?origin=package')->json('template');
 
-    putJson(SVE_API.'/defaults/show.blade.php/source', ['version' => $view['version'], 'source' => '<p>x</p>'])->assertNotFound();
-    postJson(SVE_API.'/defaults/show.blade.php/operations', ['version' => $view['version'], 'operations' => [['type' => 'remove', 'node' => '0']]])->assertNotFound();
-    putJson(SVE_API.'/defaults/show.blade.php/source?origin=package', ['version' => $view['version'], 'source' => '<p>x</p>'])->assertNotFound();
+    putJson(SVE_API.'/draft-banner.blade.php/source', ['version' => $view['version'], 'source' => '<p>x</p>'])->assertNotFound();
+    postJson(SVE_API.'/draft-banner.blade.php/operations', ['version' => $view['version'], 'operations' => [['type' => 'remove', 'node' => '0']]])->assertNotFound();
+    putJson(SVE_API.'/draft-banner.blade.php/source?origin=package', ['version' => $view['version'], 'source' => '<p>x</p>'])->assertNotFound();
 
-    expect(getJson(SVE_API.'/defaults/show.blade.php?origin=package')->json('template.version'))->toBe($view['version']);
+    expect(getJson(SVE_API.'/draft-banner.blade.php?origin=package')->json('template.version'))->toBe($view['version']);
 });
 
 it('copies a fallback view into the site', function () {
     actingAsSuperAdmin();
-    File::delete($this->templates.'/taxonomies/show.blade.php');
-    $source = getJson(SVE_API.'/defaults/term.blade.php?origin=package')->json('template.source');
+    File::delete($this->templates.'/term.blade.php');
+    $source = getJson(SVE_API.'/term.blade.php?origin=package')->json('template.source');
 
-    postJson(SVE_API.'/defaults/term.blade.php/copy')
+    postJson(SVE_API.'/term.blade.php/copy')
         ->assertCreated()
-        ->assertJsonPath('template.path', 'taxonomies/show.blade.php')
+        ->assertJsonPath('template.path', 'term.blade.php')
         ->assertJsonPath('template.origin', 'site')
         ->assertJsonPath('template.editable', true)
         ->assertJsonPath('template.source', $source);
 
-    expect(File::get($this->templates.'/taxonomies/show.blade.php'))->toBe($source);
+    expect(File::get($this->templates.'/term.blade.php'))->toBe($source);
 });
 
 it('refuses a copy the site has no room for', function (string $path, int $status, string $reason) {
@@ -292,9 +292,9 @@ it('refuses a copy the site has no room for', function (string $path, int $statu
 
     postJson(SVE_API.'/'.$path.'/copy')->assertStatus($status)->assertJsonPath('reason', $reason);
 })->with([
-    'the site already has that template' => ['defaults/show.blade.php', 422, 'rejected'],
+    'the site already has that template' => ['entry.blade.php', 422, 'rejected'],
     'Sunrice looks for it nowhere in the site' => ['components/form.blade.php', 422, 'rejected'],
-    'not one of Sunrice\'s views' => [SVE_FOOTER, 404, 'not_found'],
+    'not one of the CMS\'s views' => [SVE_FOOTER, 404, 'not_found'],
 ]);
 
 it('lets only those who may use the editor in', function (string $method, string $uri) {
@@ -316,7 +316,7 @@ it('lets only those who may use the editor in', function (string $method, string
     ['GET', SVE_API.'/'.SVE_FOOTER],
     ['POST', SVE_API.'/'.SVE_FOOTER.'/operations'],
     ['PUT', SVE_API.'/'.SVE_FOOTER.'/source'],
-    ['POST', SVE_API.'/defaults/term.blade.php/copy'],
+    ['POST', SVE_API.'/term.blade.php/copy'],
 ]);
 
 it('names its routes', function () {

@@ -14,7 +14,6 @@ use Sunrice\Admin\Panel;
 use Sunrice\Cms\Fields\CustomField;
 use Sunrice\Cms\Fields\Field;
 use Sunrice\Cms\Fields\FieldTypes;
-use Sunrice\Cms\Fields\Schema;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
@@ -47,30 +46,26 @@ final class SunriceBridge
     /**
      * An entry as the editor links to it: its id, its title and the address
      * of its page in the panel, in the language shown. Null for anything
-     * that is no entry.
+     * that is no entry: an entry's page gives its template the entry in its
+     * language (an EntryTranslation).
      *
      * @return array{id: int, title: string, edit: string}|null
      */
-    public static function entryLink(mixed $entry): ?array
+    public static function entryLink(mixed $translation): ?array
     {
-        $translation = $entry instanceof EntryTranslation ? $entry : null;
-        $entry = $translation?->entry ?? ($entry instanceof Entry ? $entry : null);
-        if ($entry === null || ! is_int($entry->getKey())) {
+        if (! $translation instanceof EntryTranslation || ! Route::has('sunrice.admin.cms.collections.entries.edit')) {
             return null;
         }
-        $collection = $entry->collection;
-        if (! $collection instanceof Collection || ! Route::has('sunrice.admin.cms.collections.entries.edit')) {
-            return null;
-        }
+        $entry = $translation->entry;
 
         return [
-            'id' => $entry->getKey(),
-            'title' => (string) ($translation?->title ?? $translation?->draft_title ?? ''),
-            'edit' => route('sunrice.admin.cms.collections.entries.edit', array_filter([
-                'collection' => $collection->handle,
-                'entry' => $entry->getKey(),
-                'locale' => $translation?->locale,
-            ]), false),
+            'id' => $entry->id,
+            'title' => (string) ($translation->title ?? $translation->draft_title),
+            'edit' => route('sunrice.admin.cms.collections.entries.edit', [
+                'collection' => $entry->collection->handle,
+                'entry' => $entry->id,
+                'locale' => $translation->locale,
+            ], false),
         ];
     }
 
@@ -241,10 +236,8 @@ final class SunriceBridge
         // The fields of every blueprint, each once: the first blueprint's order, then the others' own.
         $fields = [];
         foreach ($schemas as $schema) {
-            if ($schema instanceof Schema) {
-                foreach ($schema->fields() as $field) {
-                    $fields[$field->handle] ??= $field;
-                }
+            foreach ($schema->fields() as $field) {
+                $fields[$field->handle] ??= $field;
             }
         }
 
@@ -325,7 +318,11 @@ final class SunriceBridge
             ->values()->all();
     }
 
-    /** The image sizes the panel makes of an upload, by name: [width, height]. */
+    /**
+     * The image sizes the panel makes of an upload, by name: [width, height, mode].
+     *
+     * @return array<string, mixed>
+     */
     public static function imageSizes(): array
     {
         $sizes = config('sunrice-admin.media.image_sizes', []);

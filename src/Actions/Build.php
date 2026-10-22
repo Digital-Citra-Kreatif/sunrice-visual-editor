@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Sunrice\VisualEditor\Actions;
 
 use Sunrice\VisualEditor\Support\Files;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 use Throwable;
-use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * Runs the site's build command: what makes the CSS of a site that builds

@@ -19,6 +19,11 @@ const SVE_STYLES = '/admin/visual-editor/api/styles';
 
 beforeEach(function () {
     $this->setUpStarterSite();
+    // A stylesheet of the site's own beside the starter's site.css: the one these tests change.
+    File::delete($this->theme.'/site.css');
+    File::copy(dirname(__DIR__).'/fixtures/css/starter.css', $this->theme.'/app.css');
+    $layout = $this->templates.'/layout.blade.php';
+    File::put($layout, str_replace("asset('cms/site.css')", "asset('cms/app.css')", File::get($layout)));
     $this->css = $this->theme.'/app.css';
     $this->original = File::get($this->css);
     File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
@@ -44,7 +49,7 @@ it('lists the theme\'s stylesheets, and where new rules go', function () {
 
     expect(array_column($styles['files'], 'path'))->toBe(['app.css', 'css/print.css'])
         ->and($styles['files'][0])->toMatchArray(['version' => sha1($this->original), 'exists' => true, 'reason' => null])
-        ->and($styles['files'][0]['url'])->toEndWith('/sunrice-theme/app.css')
+        ->and($styles['files'][0]['url'])->toEndWith('/cms/app.css')
         ->and($styles['rules'])->toBe([])
         ->and($styles['class'])->toBeNull()
         ->and($styles['own'])->toMatchArray(['path' => 'editor.css', 'exists' => false, 'version' => sha1('')]);
@@ -140,9 +145,9 @@ it('changes one declaration and nothing else in the file', function () {
         ->and($response->json('before'))->toBe($this->original)
         ->and($response->json('styles.rules.0.declarations.2.value'))->toBe('32px')
         ->and($response->json('styles.files.0.version'))->toBe(sha1($expected))
-        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/sunrice-theme/app.css')))->toHaveCount(1)
-        ->and(File::get(glob(storage_path('app/sunrice-cms/template-backups/*/sunrice-theme/app.css'))[0]))->toBe($this->original)
-        ->and(ActivityLog::query()->where('subject_type', 'template')->sole())->toMatchArray(['action' => 'updated', 'subject_label' => 'sunrice-theme/app.css', 'user_id' => $admin->getKey()]);
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/theme/app.css')))->toHaveCount(1)
+        ->and(File::get(glob(storage_path('app/sunrice-cms/template-backups/*/theme/app.css'))[0]))->toBe($this->original)
+        ->and(ActivityLog::query()->where('subject_type', 'stylesheet')->sole())->toMatchArray(['action' => 'updated', 'subject_label' => 'cms/app.css', 'user_id' => (string) $admin->getKey()]);
 });
 
 it('adds, renames and takes out declarations, all or none', function () {
@@ -179,8 +184,8 @@ it('puts a rule that does not exist yet into the editor\'s own stylesheet, which
         ->and($response->json('styles.rules.0'))->toMatchArray(['file' => 'editor.css', 'selector' => '.brand-new', 'exact' => true])
         ->and($response->json('before'))->toBe('')
         // Nothing was there to keep a copy of.
-        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/sunrice-theme/editor.css')))->toBe([])
-        ->and(ActivityLog::query()->where('subject_type', 'template')->sole()->action)->toBe('created');
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/theme/editor.css')))->toBe([])
+        ->and(ActivityLog::query()->where('subject_type', 'stylesheet')->sole()->action)->toBe('created');
 
     // The next one goes after it, into the file as it is now.
     postJson(SVE_STYLES.'/files/editor.css/changes', ['version' => sha1(File::get($own)), 'changes' => [['type' => 'rule', 'selector' => '.another']]])->assertOk();
@@ -278,38 +283,40 @@ it('does not send back a file too large to keep many of', function () {
 
 it('links the editor\'s stylesheet from the layout, after the stylesheets it links already', function () {
     actingAsSuperAdmin();
-    $layout = $this->templates.'/layouts/app.blade.php';
+    $layout = $this->templates.'/layout.blade.php';
     $before = File::get($layout);
     postJson(SVE_STYLES.'/files/editor.css/changes', ['version' => sha1(''), 'changes' => [['type' => 'rule', 'selector' => '.a']]])->assertOk();
 
-    $response = postJson(SVE_STYLES.'/link', ['template' => 'layouts/app.blade.php', 'version' => sha1($before), 'stylesheet' => 'editor.css'])->assertOk();
+    $response = postJson(SVE_STYLES.'/link', ['template' => 'layout.blade.php', 'version' => sha1($before), 'stylesheet' => 'editor.css'])->assertOk();
 
-    $link = "    @if (is_file(\$sunriceEditorCss = public_path('sunrice-theme/editor.css')))\n        <link rel=\"stylesheet\" href=\"{{ asset('sunrice-theme/editor.css') }}?v={{ filemtime(\$sunriceEditorCss) }}\">\n    @endif\n";
+    $link = "    @if (is_file(\$sunriceEditorCss = public_path('cms/editor.css')))\n        <link rel=\"stylesheet\" href=\"{{ asset('cms/editor.css') }}?v={{ filemtime(\$sunriceEditorCss) }}\">\n    @endif\n";
     $after = File::get($layout);
-    expect($after)->toBe(str_replace("?v={{ filemtime(\$sunriceCss) }}\">\n    @endif\n", "?v={{ filemtime(\$sunriceCss) }}\">\n    @endif\n".$link, $before))
+    $linked = "    <link rel=\"stylesheet\" href=\"{{ asset('cms/app.css') }}\">\n";
+    expect($after)->toBe(str_replace($linked, $linked.$link, $before))
         ->not->toBe($before)
         ->and($response->json('before'))->toBe($before)
-        ->and($response->json('template'))->toMatchArray(['path' => 'layouts/app.blade.php', 'version' => sha1($after), 'opens' => true]);
+        ->and($response->json('template'))->toMatchArray(['path' => 'layout.blade.php', 'version' => sha1($after), 'opens' => true]);
 
     // The page is drawn with it, and a second link is not added.
     $this->get('/')->assertOk();
-    postJson(SVE_STYLES.'/link', ['template' => 'layouts/app.blade.php', 'version' => sha1($after), 'stylesheet' => 'editor.css'])
+    postJson(SVE_STYLES.'/link', ['template' => 'layout.blade.php', 'version' => sha1($after), 'stylesheet' => 'editor.css'])
         ->assertStatus(422)->assertJsonPath('reason', 'rejected');
     expect(File::get($layout))->toBe($after);
 });
 
 it('links at the end of a head that links no stylesheet', function () {
     actingAsSuperAdmin();
+    File::ensureDirectoryExists($this->templates.'/layouts');
     File::put($this->templates.'/layouts/bare.blade.php', $bare = "<html>\n<head>\n    <title>x</title>\n</head>\n<body>@yield('content')</body>\n</html>\n");
 
     postJson(SVE_STYLES.'/link', ['template' => 'layouts/bare.blade.php', 'version' => sha1($bare), 'stylesheet' => 'app.css'])->assertOk();
 
-    expect(File::get($this->templates.'/layouts/bare.blade.php'))->toBe("<html>\n<head>\n    <title>x</title>\n    @if (is_file(\$sunriceAppCss = public_path('sunrice-theme/app.css')))\n        <link rel=\"stylesheet\" href=\"{{ asset('sunrice-theme/app.css') }}?v={{ filemtime(\$sunriceAppCss) }}\">\n    @endif\n</head>\n<body>@yield('content')</body>\n</html>\n");
+    expect(File::get($this->templates.'/layouts/bare.blade.php'))->toBe("<html>\n<head>\n    <title>x</title>\n    @if (is_file(\$sunriceAppCss = public_path('cms/app.css')))\n        <link rel=\"stylesheet\" href=\"{{ asset('cms/app.css') }}?v={{ filemtime(\$sunriceAppCss) }}\">\n    @endif\n</head>\n<body>@yield('content')</body>\n</html>\n");
 });
 
 it('refuses a link it can\'t make', function (array $body, int $status, string $reason) {
     actingAsSuperAdmin();
-    $layout = File::get($this->templates.'/layouts/app.blade.php');
+    $layout = File::get($this->templates.'/layout.blade.php');
     $footer = File::get($this->templates.'/partials/footer.blade.php');
 
     postJson(SVE_STYLES.'/link', array_map(fn ($value) => match ($value) {
@@ -318,15 +325,15 @@ it('refuses a link it can\'t make', function (array $body, int $status, string $
         default => $value,
     }, $body))->assertStatus($status)->assertJsonPath('reason', $reason);
 
-    expect(File::get($this->templates.'/layouts/app.blade.php'))->toBe($layout)
+    expect(File::get($this->templates.'/layout.blade.php'))->toBe($layout)
         ->and(File::get($this->templates.'/partials/footer.blade.php'))->toBe($footer);
 })->with([
     'a template without a head' => [['template' => 'partials/footer.blade.php', 'version' => '{footer}', 'stylesheet' => 'app.css'], 422, 'rejected'],
-    'a stylesheet it links already' => [['template' => 'layouts/app.blade.php', 'version' => '{layout}', 'stylesheet' => 'app.css'], 422, 'rejected'],
-    'a stylesheet that is not there' => [['template' => 'layouts/app.blade.php', 'version' => '{layout}', 'stylesheet' => 'other.css'], 404, 'not_found'],
+    'a stylesheet it links already' => [['template' => 'layout.blade.php', 'version' => '{layout}', 'stylesheet' => 'app.css'], 422, 'rejected'],
+    'a stylesheet that is not there' => [['template' => 'layout.blade.php', 'version' => '{layout}', 'stylesheet' => 'other.css'], 404, 'not_found'],
     'a template that is not there' => [['template' => 'layouts/other.blade.php', 'version' => '{layout}', 'stylesheet' => 'app.css'], 404, 'not_found'],
-    'another version of the layout' => [['template' => 'layouts/app.blade.php', 'version' => 'older', 'stylesheet' => 'app.css'], 409, 'conflict'],
-    'no stylesheet named' => [['template' => 'layouts/app.blade.php', 'version' => '{layout}'], 422, 'invalid'],
+    'another version of the layout' => [['template' => 'layout.blade.php', 'version' => 'older', 'stylesheet' => 'app.css'], 409, 'conflict'],
+    'no stylesheet named' => [['template' => 'layout.blade.php', 'version' => '{layout}'], 422, 'invalid'],
 ]);
 
 // --- Who may ------------------------------------------------------------------
@@ -346,5 +353,5 @@ it('is for those who may use the editor only', function (string $method, string 
     ['GET', SVE_STYLES.'?class=card', []],
     ['POST', SVE_STYLES.'/files/app.css/changes', ['version' => 'x', 'changes' => [['type' => 'rule', 'selector' => '.a']]]],
     ['PUT', SVE_STYLES.'/files/app.css/source', ['version' => 'x', 'source' => '']],
-    ['POST', SVE_STYLES.'/link', ['template' => 'layouts/app.blade.php', 'version' => 'x', 'stylesheet' => 'app.css']],
+    ['POST', SVE_STYLES.'/link', ['template' => 'layout.blade.php', 'version' => 'x', 'stylesheet' => 'app.css']],
 ]);

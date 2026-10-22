@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
-use Spatie\Permission\Models\Permission;
 use Sunrice\Admin\Panel;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\VisualEditor\Support\Access;

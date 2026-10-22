@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
+use Sunrice\Cms\Models\Blueprint;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
@@ -84,7 +85,7 @@ it('reads field definitions with their nested fields', function () {
 
 it('reads the fields of every blueprint a collection\'s entries may use', function () {
     $this->setUpStarterSite();
-    \Sunrice\Cms\Models\Blueprint::query()->create(['handle' => 'video_post', 'title' => 'Video post', 'fields' => [
+    Blueprint::query()->create(['handle' => 'video_post', 'title' => 'Video post', 'fields' => [
         ['handle' => 'excerpt', 'type' => 'textarea', 'label' => 'Excerpt'],
         ['handle' => 'video', 'type' => 'link', 'label' => 'Video'],
     ]]);

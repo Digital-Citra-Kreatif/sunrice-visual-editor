@@ -40,13 +40,13 @@ it('says what the custom script is before there is any', function () {
         'exists' => false,
         'source' => '',
         'injected' => true,
-        'stack' => 'scripts',
-    ])->and(getJson(SVE_CUSTOM_JS)->json('custom.url'))->toEndWith('/sunrice-theme/custom.js');
+        'stack' => 'head',
+    ])->and(getJson(SVE_CUSTOM_JS)->json('custom.url'))->toEndWith('/cms/custom.js');
 });
 
-it('writes the custom script, and every page of the site loads it at the end of the body without a template being changed', function () {
+it('writes the custom script, and every page of the site loads it, deferred, without a template being changed', function () {
     actingAsSuperAdmin();
-    $layout = File::get($this->templates.'/layouts/app.blade.php');
+    $layout = File::get($this->templates.'/layout.blade.php');
     $script = "document.documentElement.dataset.custom = 'yes';\n";
     expect(customScripts())->toBe([]);
 
@@ -57,13 +57,15 @@ it('writes the custom script, and every page of the site loads it at the end of 
 
     expect(File::get($this->custom))->toBe($script)
         ->and(customScripts())->toHaveCount(1)
-        ->and(customScripts()[0])->toEndWith('/sunrice-theme/custom.js?v='.substr(sha1($script), 0, 10))
+        ->and(customScripts()[0])->toEndWith('/cms/custom.js?v='.substr(sha1($script), 0, 10))
         ->and(customScripts('/about'))->toHaveCount(1)
-        ->and(File::get($this->templates.'/layouts/app.blade.php'))->toBe($layout)
-        ->and(ActivityLog::query()->where('subject_label', 'sunrice-theme/custom.js')->count())->toBe(1);
+        ->and(File::get($this->templates.'/layout.blade.php'))->toBe($layout)
+        ->and(ActivityLog::query()->where('subject_label', 'cms/custom.js')->count())->toBe(1);
 
+    // From the layout's @stack('head'), deferred: it runs once the page is read, as at the end of the body.
     $html = (string) get('/')->getContent();
-    expect(strpos($html, 'data-sunrice-custom-js'))->toBeGreaterThan(strpos($html, '<body'));
+    expect(strpos($html, 'data-sunrice-custom-js'))->toBeLessThan(strpos($html, '</head>'))
+        ->and($html)->toMatch('#<script src="[^"]*/cms/custom\.js\?v=[0-9a-f]+" defer data-sunrice-custom-js>#');
 
     // A second save keeps the first as a backup.
     putJson(SVE_CUSTOM_JS, ['version' => sha1($script), 'source' => "// nothing\n"])->assertOk();

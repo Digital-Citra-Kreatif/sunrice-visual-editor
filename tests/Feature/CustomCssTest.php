@@ -42,12 +42,12 @@ it('says what the custom CSS is before there is any', function () {
         'source' => '',
         'injected' => true,
         'stack' => 'head',
-    ])->and(getJson(SVE_CUSTOM)->json('custom.url'))->toEndWith('/sunrice-theme/custom.css');
+    ])->and(getJson(SVE_CUSTOM)->json('custom.url'))->toEndWith('/cms/custom.css');
 });
 
 it('writes the custom CSS, and every page of the site links it from the layout without a template being changed', function () {
     actingAsSuperAdmin();
-    $layout = File::get($this->templates.'/layouts/app.blade.php');
+    $layout = File::get($this->templates.'/layout.blade.php');
     expect(customLinks())->toBe([]);
 
     putJson('/admin/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => ".hero { color: tomato; }\n"])
@@ -58,9 +58,9 @@ it('writes the custom CSS, and every page of the site links it from the layout w
         ->and(getJson(SVE_CUSTOM)->json('custom'))->toMatchArray(['exists' => true, 'source' => ".hero { color: tomato; }\n"])
         // Once on a page, in its head, with the file's version: a save is fetched anew.
         ->and(customLinks())->toHaveCount(1)
-        ->and(customLinks()[0])->toEndWith('/sunrice-theme/custom.css?v='.substr(sha1(".hero { color: tomato; }\n"), 0, 10))
+        ->and(customLinks()[0])->toEndWith('/cms/custom.css?v='.substr(sha1(".hero { color: tomato; }\n"), 0, 10))
         ->and(customLinks('/about'))->toHaveCount(1)
-        ->and(File::get($this->templates.'/layouts/app.blade.php'))->toBe($layout);
+        ->and(File::get($this->templates.'/layout.blade.php'))->toBe($layout);
 
     $html = (string) get('/')->getContent();
     expect(strpos($html, 'data-sunrice-custom-css'))->toBeLessThan(strpos($html, '</head>'));

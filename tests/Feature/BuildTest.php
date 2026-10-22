@@ -52,8 +52,9 @@ it('runs the command of the site\'s configuration in the site\'s directory, and 
         ->and($answer['seconds'])->toBeGreaterThanOrEqual(0);
 
     $line = ActivityLog::query()->where('subject_type', 'build')->sole();
-    expect($line->subject_label)->toBe('Site build')
-        ->and($line->properties['note'])->toContain('done')->toContain('echo');
+    expect($line->action)->toBe('ran')
+        ->and($line->subject_label)->toContain('done')->toContain('echo')
+        ->and($line->properties['note'])->toBe('Visual editor');
 });
 
 it('runs nothing a request sends', function () {
@@ -78,7 +79,7 @@ it('says how a build that fails failed, with what it printed', function () {
         ->and($answer['message'])->toContain('failed')->toContain('3')
         // Both what it wrote as output and as errors, without a terminal's colours.
         ->and($answer['output'])->toContain('error: no such class')->toContain('partly done')->not->toContain("\033");
-    expect(ActivityLog::query()->where('subject_type', 'build')->sole()->properties['note'])->toContain('failed');
+    expect(ActivityLog::query()->where('subject_type', 'build')->sole()->subject_label)->toContain('failed');
 });
 
 it('says so when the command is not there to run', function () {

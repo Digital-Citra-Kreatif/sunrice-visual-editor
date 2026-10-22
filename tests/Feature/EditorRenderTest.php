@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Testing\TestResponse;
 use Spatie\Permission\Models\Permission;
-use Sunrice\Models\Entry;
+use Sunrice\Cms\Models\Entry;
 use Sunrice\VisualEditor\Actions\SaveTemplate;
 use Sunrice\VisualEditor\Blade\Rules;
 use Sunrice\VisualEditor\Blade\Template;
@@ -71,27 +71,27 @@ it('marks every element of a page with the template it came from', function () {
     actingAsSuperAdmin();
 
     $response = get('/?sve=1')->assertOk()
-        ->assertSee(DemoSeeder::SITE_NAME)
+        ->assertSee(DemoSeeder::FOOTER_TEXT)
         ->assertSee(DemoSeeder::HERO_HEADING);
     $manifest = manifestOf($response);
     $marks = marksIn($response);
 
-    // The layout, the header and footer, the page template and a partial per block all took part.
+    // The layout, its menus, the page template, its fields and a template per block all took part.
     expect(array_keys($manifest))->toContain(
-        'layouts/app.blade.php',
-        'partials/header.blade.php',
-        'partials/footer.blade.php',
+        'layout.blade.php',
         'partials/menu.blade.php',
-        'show.blade.php',
+        'entry.blade.php',
+        'partials/fields.blade.php',
+        'partials/blocks.blade.php',
         'blocks/hero.blade.php',
         'blocks/text.blade.php',
     )
-        ->and($manifest['partials/header.blade.php'])->toMatchArray(['origin' => 'site', 'view' => 'sunrice.partials.header', 'role' => 'partial', 'editable' => true, 'opens' => true])
-        ->and($manifest['show.blade.php'])->toMatchArray(['role' => 'entry', 'opens' => true]);
+        ->and($manifest['partials/menu.blade.php'])->toMatchArray(['origin' => 'site', 'view' => 'cms.partials.menu', 'role' => 'partial', 'editable' => true, 'opens' => true])
+        ->and($manifest['entry.blade.php'])->toMatchArray(['role' => 'entry', 'opens' => true]);
 
     // Each of them left marks in the page.
     $marked = array_unique(array_column($marks, 0));
-    foreach (['layouts/app.blade.php', 'partials/header.blade.php', 'partials/footer.blade.php', 'show.blade.php', 'blocks/hero.blade.php', 'blocks/text.blade.php'] as $path) {
+    foreach (['layout.blade.php', 'partials/menu.blade.php', 'entry.blade.php', 'partials/blocks.blade.php', 'blocks/hero.blade.php', 'blocks/text.blade.php'] as $path) {
         expect($marked)->toContain($manifest[$path]['key']);
     }
 
@@ -168,7 +168,7 @@ it('leaves no mark behind for the next render', function () {
 
 it('shows a template as it is now, and keeps one marked copy of each', function () {
     actingAsSuperAdmin();
-    $footer = $this->templates.'/partials/footer.blade.php';
+    $footer = $this->templates.'/partials/menu.blade.php';
 
     get('/?sve=1')->assertDontSee('sve-new-paragraph');
     $copies = count(File::files(EditorRender::directory()));
@@ -177,7 +177,7 @@ it('shows a template as it is now, and keeps one marked copy of each', function 
         touch($copy->getPathname(), time() - 300);
     }
 
-    app(SaveTemplate::class)->handle('partials/footer.blade.php', sha1(File::get($footer)), File::get($footer)."\n<p class=\"sve-new-paragraph\">New</p>\n");
+    app(SaveTemplate::class)->handle('partials/menu.blade.php', sha1(File::get($footer)), File::get($footer)."\n<p class=\"sve-new-paragraph\">New</p>\n");
 
     $response = get('/?sve=1')->assertOk();
     expect((string) $response->getContent())->toMatch('/<p data-sve="[0-9a-f]+:\d+" class="sve-new-paragraph">New<\/p>/')
@@ -187,14 +187,14 @@ it('shows a template as it is now, and keeps one marked copy of each', function 
 
 it('leaves alone what another page being drawn is writing, or is about to run', function () {
     actingAsSuperAdmin();
-    $footer = $this->templates.'/partials/footer.blade.php';
+    $footer = $this->templates.'/partials/menu.blade.php';
     get('/?sve=1')->assertOk();
-    $stem = EditorRender::directory().'/'.hash('xxh128', View::getFinder()->find('sunrice.partials.footer'));
+    $stem = EditorRender::directory().'/'.hash('xxh128', View::getFinder()->find('cms.partials.menu'));
     $copy = collect(glob($stem.'-*.php'))->sole();
 
     // The frames side by side are drawn again at once after a change, each compiling the changed
     // footer: another request is halfway through writing the same copy.
-    app(SaveTemplate::class)->handle('partials/footer.blade.php', sha1(File::get($footer)), File::get($footer)."\n<p class=\"sve-new-paragraph\">New</p>\n");
+    app(SaveTemplate::class)->handle('partials/menu.blade.php', sha1(File::get($footer)), File::get($footer)."\n<p class=\"sve-new-paragraph\">New</p>\n");
     get('/?sve=1')->assertOk();
     $new = collect(glob($stem.'-*.php'))->reject(fn (string $file) => $file === $copy)->sole();
     File::delete($new);
@@ -217,36 +217,36 @@ it('leaves alone what another page being drawn is writing, or is about to run', 
 it('renders a template the tree can\'t hold as it is, and says so in the manifest', function () {
     actingAsSuperAdmin();
     // An @if closed inside a tag: Blade compiles it, the tree refuses it.
-    File::put($this->templates.'/partials/footer.blade.php', '@if (true) <footer class="sve-odd" @endif><p>Odd footer</p></footer>');
+    File::put($this->templates.'/partials/menu.blade.php', '@if (true) <footer class="sve-odd" @endif><p>Odd footer</p></footer>');
 
     $response = get('/?sve=1')->assertOk()->assertSee('<footer class="sve-odd" ><p>Odd footer</p></footer>', false);
     $manifest = manifestOf($response);
 
-    expect($manifest['partials/footer.blade.php'])->toMatchArray(['opens' => false, 'editable' => true])
-        ->and(array_column(marksIn($response), 0))->not->toContain($manifest['partials/footer.blade.php']['key'])
-        ->and($manifest['layouts/app.blade.php']['opens'])->toBeTrue();
+    expect($manifest['partials/menu.blade.php'])->toMatchArray(['opens' => false, 'editable' => true])
+        ->and(array_column(marksIn($response), 0))->not->toContain($manifest['partials/menu.blade.php']['key'])
+        ->and($manifest['layout.blade.php']['opens'])->toBeTrue();
 });
 
 it('marks what a stray opening tag opens, too', function () {
     actingAsSuperAdmin();
     // The footer's element is opened in one condition and closed in another.
-    File::put($this->templates.'/partials/footer.blade.php', "@if (true)\n<footer class=\"sve-split\">\n@endif\n<p>Split footer</p>\n@if (true)\n</footer>\n@endif\n");
+    File::put($this->templates.'/partials/menu.blade.php', "@if (true)\n<footer class=\"sve-split\">\n@endif\n<p>Split footer</p>\n@if (true)\n</footer>\n@endif\n");
 
     $response = get('/?sve=1')->assertOk();
 
     expect((string) $response->getContent())->toMatch('/<footer data-sve="[0-9a-f]+:\d+" class="sve-split">\s*<p data-sve="[0-9a-f]+:\d+">Split footer<\/p>\s*<\/footer>/');
 });
 
-it('marks Sunrice\'s own view when the site has no template for a page', function () {
+it('marks the CMS\'s own view when the site has no template for a page', function () {
     actingAsSuperAdmin();
-    File::delete($this->templates.'/show.blade.php');
+    File::delete($this->templates.'/entry.blade.php');
 
     $response = get('/about?sve=1')->assertOk();
     $manifest = manifestOf($response);
 
-    expect($manifest)->toHaveKey('defaults/show.blade.php')
-        ->and($manifest['defaults/show.blade.php'])->toMatchArray(['origin' => 'package', 'editable' => false, 'copyTo' => 'show.blade.php'])
-        ->and(array_column(marksIn($response), 0))->toContain($manifest['defaults/show.blade.php']['key']);
+    expect($manifest)->toHaveKey('entry.blade.php')
+        ->and($manifest['entry.blade.php'])->toMatchArray(['origin' => 'package', 'editable' => false, 'copyTo' => 'entry.blade.php'])
+        ->and(array_column(marksIn($response), 0))->toContain($manifest['entry.blade.php']['key']);
 });
 
 it('keeps other pages of the site working: listings, entries, search and a missing page', function (string $url, int $status) {
@@ -259,7 +259,7 @@ it('keeps other pages of the site working: listings, entries, search and a missi
 
     if ($status === 200) {
         expect(marksIn($response))->not->toBeEmpty()
-            ->and(manifestOf($response))->toHaveKey('layouts/app.blade.php');
+            ->and(manifestOf($response))->toHaveKey('layout.blade.php');
     }
 })->with([
     ['/articles?sve=1', 200],
@@ -321,8 +321,8 @@ describe('the middleware on its own', function () {
     });
 });
 
-it('is on Sunrice\'s frontend routes, after the session', function () {
-    $middleware = Route::getRoutes()->getByName('sunrice.frontend.home')->gatherMiddleware();
+it('is on the CMS\'s site routes, after the session', function () {
+    $middleware = Route::getRoutes()->getByName('sunrice.cms.home')->gatherMiddleware();
 
     expect($middleware)->toContain(EditorRender::class)
         ->and(array_search(EditorRender::class, $middleware, true))->toBeGreaterThan(array_search('web', $middleware, true));
@@ -339,7 +339,7 @@ it('says in the manifest which entry the page is of, with its page in the admin,
 
     expect($about)->toMatchArray(['title' => 'About'])
         ->and($about['id'])->toBeInt()
-        ->and($about['edit'])->toBe("/admin/collections/pages/entries/{$about['id']}/edit")
+        ->and($about['edit'])->toBe("/admin/cms/collections/pages/entries/{$about['id']}/edit?locale=en")
         ->and(Entry::query()->find($about['id'])?->collection?->handle)->toBe('pages')
         // A listing draws many entries, each with its card: it is of none of them.
         ->and($entryOf('/articles'))->toBeNull()

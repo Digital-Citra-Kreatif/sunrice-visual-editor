@@ -8,21 +8,20 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Testing\TestListResponse;
 use Laravel\Mcp\Server\Testing\TestResponse;
 use Spatie\Permission\Models\Permission;
+use Sunrice\Admin\Actions\Ai\CreateAiToken;
 use Sunrice\Admin\Activity\Activity as ActivityLog;
-use Sunrice\Sunrice;
+use Sunrice\Admin\Panel;
 use Sunrice\VisualEditor\Blade\Operation;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Mcp\EditTemplate;
 use Sunrice\VisualEditor\Mcp\GetTemplateTree;
 use Sunrice\VisualEditor\Mcp\Tree;
 use Sunrice\VisualEditor\Support\Access;
-use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
-use Sunrice\VisualEditor\VisualEditorServiceProvider;
 
 uses(WithStarterSite::class);
 
-/** A server with the package's tools: Sunrice's own takes them from a package once it has sunrice-cms#40. */
+/** A server with only the package's tools, to call them as a user without a token (the panel's own server is tried at the end). */
 class VisualEditorToolsServer extends Server
 {
     protected array $tools = [GetTemplateTree::class, EditTemplate::class];
@@ -44,6 +43,9 @@ beforeEach(function () {
     File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
     $this->footer = $this->templates.'/'.SVE_MCP_FOOTER;
     $this->original = File::get($this->footer);
+    // Every page draws the site's footer partial, after the layout's own.
+    $layout = $this->templates.'/layout.blade.php';
+    File::put($layout, str_replace('</body>', "@include('cms.partials.footer')\n</body>", File::get($layout)));
 
     $this->with = function (string ...$permissions) {
         $user = createUser(email: 'agent'.count($permissions).'@example.com');
@@ -77,10 +79,10 @@ it('lists the templates, and says of each whether it opens as a tree', function 
 
     $templates = collect(($this->tree)(actingAsSuperAdmin())['templates'])->keyBy(fn (array $each) => $each['origin'].':'.$each['path']);
 
-    expect($templates['site:'.SVE_MCP_FOOTER])->toBe(['path' => SVE_MCP_FOOTER, 'origin' => 'site', 'view' => 'sunrice.partials.footer', 'role' => 'partial', 'editable' => true, 'opens' => true])
+    expect($templates['site:'.SVE_MCP_FOOTER])->toBe(['path' => SVE_MCP_FOOTER, 'origin' => 'site', 'view' => 'cms.partials.footer', 'role' => 'partial', 'editable' => true, 'opens' => true])
         ->and($templates['site:partials/broken.blade.php'])->toMatchArray(['opens' => false])
         ->and($templates['site:partials/broken.blade.php']['reason'])->toBeString()->not->toBe('')
-        ->and($templates['package:defaults/show.blade.php'])->toMatchArray(['editable' => false]);
+        ->and($templates['package:entry.blade.php'])->toMatchArray(['editable' => false]);
 });
 
 it('gives a template as a tree an agent can name nodes of', function () {
@@ -105,8 +107,8 @@ it('gives a template as a tree an agent can name nodes of', function () {
         ->and(collect($nodes)->where('type', 'atom')->where('atom', 'echo')->first())->toHaveKey('expression');
 });
 
-it('reads one of Sunrice\'s own views, and says it can\'t be changed', function () {
-    $read = ($this->tree)(actingAsSuperAdmin(), ['path' => 'defaults/show.blade.php', 'origin' => 'package']);
+it('reads one of the CMS\'s own views, and says it can\'t be changed', function () {
+    $read = ($this->tree)(actingAsSuperAdmin(), ['path' => 'entry.blade.php', 'origin' => 'package']);
 
     expect($read)->toMatchArray(['origin' => 'package', 'editable' => false, 'opens' => true])
         ->and($read['tree']['children'])->not->toBeEmpty();
@@ -135,7 +137,7 @@ it('changes one thing in a template and leaves the rest as written', function ()
         ->and($answer['focus'])->toBe(($this->node)('<footer'))
         ->and($answer['tree']['id'])->toBe('root')
         ->and(glob(storage_path('app/sunrice-cms/template-backups/*/cms/'.SVE_MCP_FOOTER)))->toHaveCount(1)
-        ->and(ActivityLog::query()->where('subject_type', 'template')->sole())->toMatchArray(['action' => 'updated', 'subject_label' => SVE_MCP_FOOTER, 'user_id' => $admin->getKey()]);
+        ->and(ActivityLog::query()->where('subject_type', 'template')->sole())->toMatchArray(['action' => 'updated', 'subject_label' => SVE_MCP_FOOTER, 'user_id' => (string) $admin->getKey()]);
 
     // The page is drawn with it.
     $this->get('/')->assertOk()->assertSee('site-footer wide', false);
@@ -165,7 +167,7 @@ it('applies several operations together, and goes on from the tree it answers wi
 it('refuses a change made for another version of the file, and says which it is now', function () {
     $answer = ($this->edit)(actingAsSuperAdmin(), [['type' => 'remove', 'node' => ($this->node)('<footer')]], ['version' => sha1('older')]);
 
-    expect($answer['error'])->toContain('has changed since', sha1($this->original), 'get_template_tree')
+    expect($answer['error'])->toContain('has changed since', sha1($this->original), 'visual_editor_get_template_tree')
         ->and(File::get($this->footer))->toBe($this->original);
 });
 
@@ -195,7 +197,7 @@ it('refuses a template that is not the site\'s to change', function (string $pat
     $answer = sveToolResult(VisualEditorToolsServer::actingAs(actingAsSuperAdmin())->tool(EditTemplate::class, ['path' => $path, 'version' => 'x', 'operations' => [['type' => 'remove', 'node' => '0']]]));
 
     expect($answer['error'])->toContain('has no template');
-})->with(['defaults/show.blade.php', 'partials/nothing.blade.php', '../../.env']);
+})->with(['draft-banner.blade.php', 'partials/nothing.blade.php', '../../.env']);
 
 // --- Who may ---------------------------------------------------------------------
 
@@ -229,12 +231,12 @@ it('changes nothing where the site keeps agents from templates, or the editor is
     $admin = actingAsSuperAdmin();
     $addClass = [['type' => 'addClass', 'node' => ($this->node)('<footer'), 'class' => 'wide']];
 
-    config(['sunrice.mcp.templates' => false]);
-    expect(($this->edit)($admin, $addClass)['error'])->toContain('sunrice.mcp.templates')
+    config(['sunrice-visual-editor.agents' => false]);
+    expect(($this->edit)($admin, $addClass)['error'])->toContain('sunrice-visual-editor.agents')
         // Reading is not changing.
         ->and(($this->tree)($admin, ['path' => SVE_MCP_FOOTER])['opens'])->toBeTrue();
 
-    config(['sunrice.mcp.templates' => true, 'sunrice-visual-editor.enabled' => false]);
+    config(['sunrice-visual-editor.agents' => true, 'sunrice-visual-editor.enabled' => false]);
     expect(($this->edit)($admin, $addClass)['error'])->toContain('may not change templates')
         ->and(($this->tree)($admin)['error'])->toContain('may not use the visual editor')
         ->and(File::get($this->footer))->toBe($this->original);
@@ -245,11 +247,11 @@ it('changes nothing where the site keeps agents from templates, or the editor is
 it('describes the tools for an agent to choose and call them', function () {
     $tools = collect((new ReflectionProperty(TestListResponse::class, 'items'))->getValue(VisualEditorToolsServer::actingAs(actingAsSuperAdmin())->tools()))->keyBy('name');
 
-    expect($tools->keys()->all())->toBe(['get_template_tree', 'edit_template'])
-        ->and($tools['edit_template']['description'])->toContain('get_template_tree', 'setText', 'insertBefore', 'all or none', 'render_page')
-        ->and($tools['edit_template']['inputSchema']['required'])->toBe(['path', 'version', 'operations'])
-        ->and($tools['get_template_tree']['description'])->toContain('edit_template', 'version')
-        ->and($tools['get_template_tree']['annotations']['readOnlyHint'] ?? null)->toBeTrue();
+    expect($tools->keys()->all())->toBe(['visual_editor_get_template_tree', 'visual_editor_edit_template'])
+        ->and($tools['visual_editor_edit_template']['description'])->toContain('visual_editor_get_template_tree', 'setText', 'insertBefore', 'all or none', 'cms_render_page')
+        ->and($tools['visual_editor_edit_template']['inputSchema']['required'])->toBe(['path', 'version', 'operations'])
+        ->and($tools['visual_editor_get_template_tree']['description'])->toContain('visual_editor_edit_template', 'version')
+        ->and($tools['visual_editor_get_template_tree']['annotations']['readOnlyHint'] ?? null)->toBeTrue();
 });
 
 it('names every operation there is in the description of the tool that takes them', function () {
@@ -260,16 +262,30 @@ it('names every operation there is in the description of the tool that takes the
     }
 });
 
-it('offers its tools to Sunrice\'s server where Sunrice takes tools from packages', function () {
-    expect(VisualEditorServiceProvider::mcpTools())->toBe([GetTemplateTree::class, EditTemplate::class])
-        // On a Sunrice without registerMcpTool() nothing is registered, and nothing fails.
-        ->and(SunriceBridge::registerMcpTools(VisualEditorServiceProvider::mcpTools()))->toBe(method_exists(Sunrice::class, 'registerMcpTool'));
-});
+it('is on the panel\'s server, for agents with an access token of someone who may use the editor', function () {
+    expect(app(Panel::class)->getTools())->toContain(GetTemplateTree::class, EditTemplate::class);
 
-it('is on Sunrice\'s own server once the package has booted', function () {
-    // What the provider did when the application started, not what this test asks for.
-    expect(app(Sunrice::class)->mcpTools())->toContain(GetTemplateTree::class, EditTemplate::class);
-})->skip(fn () => ! method_exists(Sunrice::class, 'mcpTools'), 'This Sunrice is from before it took tools from packages (sunrice-cms#40).');
+    $call = function ($user, string $tool, array $arguments) {
+        [, $token] = app(CreateAiToken::class)->handle($user, 'Agent');
+
+        return $this->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => $tool, 'arguments' => $arguments]],
+            ['Authorization' => "Bearer {$token}"])->assertOk()->json('result');
+    };
+
+    $designer = ($this->with)(Access::EDIT, 'sunrice.ai.connect');
+    $read = $call($designer, 'visual_editor_get_template_tree', ['path' => SVE_MCP_FOOTER]);
+    expect($read['isError'] ?? false)->toBeFalse()
+        ->and(json_decode($read['content'][0]['text'], true)['version'])->toBe(sha1($this->original));
+
+    $edited = $call($designer, 'visual_editor_edit_template', ['path' => SVE_MCP_FOOTER, 'version' => sha1($this->original),
+        'operations' => [['type' => 'addClass', 'node' => ($this->node)('<footer'), 'class' => 'wide']]]);
+    expect($edited['isError'] ?? false)->toBeFalse()
+        ->and(File::get($this->footer))->toContain('<footer class="site-footer wide">');
+
+    // Someone who may not use the editor gets no tree.
+    $nobody = ($this->with)('sunrice.ai.connect');
+    expect($call($nobody, 'visual_editor_get_template_tree', [])['content'][0]['text'])->toContain('may not use the visual editor');
+});
 
 it('leaves out of the tree what only a screen needs', function () {
     expect(Tree::compact([
