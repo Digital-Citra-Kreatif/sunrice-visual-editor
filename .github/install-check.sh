@@ -63,6 +63,10 @@ sed -i 's/->plugin(CmsPlugin::make())$/->plugin(CmsPlugin::make());/' app/Provid
 composer remove sunrice/visual-editor --no-interaction --no-ansi
 rm -rf public/vendor/sunrice-visual-editor tests/Feature/InstalledTest.php
 [ "$(routes)" -eq 0 ]
+php artisan tinker --execute="Spatie\Permission\Models\Permission::where('name', 'like', 'visual-editor.%')->delete()"
+php artisan permission:cache-reset --no-ansi
+left=$(php artisan tinker --execute="echo Spatie\Permission\Models\Permission::where('name', 'like', 'visual-editor.%')->count();")
+[ "$left" = "0" ] || { echo "Permissions of the editor are left: $left"; exit 1; }
 php artisan sunrice:sync-permissions --no-ansi
 echo "Removed, and the site still answers its commands."
 

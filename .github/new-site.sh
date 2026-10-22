@@ -55,4 +55,5 @@ grep -q AdminPanelProvider bootstrap/providers.php
 # 3. The install command, the starter templates and the demo content.
 php artisan sunrice:install --roles --no-user --no-interaction --no-ansi
 php artisan vendor:publish --tag=sunrice-cms-templates --no-ansi
-php artisan sunrice:demo-content --no-ansi
+# The demo has texts in English and Indonesian, and refuses a site without both.
+SUNRICE_LOCALES=en,id php artisan sunrice:demo-content --no-ansi

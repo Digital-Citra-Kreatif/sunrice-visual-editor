@@ -95,8 +95,8 @@ class InstalledTest extends TestCase
 
         $now = (string) file_get_contents($this->header);
         $this->assertStringContainsString('installed-check', $now);
-        // One class went in, and nothing else is different.
-        $this->assertSame($this->original, preg_replace('/ ?installed-check/', '', $now, 1));
+        // One class went in, and nothing else is different: in a class attribute of its own when the element had none.
+        $this->assertSame($this->original, preg_replace('/ class="installed-check"| installed-check/', '', $now, 1));
         $this->assertNotEmpty(File::allFiles(storage_path('app/sunrice-cms/template-backups')));
 
         // The page is still drawn.

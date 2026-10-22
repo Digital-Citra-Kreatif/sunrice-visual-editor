@@ -142,11 +142,14 @@ Take `VisualEditorPlugin::make()` out of the panel provider, then:
 ```bash
 composer remove sunrice/visual-editor
 rm -rf public/vendor/sunrice-visual-editor
-php artisan sunrice:sync-permissions
+php artisan tinker --execute="Spatie\Permission\Models\Permission::where('name', 'like', 'visual-editor.%')->delete()"
+php artisan permission:cache-reset
 ```
 
 Nothing of the editor is in your templates or your database, apart from its
-four permissions, which the last command removes. `public/cms/editor.css`
+four permissions, which the last two commands delete. (`sunrice:sync-permissions`
+deletes only the permissions of plugins the panel still has, so it leaves
+these.) `public/cms/editor.css`
 and `public/cms/custom.css`, if the editor made them, are yours: they hold
 CSS your pages use. Without the package nothing links `custom.css` any
 more, so link it from the layout if you keep it.
