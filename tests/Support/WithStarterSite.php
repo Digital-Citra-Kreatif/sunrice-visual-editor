@@ -30,7 +30,8 @@ trait WithStarterSite
         File::copyDirectory(self::starterTemplates(), $this->templates);
         // And a view for two kinds of block, as a site makes them (cms/blocks/{fieldset}.blade.php).
         File::copyDirectory(dirname(__DIR__).'/fixtures/site', $this->templates);
-        View::getFinder()->prependLocation($views);
+        // The site's only views: not also whatever a workbench build published into Testbench's own app.
+        View::getFinder()->setPaths([$views]);
         // The starter's stylesheet too, as sunrice-cms-templates publishes it to public/cms/site.css.
         $this->theme = $views.'/theme';
         File::ensureDirectoryExists($this->theme);
