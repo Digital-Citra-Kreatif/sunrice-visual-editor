@@ -45,13 +45,44 @@ jobs:
         if: ${{ !cancelled() }}
         run: .github/run.sh test composer test -- --colors=never
 
+      # The workbench is the site developers run by hand: build it and ask
+      # it for the homepage, so `testbench serve` is known to work.
+      - name: Workbench site
+        if: ${{ !cancelled() && matrix.php == '8.4' }}
+        run: .github/run.sh workbench .github/workbench-smoke.sh
+
+      # Job logs can't always be read where this package is developed;
+      # failures are repeated as annotations, which can.
+      - name: Report failures
+        if: failure()
+        run: .github/run.sh --report
+
+  # The round-trip tests, beside the tests rather than after them: each
+  # takes minutes, and neither needs the other.
+  spikes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, sqlite3, pdo_sqlite, gd, intl
+          coverage: none
+
+      - name: Install dependencies
+        run: .github/run.sh install composer install --no-interaction --prefer-dist --no-ansi
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+
       - name: Round-trip test
         if: ${{ !cancelled() }}
         run: .github/run.sh spike composer spike
 
       # The same for stylesheets; once with Bootstrap, Bulma, Pico and normalize.css too.
       - name: Fetch other people's stylesheets
-        if: ${{ !cancelled() && matrix.php == '8.4' }}
+        if: ${{ !cancelled() }}
         run: .github/run.sh css-fetch spike/css-fetch.sh
         env:
           SPIKE_DEPS: ${{ github.workspace }}/.ci/deps
@@ -62,14 +93,6 @@ jobs:
         env:
           SPIKE_DEPS: ${{ github.workspace }}/.ci/deps
 
-      # The workbench is the site developers run by hand: build it and ask
-      # it for the homepage, so `testbench serve` is known to work.
-      - name: Workbench site
-        if: ${{ !cancelled() && matrix.php == '8.4' }}
-        run: .github/run.sh workbench .github/workbench-smoke.sh
-
-      # Job logs can't always be read where this package is developed;
-      # failures are repeated as annotations, which can.
       - name: Report failures
         if: failure()
         run: .github/run.sh --report
