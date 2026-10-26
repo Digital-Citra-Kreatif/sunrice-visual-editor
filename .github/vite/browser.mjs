@@ -71,7 +71,7 @@ await step('sign in', async () => {
 
 await step('show a page whose CSS comes from the dev server, marked for the editor', async () => {
     await page.goto(`${base}/admin/visual-editor?url=/about`);
-    await page.waitForSelector('.sve-template');
+    await page.waitForSelector('.sve-template', { state: 'attached' });
     await frame.locator('script[src*="@vite/client"]').first().waitFor({ state: 'attached' });
     await frame.locator('[data-sve]').first().waitFor({ state: 'attached' });
 });

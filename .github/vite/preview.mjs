@@ -61,7 +61,7 @@ await step('sign in', async () => {
 
 await step('show a class the build has no rule for, in the editor, and say that it is a preview', async () => {
     await page.goto(`${base}/admin/visual-editor?url=/about`);
-    await page.waitForSelector('.sve-template');
+    await page.waitForSelector('.sve-template', { state: 'attached' });
     await frame.locator('header.site-header.pt-9').first().waitFor();
     let now = '';
     for (let attempt = 0; attempt < 60 && now !== '36px'; attempt++) {
