@@ -106,7 +106,7 @@ other page that uses the template.
   not fold code, complete HTML or PHP, or search across files. Its script
   is fetched when code is first shown; when that fails, the code is in a
   plain text field, which still saves.
-- What is folded and how wide the code is are kept in that browser, not
+- Which sides are folded and how wide the code is are kept in that browser, not
   for the person.
 - There is no button on the CMS's entry pages: a plugin's script runs
   only on its own pages. The panel's command palette finds a page by its
@@ -118,15 +118,15 @@ other page that uses the template.
 
 ## Content
 
-- The **Content** tab opens the CMS's own admin page for the entry the
-  page shows, in a new browser tab: the panel can't be shown in a frame.
+- **Edit content** opens the CMS's own admin page for the entry the page
+  shows, in a new browser tab: the panel can't be shown in a frame.
   It edits that one entry; global sets and menus are edited in the admin
   as usual.
 - A published entry keeps a saved change as a draft until it is
   published, as the CMS does anywhere: the page shows it after
   **Publish**.
 - A page that is no single entry (a listing, the search page, an error
-  page) has no content in the tab.
+  page) has no content to link to.
 
 ## Permissions
 

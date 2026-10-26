@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 
 import type { TreeNode } from '../lib/api';
 import { dropAt, type Action, type Drop } from '../lib/move';
 import { kindOf, rows } from '../lib/tree';
-import { Panel } from './Panel';
 
 type Props = {
     /** The open template's tree; null when there is none to show. */
@@ -127,7 +126,7 @@ export function LayersPanel({ tree, note, selected, lit, collapsed, fixed, onSel
     }, [selected]);
 
     return (
-        <Panel title="Layers" grow>
+        <>
             {tree === null || all.length === 0 ? (
                 <p className="sve-empty">{note ?? 'This template has nothing in it yet.'}</p>
             ) : (
@@ -185,6 +184,6 @@ export function LayersPanel({ tree, note, selected, lit, collapsed, fixed, onSel
                     })}
                 </ul>
             )}
-        </Panel>
+        </>
     );
 }

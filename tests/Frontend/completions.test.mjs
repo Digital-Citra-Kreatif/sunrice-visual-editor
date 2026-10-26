@@ -66,3 +66,39 @@ test('indents what is put in as the line it lands on is', () => {
     assert.equal(indented('a\n\nb', '\t<p>'), 'a\n\n\tb');
     assert.equal(indented('a\nb\n', ''), 'a\nb\n');
 });
+
+const image = (code) => [
+    { title: 'Image', kind: 'element', blade: `@if (${code})\n    <img src="{{ ${code}->url('large') }}">\n@endif` },
+    { title: 'Link to the file', kind: 'element', blade: `<a href="{{ ${code}->url() }}">…</a>` },
+];
+const picture = field('picture', 'Picture', null, { what: 'file', inserts: image("$values['picture']"), note: 'Not in Pages' });
+const summary = field('summary', 'Summary', "$values['summary'] ?? ''", { inserts: [{ title: 'Text', kind: 'print', blade: "{{ $values['summary'] ?? '' }}" }] });
+const values = variable('$values', [summary, picture]);
+const site2 = variable("cms_global('site')", [field('name', 'Name', "cms_global('site')['name']", { inserts: [{ title: 'Text', kind: 'print', blade: "{{ cms_global('site')['name'] }}" }] })], { from: 'site', title: 'Site' });
+
+test('asked for, offers everything at the place as Blade of its own, each way it can be written', () => {
+    const found = offersFor('    ', [site2, values], true);
+    assert.deepEqual(labels(found), ['$values › Summary', '$values › Picture', '$values › Picture (link to the file)', 'Site › Name']);
+    assert.equal(found.from, 4);
+    assert.equal(found.offers[1].insert, image("$values['picture']")[0].blade);
+    assert.equal(found.offers[1].detail, 'file · Not in Pages · image');
+    assert.equal(found.offers[2].insert, image("$values['picture']")[1].blade);
+});
+
+test('asked for after a word, offers what has it, in place of the word', () => {
+    const found = offersFor('<p>pic', [site2, values], true);
+    assert.deepEqual(labels(found), ['$values › Picture', '$values › Picture (link to the file)']);
+    assert.equal('<p>pic'.slice(found.from), 'pic');
+    assert.equal(offersFor('<p>nothinglikeit', [site2, values], true), null);
+});
+
+test('says how the usual way writes a value, unless that is what the value is', () => {
+    assert.equal(offersFor('', [values], true).offers[0].detail, 'text');
+});
+
+test('offers nothing unasked where no variable is begun, and says which collections lack a field', () => {
+    assert.equal(offersFor('    ', [site2, values]), null);
+    assert.equal(offersFor("{{ $values['", [values]).offers.find((offer) => offer.label === 'Picture'), undefined);
+    const wide = variable('$entry', [field('picture', 'Picture', "$entry->picture", { note: 'Not in Pages' })]);
+    assert.equal(offersFor('{{ $entry->', [wide]).offers[0].detail, 'text · Not in Pages');
+});

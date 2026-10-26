@@ -142,8 +142,8 @@ does not jump or go blank.
 
 ## The entry's content
 
-The **Content** tab is not the editor's. It names the entry the page in
-the frame shows and opens the CMS's own admin page for it, with the CMS's
+**Edit content ↗**, in the top bar, is not the editor's. It opens the
+CMS's own admin page for the entry the page in the frame shows, with the CMS's
 fields, validation, drafts, revisions and **Publish**, in a tab of its
 own: the panel sends `X-Frame-Options: DENY` and is never shown in a
 frame. The editor only finds which entry that is, and draws the page again
@@ -151,7 +151,7 @@ when you come back to it. A published entry keeps a saved change as a
 draft until it is published, as it does anywhere in the CMS, so the page
 shows the change after **Publish**. A page that is no single entry (a
 listing, the search page, an error page) has no content to show, and the
-tab says so.
+link says so.
 
 ## Undo
 

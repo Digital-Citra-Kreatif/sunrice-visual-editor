@@ -62,7 +62,7 @@ offer, such as a field from the picker or a condition built from choices.
 
 - Write in the **Template** tab. The code opens read-only and takes no
   typing.
-- Write a field from the **Fields** tab: that writes Blade at the cursor.
+- Write a field from the code's completions: that writes Blade at the cursor.
 - Write the [custom JS](styles.md#custom-js). It is no template, but it runs
   in every visitor's browser, so it is code: they can read it, not change
   it (`PUT …/api/scripts/custom` answers 403).
@@ -71,7 +71,7 @@ offer, such as a field from the picker or a condition built from choices.
   Blade, or insert Blade that would run something.
 
 What a person's [content](how-it-works.md#the-entrys-content) can be
-changed to is the CMS's to say, by its own permissions: the **Content** tab
+changed to is the CMS's to say, by its own permissions: **Edit content**
 opens the CMS's admin page.
 
 ## How it is held

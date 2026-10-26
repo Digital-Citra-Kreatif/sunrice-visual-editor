@@ -13,7 +13,7 @@ writes the file back with nothing else disturbed.
 | --- | --- |
 | [Installation](docs/installation.md) | requiring it, turning it on, settings, updating |
 | [How it works](docs/how-it-works.md) | lossless or code, what is checked before a save, how the page knows its templates |
-| [Fields and variables](docs/fields.md) | what the Fields tab offers at each place, and the Blade a click writes |
+| [Fields and variables](docs/fields.md) | what the code's completions offer at each place, and the Blade they write |
 | [Styles](docs/styles.md) | the custom CSS, devices, sites that build their CSS |
 | [Permissions](docs/permissions.md) | open, edit, code, build; where the line is and how it is held |
 | [AI agents](docs/agents.md) | `visual_editor_get_template_tree` and `visual_editor_edit_template` |
@@ -27,16 +27,19 @@ brought is in [CHANGELOG.md](CHANGELOG.md).
 
 ## What works today
 
-The screen has three parts: the templates of the page as a tree on the
-left, the page in the middle, and on the right the code, the fields, a
-link to the entry's content and the site's custom CSS and JS.
+The screen has three parts: on the left the templates of the page and the
+open one's layers, a tab each; the page in the middle; on the right the
+code and the site's custom CSS and JS. The top bar links to the entry's
+content in the admin.
 
 **See a page's templates and click through them.**
 
-- Open any page of the site in the editor. **Templates on this page**, on
-  the left, lists the Blade files that draw it: layout, the page's own
-  template, partials, blocks, components.
-- **Layers** below it is the open template as a tree. Pointing at a row
+- Open any page of the site in the editor. **Templates**, on the left,
+  lists the Blade files that draw it (layout, the page's own template,
+  partials, blocks, components), and the site's others below.
+- **Layers**, the tab beside it, is the open template as a tree, and what
+  the left side shows once a template is picked, here or on the page.
+  Pointing at a row
   outlines what it draws on the page. A click selects it, scrolls the page
   so the element is in the middle of the frame, and puts the code cursor
   on it.
@@ -70,27 +73,29 @@ link to the entry's content and the site's custom CSS and JS.
 - Saves appear in the panel's activity log, and the pages the CMS keeps
   for visitors are drawn again.
 
-**The CMS's fields and variables, picked from a list in place of typed.**
+**The CMS's fields and variables, in the code's completions.**
 
-- **Fields** lists what the template can read where the code cursor is: the
-  page's `$values` (the fields of its collection, listing page, taxonomy…)
-  and its `$entry` or `$term`, a block's fields, the item of a loop,
-  `cms_page()`, `$locale`, global sets (`cms_global()`) and menus
-  (`cms_menu()`). It has a search box, and reads text that is not saved yet
-  too.
-- A click writes the Blade that suits the value at the cursor: a text
-  printed, rich text printed as HTML, an image as an `<img>`, a link as an
-  `<a>`, a list as a loop, a yes-or-no as a condition. All of it draws
-  without an error when the field is empty, or is not there at all.
 - While code is typed, the editor offers what a value has: after
-  `$values['` the fields of the page, after `$entry->` what every entry has.
+  `$values['` the fields of the page, after `$entry->` what every entry
+  has, after `{{ ` everything that can be printed.
+- **Ctrl+Space** lists everything the template can read where the cursor
+  is: the page's `$values` (the fields of its collection, listing page,
+  taxonomy…) and its `$entry` or `$term`, a block's fields, the item of a
+  loop, `cms_page()`, `$locale`, global sets (`cms_global()`) and menus
+  (`cms_menu()`), in the text as typed, saved or not. A word typed first
+  narrows it.
+- Each is offered in every way it can be written, the usual first: a text
+  printed, rich text printed as HTML, an image as an `<img>` or a link to
+  the file, a link as an `<a>`, a list as a loop, a yes-or-no as a
+  condition. All of it draws without an error when the field is empty, or
+  is not there at all; a field only some collections have says so.
 
 **The page's content, a click away.**
 
-- **Content** opens the CMS's own admin page for the entry the page shows,
-  in a tab of its own (the panel is never shown in a frame): its fields,
-  validation, drafts, revisions and **Publish** are the CMS's. Back in the
-  editor, the page is drawn again.
+- **Edit content ↗** in the top bar opens the CMS's own admin page for the
+  entry the page shows, in a tab of its own (the panel is never shown in a
+  frame): its fields, validation, drafts, revisions and **Publish** are
+  the CMS's. Back in the editor, the page is drawn again.
 - The panel's command palette (Cmd/Ctrl+K), on every page of the admin,
   finds the site's pages by title: **Edit About in the visual editor**
   opens the editor on that page.
@@ -127,7 +132,7 @@ link to the entry's content and the site's custom CSS and JS.
   The two buttons in the top bar do the same. The page takes the room.
 - A line at the right side's edge drags to make the code wider or
   narrower.
-- What is folded and how wide the code is are kept in the browser.
+- Which sides are folded and how wide the code is are kept in the browser.
 
 **Permissions of its own**: who may open the editor, who may change things,
 who may write code ([Permissions](docs/permissions.md)).

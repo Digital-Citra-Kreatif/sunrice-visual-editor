@@ -68,9 +68,7 @@ export type CodeEditor = {
     /** The file now holds this: places in the file are counted in it from here on. */
     setSaved(saved: string): void;
     setReadOnly(readOnly: boolean): void;
-    /** Puts Blade in at the cursor, in place of what is selected, indented as the line is. */
-    insert(blade: string): void;
-    /** What can be read where the cursor is: offered while a variable is typed. */
+    /** What can be read where the cursor is: offered while a variable is typed, and all of it on Ctrl+Space. */
     setFields(variables: PickVariable[]): void;
     /** Puts the cursor at a place of the file as saved, counted in characters, wherever that now is in the text; and the keyboard there too, when asked. */
     goTo(place: number, focus: boolean): void;
@@ -195,7 +193,9 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
     let fields: PickVariable[] = [];
     const offer = (context: CompletionContext): CompletionResult | null => {
         const line = context.state.doc.lineAt(context.pos);
-        const found = offersFor(line.text.slice(0, context.pos - line.from), fields);
+        const before = line.text.slice(0, context.pos - line.from);
+        // Asked for with Ctrl+Space: everything at the cursor, as Blade of its own.
+        const found = offersFor(before, fields, context.explicit);
 
         return found === null
             ? null
@@ -203,7 +203,8 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
                   from: line.from + found.from,
                   // Chosen here by what was typed, not by how alike the label and the typed text are.
                   filter: false,
-                  options: found.offers.map(({ label, detail, insert }) => ({ label, detail, apply: insert })),
+                  // A loop or a condition of several lines keeps its shape where it lands.
+                  options: found.offers.map(({ label, detail, insert }) => ({ label, detail, apply: indented(insert, before.slice(0, found.from)) })),
               };
     };
 
@@ -227,7 +228,7 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
                 highlightActiveLine(),
                 highlightSelectionMatches(),
                 search({ top: true }),
-                // The CMS's fields, while a variable is typed. Nothing else is offered: no guesses at HTML or PHP.
+                // The CMS's fields, while a variable is typed or when asked for. Nothing else is offered: no guesses at HTML or PHP.
                 autocompletion({ override: [offer], icons: false }),
                 indentUnit.of(indentOf(text)),
                 EditorState.tabSize.of(4),
@@ -310,12 +311,6 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
             }
         },
         setReadOnly: (now) => view.dispatch({ effects: readOnly.reconfigure(EditorState.readOnly.of(now)) }),
-        insert: (blade) => {
-            const { main } = view.state.selection;
-            const line = view.state.doc.lineAt(main.from);
-            view.dispatch(view.state.replaceSelection(indented(blade, line.text.slice(0, main.from - line.from))), { scrollIntoView: true, userEvent: 'input' });
-            view.focus();
-        },
         setFields: (variables) => {
             fields = variables;
             // What was typed a moment ago may be waiting for exactly these: offer them now.

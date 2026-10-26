@@ -3,29 +3,29 @@
 A Sunrice template reads its content from variables: `$values` (the page's
 fields) and `$entry` on an entry's page, `$block` in a block's partial, the
 site's global sets and menus everywhere. The editor knows which of them a template has at each place,
-what fields each one holds, and how each is written in Blade. You choose
-from a list; it writes the code at the cursor.
+what fields each one holds, and how each is written in Blade. The code's
+completions offer them; choosing one writes the code at the cursor.
 
 ## Where the list is
 
-The **Fields** tab, on the right of the page, lists what the open template
-can read where the code cursor is. A search box at its top finds a field
-by name.
+In the code of the **Template** tab:
 
-- A click on a field writes it at the cursor, in its usual form, indented
-  as the line is. **As…** on its row lists the other forms.
+- While you type, the editor offers what a value has: after `$values['`,
+  `$entry->` or `$row['` the fields of that value, after `{{ ` everything
+  there that can be printed, after `$` the variables. Choosing one writes
+  it whole, with its `?->` and `?? ''`.
+- **Ctrl+Space** lists everything the template can read at the cursor,
+  each in every form it can be written: the usual one first ("Cover"),
+  then the others ("Cover (link to the file)"). A word typed before it
+  narrows the list, and is replaced by what is chosen. What is written is
+  indented as the line is.
 - It reads the code as you have typed it, saved or not: a variable set on
   the line above is in the list a moment after you type the line.
 - While the code does not read as a whole (a tag half typed), the list is
-  what the template has anywhere in it, and says so.
+  what the template has anywhere in it.
 
-In the **Template** tab, while you type, the editor offers what a value
-has: after `$values['`, `$entry->` or `$row['` the fields of that value, after `{{ `
-everything there that can be printed, after `$` the variables. Choosing
-one writes it whole, with its `?->` and `?? ''`.
-
-Writing a field takes the [code permission](permissions.md). Without it
-the list is there to read.
+The completions are for people with the [code permission](permissions.md):
+what they write is Blade.
 
 ## What is in the list
 

@@ -57,26 +57,26 @@ Today a developer writes the templates in a code editor while fields and content
 
 - The editor shows a real page of the site in a frame. The address bar accepts any public path; drafts open for users who may view drafts.
 - While a page renders for the editor, every Blade view that takes part is recorded: the page template, its layout, partials, block partials and component views.
-- A **Templates on this page** panel lists them in render order, each marked site file, package file (read-only) or refused (code only).
-- Hovering the page outlines the region each template drew, with its name. Clicking a region, or its name in the panel, opens that template. Opening the header from the homepage, changing it and going back is one click each way.
+- The left side's **Templates** tab lists them in render order, each marked site file, package file (read-only) or refused (code only).
+- Hovering the page outlines the region each template drew, with its name. Clicking a region, or its name in the list, opens that template. Opening the header from the homepage, changing it and going back is one click each way.
 - Regions come from marks the editor adds while rendering for itself. They exist only in that render and are never written to a file or served to visitors.
-- The frame has two modes: **Select**, where a click picks an element, and **Browse**, where links work and the panel follows to the new page.
+- The frame has two modes: **Select**, where a click picks an element, and **Browse**, where links work and the list follows to the new page.
 
 ### The screen
 
 The editor is three parts side by side: the tree on the left, the page in the middle, the code on the right (decided October 2026, in place of the panels of the first design: Settings, Insert, Style and CSS).
 
-- **Left, the tree.** *Templates on this page*, and **Layers**: the open template as a tree. Clicking a row selects it, outlines it on the page, scrolls the page to it (to the middle of the frame where the page can scroll that far) and puts the code's cursor on it. Selecting works from either side: a click on the page selects the row and the code.
+- **Left, the tree, in two tabs** (decided October 2026, in place of the two stacked): **Templates**, the templates of the page and the site's others, and **Layers**, the open template as a tree. Picking a template, in the list or on the page, shows its Layers. Clicking a row selects it, outlines it on the page, scrolls the page to it (to the middle of the frame where the page can scroll that far) and puts the code's cursor on it. Selecting works from either side: a click on the page selects the row and the code.
 - Rows are moved by dragging, and by keys on a row: Alt+Up and Alt+Down move, Ctrl+D duplicates, Delete deletes. Comments are nodes like any other. Arms of a block (`@else`, `@empty`, `@case`) are not moved or deleted on their own; what is added to a `@case` goes before the `@break` that ends it. Where an edit would put a directive directly against a letter or digit (`@else@endif`), the editor adds one space so Blade still reads it.
 - **Middle, the page**, at the width of the room or at one of the configured devices (Desktop, Tablet, Mobile by default), or at all of them side by side, drawn at one scale. Side by side, one frame takes the clicks and the others show the same page; every frame is drawn again after a change.
-- **Right, in tabs:** the open template's code (**Template**), what it can read at the cursor (**Fields**), the content of the entry the page shows (**Content**), and the site's **Custom CSS** and **Custom JS**.
+- **Right, in tabs:** the open template's code (**Template**), and the site's **Custom CSS** and **Custom JS**. What the template can read at the cursor is in the code's completions (decided October 2026, in place of a Fields tab).
+- **Top bar:** the page's address, Select and Browse, undo and redo, the build, the devices, the sides, **Edit content ↗** (the entry the page shows, in the admin) and **View page ↗**.
 
 ### Room for the page
 
 - Each side folds to a narrow strip at its edge, named, by a button on the side or in the top bar; a click on the strip opens it again. A folded side gives its room to the page.
 - The line between the page and the code is dragged to share the room between them.
-- Every panel on the left (Templates on this page, Layers) folds to its title by a click on the title.
-- The editor opens the way it was left: what is folded and how wide the code is are remembered in the browser.
+- The editor opens the way it was left: which sides are folded and how wide the code is are remembered in the browser.
 
 ### Editing as code
 
@@ -90,9 +90,9 @@ The editor is three parts side by side: the tree on the left, the page in the mi
 - The code editor is CodeMirror, in a script of its own that is fetched the first time the editor opens: the rest of the admin does not carry it.
 - It does not try to be an IDE: no search across files, no git, no terminal.
 
-### Content beside the page
+### Content a click away
 
-- The **Content** tab names the entry the page in the frame is of and opens the CMS's own admin page for it in a browser tab of its own (the panel is never framed: `X-Frame-Options: DENY`): its fields, validation, drafts, revisions and publishing are the CMS's. Coming back to the editor draws the page again. A published entry keeps what is saved as a draft until it is published, as in the admin.
+- **Edit content ↗** in the top bar opens the CMS's own admin page for the entry the page in the frame is of in a browser tab of its own (the panel is never framed: `X-Frame-Options: DENY`): its fields, validation, drafts, revisions and publishing are the CMS's. Coming back to the editor draws the page again. A published entry keeps what is saved as a draft until it is published, as in the admin.
 - The editor learns which entry it is while the page renders for it: the entry its page template was given. A page of no single entry (a listing, a search, an error) says so.
 
 ### From the admin
@@ -101,7 +101,7 @@ The editor is three parts side by side: the tree on the left, the page in the mi
 
 ### Fields and variables
 
-- The **Fields** tab lists what can be read where the code's cursor is, in text that is not saved yet too, and a click writes it there:
+- The code's completions offer what can be read where the cursor is, in text that is not saved yet too: what a value has while it is typed (`$values['`, `$entry->`, `{{ `), and on Ctrl+Space everything there, each in every way it can be written (the usual first), which is written at the cursor:
   - by file: `$values` (the page's fields), `$entry`, `$title` and `$page` in entry templates, `$entries` and `$url` in listing templates, `$term` and `$entries` in term templates, `$terms` in a taxonomy's index, `$query` and `$results` on the search page, `$block` in `blocks/{fieldset}`, and `cms_page()`, `$locale`, globals (`cms_global()`) and menus (`cms_menu()`) everywhere;
   - by position: the item of every enclosing `@foreach`, and `$item` (or `$results`) inside the CMS's component tags.
 - Fields come from the blueprints of the collections that use the template (Sunrice's template map), the fieldset for a block, the taxonomy blueprint for a term, and the blueprint of each global set.
@@ -174,7 +174,7 @@ Tailwind writes CSS only for the classes it finds in the site's files, so a clas
 - Storing templates, drafts or history in the database.
 - Editing templates outside `resources/views/cms/`, or non-Blade views.
 - A design system, design tokens, motion, or a component library of its own.
-- Editing content with a form of the editor's own: entries are edited with the CMS's own entry page (opened from the Content tab); globals and menus stay in the admin.
+- Editing content with a form of the editor's own: entries are edited with the CMS's own entry page (opened from **Edit content**); globals and menus stay in the admin.
 - Rendering the page inside the editor without the server (every change is a real render).
 - Multi-user editing of one file at the same time.
 - Running on production by default.

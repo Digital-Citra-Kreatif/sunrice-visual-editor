@@ -5,6 +5,23 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+### A tighter screen, for developers
+
+- **The left side is two tabs**, **Templates** and **Layers**, in place of
+  the two stacked: the layers get the whole height. Picking a template, in
+  the list or on the page, shows its Layers.
+- **No Fields tab.** What it listed is in the code's completions: as
+  before while a value is typed (`$values['`, `$entry->`, `{{ `), and now
+  on **Ctrl+Space** everything the template can read at the cursor, each
+  in every way it can be written (an image as an `<img>` or a link to the
+  file, a list as a loop or with commas), the usual first. A field only
+  some of the collections sharing the template have says so.
+- **Edit content ↗** in the top bar, beside View page, in place of the
+  Content tab: the entry's page in the admin, in a tab of its own.
+- The right side is **Template**, **Custom CSS** and **Custom JS**.
+- Panels no longer fold to their titles (the sides still fold to the
+  edges); the layout kept in the browser forgets what was folded.
+
 ### For the new Sunrice: the panel and the CMS (0.2)
 
 The package now works with Sunrice 0.2
