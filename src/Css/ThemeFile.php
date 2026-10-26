@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Css;
 
-/** A stylesheet of the site's theme: a CSS file in public/sunrice-theme. */
+/** A stylesheet of the site's theme: a CSS file in public/cms. */
 final class ThemeFile
 {
     /**

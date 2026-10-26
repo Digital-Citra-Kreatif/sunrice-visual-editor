@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Sunrice\VisualEditor\Http\Controllers\Api\BuildController;
 use Sunrice\VisualEditor\Http\Controllers\Api\InsertController;
+use Sunrice\VisualEditor\Http\Controllers\Api\PageSearchController;
 use Sunrice\VisualEditor\Http\Controllers\Api\ScriptController;
 use Sunrice\VisualEditor\Http\Controllers\Api\SiteController;
 use Sunrice\VisualEditor\Http\Controllers\Api\StyleController;
@@ -12,10 +13,11 @@ use Sunrice\VisualEditor\Http\Controllers\Api\TemplateController;
 use Sunrice\VisualEditor\Http\Controllers\EditorController;
 use Sunrice\VisualEditor\Http\Middleware\EditorAccess;
 
-// Inside Sunrice::adminRoutes(): under the admin path, named
-// sunrice.admin.…, signed in, set up for Inertia.
+// The panel's routes (VisualEditorPlugin, $panel->routes()): under the
+// panel's path, named sunrice.admin.…, for signed-in users who may open
+// the panel. Each takes one of the editor's permissions besides.
 
-Route::get('visual-editor', [EditorController::class, 'show'])->name('visual-editor.show');
+Route::get('visual-editor', [EditorController::class, 'show'])->name('visual-editor.show')->middleware(EditorAccess::class.':page');
 
 // The editor's API. A template is named by its path inside its directory,
 // slashes and all: …/api/templates/partials/header.blade.php
@@ -25,6 +27,8 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
     $edit = EditorAccess::class.':edit';
 
     Route::get('inserts', InsertController::class)->name('inserts');
+    // The panel's command palette: pages of the site to open in the editor.
+    Route::get('pages', PageSearchController::class)->name('pages');
     // The site's build command, as configured: a permission of its own, apart from editing.
     Route::post('build', BuildController::class)->middleware(EditorAccess::class.':build')->name('build');
     Route::get('site', SiteController::class)->name('site');

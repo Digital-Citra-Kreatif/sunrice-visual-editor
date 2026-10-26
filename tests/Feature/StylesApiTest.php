@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 use Spatie\Permission\Models\Permission;
-use Sunrice\Models\ActivityLog;
+use Sunrice\Admin\Activity\Activity;
 use Sunrice\VisualEditor\Css\Stylesheet;
+use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 
 use function Pest\Laravel\actingAs;
@@ -15,22 +16,24 @@ use function Pest\Laravel\putJson;
 
 uses(WithStarterSite::class);
 
-const SVE_STYLES = '/cms/visual-editor/api/styles';
+const SVE_STYLES = '/admin/visual-editor/api/styles';
 
 beforeEach(function () {
     $this->setUpStarterSite();
-    $this->css = $this->theme.'/app.css';
+    // The site's own styles in the stylesheet the layout links, in place of the starter templates' own.
+    File::copy(__DIR__.'/../fixtures/css/starter.css', $this->theme.'/site.css');
+    $this->css = $this->theme.'/site.css';
     $this->original = File::get($this->css);
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
 
     /** Where the first declaration of a property starts, in the first rule for a selector. */
     $this->at = fn (string $selector, ?string $property = null): int => $property === null
         ? Stylesheet::read(File::get($this->css))->styling($selector)[0]->start
         : (int) Stylesheet::read(File::get($this->css))->styling($selector)[0]->declaration($property)?->start;
-    $this->change = fn (array $changes, array $more = []) => postJson(SVE_STYLES.'/files/app.css/changes', ['version' => sha1(File::get($this->css)), 'changes' => $changes] + $more);
+    $this->change = fn (array $changes, array $more = []) => postJson(SVE_STYLES.'/files/site.css/changes', ['version' => sha1(File::get($this->css)), 'changes' => $changes] + $more);
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 // --- What the stylesheets say ---------------------------------------------------
 
@@ -42,9 +45,9 @@ it('lists the theme\'s stylesheets, and where new rules go', function () {
 
     $styles = getJson(SVE_STYLES)->assertOk()->json('styles');
 
-    expect(array_column($styles['files'], 'path'))->toBe(['app.css', 'css/print.css'])
-        ->and($styles['files'][0])->toMatchArray(['version' => sha1($this->original), 'exists' => true, 'reason' => null])
-        ->and($styles['files'][0]['url'])->toEndWith('/sunrice-theme/app.css')
+    expect(array_column($styles['files'], 'path'))->toBe(['css/print.css', 'site.css'])
+        ->and($styles['files'][1])->toMatchArray(['version' => sha1($this->original), 'exists' => true, 'reason' => null])
+        ->and($styles['files'][1]['url'])->toEndWith('/cms/site.css')
         ->and($styles['rules'])->toBe([])
         ->and($styles['class'])->toBeNull()
         ->and($styles['own'])->toMatchArray(['path' => 'editor.css', 'exists' => false, 'version' => sha1('')]);
@@ -60,7 +63,7 @@ it('says what the stylesheets say about a class', function () {
         // The rule for the class itself first, then those that mention it. Not ".cards", not ".card-meta".
         ->and($rules->pluck('selector')->all())->toBe(['.card', '.card h2, .card h3'])
         ->and($rules->pluck('exact')->all())->toBe([true, false])
-        ->and($rules[0])->toMatchArray(['file' => 'app.css', 'within' => [], 'line' => 59, 'id' => ($this->at)('.card')])
+        ->and($rules[0])->toMatchArray(['file' => 'site.css', 'within' => [], 'line' => 59, 'id' => ($this->at)('.card')])
         ->and(array_map(fn (array $each) => [$each['property'], $each['value']], $rules[0]['declarations']))->toBe([['border', '1px solid var(--line)'], ['border-radius', '12px'], ['padding', '20px']])
         ->and($rules[0]['declarations'][2]['id'])->toBe(($this->at)('.card', 'padding'));
 });
@@ -79,7 +82,7 @@ it('lists the @media blocks of each stylesheet, for a rule that is for one width
     $media = getJson(SVE_STYLES.'?class=card')->json('styles.media');
 
     expect(array_column($media, 'prelude'))->toBe(['@media (prefers-color-scheme: dark)', '@media (max-width: 760px)', '@media (prefers-color-scheme: dark)'])
-        ->and($media[1])->toMatchArray(['file' => 'app.css', 'id' => strpos($this->original, '@media (max-width: 760px)')]);
+        ->and($media[1])->toMatchArray(['file' => 'site.css', 'id' => strpos($this->original, '@media (max-width: 760px)')]);
 });
 
 it('puts a rule for one width into the block for it, or into a new one', function () {
@@ -115,9 +118,9 @@ it('reads stylesheets of every theme folder, and leaves alone what it could not 
 
     $styles = getJson(SVE_STYLES.'?class=card')->json('styles');
 
-    expect(array_column($styles['files'], 'path'))->toBe(['app.css', 'latin.css'])
-        ->and($styles['files'][1]['reason'])->toContain('UTF-8')
-        ->and(array_unique(array_column($styles['rules'], 'file')))->toBe(['app.css']);
+    expect(array_column($styles['files'], 'path'))->toBe(['latin.css', 'site.css'])
+        ->and($styles['files'][0]['reason'])->toContain('UTF-8')
+        ->and(array_unique(array_column($styles['rules'], 'file')))->toBe(['site.css']);
 });
 
 it('refuses a class that is not one', function (string $query) {
@@ -135,14 +138,14 @@ it('changes one declaration and nothing else in the file', function () {
 
     $expected = str_replace('.card { border: 1px solid var(--line); border-radius: 12px; padding: 20px; }', '.card { border: 1px solid var(--line); border-radius: 12px; padding: 32px; }', $this->original);
     expect(File::get($this->css))->toBe($expected)->not->toBe($this->original)
-        ->and($response->json('file'))->toBe(['path' => 'app.css', 'version' => sha1($expected)])
+        ->and($response->json('file'))->toBe(['path' => 'site.css', 'version' => sha1($expected)])
         // The file as it was, to undo with; what the stylesheets say now, for the panel.
         ->and($response->json('before'))->toBe($this->original)
         ->and($response->json('styles.rules.0.declarations.2.value'))->toBe('32px')
         ->and($response->json('styles.files.0.version'))->toBe(sha1($expected))
-        ->and(glob(storage_path('app/sunrice/template-backups/*/sunrice-theme/app.css')))->toHaveCount(1)
-        ->and(File::get(glob(storage_path('app/sunrice/template-backups/*/sunrice-theme/app.css'))[0]))->toBe($this->original)
-        ->and(ActivityLog::query()->where('subject_type', 'template')->sole())->toMatchArray(['action' => 'updated', 'subject_label' => 'sunrice-theme/app.css', 'user_id' => $admin->getKey()]);
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/public-cms/site.css')))->toHaveCount(1)
+        ->and(File::get(glob(storage_path('app/sunrice-cms/template-backups/*/public-cms/site.css'))[0]))->toBe($this->original)
+        ->and(Activity::query()->where('subject_type', 'template')->sole())->toMatchArray(['action' => 'updated', 'subject_label' => 'cms/site.css', 'user_id' => $admin->getKey()]);
 });
 
 it('adds, renames and takes out declarations, all or none', function () {
@@ -179,8 +182,8 @@ it('puts a rule that does not exist yet into the editor\'s own stylesheet, which
         ->and($response->json('styles.rules.0'))->toMatchArray(['file' => 'editor.css', 'selector' => '.brand-new', 'exact' => true])
         ->and($response->json('before'))->toBe('')
         // Nothing was there to keep a copy of.
-        ->and(glob(storage_path('app/sunrice/template-backups/*/sunrice-theme/editor.css')))->toBe([])
-        ->and(ActivityLog::query()->where('subject_type', 'template')->sole()->action)->toBe('created');
+        ->and(glob(storage_path('app/sunrice-cms/template-backups/*/public-cms/editor.css')))->toBe([])
+        ->and(Activity::query()->where('subject_type', 'template')->sole()->action)->toBe('created');
 
     // The next one goes after it, into the file as it is now.
     postJson(SVE_STYLES.'/files/editor.css/changes', ['version' => sha1(File::get($own)), 'changes' => [['type' => 'rule', 'selector' => '.another']]])->assertOk();
@@ -208,7 +211,7 @@ it('refuses a change made for another version of the file', function () {
     File::append($this->css, "\n/* saved in a code editor meanwhile */\n");
     $now = File::get($this->css);
 
-    postJson(SVE_STYLES.'/files/app.css/changes', ['version' => sha1($this->original), 'changes' => $change])
+    postJson(SVE_STYLES.'/files/site.css/changes', ['version' => sha1($this->original), 'changes' => $change])
         ->assertStatus(409)->assertJsonPath('reason', 'conflict')->assertJsonPath('version', sha1($now));
 
     expect(File::get($this->css))->toBe($now);
@@ -217,7 +220,7 @@ it('refuses a change made for another version of the file', function () {
 it('refuses a request that does not say what it has to', function (array $body) {
     actingAsSuperAdmin();
 
-    postJson(SVE_STYLES.'/files/app.css/changes', $body + ['version' => sha1($this->original)])->assertStatus(422)->assertJsonPath('reason', 'invalid');
+    postJson(SVE_STYLES.'/files/site.css/changes', $body + ['version' => sha1($this->original)])->assertStatus(422)->assertJsonPath('reason', 'invalid');
 
     expect(File::get($this->css))->toBe($this->original);
 })->with([
@@ -252,7 +255,7 @@ it('saves a stylesheet as it was, to undo a change', function () {
     $before = ($this->change)([['type' => 'set', 'declaration' => ($this->at)('.card', 'padding'), 'value' => '32px']])->json('before');
     $changed = File::get($this->css);
 
-    $response = putJson(SVE_STYLES.'/files/app.css/source', ['version' => sha1($changed), 'source' => $before, 'class' => 'card'])->assertOk();
+    $response = putJson(SVE_STYLES.'/files/site.css/source', ['version' => sha1($changed), 'source' => $before, 'class' => 'card'])->assertOk();
 
     expect(File::get($this->css))->toBe($this->original)
         ->and($response->json('file.version'))->toBe(sha1($this->original))
@@ -260,9 +263,9 @@ it('saves a stylesheet as it was, to undo a change', function () {
         ->and($response->json('styles.rules.0.declarations.2.value'))->toBe('20px');
 
     // Not over a change it has not seen.
-    putJson(SVE_STYLES.'/files/app.css/source', ['version' => sha1($changed), 'source' => $changed])->assertStatus(409);
-    putJson(SVE_STYLES.'/files/app.css/source', ['version' => sha1($this->original)])->assertStatus(422)->assertJsonPath('reason', 'invalid');
-    putJson(SVE_STYLES.'/files/app.css/source', ['version' => sha1($this->original), 'source' => str_repeat('a', 2_000_001)])->assertStatus(422)->assertJsonPath('reason', 'invalid');
+    putJson(SVE_STYLES.'/files/site.css/source', ['version' => sha1($changed), 'source' => $changed])->assertStatus(409);
+    putJson(SVE_STYLES.'/files/site.css/source', ['version' => sha1($this->original)])->assertStatus(422)->assertJsonPath('reason', 'invalid');
+    putJson(SVE_STYLES.'/files/site.css/source', ['version' => sha1($this->original), 'source' => str_repeat('a', 2_000_001)])->assertStatus(422)->assertJsonPath('reason', 'invalid');
 });
 
 it('does not send back a file too large to keep many of', function () {
@@ -278,39 +281,41 @@ it('does not send back a file too large to keep many of', function () {
 
 it('links the editor\'s stylesheet from the layout, after the stylesheets it links already', function () {
     actingAsSuperAdmin();
-    $layout = $this->templates.'/layouts/app.blade.php';
+    $layout = $this->templates.'/layout.blade.php';
     $before = File::get($layout);
     postJson(SVE_STYLES.'/files/editor.css/changes', ['version' => sha1(''), 'changes' => [['type' => 'rule', 'selector' => '.a']]])->assertOk();
 
-    $response = postJson(SVE_STYLES.'/link', ['template' => 'layouts/app.blade.php', 'version' => sha1($before), 'stylesheet' => 'editor.css'])->assertOk();
+    $response = postJson(SVE_STYLES.'/link', ['template' => 'layout.blade.php', 'version' => sha1($before), 'stylesheet' => 'editor.css'])->assertOk();
 
-    $link = "    @if (is_file(\$sunriceEditorCss = public_path('sunrice-theme/editor.css')))\n        <link rel=\"stylesheet\" href=\"{{ asset('sunrice-theme/editor.css') }}?v={{ filemtime(\$sunriceEditorCss) }}\">\n    @endif\n";
+    $link = "    @if (is_file(\$sunriceEditorCss = public_path('cms/editor.css')))\n        <link rel=\"stylesheet\" href=\"{{ asset('cms/editor.css') }}?v={{ filemtime(\$sunriceEditorCss) }}\">\n    @endif\n";
     $after = File::get($layout);
-    expect($after)->toBe(str_replace("?v={{ filemtime(\$sunriceCss) }}\">\n    @endif\n", "?v={{ filemtime(\$sunriceCss) }}\">\n    @endif\n".$link, $before))
+    // Right after the layout's own link to site.css.
+    expect($after)->toBe(str_replace("<link rel=\"stylesheet\" href=\"{{ asset('cms/site.css') }}\">\n", "<link rel=\"stylesheet\" href=\"{{ asset('cms/site.css') }}\">\n".$link, $before))
         ->not->toBe($before)
         ->and($response->json('before'))->toBe($before)
-        ->and($response->json('template'))->toMatchArray(['path' => 'layouts/app.blade.php', 'version' => sha1($after), 'opens' => true]);
+        ->and($response->json('template'))->toMatchArray(['path' => 'layout.blade.php', 'version' => sha1($after), 'opens' => true]);
 
     // The page is drawn with it, and a second link is not added.
     $this->get('/')->assertOk();
-    postJson(SVE_STYLES.'/link', ['template' => 'layouts/app.blade.php', 'version' => sha1($after), 'stylesheet' => 'editor.css'])
+    postJson(SVE_STYLES.'/link', ['template' => 'layout.blade.php', 'version' => sha1($after), 'stylesheet' => 'editor.css'])
         ->assertStatus(422)->assertJsonPath('reason', 'rejected');
     expect(File::get($layout))->toBe($after);
 });
 
 it('links at the end of a head that links no stylesheet', function () {
     actingAsSuperAdmin();
+    File::ensureDirectoryExists($this->templates.'/layouts');
     File::put($this->templates.'/layouts/bare.blade.php', $bare = "<html>\n<head>\n    <title>x</title>\n</head>\n<body>@yield('content')</body>\n</html>\n");
 
-    postJson(SVE_STYLES.'/link', ['template' => 'layouts/bare.blade.php', 'version' => sha1($bare), 'stylesheet' => 'app.css'])->assertOk();
+    postJson(SVE_STYLES.'/link', ['template' => 'layouts/bare.blade.php', 'version' => sha1($bare), 'stylesheet' => 'site.css'])->assertOk();
 
-    expect(File::get($this->templates.'/layouts/bare.blade.php'))->toBe("<html>\n<head>\n    <title>x</title>\n    @if (is_file(\$sunriceAppCss = public_path('sunrice-theme/app.css')))\n        <link rel=\"stylesheet\" href=\"{{ asset('sunrice-theme/app.css') }}?v={{ filemtime(\$sunriceAppCss) }}\">\n    @endif\n</head>\n<body>@yield('content')</body>\n</html>\n");
+    expect(File::get($this->templates.'/layouts/bare.blade.php'))->toBe("<html>\n<head>\n    <title>x</title>\n    @if (is_file(\$sunriceSiteCss = public_path('cms/site.css')))\n        <link rel=\"stylesheet\" href=\"{{ asset('cms/site.css') }}?v={{ filemtime(\$sunriceSiteCss) }}\">\n    @endif\n</head>\n<body>@yield('content')</body>\n</html>\n");
 });
 
 it('refuses a link it can\'t make', function (array $body, int $status, string $reason) {
     actingAsSuperAdmin();
-    $layout = File::get($this->templates.'/layouts/app.blade.php');
-    $footer = File::get($this->templates.'/partials/footer.blade.php');
+    $layout = File::get($this->templates.'/layout.blade.php');
+    $footer = File::get($this->templates.'/partials/card.blade.php');
 
     postJson(SVE_STYLES.'/link', array_map(fn ($value) => match ($value) {
         '{layout}' => sha1($layout),
@@ -318,15 +323,15 @@ it('refuses a link it can\'t make', function (array $body, int $status, string $
         default => $value,
     }, $body))->assertStatus($status)->assertJsonPath('reason', $reason);
 
-    expect(File::get($this->templates.'/layouts/app.blade.php'))->toBe($layout)
-        ->and(File::get($this->templates.'/partials/footer.blade.php'))->toBe($footer);
+    expect(File::get($this->templates.'/layout.blade.php'))->toBe($layout)
+        ->and(File::get($this->templates.'/partials/card.blade.php'))->toBe($footer);
 })->with([
-    'a template without a head' => [['template' => 'partials/footer.blade.php', 'version' => '{footer}', 'stylesheet' => 'app.css'], 422, 'rejected'],
-    'a stylesheet it links already' => [['template' => 'layouts/app.blade.php', 'version' => '{layout}', 'stylesheet' => 'app.css'], 422, 'rejected'],
-    'a stylesheet that is not there' => [['template' => 'layouts/app.blade.php', 'version' => '{layout}', 'stylesheet' => 'other.css'], 404, 'not_found'],
-    'a template that is not there' => [['template' => 'layouts/other.blade.php', 'version' => '{layout}', 'stylesheet' => 'app.css'], 404, 'not_found'],
-    'another version of the layout' => [['template' => 'layouts/app.blade.php', 'version' => 'older', 'stylesheet' => 'app.css'], 409, 'conflict'],
-    'no stylesheet named' => [['template' => 'layouts/app.blade.php', 'version' => '{layout}'], 422, 'invalid'],
+    'a template without a head' => [['template' => 'partials/card.blade.php', 'version' => '{footer}', 'stylesheet' => 'site.css'], 422, 'rejected'],
+    'a stylesheet it links already' => [['template' => 'layout.blade.php', 'version' => '{layout}', 'stylesheet' => 'site.css'], 422, 'rejected'],
+    'a stylesheet that is not there' => [['template' => 'layout.blade.php', 'version' => '{layout}', 'stylesheet' => 'other.css'], 404, 'not_found'],
+    'a template that is not there' => [['template' => 'layouts/other.blade.php', 'version' => '{layout}', 'stylesheet' => 'site.css'], 404, 'not_found'],
+    'another version of the layout' => [['template' => 'layout.blade.php', 'version' => 'older', 'stylesheet' => 'site.css'], 409, 'conflict'],
+    'no stylesheet named' => [['template' => 'layout.blade.php', 'version' => '{layout}'], 422, 'invalid'],
 ]);
 
 // --- Who may ------------------------------------------------------------------
@@ -337,14 +342,14 @@ it('is for those who may use the editor only', function (string $method, string 
 
     // Someone who may use the admin, but is no Super Admin.
     $user = createUser();
-    $user->givePermissionTo(Permission::findOrCreate('sunrice.access-admin', config('sunrice.auth.guard', 'web')));
-    actingAs($user, config('sunrice.auth.guard', 'web'));
+    $user->givePermissionTo(Permission::findOrCreate('sunrice.access', Access::guard()));
+    actingAs($user, Access::guard());
     $this->json($method, $uri, $body)->assertForbidden()->assertJsonPath('reason', 'forbidden');
 
     expect(File::get($this->css))->toBe($this->original);
 })->with([
     ['GET', SVE_STYLES.'?class=card', []],
-    ['POST', SVE_STYLES.'/files/app.css/changes', ['version' => 'x', 'changes' => [['type' => 'rule', 'selector' => '.a']]]],
-    ['PUT', SVE_STYLES.'/files/app.css/source', ['version' => 'x', 'source' => '']],
-    ['POST', SVE_STYLES.'/link', ['template' => 'layouts/app.blade.php', 'version' => 'x', 'stylesheet' => 'app.css']],
+    ['POST', SVE_STYLES.'/files/site.css/changes', ['version' => 'x', 'changes' => [['type' => 'rule', 'selector' => '.a']]]],
+    ['PUT', SVE_STYLES.'/files/site.css/source', ['version' => 'x', 'source' => '']],
+    ['POST', SVE_STYLES.'/link', ['template' => 'layout.blade.php', 'version' => 'x', 'stylesheet' => 'site.css']],
 ]);

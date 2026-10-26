@@ -25,8 +25,8 @@ use Throwable;
  */
 final class Variables
 {
-    /** What Blade, Laravel and Sunrice give every template of a page. */
-    private const GIVEN = ['this', 'loop', 'slot', 'component', 'attributes', 'errors', 'app', 'locale', 'pageType', 'sunricePage'];
+    /** What Blade and Laravel give every template of a page. */
+    private const GIVEN = ['this', 'loop', 'slot', 'component', 'attributes', 'errors', 'app', 'locale'];
 
     /**
      * @return list<string> names without the "$", in the order they are first read

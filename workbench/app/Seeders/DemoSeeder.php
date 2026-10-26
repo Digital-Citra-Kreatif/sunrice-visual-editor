@@ -5,21 +5,22 @@ declare(strict_types=1);
 namespace Workbench\App\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Schema;
-use Sunrice\Actions\Entries\PublishTranslation;
-use Sunrice\Models\Blueprint;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Fieldset;
-use Sunrice\Models\GlobalSet;
-use Sunrice\Models\Menu;
-use Sunrice\Models\Setting;
-use Sunrice\Support\Locales;
+use Illuminate\Support\Facades\File;
+use Sunrice\Cms\Actions\Entries\SetHomepage;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Fieldset;
+use Sunrice\Cms\Settings\SiteSettings;
+use Sunrice\Cms\Structure\StructureImporter;
+use Sunrice\Cms\Support\Locales;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
- * A small site to edit: the content Sunrice's starter templates expect.
- * Pages built from hero/text/gallery blocks, five articles with a listing
- * page, a `site` and a `footer` global and a `main` menu.
+ * A small site to edit, drawn by the CMS's starter templates: pages built
+ * from hero, text and gallery blocks, five articles with a listing page,
+ * a `site` and a `footer` global set, and a `main` menu. The blocks'
+ * templates (workbench/templates) are added to the site's templates when
+ * it has none of that name.
  */
 class DemoSeeder extends Seeder
 {
@@ -29,111 +30,92 @@ class DemoSeeder extends Seeder
 
     public const HERO_LINK = 'https://example.com/docs';
 
-    public function run(): void
+    public function run(StructureImporter $importer): void
     {
+        $templates = SunriceBridge::templateDirectory();
+        foreach (File::allFiles(dirname(__DIR__, 2).'/templates') as $file) {
+            $to = $templates.'/'.$file->getRelativePathname();
+            if (! is_file($to)) {
+                File::ensureDirectoryExists(dirname($to));
+                File::copy($file->getPathname(), $to);
+            }
+        }
+
         // Safe to run again: Testbench seeds once for `seeders:` in
         // testbench.yaml and once for `migrate-fresh --seeder`.
         if (Fieldset::query()->where('handle', 'hero')->exists()) {
             return;
         }
+        $main = Locales::default();
+        $field = fn (string $handle, string $type, string $label, array $config = []): array => ['handle' => $handle, 'type' => $type, 'label' => $label, 'config' => $config];
 
-        Fieldset::create(['handle' => 'hero', 'title' => 'Hero', 'fields' => [
-            ['handle' => 'heading', 'type' => 'text', 'label' => 'Heading'],
-            ['handle' => 'subheading', 'type' => 'textarea', 'label' => 'Subheading'],
-            ['handle' => 'button', 'type' => 'link', 'label' => 'Button'],
-        ]]);
-        Fieldset::create(['handle' => 'text', 'title' => 'Text', 'fields' => [
-            ['handle' => 'body', 'type' => 'rich_text', 'label' => 'Body'],
-        ]]);
-        Fieldset::create(['handle' => 'gallery', 'title' => 'Gallery', 'fields' => [
-            ['handle' => 'title', 'type' => 'text', 'label' => 'Title'],
-            ['handle' => 'images', 'type' => 'asset', 'label' => 'Images', 'config' => ['multiple' => true]],
-        ]]);
-
-        $page = Blueprint::create(['handle' => 'page', 'title' => 'Page', 'fields' => [
-            ['handle' => 'body', 'type' => 'rich_text', 'label' => 'Body'],
-            ['handle' => 'sections', 'type' => 'flexible', 'label' => 'Sections', 'config' => ['fieldsets' => ['hero', 'text', 'gallery']]],
-        ]]);
-        $article = Blueprint::create(['handle' => 'article', 'title' => 'Article', 'fields' => [
-            ['handle' => 'excerpt', 'type' => 'textarea', 'label' => 'Excerpt'],
-            ['handle' => 'body', 'type' => 'rich_text', 'label' => 'Body'],
-        ]]);
-
-        $pages = Collection::create([
-            'handle' => 'pages', 'title' => 'Pages', 'blueprint_id' => $page->id,
-            'settings' => ['route' => '/{slug}', 'has_single' => true, 'has_archive' => false, 'translatable' => false, 'sluggable' => true],
-        ]);
-        $articles = Collection::create([
-            'handle' => 'articles', 'title' => 'Articles', 'blueprint_id' => $article->id,
-            'settings' => ['route' => '/articles/{slug}', 'archive_route' => '/articles', 'has_single' => true, 'has_archive' => true, 'translatable' => false, 'sluggable' => true],
-        ]);
-
-        $home = $this->entry($pages, $page, 'Home', [
-            'sections' => [
-                ['id' => 'home-hero', 'type' => 'hero', 'values' => [
-                    'heading' => self::HERO_HEADING,
-                    'subheading' => 'This page is drawn by a layout, a header, a footer and one partial per block.',
-                    'button' => ['type' => 'url', 'url' => self::HERO_LINK, 'label' => 'Read the docs', 'new_tab' => false],
+        $importer->import([
+            'fieldsets' => [
+                ['handle' => 'hero', 'title' => 'Hero', 'fields' => [
+                    $field('heading', 'text', 'Heading'),
+                    $field('subheading', 'textarea', 'Subheading'),
+                    $field('button', 'link', 'Button'),
                 ]],
-                ['id' => 'home-text', 'type' => 'text', 'values' => [
-                    'body' => '<p>Each block on this page has its own Blade file under <code>blocks/</code>.</p>',
+                ['handle' => 'text', 'title' => 'Text', 'fields' => [$field('body', 'rich_text', 'Body')]],
+                ['handle' => 'gallery', 'title' => 'Gallery', 'fields' => [
+                    $field('title', 'text', 'Title'),
+                    $field('images', 'media', 'Images', ['multiple' => true]),
                 ]],
             ],
+            'blueprints' => [
+                ['handle' => 'page', 'title' => 'Page', 'fields' => [
+                    $field('body', 'rich_text', 'Body'),
+                    $field('sections', 'flexible', 'Sections', ['blocks' => ['hero', 'text', 'gallery']]),
+                ]],
+                ['handle' => 'article', 'title' => 'Article', 'fields' => [
+                    $field('excerpt', 'textarea', 'Excerpt'),
+                    $field('body', 'rich_text', 'Body'),
+                ]],
+                ['handle' => 'site', 'title' => 'Site', 'fields' => [$field('name', 'text', 'Name')]],
+                ['handle' => 'footer', 'title' => 'Footer', 'fields' => [$field('text', 'text', 'Text')]],
+            ],
+            'collections' => [
+                ['handle' => 'pages', 'title' => 'Pages', 'blueprint' => 'page', 'route' => '/{slug}'],
+                ['handle' => 'articles', 'title' => 'Articles', 'blueprint' => 'article', 'dated' => true, 'route' => '/articles/{slug}', 'listing_route' => '/articles'],
+            ],
+            'globals' => [
+                ['handle' => 'site', 'title' => 'Site', 'blueprint' => 'site', 'values' => [$main => ['name' => self::SITE_NAME]]],
+                ['handle' => 'footer', 'title' => 'Footer', 'blueprint' => 'footer', 'values' => [$main => ['text' => 'Built with Sunrice CMS.']]],
+            ],
         ]);
-        $about = $this->entry($pages, $page, 'About', ['body' => '<p>A page with a rich text body and no blocks.</p>']);
 
-        foreach (['First post', 'Second post', 'Third post', 'Fourth post', 'Fifth post'] as $title) {
-            $this->entry($articles, $article, $title, [
-                'excerpt' => "A short summary of the {$title}.",
-                'body' => "<p>The body of the {$title}.</p>",
-            ]);
-        }
-
-        Setting::set('homepage_entry_id', $home->id);
-
-        // Sunrice before it translated globals like entries had a set-wide "translatable" switch and
-        // kept a set that was not translatable in a row of no language; since, every row has its language.
-        $shared = Schema::hasColumn('sunrice_globals', 'translatable');
-        $global = fn (array $set) => GlobalSet::create($set + ($shared ? ['translatable' => false] : []));
-        $locale = $shared ? null : Locales::main();
-
-        $siteBlueprint = Blueprint::create(['handle' => 'site', 'title' => 'Site', 'fields' => [
-            ['handle' => 'name', 'type' => 'text', 'label' => 'Name'],
-        ]]);
-        $site = $global(['handle' => 'site', 'title' => 'Site', 'blueprint_id' => $siteBlueprint->id, 'group' => 'global']);
-        $site->values()->create(['locale' => $locale, 'data' => ['name' => self::SITE_NAME]]);
-
-        $footerBlueprint = Blueprint::create(['handle' => 'footer', 'title' => 'Footer', 'fields' => [
-            ['handle' => 'text', 'type' => 'rich_text', 'label' => 'Text'],
-        ]]);
-        $footer = $global(['handle' => 'footer', 'title' => 'Footer', 'blueprint_id' => $footerBlueprint->id, 'group' => 'template_part']);
-        $footer->values()->create(['locale' => $locale, 'data' => ['text' => '<p>Built with Sunrice CMS.</p>']]);
-
-        $menu = Menu::create(['handle' => 'main', 'title' => 'Main menu']);
-        $label = fn (string $text): array => [Locales::main() => $text];
-        $menu->items()->create(['type' => 'entry', 'target_id' => $home->id, 'labels' => $label('Home'), 'sort_order' => 0]);
-        $menu->items()->create(['type' => 'collection', 'target_id' => $articles->id, 'labels' => $label('Articles'), 'sort_order' => 1]);
-        $menu->items()->create(['type' => 'entry', 'target_id' => $about->id, 'labels' => $label('About'), 'sort_order' => 2]);
-    }
-
-    /**
-     * A published entry in the main language.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    protected function entry(Collection $collection, Blueprint $blueprint, string $title, array $data): Entry
-    {
-        $entry = Entry::create(['collection_id' => $collection->id, 'blueprint_id' => $blueprint->id, 'status' => 'draft']);
-        $translation = $entry->translations()->create([
-            'collection_id' => $collection->id,
-            'locale' => Locales::main(),
-            'title' => $title,
-            'slug' => str($title)->slug()->toString(),
-            'data' => $data,
-            'is_ready' => true,
+        $entry = fn (string $collection, string $title, array $data): array => ['collection' => $collection, 'slug' => str($title)->slug()->toString(), 'translations' => [
+            $main => ['title' => $title, 'slug' => str($title)->slug()->toString(), 'published' => true, 'data' => $data],
+        ]];
+        $importer->import([
+            'entries' => [
+                $entry('pages', 'Home', ['sections' => [
+                    ['type' => 'hero', 'key' => 'home-hero', 'values' => [
+                        'heading' => self::HERO_HEADING,
+                        'subheading' => 'This page is drawn by a layout and one partial per block.',
+                        'button' => ['type' => 'url', 'url' => self::HERO_LINK, 'label' => 'Read the docs', 'new_tab' => false],
+                    ]],
+                    ['type' => 'text', 'key' => 'home-text', 'values' => [
+                        'body' => '<p>Each block on this page has its own Blade file under <code>blocks/</code>.</p>',
+                    ]],
+                ]]),
+                $entry('pages', 'About', ['body' => '<p>A page with a rich text body and no blocks.</p>']),
+                ...array_map(fn (string $title): array => $entry('articles', $title, [
+                    'excerpt' => "A short summary of the {$title}.",
+                    'body' => "<p>The body of the {$title}.</p>",
+                ]), ['First post', 'Second post', 'Third post', 'Fourth post', 'Fifth post']),
+            ],
+            'menus' => [['handle' => 'main', 'title' => 'Main menu', 'items' => [
+                ['entry' => 'pages/home', 'labels' => [$main => 'Home']],
+                ['collection' => 'articles', 'labels' => [$main => 'Articles']],
+                ['entry' => 'pages/about', 'labels' => [$main => 'About']],
+            ]]],
         ]);
-        app(PublishTranslation::class)->handle($translation);
 
-        return $entry->refresh();
+        $pages = Collection::query()->where('handle', 'pages')->sole();
+        app(SetHomepage::class)->handle(Entry::query()->whereBelongsTo($pages)->whereHas('translations', fn ($query) => $query->where('slug', 'home'))->sole());
+        $site = app(SiteSettings::class);
+        $site->name = self::SITE_NAME;
+        $site->save();
     }
 }

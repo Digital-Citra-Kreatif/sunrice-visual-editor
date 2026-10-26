@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Actions;
 
-use Sunrice\Activity\ActivityLogger;
+use Sunrice\Admin\Activity\ActivityLog;
 use Sunrice\VisualEditor\Css\StylesheetNotFound;
 use Sunrice\VisualEditor\Css\ThemeRepository;
 use Sunrice\VisualEditor\Support\Files;
@@ -52,7 +52,8 @@ final class SaveStylesheet
             Files::replace($file->file, $newSource);
 
             // Beside the content changes in Manage → Activity log.
-            app(ActivityLogger::class)->record($existed ? 'updated' : 'created', 'sunrice-theme/'.$file->path, ['note' => 'Visual editor'], 'template');
+            app(ActivityLog::class)->record($existed ? 'updated' : 'created', 'template', null, SunriceBridge::themeFolder().'/'.$file->path, ['note' => 'Visual editor']);
+            SunriceBridge::changed(SunriceBridge::themeFolder().'/'.$file->path);
 
             return ThemeRepository::version($newSource);
         });

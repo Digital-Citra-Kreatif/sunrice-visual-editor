@@ -1,12 +1,11 @@
 laravel: '@testbench'
 
 providers:
-  - Sunrice\SunriceServiceProvider
-  - Inertia\ServiceProvider
-  - Spatie\Permission\PermissionServiceProvider
+  - Sunrice\Admin\AdminServiceProvider
+  - Sunrice\Cms\CmsServiceProvider
   - Spatie\Honeypot\HoneypotServiceProvider
-  - Laravel\Mcp\Server\McpServiceProvider
   - Sunrice\VisualEditor\VisualEditorServiceProvider
+  - Workbench\App\Providers\AdminPanelProvider
 
 migrations:
   - workbench/database/migrations
@@ -34,9 +33,10 @@ workbench:
     - migrate-fresh:
         --seed: true
         --seeder: Workbench\Database\Seeders\DatabaseSeeder
+    - sunrice:assets
   assets:
-    - sunrice-assets
-    - sunrice-templates
+    - sunrice-cms-assets
+    - sunrice-cms-templates
     - sunrice-visual-editor-assets
   sync:
     - from: storage
@@ -46,9 +46,15 @@ workbench:
 # One KEY=value per line, as in a .env file.
 env:
   - 'AUTH_MODEL="Workbench\\App\\Models\\User"'
-  - 'SUNRICE_USER_MODEL="Workbench\\App\\Models\\User"'
   - DB_CONNECTION=sqlite
-  - SUNRICE_ADMIN_PATH=cms
+  # The panel's and the plugins' script addresses are made from it (composer serve's address, where CI's smoke test serves it too).
+  - APP_URL=http://127.0.0.1:8000
+  # The database cache store on the workbench's SQLite file by name (see sunrice's own testbench.yaml).
+  - DB_CACHE_CONNECTION=sqlite
   - SUNRICE_VISUAL_EDITOR=true
+  # The demo's users sign in with Sunrice-Demo-2026!, which the panel takes as strong; it isn't asked about known leaks.
+  - SUNRICE_PASSWORD_UNCOMPROMISED=false
+  # Agents may change templates with the editor's tools (the CMS's switch).
+  - SUNRICE_AI_TEMPLATES=true
   # A build command that harms nothing, so the editor's Build button can be tried on the demo site.
   - 'SUNRICE_VISUAL_EDITOR_BUILD="php -v"'

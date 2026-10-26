@@ -12,8 +12,9 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Lets a request to the editor's API through only for someone who has the
  * permission it takes: `EditorAccess::class.':edit'` for what changes a
- * file, nothing more than opening the editor for what reads. Comes after
- * the admin's own sign-in middleware.
+ * file, nothing more than opening the editor for what reads. The API
+ * answers a refusal as JSON; the editor's page (`:page`) with the panel's
+ * own error page. Comes after the panel's sign-in middleware.
  */
 final class EditorAccess
 {
@@ -25,7 +26,9 @@ final class EditorAccess
             'edit' => Access::EDIT,
             default => Access::OPEN,
         };
-        if (! Access::may($request->user(config('sunrice.auth.guard')), $permission)) {
+        if (! Access::may($request->user(Access::guard()), $permission)) {
+            abort_if($needs === 'page', 403);
+
             return response()->json([
                 'reason' => 'forbidden',
                 'message' => match ($permission) {

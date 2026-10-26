@@ -29,15 +29,15 @@ const frame = page.frameLocator('iframe.sve-frame');
 
 /**
  * The header's code, as the code editor beside the page holds it, changed and saved: how a class is given on the screen.
- * The brand is found by the start of its class list: the checks before this one may have left classes of their own on it.
+ * The site's name is found by the start of its class list: the checks before this one may have left classes of their own on it.
  */
 const saveHeader = async (change) => {
-    await frame.locator('.site-header .brand').first().click();
-    await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'partials/header');
+    await frame.locator('.site-header .site-name').first().click();
+    await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'layout');
     // The header's own code: until it has been read, the code beside the page still shows the template before.
-    const code = page.locator('section[aria-label="Code of partials/header.blade.php"] .sve-code__editor');
+    const code = page.locator('section[aria-label="Code of layout.blade.php"] .sve-code__editor');
     await code.locator('.cm-editor').waitFor();
-    await page.waitForFunction((from) => document.querySelector('section[aria-label="Code of partials/header.blade.php"] .sve-code__editor')?.sveCodeEditor?.text().includes(from) === true, change[0]);
+    await page.waitForFunction((from) => document.querySelector('section[aria-label="Code of layout.blade.php"] .sve-code__editor')?.sveCodeEditor?.text().includes(from) === true, change[0]);
     await code.evaluate((holder, [from, to]) => {
         const text = holder.sveCodeEditor.text();
         if (!text.includes(from)) {
@@ -53,15 +53,15 @@ const saveHeader = async (change) => {
 const padding = (where) => where.locator('header.site-header').first().evaluate((element) => getComputedStyle(element).paddingTop);
 
 await step('sign in', async () => {
-    await page.goto(`${base}/cms/login`);
+    await page.goto(`${base}/admin/login`);
     await page.fill('#email', 'admin@example.com');
-    await page.fill('#password', 'password');
+    await page.fill('#password', 'Sunrice-Demo-2026!');
     await Promise.all([page.waitForURL((url) => !url.pathname.endsWith('/login')), page.click('button[type=submit]')]);
 });
 
 await step('show a class the build has no rule for, in the editor, and say that it is a preview', async () => {
-    await page.goto(`${base}/cms/visual-editor?url=/demo`);
-    await page.waitForSelector('.sve-template');
+    await page.goto(`${base}/admin/visual-editor?url=/about`);
+    await page.waitForSelector('.sve-template', { state: 'attached' });
     await frame.locator('header.site-header.pt-9').first().waitFor();
     let now = '';
     for (let attempt = 0; attempt < 60 && now !== '36px'; attempt++) {
@@ -76,7 +76,7 @@ await step('show a class the build has no rule for, in the editor, and say that 
 
 await step('give a visitor the built CSS and nothing else', async () => {
     const visitor = await browser.newPage();
-    await visitor.goto(`${base}/demo`);
+    await visitor.goto(`${base}/about`);
     await visitor.locator('header.site-header.pt-9').first().waitFor();
     await visitor.waitForTimeout(1500);
     const seen = await padding(visitor);
@@ -91,7 +91,7 @@ await step('say that a build is needed after a class is added, build from the ba
     const build = page.locator('.sve-bar__build');
     await build.getByText('Build', { exact: true }).waitFor();
 
-    await saveHeader(['class="brand', 'class="brand mt-px']);
+    await saveHeader(['class="site-name', 'class="site-name mt-px']);
     await frame.locator('.site-header .mt-px').first().waitFor();
     await build.getByText('Build needed', { exact: true }).waitFor();
 
@@ -108,7 +108,7 @@ await step('say that a build is needed after a class is added, build from the ba
     console.log(`     ${await page.getByText(/^Built in [\d.]+ seconds\.$/).textContent()}`);
 
     const visitor = await browser.newPage();
-    await visitor.goto(`${base}/demo`);
+    await visitor.goto(`${base}/about`);
     const top = await padding(visitor);
     const margin = await visitor.locator('.site-header .mt-px').first().evaluate((element) => getComputedStyle(element).marginTop);
     await visitor.close();

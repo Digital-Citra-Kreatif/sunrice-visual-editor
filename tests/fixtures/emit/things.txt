@@ -1,4 +1,149 @@
 
+### summary: text
+--- Text
+{{ $values['summary'] ?? '' }}
+--- Only when it is set
+@if (! empty($values['summary']))
+@endif
+
+### notes: text
+--- Text
+{{ $values['notes'] ?? '' }}
+--- Only when it is set
+@if (! empty($values['notes']))
+@endif
+
+### body: html
+--- Rich text
+{!! $values['body'] ?? '' !!}
+--- Only when it is set
+@if (! empty($values['body']))
+@endif
+
+### price: number
+--- Text
+{{ $values['price'] ?? '' }}
+--- Only when it is set
+@if (! empty($values['price']))
+@endif
+
+### featured: bool
+--- Only when it is on
+@if (! empty($values['featured']))
+@endif
+--- Only when it is off
+@if (! ($values['featured'] ?? false))
+@endif
+
+### colour: text
+--- Text
+{{ $values['colour'] ?? '' }}
+--- Only when it is set
+@if (! empty($values['colour']))
+@endif
+
+### sizes: list<text>
+--- All of them, with commas
+{{ implode(', ', (array) ($values['sizes'] ?? [])) }}
+--- Each one, in a loop
+@foreach ($values['sizes'] ?? [] as $size)
+    {{ $size }}
+@endforeach
+--- Only when there are any
+@if (collect($values['sizes'] ?? [])->isNotEmpty())
+@endif
+
+### made_on: date
+--- Date
+{{ ($values['made_on'] ?? null)?->translatedFormat('j F Y') }}
+--- Only when it is set
+@if (! empty($values['made_on']))
+@endif
+
+### more: link
+--- Link
+@if (($more = $values['more'] ?? null) && ! empty($more['url']))
+    <a href="{{ $more['url'] }}" @if (! empty($more['new_tab'])) target="_blank" rel="noopener" @endif>{{ $more['label'] ?? $more['title'] ?? $more['url'] }}</a>
+@endif
+--- Only when it is set
+@if (! empty($values['more']))
+@endif
+
+### cover: asset
+--- Image
+@if ($cover = $values['cover'] ?? null)
+    <img src="{{ $cover->url('large') }}" alt="{{ $cover->altIn() }}">
+@endif
+--- Link to the file
+@if ($cover = $values['cover'] ?? null)
+    <a href="{{ $cover->url() }}">{{ $cover->title ?: $cover->filename }}</a>
+@endif
+--- Only when it is set
+@if (! empty($values['cover']))
+@endif
+
+### photos: list<asset>
+--- Each one, in a loop
+@foreach ($values['photos'] ?? [] as $photo)
+    <img src="{{ $photo->url('large') }}" alt="{{ $photo->altIn() }}">
+@endforeach
+--- Only when there are any
+@if (collect($values['photos'] ?? [])->isNotEmpty())
+@endif
+
+### related: list<entry(articles)>
+--- Each one, in a loop
+@foreach ($values['related'] ?? [] as $article)
+    <a href="{{ $article->url() }}">{{ $article->title }}</a>
+@endforeach
+--- Only when there are any
+@if (collect($values['related'] ?? [])->isNotEmpty())
+@endif
+
+### see_also: list<entry(articles|pages)>
+--- Each one, in a loop
+@foreach ($values['see_also'] ?? [] as $item)
+    <a href="{{ $item->url() }}">{{ $item->title }}</a>
+@endforeach
+--- Only when there are any
+@if (collect($values['see_also'] ?? [])->isNotEmpty())
+@endif
+
+### topics: list<term(topics)>
+--- Each one, in a loop
+@foreach ($values['topics'] ?? [] as $topic)
+    <a href="{{ $topic->url() }}">{{ $topic->title() }}</a>
+@endforeach
+--- Only when there are any
+@if (collect($values['topics'] ?? [])->isNotEmpty())
+@endif
+
+### details: group{material, weight, picture}
+
+### steps: list<row{label, text, icon}>
+--- Each one, in a loop
+@foreach ($values['steps'] ?? [] as $step)
+    <div>
+        {{ $step['label'] ?? '' }}
+        {!! $step['text'] ?? '' !!}
+        @if ($icon = $step['icon'] ?? null)
+            <img src="{{ $icon->url('large') }}" alt="{{ $icon->altIn() }}">
+        @endif
+    </div>
+@endforeach
+--- Only when there are any
+@if (collect($values['steps'] ?? [])->isNotEmpty())
+@endif
+
+### sections: list<block(hero|text|cta)>
+--- Each block, drawn by its own template
+@foreach ($values['sections'] ?? [] as $block)
+    @includeFirst(['cms.blocks.'.$block->type, 'cms.partials.block'], ['block' => $block])
+@endforeach
+--- Only when there are any
+@if (collect($values['sections'] ?? [])->isNotEmpty())
+@endif
+
 ### title: text
 --- Text
 {{ $entry->title }}
@@ -8,9 +153,9 @@
 
 ### url: text
 --- Text
-{{ $entry->url }}
+{{ $entry->url() }}
 --- Only when it is set
-@if ($entry->url)
+@if ($entry->url())
 @endif
 
 ### published_at: date
@@ -20,18 +165,10 @@
 @if ($entry->published_at)
 @endif
 
-### author: user
---- Name
-{{ $entry->author?->name }}
---- Only when it is set
-@if ($entry->author)
-@endif
-
 ### terms: list<term>
 --- Each one, in a loop
 @foreach ($entry->terms as $item)
-    @php($item->resolveFor($locale))
-    <a href="{{ $item->url }}">{{ $item->name }}</a>
+    <a href="{{ $item->url() }}">{{ $item->title() }}</a>
 @endforeach
 --- Only when there are any
 @if ($entry->terms->isNotEmpty())
@@ -46,145 +183,145 @@
 
 ### summary: text
 --- Text
-{{ $entry->get('summary') }}
+{{ $entry->values()['summary'] ?? '' }}
 --- Only when it is set
-@if ($entry->get('summary'))
+@if (! empty($entry->values()['summary']))
 @endif
 
 ### notes: text
 --- Text
-{{ $entry->get('notes') }}
+{{ $entry->values()['notes'] ?? '' }}
 --- Only when it is set
-@if ($entry->get('notes'))
+@if (! empty($entry->values()['notes']))
 @endif
 
 ### body: html
 --- Rich text
-{!! $entry->get('body') !!}
+{!! $entry->values()['body'] ?? '' !!}
 --- Only when it is set
-@if ($entry->get('body'))
+@if (! empty($entry->values()['body']))
 @endif
 
 ### price: number
 --- Text
-{{ $entry->get('price') }}
+{{ $entry->values()['price'] ?? '' }}
 --- Only when it is set
-@if ($entry->get('price'))
+@if (! empty($entry->values()['price']))
 @endif
 
 ### featured: bool
 --- Only when it is on
-@if ($entry->get('featured'))
+@if (! empty($entry->values()['featured']))
 @endif
 --- Only when it is off
-@if (! $entry->get('featured'))
+@if (! ($entry->values()['featured'] ?? false))
 @endif
 
 ### colour: text
 --- Text
-{{ $entry->get('colour') }}
+{{ $entry->values()['colour'] ?? '' }}
 --- Only when it is set
-@if ($entry->get('colour'))
+@if (! empty($entry->values()['colour']))
 @endif
 
 ### sizes: list<text>
 --- All of them, with commas
-{{ implode(', ', (array) ($entry->get('sizes') ?? [])) }}
+{{ implode(', ', (array) ($entry->values()['sizes'] ?? [])) }}
 --- Each one, in a loop
-@foreach ($entry->get('sizes') ?? [] as $size)
+@foreach ($entry->values()['sizes'] ?? [] as $size)
     {{ $size }}
 @endforeach
 --- Only when there are any
-@if (collect($entry->get('sizes'))->isNotEmpty())
+@if (collect($entry->values()['sizes'] ?? [])->isNotEmpty())
 @endif
 
 ### made_on: date
 --- Date
-{{ $entry->get('made_on')?->translatedFormat('j F Y') }}
+{{ ($entry->values()['made_on'] ?? null)?->translatedFormat('j F Y') }}
 --- Only when it is set
-@if ($entry->get('made_on'))
+@if (! empty($entry->values()['made_on']))
 @endif
 
 ### more: link
 --- Link
-@if (($more = $entry->get('more')) && ! empty($more['url']))
-    <a href="{{ $more['url'] }}" @if (! empty($more['new_tab'])) target="_blank" rel="noopener" @endif>{{ $more['label'] ?: $more['url'] }}</a>
+@if (($more = $entry->values()['more'] ?? null) && ! empty($more['url']))
+    <a href="{{ $more['url'] }}" @if (! empty($more['new_tab'])) target="_blank" rel="noopener" @endif>{{ $more['label'] ?? $more['title'] ?? $more['url'] }}</a>
 @endif
 --- Only when it is set
-@if ($entry->get('more'))
+@if (! empty($entry->values()['more']))
 @endif
 
 ### cover: asset
 --- Image
-@if ($cover = $entry->get('cover'))
-    <img src="{{ $cover->url('large') }}" alt="{{ $cover->alt }}">
+@if ($cover = $entry->values()['cover'] ?? null)
+    <img src="{{ $cover->url('large') }}" alt="{{ $cover->altIn() }}">
 @endif
 --- Link to the file
-@if ($cover = $entry->get('cover'))
+@if ($cover = $entry->values()['cover'] ?? null)
     <a href="{{ $cover->url() }}">{{ $cover->title ?: $cover->filename }}</a>
 @endif
 --- Only when it is set
-@if ($entry->get('cover'))
+@if (! empty($entry->values()['cover']))
 @endif
 
 ### photos: list<asset>
 --- Each one, in a loop
-@foreach ($entry->get('photos') ?? [] as $photo)
-    <img src="{{ $photo->url('large') }}" alt="{{ $photo->alt }}">
+@foreach ($entry->values()['photos'] ?? [] as $photo)
+    <img src="{{ $photo->url('large') }}" alt="{{ $photo->altIn() }}">
 @endforeach
 --- Only when there are any
-@if (collect($entry->get('photos'))->isNotEmpty())
+@if (collect($entry->values()['photos'] ?? [])->isNotEmpty())
 @endif
 
 ### related: list<entry(articles)>
 --- Each one, in a loop
-@foreach ($entry->get('related') ?? [] as $article)
-    <a href="{{ $article->url }}">{{ $article->title }}</a>
+@foreach ($entry->values()['related'] ?? [] as $article)
+    <a href="{{ $article->url() }}">{{ $article->title }}</a>
 @endforeach
 --- Only when there are any
-@if (collect($entry->get('related'))->isNotEmpty())
+@if (collect($entry->values()['related'] ?? [])->isNotEmpty())
 @endif
 
-### see_also: list<entry>
+### see_also: list<entry(articles|pages)>
 --- Each one, in a loop
-@foreach ($entry->get('see_also') ?? [] as $item)
-    <a href="{{ $item->url }}">{{ $item->title }}</a>
+@foreach ($entry->values()['see_also'] ?? [] as $item)
+    <a href="{{ $item->url() }}">{{ $item->title }}</a>
 @endforeach
 --- Only when there are any
-@if (collect($entry->get('see_also'))->isNotEmpty())
+@if (collect($entry->values()['see_also'] ?? [])->isNotEmpty())
 @endif
 
 ### topics: list<term(topics)>
 --- Each one, in a loop
-@foreach ($entry->get('topics') ?? [] as $topic)
-    <a href="{{ $topic->url }}">{{ $topic->name }}</a>
+@foreach ($entry->values()['topics'] ?? [] as $topic)
+    <a href="{{ $topic->url() }}">{{ $topic->title() }}</a>
 @endforeach
 --- Only when there are any
-@if (collect($entry->get('topics'))->isNotEmpty())
+@if (collect($entry->values()['topics'] ?? [])->isNotEmpty())
 @endif
 
 ### details: group{material, weight, picture}
 
 ### steps: list<row{label, text, icon}>
 --- Each one, in a loop
-@foreach ($entry->get('steps') ?? [] as $step)
+@foreach ($entry->values()['steps'] ?? [] as $step)
     <div>
         {{ $step['label'] ?? '' }}
         {!! $step['text'] ?? '' !!}
         @if ($icon = $step['icon'] ?? null)
-            <img src="{{ $icon->url('large') }}" alt="{{ $icon->alt }}">
+            <img src="{{ $icon->url('large') }}" alt="{{ $icon->altIn() }}">
         @endif
     </div>
 @endforeach
 --- Only when there are any
-@if (collect($entry->get('steps'))->isNotEmpty())
+@if (collect($entry->values()['steps'] ?? [])->isNotEmpty())
 @endif
 
 ### sections: list<block(hero|text|cta)>
 --- Each block, drawn by its own template
-@foreach ($entry->get('sections') ?? [] as $block)
-    @includeFirst(['sunrice.blocks.'.$block->type, 'sunrice.blocks.default'], ['block' => $block])
+@foreach ($entry->values()['sections'] ?? [] as $block)
+    @includeFirst(['cms.blocks.'.$block->type, 'cms.partials.block'], ['block' => $block])
 @endforeach
 --- Only when there are any
-@if (collect($entry->get('sections'))->isNotEmpty())
+@if (collect($entry->values()['sections'] ?? [])->isNotEmpty())
 @endif

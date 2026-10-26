@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use Sunrice\Admin\Panel;
 use Sunrice\VisualEditor\Actions\Build;
 use Sunrice\VisualEditor\Rendering\TailwindPreview;
 use Sunrice\VisualEditor\Support\Access;
@@ -21,7 +22,7 @@ class EditorController extends Controller
      */
     public function show(Request $request): Response
     {
-        $user = $request->user(config('sunrice.auth.guard'));
+        $user = $request->user(Access::guard());
         abort_unless(Access::allowed($user), 403);
 
         return Inertia::render('VisualEditor/Editor', [
@@ -57,7 +58,7 @@ class EditorController extends Controller
             return '/';
         }
 
-        $admin = '/'.trim((string) config('sunrice.admin.path', 'cms'), '/');
+        $admin = '/'.trim(app()->bound(Panel::class) ? app(Panel::class)->getPath() : 'admin', '/');
         $path = (string) parse_url($url, PHP_URL_PATH);
         if ($path === $admin || str_starts_with($path, $admin.'/')) {
             return '/';

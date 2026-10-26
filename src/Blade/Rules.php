@@ -60,7 +60,7 @@ final class Rules
 
     /**
      * The opening tag of a Blade component, with or without an end tag:
-     * `<x-sunrice::entries collection="articles">`. Its attributes are what
+     * `<x-sunrice-cms::entries collection="articles">`. Its attributes are what
      * the component is given, and are changed like an element's. It is
      * not an element: nothing is written into it that the component
      * would be handed.

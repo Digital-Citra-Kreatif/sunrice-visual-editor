@@ -30,16 +30,12 @@ type Props = {
     goTo: CodePlace | null;
     /** The cursor is somewhere else: where that is in the file as saved, and in the text as it is now, in bytes as nodes are counted. */
     onCursor(saved: number, now: number): void;
-    /** Blade to put in at the cursor: a field chosen from the list beside the code. */
-    put: CodePut | null;
     /** What can be read where the cursor is: offered while a variable is typed. */
     fields: PickVariable[] | null;
     /** Said above the code: why it can't be changed, and what to do about it. */
     children?: ReactNode;
 };
 
-/** Blade to put in at the cursor. `asked` tells one asking from the next for the same Blade. */
-export type CodePut = { blade: string; asked: number };
 
 export type CodeTab = TemplateName & { unsaved: boolean };
 
@@ -88,7 +84,7 @@ export function useCodeScript(editorScript: string | null): CodeEditorScript | '
  * changed since it was read or when the text doesn't compile, and nothing
  * is written.
  */
-export function CodePanel({ template, current: opened, draft, onDraft, onSaved, mayCode, onReload, editorScript, tabs, onOpenTab, onCloseTab, goTo, onCursor, put, fields, children }: Props) {
+export function CodePanel({ template, current: opened, draft, onDraft, onSaved, mayCode, onReload, editorScript, tabs, onOpenTab, onCloseTab, goTo, onCursor, fields, children }: Props) {
     const script = useCodeScript(editorScript);
     const [saving, setSaving] = useState(false);
     const [trouble, setTrouble] = useState<Trouble | null>(null);
@@ -195,7 +191,6 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
                     kept={tabs.map((tab) => `${tab.origin}:${tab.path}`)}
                     goTo={goTo !== null && sameTemplate(goTo, template) ? goTo : null}
                     onCursor={onCursor}
-                    put={put}
                     fields={fields}
                 />
             )}
@@ -221,7 +216,6 @@ export type RichProps = CodeProps & {
     kept: string[];
     goTo: CodePlace | null;
     onCursor(saved: number, now: number): void;
-    put: CodePut | null;
     fields: PickVariable[] | null;
 };
 
@@ -230,7 +224,7 @@ export type RichProps = CodeProps & {
  * its own, several cursors. One editor for as long as the panel is there;
  * it keeps each template's text as it was left while another is shown.
  */
-export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, put, fields }: RichProps) {
+export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, fields }: RichProps) {
     const holder = useRef<HTMLDivElement>(null);
     const editor = useRef<CodeEditor | null>(null);
     // The editor is made once and calls whatever the panel's functions are by then.
@@ -309,15 +303,6 @@ export function RichCode({ script, name, text, saved, readOnly, label, onText, o
             editor.current.goTo(indexOfByte(saved, goTo.byte), goTo.focus);
         }
     }, [script, name, saved, goTo?.asked]);
-
-    // A field chosen beside the code goes in at the cursor, once.
-    const done = useRef(0);
-    useEffect(() => {
-        if (put !== null && put.asked !== done.current && editor.current !== null && !readOnly) {
-            done.current = put.asked;
-            editor.current.insert(put.blade);
-        }
-    }, [script, put?.asked]);
 
     useEffect(() => editor.current?.setFields(fields ?? []), [script, fields]);
 

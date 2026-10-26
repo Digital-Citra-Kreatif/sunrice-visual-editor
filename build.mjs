@@ -1,52 +1,46 @@
 // Builds the editor's admin script and stylesheet, the frame's bridge script and the code editor into dist/.
 //
-// The script runs inside the Sunrice admin and must use the admin's own
-// React (a second copy breaks hooks). JSX compiles to
-// Sunrice.React.createElement, and any `react` / `react-dom` import, ours
-// or a bundled library's, resolves to the copies on window.Sunrice.
+// The script runs inside the Sunrice panel and must use the panel's own
+// React and Inertia (a second copy breaks hooks, and wouldn't see the
+// panel's pages). As @imajiner/admin-sdk's Vite plugin does, any import of
+// those modules, ours or a bundled library's, resolves to the panel's copy
+// on window.Sunrice.modules (the panel's runtime, version 3).
 import { build } from 'esbuild';
 import { copyFile, mkdir } from 'node:fs/promises';
 
-const reactNames = [
-    'Children', 'Component', 'Fragment', 'Profiler', 'PureComponent', 'StrictMode', 'Suspense',
-    'cloneElement', 'createContext', 'createElement', 'createRef', 'forwardRef', 'isValidElement',
-    'lazy', 'memo', 'startTransition', 'use', 'useActionState', 'useCallback', 'useContext',
-    'useDebugValue', 'useDeferredValue', 'useEffect', 'useId', 'useImperativeHandle',
-    'useInsertionEffect', 'useLayoutEffect', 'useMemo', 'useOptimistic', 'useReducer', 'useRef',
-    'useState', 'useSyncExternalStore', 'useTransition', 'version',
-];
-const reactDomNames = ['createPortal', 'flushSync', 'unstable_batchedUpdates', 'version'];
-
-const shim = (global, names) => `const m = ${global};\nexport default m;\n${names.map((name) => `export const ${name} = m.${name};`).join('\n')}\n`;
-
-const adminReact = {
-    name: 'admin-react',
-    setup(build) {
-        build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => ({ path: args.path, namespace: 'admin-react' }));
-        build.onLoad({ filter: /.*/, namespace: 'admin-react' }, (args) => {
-            if (args.path === 'react') {
-                return { contents: shim('window.Sunrice.React', reactNames), loader: 'js' };
-            }
-            if (args.path === 'react-dom') {
-                return { contents: shim('window.Sunrice.ReactDOM', reactDomNames), loader: 'js' };
-            }
-            if (args.path === 'react/jsx-runtime' || args.path === 'react/jsx-dev-runtime') {
-                return {
-                    contents: `const R = window.Sunrice.React;
-export const Fragment = R.Fragment;
-const element = (type, { children, ...props }, key) => {
-    const all = key === undefined ? props : { ...props, key };
-    return Array.isArray(children) ? R.createElement(type, all, ...children) : children === undefined ? R.createElement(type, all) : R.createElement(type, all, children);
+// What the editor and its libraries import from each module the panel shares (SHARED_MODULES in @imajiner/admin-sdk/shared).
+const shared = {
+    react: [
+        'Children', 'Component', 'Fragment', 'Profiler', 'PureComponent', 'StrictMode', 'Suspense',
+        'cloneElement', 'createContext', 'createElement', 'createRef', 'forwardRef', 'isValidElement',
+        'lazy', 'memo', 'startTransition', 'use', 'useActionState', 'useCallback', 'useContext',
+        'useDebugValue', 'useDeferredValue', 'useEffect', 'useId', 'useImperativeHandle',
+        'useInsertionEffect', 'useLayoutEffect', 'useMemo', 'useOptimistic', 'useReducer', 'useRef',
+        'useState', 'useSyncExternalStore', 'useTransition', 'version',
+    ],
+    'react/jsx-runtime': ['Fragment', 'jsx', 'jsxs'],
+    'react-dom': ['createPortal', 'flushSync', 'unstable_batchedUpdates', 'version'],
+    '@inertiajs/react': ['Head', 'Link', 'router', 'usePage'],
 };
-export const jsx = element;
-export const jsxs = element;
-export const jsxDEV = element;
-`,
-                    loader: 'js',
-                };
+
+const shim = (name) => `const s = globalThis.Sunrice;
+if (!s || !s.modules) throw new Error('[visual editor] This script needs the Sunrice admin panel (window.Sunrice is missing).');
+const m = s.modules[${JSON.stringify(name)}];
+export default m;
+${shared[name].map((each) => `export const ${each} = m.${each};`).join('\n')}
+`;
+
+const panelModules = {
+    name: 'panel-modules',
+    setup(build) {
+        build.onResolve({ filter: /^(react|react-dom|@inertiajs\/react)(\/.*)?$/ }, (args) => ({ path: args.path, namespace: 'panel' }));
+        build.onLoad({ filter: /.*/, namespace: 'panel' }, (args) => {
+            const name = args.path === 'react/jsx-dev-runtime' ? 'react/jsx-runtime' : args.path;
+            if (shared[name] !== undefined) {
+                return { contents: shim(name), loader: 'js' };
             }
 
-            return { errors: [{ text: `No admin copy of "${args.path}": import it from window.Sunrice or add it to build.mjs.` }] };
+            return { errors: [{ text: `The panel shares no "${args.path}": add it to build.mjs if it is in @imajiner/admin-sdk's SHARED_MODULES.` }] };
         });
     },
 };
@@ -61,10 +55,8 @@ await build({
     target: 'es2022',
     minify: true,
     legalComments: 'none',
-    jsx: 'transform',
-    jsxFactory: 'Sunrice.React.createElement',
-    jsxFragment: 'Sunrice.React.Fragment',
-    plugins: [adminReact],
+    jsx: 'automatic',
+    plugins: [panelModules],
     logLevel: 'info',
 });
 

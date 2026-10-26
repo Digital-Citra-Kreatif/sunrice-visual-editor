@@ -163,7 +163,6 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
                     kept={[`${kind}:${css.path}`]}
                     goTo={null}
                     onCursor={() => {}}
-                    put={null}
                     fields={null}
                 />
             )}

@@ -7,7 +7,7 @@ const variable = (code, fields, more = {}) => ({ code, title: `The ${code}`, fro
 
 const cover = field('cover', 'Cover', null, { what: 'file', groups: [{ title: 'Every file', fields: [field('alt', 'Alt text', "$entry->get('cover')?->alt")] }] });
 const entry = variable('$entry', [field('title', 'Title', '$entry->title'), field('summary', 'Summary', "$entry->get('summary')"), field('body', 'Body', "$entry->get('body')", { print: "{!! $entry->get('body') !!}", what: 'rich text' }), cover]);
-const site = variable("sunrice_global('site')", [field('name', 'Name', "sunrice_global('site')->name")], { from: 'site' });
+const site = variable("cms_global('site')", [field('name', 'Name', "cms_global('site')->name")], { from: 'site' });
 const photo = variable('$photo', [field('alt', 'Alt text', '$photo->alt')], { from: 'loop', expression: null });
 const locale = variable('$locale', [], { from: 'site', expression: '$locale', print: '{{ $locale }}', what: 'text', groups: [] });
 const all = [photo, entry, locale, site];
@@ -32,16 +32,16 @@ test('narrows by what is typed after it, by handle or by name', () => {
 });
 
 test('knows a value that is no plain variable, and not the end of a longer name', () => {
-    const found = offersFor("<title>{{ sunrice_global('site')->", all);
+    const found = offersFor("<title>{{ cms_global('site')->", all);
     assert.deepEqual(labels(found), ['Name']);
-    assert.equal(found.offers[0].insert, "sunrice_global('site')->name");
+    assert.equal(found.offers[0].insert, "cms_global('site')->name");
     assert.equal(offersFor('{{ $myentry->', all), null);
     assert.equal(offersFor('{{ $entries->', all), null);
 });
 
 test('offers what can be printed after the braces of an echo, the place and the template before the site', () => {
     const found = offersFor('<p>{{ ', all);
-    assert.deepEqual(labels(found), ['$photo › Alt text', '$entry › Title', '$entry › Summary', '$entry › Cover › Alt text', '$locale', "sunrice_global('site') › Name"]);
+    assert.deepEqual(labels(found), ['$photo › Alt text', '$entry › Title', '$entry › Summary', '$entry › Cover › Alt text', '$locale', "cms_global('site') › Name"]);
     assert.equal(found.from, '<p>{{ '.length);
     // Rich text only where HTML is printed.
     assert.ok(labels(offersFor('<div>{!! ', all)).includes('$entry › Body'));
@@ -65,4 +65,40 @@ test('indents what is put in as the line it lands on is', () => {
     assert.equal(indented('{{ $x }}', '    <p>'), '{{ $x }}');
     assert.equal(indented('a\n\nb', '\t<p>'), 'a\n\n\tb');
     assert.equal(indented('a\nb\n', ''), 'a\nb\n');
+});
+
+const image = (code) => [
+    { title: 'Image', kind: 'element', blade: `@if (${code})\n    <img src="{{ ${code}->url('large') }}">\n@endif` },
+    { title: 'Link to the file', kind: 'element', blade: `<a href="{{ ${code}->url() }}">…</a>` },
+];
+const picture = field('picture', 'Picture', null, { what: 'file', inserts: image("$values['picture']"), note: 'Not in Pages' });
+const summary = field('summary', 'Summary', "$values['summary'] ?? ''", { inserts: [{ title: 'Text', kind: 'print', blade: "{{ $values['summary'] ?? '' }}" }] });
+const values = variable('$values', [summary, picture]);
+const site2 = variable("cms_global('site')", [field('name', 'Name', "cms_global('site')['name']", { inserts: [{ title: 'Text', kind: 'print', blade: "{{ cms_global('site')['name'] }}" }] })], { from: 'site', title: 'Site' });
+
+test('asked for, offers everything at the place as Blade of its own, each way it can be written', () => {
+    const found = offersFor('    ', [site2, values], true);
+    assert.deepEqual(labels(found), ['$values › Summary', '$values › Picture', '$values › Picture (link to the file)', 'Site › Name']);
+    assert.equal(found.from, 4);
+    assert.equal(found.offers[1].insert, image("$values['picture']")[0].blade);
+    assert.equal(found.offers[1].detail, 'file · Not in Pages · image');
+    assert.equal(found.offers[2].insert, image("$values['picture']")[1].blade);
+});
+
+test('asked for after a word, offers what has it, in place of the word', () => {
+    const found = offersFor('<p>pic', [site2, values], true);
+    assert.deepEqual(labels(found), ['$values › Picture', '$values › Picture (link to the file)']);
+    assert.equal('<p>pic'.slice(found.from), 'pic');
+    assert.equal(offersFor('<p>nothinglikeit', [site2, values], true), null);
+});
+
+test('says how the usual way writes a value, unless that is what the value is', () => {
+    assert.equal(offersFor('', [values], true).offers[0].detail, 'text');
+});
+
+test('offers nothing unasked where no variable is begun, and says which collections lack a field', () => {
+    assert.equal(offersFor('    ', [site2, values]), null);
+    assert.equal(offersFor("{{ $values['", [values]).offers.find((offer) => offer.label === 'Picture'), undefined);
+    const wide = variable('$entry', [field('picture', 'Picture', "$entry->picture", { note: 'Not in Pages' })]);
+    assert.equal(offersFor('{{ $entry->', [wide]).offers[0].detail, 'text · Not in Pages');
 });

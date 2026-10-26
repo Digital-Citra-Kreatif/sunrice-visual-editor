@@ -8,7 +8,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Tool;
+use Sunrice\Admin\Ai\Tool;
 use Sunrice\VisualEditor\Actions\SaveTemplate;
 use Sunrice\VisualEditor\Blade\EditRejected;
 use Sunrice\VisualEditor\Blade\Operations;
@@ -20,11 +20,11 @@ use Sunrice\VisualEditor\Templates\TemplateNotFound;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
 
 #[Description(<<<'TEXT'
-Change a Blade template of the site by operations on its nodes: each changes one thing and leaves the rest of the file as it is written. Read the template with get_template_tree first, and pass its "version" and node ids. The operations are applied together, all or none; the result has to open as a tree and compile, or nothing is saved and the answer says which operation was refused and why. The previous version is kept as a backup. Answers with the new version and tree, and "focus": the node the last operation made or changed.
+Change a Blade template of the site by operations on its nodes: each changes one thing and leaves the rest of the file as it is written. Read the template with visual_editor_get_template_tree first, and pass its "version" and node ids. The operations are applied together, all or none; the result has to open as a tree and compile, or nothing is saved and the answer says which operation was refused and why. The previous version is kept as a backup. Answers with the new version and tree, and "focus": the node the last operation made or changed.
 
 Operations ({"type": …, "node": "<id>", …}):
 - setText {text}: the text of a text node. Written as text: markup or Blade in it is shown, not run.
-- setAttribute {name, value, blade?}: value null for an attribute without one. blade: true writes the value as Blade ("{{ $entry->url }}"); otherwise it is text.
+- setAttribute {name, value, blade?}: value null for an attribute without one. blade: true writes the value as Blade ("{{ $entry->url() }}"); otherwise it is text.
 - removeAttribute {name}; addClass {class}; removeClass {class}; setId {id}; setTag {tag}.
 - setExpression {expression}: what an echo prints ("$entry->title"). setEchoRaw {raw}: print as HTML ({!! !!}) or as text.
 - setArguments {arguments}: what is between the brackets of a directive or of a block's arm: "$entry->featured" for @if, "$entries as $entry" for @foreach.
@@ -33,11 +33,11 @@ Operations ({"type": …, "node": "<id>", …}):
 - move {target, position}: position "before", "after" or "inside" the target node. duplicate. remove.
 - setCode {code}: rewrite the node as Blade written by hand.
 
-Ids are those of the version you read: after a change, use the tree in the answer. A node whose "can" does not list an action can't take it. Changing templates needs the "Change templates and styles in the visual editor" permission; writing Blade or PHP of your own (an expression, a condition, code inserted) needs "Edit template code" as well. Check the page afterwards with render_page.
+Ids are those of the version you read: after a change, use the tree in the answer. A node whose "can" does not list an action can't take it. Changing templates needs the "Change templates and styles in the visual editor" permission; writing Blade or PHP of your own (an expression, a condition, code inserted) needs "Edit template code" as well. Check the page afterwards with cms_render_page.
 TEXT)]
 class EditTemplate extends Tool
 {
-    protected string $name = 'edit_template';
+    protected string $name = 'visual_editor_edit_template';
 
     /** The most operations one call may carry. */
     private const MAX_OPERATIONS = 200;
@@ -50,12 +50,13 @@ class EditTemplate extends Tool
             'operations' => ['required', 'array', 'min:1', 'max:'.self::MAX_OPERATIONS],
             'operations.*' => ['array'],
         ]);
-        $user = $request->user();
+        $user = Access::user();
         if (! Access::may($user, Access::EDIT)) {
             return Response::error('You may not change templates in the visual editor (it needs the "Change templates and styles in the visual editor" permission, and the editor to be on for this site).');
         }
-        if (! config('sunrice.mcp.templates', true)) {
-            return Response::error('This site does not let agents change templates (sunrice.mcp.templates is off).');
+        // The CMS's switch for agents writing templates, which run code on the server: off unless the site turns it on.
+        if (! filter_var(config('sunrice-cms.ai.templates', false), FILTER_VALIDATE_BOOL)) {
+            return Response::error('This site does not let agents change templates (sunrice-cms.ai.templates, SUNRICE_AI_TEMPLATES=true, is off).');
         }
 
         $operations = [];
@@ -75,9 +76,9 @@ class EditTemplate extends Tool
             }
             $save->handle($args['path'], $args['version'], $applied->source);
         } catch (TemplateNotFound $e) {
-            return Response::error($e->getMessage().' Call get_template_tree without a path for the list. Sunrice\'s own views can\'t be changed.');
+            return Response::error($e->getMessage().' Call visual_editor_get_template_tree without a path for the list. The CMS\'s own views can\'t be changed.');
         } catch (Conflict $e) {
-            return Response::error("Not saved: {$e->getMessage()} Its version is now {$e->current}: read it again with get_template_tree and make the change for that version.");
+            return Response::error("Not saved: {$e->getMessage()} Its version is now {$e->current}: read it again with visual_editor_get_template_tree and make the change for that version.");
         } catch (EditRejected $e) {
             $refused = $e->operation === null ? null : ($operations[$e->operation] ?? null);
             $which = $e->operation === null ? '' : ' It was operation '.($e->operation + 1).(is_array($refused) && is_string($refused['type'] ?? null) ? ' ('.$refused['type'].')' : '').'; none of them was applied.';
@@ -104,8 +105,8 @@ class EditTemplate extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'path' => $schema->string()->description('The template, inside resources/views/sunrice: "partials/header.blade.php".')->required(),
-            'version' => $schema->string()->description('The "version" get_template_tree (or the last edit_template) gave for it: the change is refused if the file has changed since.')->required(),
+            'path' => $schema->string()->description('The template, inside resources/views/cms: "partials/header.blade.php".')->required(),
+            'version' => $schema->string()->description('The "version" visual_editor_get_template_tree (or the last visual_editor_edit_template) gave for it: the change is refused if the file has changed since.')->required(),
             'operations' => $schema->array()->items($schema->object())->description('The operations, in order: [{"type": "addClass", "node": "412", "class": "hero"}, …].')->required(),
         ];
     }
