@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\File;
 use Spatie\Permission\Models\Permission;
 use Sunrice\VisualEditor\Rendering\CustomCss;
+use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 
 use function Pest\Laravel\actingAs;
@@ -14,15 +15,15 @@ use function Pest\Laravel\putJson;
 
 uses(WithStarterSite::class);
 
-const SVE_CUSTOM = '/cms/visual-editor/api/styles/custom';
+const SVE_CUSTOM = '/admin/visual-editor/api/styles/custom';
 
 beforeEach(function () {
     $this->setUpStarterSite();
     $this->custom = $this->theme.'/custom.css';
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 /** The links to the custom CSS in a page of the site. */
 function customLinks(string $path = '/'): array
@@ -42,15 +43,15 @@ it('says what the custom CSS is before there is any', function () {
         'source' => '',
         'injected' => true,
         'stack' => 'head',
-    ])->and(getJson(SVE_CUSTOM)->json('custom.url'))->toEndWith('/sunrice-theme/custom.css');
+    ])->and(getJson(SVE_CUSTOM)->json('custom.url'))->toEndWith('/cms/custom.css');
 });
 
 it('writes the custom CSS, and every page of the site links it from the layout without a template being changed', function () {
     actingAsSuperAdmin();
-    $layout = File::get($this->templates.'/layouts/app.blade.php');
+    $layout = File::get($this->templates.'/layout.blade.php');
     expect(customLinks())->toBe([]);
 
-    putJson('/cms/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => ".hero { color: tomato; }\n"])
+    putJson('/admin/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => ".hero { color: tomato; }\n"])
         ->assertOk()
         ->assertJsonPath('file.version', sha1(".hero { color: tomato; }\n"));
 
@@ -58,9 +59,9 @@ it('writes the custom CSS, and every page of the site links it from the layout w
         ->and(getJson(SVE_CUSTOM)->json('custom'))->toMatchArray(['exists' => true, 'source' => ".hero { color: tomato; }\n"])
         // Once on a page, in its head, with the file's version: a save is fetched anew.
         ->and(customLinks())->toHaveCount(1)
-        ->and(customLinks()[0])->toEndWith('/sunrice-theme/custom.css?v='.substr(sha1(".hero { color: tomato; }\n"), 0, 10))
+        ->and(customLinks()[0])->toEndWith('/cms/custom.css?v='.substr(sha1(".hero { color: tomato; }\n"), 0, 10))
         ->and(customLinks('/about'))->toHaveCount(1)
-        ->and(File::get($this->templates.'/layouts/app.blade.php'))->toBe($layout);
+        ->and(File::get($this->templates.'/layout.blade.php'))->toBe($layout);
 
     $html = (string) get('/')->getContent();
     expect(strpos($html, 'data-sunrice-custom-css'))->toBeLessThan(strpos($html, '</head>'));
@@ -86,19 +87,19 @@ it('refuses a save made against another version of the custom CSS', function () 
     actingAsSuperAdmin();
     File::put($this->custom, '.a { color: red; }');
 
-    putJson('/cms/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => '.b {}'])->assertStatus(409);
+    putJson('/admin/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => '.b {}'])->assertStatus(409);
 
     expect(File::get($this->custom))->toBe('.a { color: red; }');
 });
 
 it('lets someone who may only look read the custom CSS, not write it', function () {
     $user = createUser();
-    $guard = config('sunrice.auth.guard', 'web');
-    $user->givePermissionTo(Permission::findOrCreate('sunrice.access-admin', $guard), Permission::findOrCreate('visual-editor.open', $guard));
+    $guard = Access::guard();
+    $user->givePermissionTo(Permission::findOrCreate('sunrice.access', $guard), Permission::findOrCreate('visual-editor.open', $guard));
     actingAs($user, $guard);
 
     getJson(SVE_CUSTOM)->assertOk();
-    putJson('/cms/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => '.b {}'])->assertForbidden();
+    putJson('/admin/visual-editor/api/styles/files/custom.css/source', ['version' => sha1(''), 'source' => '.b {}'])->assertForbidden();
 
     expect(File::exists($this->custom))->toBeFalse();
 });

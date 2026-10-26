@@ -14,7 +14,7 @@ This plan turns `SPEC.md` into a working package. It follows the format of Sunri
 4. No Composer or npm packages beyond §2. If one seems needed, stop and explain why in the PR.
 5. Every task ships tests. Before opening a PR run `composer test`, `composer lint`, `composer analyse`, `composer spike`, and for admin tasks `npm run typecheck && npm run build`.
 6. `composer spike` (the round-trip test) must stay green. Any change under `src/Blade/` that makes a template print back differently, or an edit touch bytes it should not, is a bug however small.
-7. Use Sunrice's public API only (`docs/packages.md` in sunrice-cms). The single exception is `src/Support/SunriceBridge.php` (V0.4), which is the only file allowed to touch Sunrice internals.
+7. Use Sunrice's public API only: the panel's and the CMS's classes and methods marked `@api` (`packages/admin/docs/plugins.md` in Digital-Citra-Kreatif/sunrice). The single exception is `src/Support/SunriceBridge.php` (V0.4), which is the only file allowed to touch the CMS beyond that.
 8. Update `docs/` when adding developer-facing API.
 
 ---
@@ -25,14 +25,15 @@ This plan turns `SPEC.md` into a working package. It follows the format of Sunri
 | --- | --- |
 | Composer package | `sunrice/visual-editor` |
 | PHP namespace | `Sunrice\VisualEditor\` → `src/`; tests `Sunrice\VisualEditor\Tests\` → `tests/` |
-| Service provider | `Sunrice\VisualEditor\VisualEditorServiceProvider` (auto-discovered) |
+| Service provider | `Sunrice\VisualEditor\VisualEditorServiceProvider` (auto-discovered): config, published files, what it adds to the site's pages |
+| Panel plugin | `Sunrice\VisualEditor\VisualEditorPlugin` (id `visual-editor`, requires `cms`), added in the app's panel provider: permissions, navigation, routes, its page bundle, AI tools, command-palette search |
 | Config | `config/sunrice-visual-editor.php`, key `sunrice-visual-editor` |
-| Admin routes | Registered with `Sunrice::adminRoutes()`, under `{admin}/visual-editor`, named `sunrice.admin.visual-editor.*` |
-| Admin page | `VisualEditor/Editor`, registered with `window.Sunrice.registerPage()`, `layout = null` (full screen) |
+| Admin routes | `routes/admin.php`, added by the plugin (`$panel->routes()`), under `{admin}/visual-editor`, named `sunrice.admin.visual-editor.*` |
+| Admin page | `VisualEditor/Editor`, in the plugin's bundle (`PluginBundle`, pages `VisualEditor/`), registered with `window.Sunrice.registerPage()`, `bare = true` (full screen) |
 | Admin script | `resources/js` (TypeScript) → `dist/visual-editor.js` and `dist/visual-editor.css`, committed; published to `public/vendor/sunrice-visual-editor` |
 | Permissions (Phase 7) | `visual-editor.open`, `visual-editor.edit`, `visual-editor.code` (never a `sunrice.` prefix) |
 | Editor marks | Attribute `data-sve="<file>:<offset>"`; only in editor renders |
-| File identity | Path relative to `resources/views/sunrice/`, e.g. `partials/header.blade.php` |
+| File identity | Path relative to `resources/views/cms/`, e.g. `partials/menu.blade.php` |
 | File version | `sha1` of the file's bytes |
 | Node identity | The node's start byte offset in that version of the file, as a string (`b<offset>` for an arm of a block, `root` for the root) |
 | Strict types | Every PHP file starts with `declare(strict_types=1);` |
@@ -160,6 +161,8 @@ The package needs three things Sunrice has but does not publish. Each is asked f
 | C1 ([sunrice-cms#36](https://github.com/littleboy130491/sunrice-cms/issues/36)) | Template directories and the template map (which view each collection and taxonomy uses) | `Sunrice\Mcp\Templates` | `Sunrice::templates()` returning a documented service |
 | C2 ([#37](https://github.com/littleboy130491/sunrice-cms/issues/37)) | Field definitions of a collection's blueprint, a listing page, a fieldset, a taxonomy and a global set, with fieldset includes expanded; the lists of collections, global sets and menus | Models and `BlueprintSchema`, undocumented | `Sunrice::schema()->collection($handle)` etc., returning plain arrays |
 | C3 ([#38](https://github.com/littleboy130491/sunrice-cms/issues/38)) | Adding MCP tools from a package | `SunriceServer::$tools` is a fixed list | `Sunrice::registerMcpTool(string $class)` |
+
+**Since Sunrice 0.2** (the panel and the CMS as separate packages, October 2026): C2 is public (the CMS's models and `Fields\Schema`, marked `@api`) and C3 is the panel's `$panel->tools()`. C1 is still the CMS's `Support\Templates`, marked `@internal`, read by the bridge alone.
 
 **Files:**
 - `src/Support/SunriceBridge.php` — `templateDirectory()`, `themeDirectory()`, `packageViewDirectories()`, `templateMap()`, `backup(string $file, string $relative)`, `fields(string $kind, string $handle)`, `collections()`, `globals()`, `menus()`. The backup needs nothing internal (the same location Sunrice uses). The syntax check started here and moved to `src/Blade/Syntax.php` in V1.7: it needs Laravel's Blade compiler and nothing of Sunrice. When Sunrice ships C1–C3, the bridge switches to them and nothing else changes.

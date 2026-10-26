@@ -1,7 +1,6 @@
 import type { ManifestFile } from '../bridge/protocol';
 import type { TemplateInfo } from '../lib/api';
 import { inPanelOrder, limit, roleLabel, sameTemplate, shortName, type TemplateName } from '../lib/templates';
-import { Panel } from './Panel';
 
 type Props = {
     /** The templates that drew the page in the frame; null while there is none to speak of. */
@@ -16,12 +15,13 @@ type Props = {
     onPoint(key: string | null): void;
 };
 
-/** The left panel: the templates that drew the page, then the rest. */
+/** The Templates tab on the left: the templates that drew the page, then the rest. */
 export function TemplatesPanel({ files, waiting, all, open, onOpen, onPoint }: Props) {
     const others = (all ?? []).filter((template) => !(files ?? []).some((file) => sameTemplate(file, template)));
 
     return (
-        <Panel title="Templates on this page">
+        <>
+            <h3 className="sve-templates__title">On this page</h3>
             {files === null ? (
                 <p className="sve-empty">{waiting === 'unknown' ? 'This page was not drawn for the editor, so its templates can’t be listed. It may be an error page, or not one of the site’s own.' : 'Loading the page…'}</p>
             ) : files.length === 0 ? (
@@ -48,7 +48,7 @@ export function TemplatesPanel({ files, waiting, all, open, onOpen, onPoint }: P
                     </ul>
                 </details>
             )}
-        </Panel>
+        </>
     );
 }
 

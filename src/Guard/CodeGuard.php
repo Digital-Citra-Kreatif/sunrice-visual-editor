@@ -191,8 +191,8 @@ final class CodeGuard
                 case 'setAttribute':
                 case 'removeAttribute':
                     if (Rules::isComponentTag($node)) {
-                        // Sunrice's own components take plain values. What another component makes of what it is given is not known here.
-                        if (str_starts_with($node->open, '<x-sunrice::')) {
+                        // The CMS's own components take plain values. What another component makes of what it is given is not known here.
+                        if (str_starts_with($node->open, '<x-sunrice-cms::')) {
                             $onComponents[$operation->node][] = $operation;
                         }
                     } elseif ($operation->type === 'setAttribute') {

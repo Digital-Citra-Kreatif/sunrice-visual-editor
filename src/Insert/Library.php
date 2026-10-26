@@ -108,9 +108,8 @@ final class Library
     }
 
     /**
-     * Sunrice's components, each with a collection, taxonomy or form of
-     * this site: a component that names one the site doesn't have answers
-     * the whole page with "not found".
+     * The CMS's components, each with a collection, taxonomy or form of
+     * this site.
      *
      * @param  list<array{handle: string, title: string, single: bool}>  $collections
      * @param  list<array{handle: string, title: string}>  $taxonomies
@@ -127,43 +126,45 @@ final class Library
 
         foreach ($collections as $collection) {
             // Each one is `$item`, not `$entry`: on an entry's page that is the page's own, and the loop would leave it the last of these.
-            $title = $collection['single'] ? '<h3><a href="{{ $item->url }}">{{ $item->title }}</a></h3>' : '<h3>{{ $item->title }}</h3>';
-            $entries[] = $entry('entries.'.$collection['handle'], 'Entries: '.$collection['title'], '<x-sunrice::entries>', <<<BLADE
-                <x-sunrice::entries collection="{$collection['handle']}" :limit="6">
+            $title = $collection['single'] ? '<h3><a href="{{ $item->url() }}">{{ $item->title }}</a></h3>' : '<h3>{{ $item->title }}</h3>';
+            $entries[] = $entry('entries.'.$collection['handle'], 'Entries: '.$collection['title'], '<x-sunrice-cms::entries>', <<<BLADE
+                <x-sunrice-cms::entries collection="{$collection['handle']}" :limit="6">
                     @foreach (\$component->entries as \$item)
                         <article>
                             {$title}
                         </article>
                     @endforeach
-                </x-sunrice::entries>
+                </x-sunrice-cms::entries>
                 BLADE, 'list latest query collection '.$collection['handle']);
         }
         foreach ($taxonomies as $taxonomy) {
-            $entries[] = $entry('terms.'.$taxonomy['handle'], 'Terms: '.$taxonomy['title'], '<x-sunrice::terms>', <<<BLADE
-                <x-sunrice::terms taxonomy="{$taxonomy['handle']}">
+            $entries[] = $entry('terms.'.$taxonomy['handle'], 'Terms: '.$taxonomy['title'], '<x-sunrice-cms::terms>', <<<BLADE
+                <x-sunrice-cms::terms taxonomy="{$taxonomy['handle']}">
                     <ul>
-                        @foreach (\$component->terms as \$term)
-                            <li><a href="{{ \$component->url(\$term) }}">{{ \$term->name }}</a></li>
+                        @foreach (\$component->terms as \$item)
+                            <li><a href="{{ \$item->url() }}" @if (\$component->isCurrent(\$item)) aria-current="page" @endif>{{ \$item->title() }}</a></li>
                         @endforeach
                     </ul>
-                </x-sunrice::terms>
+                </x-sunrice-cms::terms>
                 BLADE, 'categories tags taxonomy list '.$taxonomy['handle']);
         }
         foreach ($forms as $form) {
-            $entries[] = $entry('form.'.$form['handle'], 'Form: '.$form['title'], '<x-sunrice::form>', self::form($form['handle']), 'contact fields submit '.$form['handle']);
+            // Empty, the component prints every field of the form, its errors and its thank-you message.
+            $entries[] = $entry('form.'.$form['handle'], 'Form: '.$form['title'], '<x-sunrice-cms::form>', '<x-sunrice-cms::form handle="'.$form['handle'].'" />', 'contact fields submit '.$form['handle']);
         }
 
-        $entries[] = $entry('search', 'Search box', '<x-sunrice::search>', <<<'BLADE'
-            <x-sunrice::search>
+        $entries[] = $entry('search', 'Search box', '<x-sunrice-cms::search>', <<<'BLADE'
+            <x-sunrice-cms::search>
                 <form method="get" action="{{ $component->action }}" role="search">
-                    <input type="search" name="{{ $component->name }}" value="{{ $component->query }}" aria-label="{{ __('sunrice::frontend.search') }}">
-                    <button type="submit">{{ __('sunrice::frontend.search') }}</button>
+                    <input type="search" name="{{ $component->name }}" value="{{ $component->query }}" aria-label="{{ __('Search the site') }}">
+                    <button type="submit">{{ __('Search') }}</button>
                 </form>
-            </x-sunrice::search>
+            </x-sunrice-cms::search>
             BLADE, 'find query');
-        $entries[] = $entry('seo', 'SEO tags', '<x-sunrice::seo />', '<x-sunrice::seo />', 'title description meta head');
-        foreach (['head' => 'in the head', 'body_start' => 'at the start of the body', 'body_end' => 'at the end of the body'] as $position => $where) {
-            $entries[] = $entry('code.'.$position, 'Site code, '.$where, '<x-sunrice::code />', '<x-sunrice::code position="'.$position.'" />', 'analytics tracking scripts settings');
+        $entries[] = $entry('seo', 'SEO tags', '<x-sunrice-cms::seo />', '<x-sunrice-cms::seo />', 'title description meta head');
+        $entries[] = $entry('language-switcher', 'Language switcher', '<x-sunrice-cms::language-switcher />', '<x-sunrice-cms::language-switcher class="language-switcher" />', 'languages translations locale');
+        foreach (['head' => 'in the head', 'body-start' => 'at the start of the body', 'body-end' => 'at the end of the body'] as $place => $where) {
+            $entries[] = $entry('code.'.$place, 'Site code, '.$where, '<x-sunrice-cms::code />', '<x-sunrice-cms::code place="'.$place.'" />', 'analytics tracking scripts settings');
         }
 
         return $entries;
@@ -195,48 +196,6 @@ final class Library
         }
 
         return $entries;
-    }
-
-    /**
-     * A form with an input for each of its fields, whatever they are when
-     * the page is drawn: the markup of Sunrice's starter templates.
-     */
-    private static function form(string $handle): string
-    {
-        return <<<BLADE
-            <x-sunrice::form handle="{$handle}">
-                @foreach (\$component->form->fields as \$field)
-                    @php(\$name = 'data['.\$field['handle'].']')
-                    @php(\$old = \$component->old(\$field['handle']))
-                    <label for="{$handle}-{{ \$field['handle'] }}">{{ (\$field['label'] ?? '') ?: \$field['handle'] }}</label>
-                    @switch(\$field['type'])
-                        @case('textarea')
-                            <textarea id="{$handle}-{{ \$field['handle'] }}" name="{{ \$name }}" rows="5" @required(\$field['required'] ?? false)>{{ \$old }}</textarea>
-                            @break
-                        @case('select')
-                            <select id="{$handle}-{{ \$field['handle'] }}" name="{{ \$name }}" @required(\$field['required'] ?? false)>
-                                @foreach (\$field['config']['options'] ?? [] as \$option)
-                                    @php([\$value, \$label] = is_array(\$option) ? [\$option['value'] ?? '', \$option['label'] ?? \$option['value'] ?? ''] : [\$option, \$option])
-                                    <option value="{{ \$value }}" @selected((string) \$old === (string) \$value)>{{ \$label }}</option>
-                                @endforeach
-                            </select>
-                            @break
-                        @case('toggle')
-                            <input type="hidden" name="{{ \$name }}" value="0">
-                            <input id="{$handle}-{{ \$field['handle'] }}" type="checkbox" name="{{ \$name }}" value="1" @checked(\$old)>
-                            @break
-                        @case('file')
-                            <input id="{$handle}-{{ \$field['handle'] }}" type="file" name="{{ \$name }}" @required(\$field['required'] ?? false)>
-                            @break
-                        @default
-                            <input id="{$handle}-{{ \$field['handle'] }}" type="{{ ['number' => 'number', 'date' => 'date'][\$field['type']] ?? 'text' }}" name="{{ \$name }}" value="{{ \$old }}" @required(\$field['required'] ?? false)>
-                    @endswitch
-                    @if (\$error = \$component->error(\$field['handle']))
-                        <p class="error">{{ \$error }}</p>
-                    @endif
-                @endforeach
-            </x-sunrice::form>
-            BLADE;
     }
 
     /** @return array{id: string, group: string, title: string, hint: string, blade: string, keywords: string} */

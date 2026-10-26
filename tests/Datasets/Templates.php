@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Sunrice\VisualEditor\Tests\Support\RoundTrip;
-use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
+use Sunrice\VisualEditor\Tests\Support\StarterTemplates;
 
 /*
  * The fixture templates as datasets, for every test of the template tree.
@@ -32,7 +32,7 @@ dataset('templates that are refused', fn () => templateDataset('edge', 'locked-'
 // pinned copy, and new or changed templates must pass the same checks.
 dataset('installed starter templates', function () {
     $dataset = [];
-    foreach (RoundTrip::files(WithStarterSite::starterTemplates()) as $name => $path) {
+    foreach (RoundTrip::files(StarterTemplates::directory()) as $name => $path) {
         $dataset['installed/'.$name] = [$path];
     }
 

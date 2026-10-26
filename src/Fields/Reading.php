@@ -8,19 +8,19 @@ namespace Sunrice\VisualEditor\Fields;
  * A value as it is read in a template: the code that reads it, what it
  * is, and what can go wrong reading it.
  *
- * `$entry->get('cover')?->url('large')` is a reading: from a variable,
+ * `$values['cover']?->url('large')` is a reading: from a variable,
  * through a field, to a file's URL, with a `?->` because an entry need not
  * have a cover.
  */
 final class Reading
 {
     /** What may well be nothing when read from a field: reading on from these is done with `?->`. */
-    private const MAY_BE_NOTHING = [Shape::ASSET, Shape::DATE, Shape::USER, Shape::ENTRY, Shape::TERM, Shape::COLLECTION, Shape::TAXONOMY, Shape::LINK, Shape::VALUE];
+    private const MAY_BE_NOTHING = [Shape::ASSET, Shape::DATE, Shape::USER, Shape::ENTRY, Shape::TERM, Shape::TERM_TRANSLATION, Shape::COLLECTION, Shape::TAXONOMY, Shape::LINK, Shape::VALUE];
 
     /**
      * @param  bool  $maybe  it may be nothing (null) where the template is drawn
      * @param  bool  $loose  it is read from an array by a key that may not be there: PHP warns unless it is read with `??`, isset() or empty()
-     * @param  bool  $fromField  it is the value of a blueprint's field, which Sunrice has made ready for the page's language
+     * @param  bool  $fromField  it is the value of a blueprint's field, which the CMS has made ready for the page's language
      */
     public function __construct(
         public readonly string $code,
@@ -49,6 +49,8 @@ final class Reading
             $field->from($owner, ownerMayBeMissing: $this->maybe || $this->loose),
             $field->shape,
             maybe: $this->maybe || $this->loose || ! $field->builtIn || in_array($field->shape->kind, self::MAY_BE_NOTHING, true),
+            // $entry->values()['excerpt']: read by a key the fields may not have.
+            loose: str_ends_with($field->read, "']"),
             fromField: ! $field->builtIn,
         );
     }

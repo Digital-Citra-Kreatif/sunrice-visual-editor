@@ -1,3 +1,4 @@
+import { Head, Link } from '@inertiajs/react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut, type ShownEntry } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
@@ -5,7 +6,7 @@ import { Outlines, type Outline } from './canvas/Outlines';
 import { ApiError, applyOperations, copyToSite, fieldsAt, listTemplates, readTemplate, runBuild, saveSource, type Built, type FieldsAt, type Loaded, type Operation, type TemplateData, type TemplateInfo, type TreeNode } from './lib/api';
 import { useBridge } from './lib/frame';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
-import { folding, readLayout, shareOf, siding, writeLayout } from './lib/layout';
+import { readLayout, shareOf, siding, writeLayout } from './lib/layout';
 import { pageOf, rememberPage } from './lib/memory';
 import { actionOn, moveTo, type Action } from './lib/move';
 import { isAdminPath, sitePath } from './lib/path';
@@ -14,12 +15,11 @@ import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/
 import { useSize } from './lib/size';
 import { boxesOf, findNode, nodeAt, rowFor } from './lib/tree';
 import { layout, readWidths, type View } from './lib/widths';
-import { CodePanel, type CodePlace, type CodePut } from './panels/CodePanel';
-import { ContentPanel } from './panels/ContentPanel';
+import { CodePanel, type CodePlace } from './panels/CodePanel';
+import { ContentLink } from './panels/ContentLink';
 import { CustomFilePanel } from './panels/CustomFilePanel';
-import { FieldsList } from './panels/FieldsPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
-import { Folds, Side } from './panels/Panel';
+import { Pane, Side } from './panels/Panel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
 
 type Props = {
@@ -80,7 +80,7 @@ function Rail({ side, label, onOpen }: { side: 'left' | 'right'; label: string; 
 type Page = { url: string; title: string; files: ManifestFile[]; status: number; /** Its CSS is Tailwind's browser build: a preview of what a build would make. */ preview: boolean; /** The entry it is of, when it is one. */ entry: ShownEntry | null };
 
 /** What the side right of the page shows: the open template's code, what it can read, the page's content, or the site's custom CSS. */
-type CodeTab = 'template' | 'fields' | 'content' | 'css' | 'js';
+type CodeTab = 'template' | 'css' | 'js';
 
 /** How long a page gets to say it is ready after it has loaded. */
 const READY_WITHIN = 1500;
@@ -202,18 +202,12 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const [template, setTemplate] = useState<Loaded<TemplateData>>({ state: 'idle' });
     /** Bumped to read the open template from disk again. */
     const [readings, setReadings] = useState(0);
-    /** Which sides are shown, how wide the code is and what is folded: as the editor was left (lib/layout.ts). */
+    /** Which sides are shown and how wide the code is: as the editor was left (lib/layout.ts). */
     const [arranged, setArranged] = useState(readLayout);
     useEffect(() => writeLayout(arranged), [arranged]);
-    const folds = useMemo(() => ({ folded: new Set(arranged.folded), toggle: (name: string) => setArranged((now) => folding(now, name)) }), [arranged.folded]);
     const [codeTab, setCodeTab] = useState<CodeTab>('template');
-    /** The content tab holds the entry's page of the admin: drawn the first time it is asked for, and kept from then on. */
-    const [contentSeen, setContentSeen] = useState(false);
-    useEffect(() => {
-        if (codeTab === 'content') {
-            setContentSeen(true);
-        }
-    }, [codeTab]);
+    /** What the left side shows: the templates of the page, or the layers of the open one. Picking a template or an element brings its layers. */
+    const [treeTab, setTreeTab] = useState<'templates' | 'layers'>('layers');
     /** The devices the page can be previewed at, and how it is shown now: as wide as the room, at one of them, or at all of them side by side. */
     const widths = useMemo(() => readWidths(sentWidths), [sentWidths]);
     const [view, setView] = useState<View>({ kind: 'full' });
@@ -315,8 +309,9 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             if (file === undefined) {
                 return;
             }
-            // What was clicked is shown in its code.
+            // What was clicked is shown in its code, and in the layers.
             setCodeTab('template');
+            setTreeTab('layers');
             if (sameTemplate(file, open)) {
                 // An element of the open template: select it.
                 if (findNode(tree, id) !== null) {
@@ -549,6 +544,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     /** Opens a template; one that isn't on this page brings the page it was last seen on. */
     const openTemplate = (name: TemplateName) => {
         setCodeTab('template');
+        setTreeTab('layers');
         if (sameTemplate(open, name)) {
             return;
         }
@@ -620,10 +616,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     /** Where the code's cursor is in the text as typed, in bytes, and in which template: what the code's completions are asked for. */
     const [codeCursor, setCodeCursor] = useState<{ of: string; byte: number } | null>(null);
     /** What can be read at the cursor, as last answered; while the next is asked it stays, most of it being the same. */
-    const [codeFields, setCodeFields] = useState<{ answer: FieldsAt | null; failed: string | null }>({ answer: null, failed: null });
-    const [fieldsTyped, setFieldsTyped] = useState('');
-    /** Blade to write at the code's cursor: a field picked in the Fields tab. */
-    const [codePut, setCodePut] = useState<CodePut | null>(null);
+    const [codeFields, setCodeFields] = useState<FieldsAt | null>(null);
 
     /**
      * The code's cursor is somewhere else. A moment after it stops, the
@@ -665,8 +658,9 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         let stale = false;
         const wait = window.setTimeout(() => {
             fieldsAt(fieldsOf.path, fieldsText, fieldsByte)
-                .then((answer) => !stale && setCodeFields({ answer, failed: null }))
-                .catch((error: unknown) => !stale && setCodeFields((had) => ({ answer: had.answer, failed: message(error) })));
+                .then((answer) => !stale && setCodeFields(answer))
+                // Not answered this time: what was offered stays, the next move of the cursor asks again.
+                .catch(() => undefined);
         }, 300);
 
         return () => {
@@ -1029,7 +1023,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
     const layersNote =
         open === null
-            ? 'No template is open. Click a part of the page, or a template above.'
+            ? 'No template is open. Click a part of the page, or a template in the Templates tab.'
             : template.state === 'loading' || template.state === 'idle'
               ? 'Opening…'
               : template.state === 'failed'
@@ -1045,7 +1039,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             : !mayEdit
               ? 'You may look at this template here, not change it.'
               : !template.data.editable
-                ? 'This is one of Sunrice’s own views: it can’t be changed here.'
+                ? 'This is one of the CMS’s own views: it can’t be changed here.'
                 : tree === null
                   ? 'This template can only be edited as code.'
                   : unsaved
@@ -1079,17 +1073,16 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const previewAddress = page === null ? undefined : (editorAddress(page.url, window.location.href) ?? undefined);
 
     return (
-        <Folds.Provider value={folds}>
             <div
                 ref={shell}
                 className={`sve-shell sve-shell--simple${arranged.left ? '' : ' sve-shell--no-left'}${arranged.right ? '' : ' sve-shell--no-right'}`}
                 style={{ '--sve-code-share': String(arranged.share) } as CSSProperties}
                 aria-busy={applying}
             >
-                <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
+                <Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
 
                 <header className="sve-bar">
-                    <Sunrice.inertia.Link
+                    <Link
                         href={Sunrice.adminUrl()}
                         className="sve-bar__back"
                         title="Back to the admin"
@@ -1097,7 +1090,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         onBefore={() => !anyUnsaved || window.confirm('Leave the editor without saving what you changed in the code?')}
                     >
                         <span aria-hidden="true">←</span> Admin
-                    </Sunrice.inertia.Link>
+                    </Link>
                     <strong className="sve-bar__title">Visual editor</strong>
 
                     <form className="sve-address" onSubmit={go}>
@@ -1221,6 +1214,14 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         </button>
                     </div>
 
+                    <ContentLink
+                        entry={page?.entry ?? null}
+                        onBack={() => {
+                            // Whatever was saved there (or nothing): the page as it is now.
+                            redraw();
+                            redrawPreviews();
+                        }}
+                    />
                     <a className="sve-bar__link" href={page?.url ?? firstPage} target="_blank" rel="noreferrer">
                         View page ↗
                     </a>
@@ -1228,10 +1229,29 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
                 {!arranged.left && <Rail side="left" label="Tree" onOpen={() => setArranged((now) => siding(now, 'left', true))} />}
                 <Side side="left" shown={arranged.left}>
-                    <button type="button" className="sve-side__fold" onClick={() => setArranged((now) => siding(now, 'left', false))} aria-label="Fold the tree to the side" title="Fold the tree to the side">
-                        <span aria-hidden="true">«</span>
-                    </button>
-                    <TemplatesPanel files={page?.files ?? null} waiting={waiting} all={all} open={open} onOpen={openTemplate} onPoint={setPointedFile} />
+                    <div className="sve-code-tabs" role="tablist" aria-label="What the tree shows">
+                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={treeTab === 'templates'} onClick={() => setTreeTab('templates')} title="The templates that drew this page, and the others">
+                            Templates
+                        </button>
+                        <button
+                            type="button"
+                            role="tab"
+                            className="sve-code-tabs__tab"
+                            aria-selected={treeTab === 'layers'}
+                            onClick={() => setTreeTab('layers')}
+                            title={open === null ? 'The layers of the open template' : `The layers of ${shortName(open.path)}`}
+                        >
+                            Layers
+                        </button>
+                        <span className="sve-code-tabs__space" />
+                        <button type="button" className="sve-side__fold" onClick={() => setArranged((now) => siding(now, 'left', false))} aria-label="Fold the tree to the side" title="Fold the tree to the side">
+                            <span aria-hidden="true">«</span>
+                        </button>
+                    </div>
+                    <Pane label="Templates" shown={treeTab === 'templates'}>
+                        <TemplatesPanel files={page?.files ?? null} waiting={waiting} all={all} open={open} onOpen={openTemplate} onPoint={setPointedFile} />
+                    </Pane>
+                    <Pane label="Layers" shown={treeTab === 'layers'}>
                     <LayersPanel
                         tree={tree}
                         note={layersNote}
@@ -1254,6 +1274,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                             })
                         }
                     />
+                    </Pane>
                 </Side>
 
                 <main className={`sve-canvas sve-canvas--${mode}`}>
@@ -1350,15 +1371,9 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         }}
                     />
                     <div className="sve-code-tabs" role="tablist" aria-label="What the side shows">
-                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'template'} onClick={() => setCodeTab('template')} title="The code of the open template">
+                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'template'} onClick={() => setCodeTab('template')} title="The code of the open template. Ctrl+Space lists the fields and variables it can use at the cursor.">
                             Template
                             {Object.keys(drafts).length > 0 && <span className="sve-tab__dot" aria-label="not saved" />}
-                        </button>
-                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'fields'} onClick={() => setCodeTab('fields')} title="The fields and variables the template can use where the cursor is">
-                            Fields
-                        </button>
-                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'content'} onClick={() => setCodeTab('content')} title="The content of the entry this page shows">
-                            Content
                         </button>
                         <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'css'} onClick={() => setCodeTab('css')} title="CSS of your own, added to every page of the site">
                             Custom CSS
@@ -1390,8 +1405,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                                 onCloseTab={closeTab}
                                 goTo={codePlace}
                                 onCursor={cursorAt}
-                                put={codePut}
-                                fields={codeFields.answer?.variables ?? null}
+                                fields={codeFields?.variables ?? null}
                                 onSaved={saved}
                                 onReload={() => {
                                     setDraft(null, codeOf);
@@ -1404,7 +1418,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                                     (codeOf.copyTo !== null ? (
                                         <div className="sve-code__banner">
                                             <p>
-                                                This is one of Sunrice’s own views, used while the site has no <code>{codeOf.copyTo}</code>. Copy it to the site to change it: the site uses the copy from then on.
+                                                This is one of the CMS’s own views, used while the site has no <code>{codeOf.copyTo}</code>. Copy it to the site to change it: the site uses the copy from then on.
                                             </p>
                                             {mayEdit && (
                                                 <button type="button" className="sve-button" disabled={copying} onClick={() => copy(codeOf.path)}>
@@ -1414,50 +1428,12 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                                         </div>
                                     ) : (
                                         <p className="sve-code__banner">
-                                            This is one of Sunrice’s own views, drawn by Sunrice itself (a component, or its draft banner). Sunrice never looks for it among the site’s templates, so it can’t be changed here: style what it draws with Custom CSS, or change the template around it.
+                                            This is one of the CMS’s own views, drawn by the CMS itself (a component, its draft banner or its comments). The CMS never looks for it among the site’s templates, so it can’t be changed here: style what it draws with Custom CSS, or change the template around it.
                                         </p>
                                     ))}
                                 {!isPackage && !mayCode && <p className="sve-code__banner">You may read the code here, not change it.</p>}
                             </CodePanel>
                         )}
-                    </div>
-                    <div className="sve-code-pane sve-fields" hidden={codeTab !== 'fields'}>
-                        <p className="sve-fields__where">
-                            {fieldsOf === null
-                                ? template.state === 'ready'
-                                    ? 'This is one of Sunrice’s own views: it can’t be written in, so there is nothing to put in it.'
-                                    : 'Open a template to see what it can read.'
-                                : !mayCode
-                                  ? 'What the template can read where the cursor is. Writing it in takes the permission to edit code.'
-                                  : codeFields.answer !== null && !codeFields.answer.exact
-                                    ? 'The code does not read as a whole just now, so this is what the template has anywhere in it.'
-                                    : 'What the template can read where the cursor is in its code. A click writes it there.'}
-                        </p>
-                        {fieldsOf !== null && (
-                            <>
-                                <input className="sve-fields__find" type="search" value={fieldsTyped} onChange={(event) => setFieldsTyped(event.target.value)} placeholder="Find a field…" aria-label="Find a field or a variable" spellCheck={false} autoComplete="off" />
-                                <div className="sve-pick__list sve-fields__list">
-                                    <FieldsList
-                                        variables={codeFields.answer?.variables ?? null}
-                                        failed={codeFields.failed}
-                                        typed={fieldsTyped}
-                                        off={!mayCode}
-                                        onInsert={(blade) => {
-                                            asked.current++;
-                                            setCodePut({ blade, asked: asked.current });
-                                            setCodeTab('template');
-                                        }}
-                                    />
-                                </div>
-                            </>
-                        )}
-                    </div>
-                    <div className="sve-code-pane" hidden={codeTab !== 'content'}>
-                        {contentSeen && <ContentPanel entry={page?.entry ?? null} waiting={page === null} shown={codeTab === 'content'} onSaved={(title) => {
-                            say('done', `Saved ${title}.`);
-                            redraw();
-                            redrawPreviews();
-                        }} />}
                     </div>
                     <div className="sve-code-pane" hidden={codeTab !== 'css'}>
                         <CustomFilePanel
@@ -1488,6 +1464,5 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                     </div>
                 </aside>
             </div>
-        </Folds.Provider>
     );
 }

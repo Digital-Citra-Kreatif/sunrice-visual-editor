@@ -5,6 +5,78 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+### A tighter screen, for developers
+
+- **The left side is two tabs**, **Templates** and **Layers**, in place of
+  the two stacked: the layers get the whole height. Picking a template, in
+  the list or on the page, shows its Layers.
+- **No Fields tab.** What it listed is in the code's completions: as
+  before while a value is typed (`$values['`, `$entry->`, `{{ `), and now
+  on **Ctrl+Space** everything the template can read at the cursor, each
+  in every way it can be written (an image as an `<img>` or a link to the
+  file, a list as a loop or with commas), the usual first. A field only
+  some of the collections sharing the template have says so.
+- **Edit content ↗** in the top bar, beside View page, in place of the
+  Content tab: the entry's page in the admin, in a tab of its own.
+- The right side is **Template**, **Custom CSS** and **Custom JS**.
+- Panels no longer fold to their titles (the sides still fold to the
+  edges); the layout kept in the browser forgets what was folded.
+
+### For the new Sunrice: the panel and the CMS (0.2)
+
+The package now works with Sunrice 0.2
+([Digital-Citra-Kreatif/sunrice](https://github.com/Digital-Citra-Kreatif/sunrice)),
+where the admin is a panel (`sunrice/admin`) and the CMS (`sunrice/cms`)
+is a plugin of it. It no longer works with the older `sunrice/cms`
+(littleboy130491/sunrice-cms). To upgrade a site, see
+[Installation](docs/installation.md).
+
+- **A panel plugin.** `VisualEditorPlugin` is added to the app's panel
+  provider after the CMS's (`php artisan sunrice:install --plugins` does
+  it). It registers the permissions (`code` and `build` marked
+  privileged), the sidebar entry (under Structure), the routes, the
+  editor's page bundle and its AI tools; the service provider keeps the
+  config, the published files and what is added to the site's pages.
+- **Requires** PHP 8.4, `sunrice/admin` and `sunrice/cms` 0.2.
+- **Where things are**: templates in `resources/views/cms/` (view names
+  `cms.*`), the theme in `public/cms/` (`site.css`, `custom.css`,
+  `custom.js`, `editor.css`), backups in
+  `storage/app/sunrice-cms/template-backups/`, the editor at
+  `/admin/visual-editor`. New setting `paths.theme_url`.
+- **The CMS's templates**: page templates `collections/show`,
+  `collections/{collection}/show`, `collections/index`, `taxonomies/show`,
+  `taxonomies/index` and `search`, each with its role; the CMS's own page
+  views (`entry`, `listing`, `term`, `taxonomy-index`, `search`) are the
+  ones **Copy to site** copies, to those names.
+- **Fields** are written the CMS's way: `$values['handle'] ?? ''` on a
+  page, `$entry->values()['handle']` on an entry, `$block->handle` in a
+  block, `cms_global('set')['field']`, `cms_menu('handle')`, `cms_page()`,
+  images with `altIn()`, the block loop with
+  `@includeFirst(['cms.blocks.'.$b->type, 'cms.partials.block'], …)`. The
+  Insert list has the CMS's components (`<x-sunrice-cms::entries>`,
+  `terms`, `search`, `form`, `seo`, `code`, `language-switcher`).
+- **Content** opens the entry's page in the admin in a tab of its own (the
+  panel can't be shown in a frame), and the page is drawn again on coming
+  back.
+- **Edit with Visual Editor** on entry pages is replaced by the panel's
+  command palette: **Edit {page} in the visual editor**, on every page of
+  the admin (a plugin's script runs only on its own pages).
+- **Custom JS** is pushed onto `@stack('head')` (deferred), as the CMS's
+  layout has no `scripts` stack; `custom_js.stack` defaults to `head`.
+  The editor's scripts on the site carry the site's CSP nonce.
+- **AI tools** are the panel's: `visual_editor_get_template_tree` and
+  `visual_editor_edit_template`. Changing a template also needs the CMS's
+  `sunrice-cms.ai.templates` on.
+- Saves are in the panel's activity log, and drop the pages the CMS keeps
+  for visitors.
+- The editor's script uses the panel's React and Inertia
+  (`window.Sunrice.modules`, runtime 3).
+- Removed: `RegisteredPermissions` (the panel syncs a plugin's
+  permissions), the admin launch script, the old Sunrice's
+  `sunrice.mcp.templates` switch.
+- The workbench's users sign in with `Sunrice-Demo-2026!`: the panel
+  asks for a stronger password than `password`.
+
 ### A simpler screen
 
 - **Three parts**: the tree on the left (templates on the page, and the

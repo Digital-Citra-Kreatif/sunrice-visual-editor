@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Spatie\Permission\Models\Permission;
-use Sunrice\Permissions\SyncPermissions;
+use Sunrice\Admin\Actions\Permissions\SyncPermissions;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\VisualEditorServiceProvider;
 
@@ -29,5 +29,5 @@ it('has Sunrice create its permissions once, however often permissions are synce
     expect(Permission::query()->where('name', 'like', 'visual-editor.%')->orderBy('name')->pluck('name')->all())
         ->toBe(['visual-editor.build', 'visual-editor.code', 'visual-editor.edit', 'visual-editor.open'])
         // Sunrice's own are synced as they were.
-        ->and(Permission::query()->where('name', 'sunrice.access-admin')->count())->toBe(1);
+        ->and(Permission::query()->where('name', 'sunrice.access')->count())->toBe(1);
 });

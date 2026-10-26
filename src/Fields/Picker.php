@@ -18,11 +18,11 @@ use Sunrice\VisualEditor\Templates\TemplateFile;
  */
 final class Picker
 {
-    /** How far in from a variable the tree goes: $sunricePage → entry → cover → alt text. */
+    /** How far in from a variable the tree goes: cms_page() → entry → cover → alt text. */
     private const DEPTH = 4;
 
     /** Read further into, as far as the tree goes. An entry or a term only once: an entry's author, not the entries of its related entries. */
-    private const OPENS = [Shape::ASSET, Shape::LINK, Shape::DATE, Shape::GROUP, Shape::ROW, Shape::USER, Shape::GLOBALS, Shape::COLLECTION, Shape::TAXONOMY, Shape::PAGE, Shape::BLOCK];
+    private const OPENS = [Shape::ASSET, Shape::LINK, Shape::DATE, Shape::GROUP, Shape::ROW, Shape::USER, Shape::GLOBALS, Shape::COLLECTION, Shape::TAXONOMY, Shape::PAGE, Shape::BLOCK, Shape::VALUES, Shape::MENU_ITEM];
 
     public function __construct(private readonly Catalog $catalog, private readonly Scope $scope, private readonly Emit $emit) {}
 
@@ -81,7 +81,8 @@ final class Picker
         $one = $shape->isList() ? ($shape->item ?? $shape) : $shape;
         $subject = match ($one->kind) {
             Shape::ENTRY, Shape::COLLECTION => 'collection',
-            Shape::TERM => 'taxonomy',
+            Shape::TERM, Shape::TERM_TRANSLATION => 'taxonomy',
+            Shape::VALUES => $one->subject,
             Shape::BLOCK => 'fieldset',
             Shape::GLOBALS => 'global',
             default => null,
@@ -117,7 +118,7 @@ final class Picker
         }
         $all = $this->catalog->members($owner->shape);
         // The blueprints it may be of: a field only some of them have says so.
-        $blueprints = array_values(array_filter($all, fn (Members $members) => $members->subject !== null && $members->subject !== 'listing'));
+        $blueprints = array_values(array_filter($all, fn (Members $members) => $members->subject !== null && ! in_array($members->subject, ['listing', 'index'], true)));
 
         $groups = [];
         foreach ($all as $members) {

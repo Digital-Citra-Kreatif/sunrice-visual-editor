@@ -6,7 +6,7 @@ namespace Sunrice\VisualEditor\Templates;
 
 /**
  * One Blade file the editor can show: a template of the site, or one of
- * Sunrice's own views.
+ * the CMS's own views.
  */
 final class TemplateFile
 {
@@ -18,15 +18,15 @@ final class TemplateFile
      * @param  list<array{role: string, subject: string, handle: string}>  $usedBy
      */
     public function __construct(
-        /** Inside its directory: "partials/header.blade.php". */
+        /** Inside its directory: "partials/card.blade.php". */
         public readonly string $path,
-        /** site: one of the site's templates. package: one of Sunrice's own, read-only. */
+        /** site: one of the site's templates. package: one of the CMS's own, read-only. */
         public readonly string $origin,
-        /** The name Blade knows it by: "sunrice.partials.header", "sunrice::defaults.show". */
+        /** The name Blade knows it by: "cms.partials.card", "sunrice-cms::entry". */
         public readonly string $view,
-        /** layout, partial, block, entry, listing, term, search, error, component or other. */
+        /** layout, partial, block, entry, listing, term, index (a taxonomy's index page), search, error, component or other. */
         public readonly string $role,
-        /** The collections and taxonomies whose pages it draws right now. */
+        /** The collections and taxonomies whose pages it draws right now (and the search page). */
         public readonly array $usedBy,
         /** Where it is on disk. */
         public readonly string $file,

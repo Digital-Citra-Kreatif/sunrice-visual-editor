@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use Sunrice\Facades\Sunrice;
+use Sunrice\Admin\Panel;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Tests\DisabledTestCase;
@@ -23,21 +23,24 @@ it('registers no editor routes when turned off', function () {
         ->and($names)->toBeEmpty();
 });
 
-it('lets nobody in when turned off, Super Admins included', function () {
+it('lets nobody in when turned off, super admins included', function () {
     $admin = actingAsSuperAdmin();
 
     expect(Access::allowed($admin))->toBeFalse();
-    get('/cms/visual-editor')->assertNotFound();
-    getJson('/cms/visual-editor/api/templates')->assertNotFound();
-    getJson('/cms/visual-editor/api/templates/partials/footer.blade.php')->assertNotFound();
+    get('/admin/visual-editor')->assertNotFound();
+    getJson('/admin/visual-editor/api/templates')->assertNotFound();
+    getJson('/admin/visual-editor/api/templates/partials/footer.blade.php')->assertNotFound();
 });
 
 it('adds nothing to the admin when turned off', function () {
-    $sunrice = app(\Sunrice\Sunrice::class);
+    $panel = app(Panel::class);
 
-    expect(implode(' ', $sunrice->adminScripts()))->not->toContain('sunrice-visual-editor')
-        ->and(implode(' ', $sunrice->adminStyles()))->not->toContain('sunrice-visual-editor')
-        ->and(collect(Sunrice::navigationItems())->pluck('href'))->not->toContain('visual-editor');
+    expect($panel->hasPlugin('visual-editor'))->toBeTrue()
+        ->and(collect($panel->getBundles())->pluck('id'))->not->toContain('visual-editor')
+        ->and(array_keys($panel->getPermissions()))->not->toContain(Access::OPEN)
+        ->and(collect($panel->getCommandSearches())->pluck('id'))->not->toContain('visual-editor.pages')
+        ->and(collect($panel->navigationFor(createUser(superAdmin: true)))->flatMap(fn (array $group) => $group['items'])->pluck('key'))->not->toContain('visual-editor')
+        ->and(array_map(fn (string $tool) => (new ReflectionClass($tool))->newInstanceWithoutConstructor()->name(), $panel->getTools()))->not->toContain('visual_editor_edit_template');
 });
 
 it('renders every page as always when turned off, whatever the address says', function () {
@@ -45,14 +48,14 @@ it('renders every page as always when turned off, whatever the address says', fu
     actingAsSuperAdmin();
 
     expect((string) get('/?sve=1')->assertOk()->getContent())->not->toContain('data-sve', 'sve-manifest')
-        ->and(Route::getRoutes()->getByName('sunrice.frontend.home')->gatherMiddleware())->not->toContain(EditorRender::class);
+        ->and(config('sunrice-cms.site.middleware'))->not->toContain(EditorRender::class);
 });
 
 it('still links the site\'s custom CSS when turned off: it is the site\'s, and the deployed site has it', function () {
     $this->setUpStarterSite();
     File::put($this->theme.'/custom.css', '.hero { color: tomato; }');
 
-    expect((string) get('/')->assertOk()->getContent())->toContain('/sunrice-theme/custom.css?v=', 'data-sunrice-custom-css');
+    expect((string) get('/')->assertOk()->getContent())->toContain('/cms/custom.css?v=', 'data-sunrice-custom-css');
 });
 
 it('still loads the site\'s custom script when turned off, and offers no way to write it', function () {
@@ -60,6 +63,6 @@ it('still loads the site\'s custom script when turned off, and offers no way to 
     File::put($this->theme.'/custom.js', 'console.log(1);');
     actingAsSuperAdmin();
 
-    expect((string) get('/')->assertOk()->getContent())->toContain('/sunrice-theme/custom.js?v=', 'data-sunrice-custom-js');
-    getJson('/cms/visual-editor/api/scripts/custom')->assertNotFound();
+    expect((string) get('/')->assertOk()->getContent())->toContain('/cms/custom.js?v=', 'data-sunrice-custom-js');
+    getJson('/admin/visual-editor/api/scripts/custom')->assertNotFound();
 });

@@ -35,9 +35,9 @@ BLADE;
 it('takes ten changes of every kind back, one by one, to the file as it was', function () {
     $this->setUpStarterSite();
     actingAsSuperAdmin();
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
     $file = $this->templates.'/partials/sve-undo.blade.php';
-    $api = '/cms/visual-editor/api/templates/partials/sve-undo.blade.php';
+    $api = '/admin/visual-editor/api/templates/partials/sve-undo.blade.php';
     File::put($file, SVE_UNDO_TEMPLATE);
 
     // Each change names its node by the text the node starts with, in the file as it is then.
@@ -99,5 +99,5 @@ it('takes ten changes of every kind back, one by one, to the file as it was', fu
         ->assertJsonPath('reason', 'conflict');
     expect(File::get($file))->toBe($states[10].'<!-- changed elsewhere -->');
 
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
 });

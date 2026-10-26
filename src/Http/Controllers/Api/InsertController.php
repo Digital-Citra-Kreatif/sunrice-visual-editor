@@ -18,6 +18,6 @@ class InsertController extends Controller
 {
     public function __invoke(Request $request, Library $library): JsonResponse
     {
-        return response()->json(['inserts' => $library->all(code: Access::may($request->user(config('sunrice.auth.guard')), Access::CODE))]);
+        return response()->json(['inserts' => $library->all(code: Access::may($request->user(Access::guard()), Access::CODE))]);
     }
 }

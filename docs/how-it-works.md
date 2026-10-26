@@ -74,7 +74,7 @@ Several operations can be sent together. They are applied all or none.
 
 The API takes more operations than the screen sends: classes, attributes,
 text, inserts, wrapping. They are what AI agents send through the
-[`edit_template` tool](agents.md).
+[`visual_editor_edit_template` tool](agents.md).
 
 ## Before anything is written
 
@@ -95,10 +95,12 @@ In order:
 If any of these fails, nothing is written and the editor shows the reason.
 
 Then the previous version is copied to
-`storage/app/sunrice/template-backups/`, the new file is written beside the
-old one and renamed over it (so a page drawn at that moment sees the old
-file or the new one, never half of each), Laravel's compiled copy is
-dropped, and a line goes into Sunrice's activity log.
+`storage/app/sunrice-cms/template-backups/` (where the CMS keeps its own),
+the new file is written beside the old one and renamed over it (so a page
+drawn at that moment sees the old file or the new one, never half of
+each), Laravel's compiled copy is dropped, a line goes into the panel's
+activity log, and the pages the CMS keeps for visitors are dropped so
+they are drawn again with the new template.
 
 ## What a change can still get wrong
 
@@ -111,8 +113,10 @@ says so and offers the undo.
 ## How the page knows its templates
 
 The page in the editor's frame is a real page of the site, drawn by the
-site, with `?sve=1` in its address. For such a request, and only for
-someone who may use the editor, the package swaps in its own view engine:
+site, with `?sve=1` in its address. The package adds its middleware to the
+CMS's site middleware (`sunrice-cms.site.middleware`); for such a request,
+and only for someone who may use the editor, it swaps in its own view
+engine:
 
 - Each template is compiled from a copy in which every element carries a
   mark, `data-sve="<file>:<node>"`: which template it came from and which
@@ -120,7 +124,8 @@ someone who may use the editor, the package swaps in its own view engine:
   files are never touched.
 - A list of the templates that took part (the manifest) is added to the
   page.
-- A small script (the bridge) is added. It tells the editor what the
+- A small script (the bridge) is added, with the nonce of the site's
+  content security policy. It tells the editor what the
   pointer is over and what was clicked, and measures the elements the
   editor asks about.
 
@@ -128,8 +133,8 @@ Everything drawn over the page, the outlines and their labels, is drawn by
 the editor above the frame. Nothing is drawn into your page. A visitor
 never sees any of this: without `?sve=1` and a signed-in editor, the
 package does nothing to a request but one thing, which is the site's own:
-the link to its [custom CSS](styles.md#custom-css), while that file has
-something in it.
+the link to its [custom CSS](styles.md#custom-css) and its custom JS,
+while those files have something in them.
 
 After a change, the page is drawn again in a second, hidden frame, scrolled
 to where the first one is, and the two change places. That is why the page
@@ -137,15 +142,16 @@ does not jump or go blank.
 
 ## The entry's content
 
-The **Content** tab is not the editor's. It is Sunrice's own admin page for
-the entry the page in the frame shows, in a frame of its own, with
-Sunrice's fields, validation, drafts, revisions and **Publish**. The
-editor only finds which entry that is, and draws the page again when
-something is saved there. A published entry keeps a saved change as a
-draft until it is published, as it does anywhere in Sunrice, so the page
+**Edit content ↗**, in the top bar, is not the editor's. It opens the
+CMS's own admin page for the entry the page in the frame shows, with the CMS's
+fields, validation, drafts, revisions and **Publish**, in a tab of its
+own: the panel sends `X-Frame-Options: DENY` and is never shown in a
+frame. The editor only finds which entry that is, and draws the page again
+when you come back to it. A published entry keeps a saved change as a
+draft until it is published, as it does anywhere in the CMS, so the page
 shows the change after **Publish**. A page that is no single entry (a
 listing, the search page, an error page) has no content to show, and the
-tab says so.
+link says so.
 
 ## Undo
 
@@ -157,7 +163,7 @@ not seen.
 
 ## Stylesheets
 
-CSS files in `public/sunrice-theme/` are held to the same rule as
+CSS files in `public/cms/` are held to the same rule as
 templates: a rule is changed in place and the rest of the file is
 untouched. The package reads a stylesheet only for where its rules and
 declarations are, and cuts into the text there. After every change it reads
@@ -170,8 +176,9 @@ read at. See [Styles](styles.md).
 
 Two test runs sit in `spike/` and run on every pull request:
 
-- **Templates** (`composer spike`): every Sunrice starter template, every
-  Sunrice package view, Laravel's own Blade views and a set of edge cases
+- **Templates** (`composer spike`): the starter templates and package
+  views of Sunrice before 0.1 (`tests/fixtures`), Laravel's own Blade
+  views and a set of edge cases
   are opened and printed back, then each kind of edit is made on every node
   that can take it. About 19,000 edits; each must change exactly the bytes
   it should and leave a file that opens and compiles.

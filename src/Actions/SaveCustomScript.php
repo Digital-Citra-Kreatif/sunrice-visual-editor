@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Actions;
 
-use Sunrice\Activity\ActivityLogger;
+use Sunrice\Admin\Activity\ActivityLog;
 use Sunrice\VisualEditor\Rendering\CustomJs;
 use Sunrice\VisualEditor\Support\Files;
 use Sunrice\VisualEditor\Support\SunriceBridge;
@@ -49,7 +49,9 @@ final class SaveCustomScript
             }
             Files::replace($file->file, $newSource);
 
-            app(ActivityLogger::class)->record($existed ? 'updated' : 'created', 'sunrice-theme/'.$file->path, ['note' => 'Visual editor'], 'template');
+            app(ActivityLog::class)->record($existed ? 'updated' : 'created', 'template', null, SunriceBridge::themeFolder().'/'.$file->path, ['note' => 'Visual editor']);
+
+            SunriceBridge::changed(SunriceBridge::themeFolder().'/'.$file->path);
 
             return CustomJs::version($newSource);
         });

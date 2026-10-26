@@ -29,9 +29,20 @@ final class Shape
 
     public const ASSET = 'asset';
 
+    /** An entry in a language (Sunrice\Cms\Models\EntryTranslation): what pages, lists and entries fields give. */
     public const ENTRY = 'entry';
 
+    /** A term (Sunrice\Cms\Models\Term): an entry's terms, a terms field, a term's parent and children. */
     public const TERM = 'term';
+
+    /** A term in a language (Sunrice\Cms\Models\TermTranslation): the term a term page shows. */
+    public const TERM_TRANSLATION = 'term_translation';
+
+    /** The fields of something, as an array by handle: a page's `$values`, an entry's `values()`. */
+    public const VALUES = 'values';
+
+    /** Values of blueprints of more than one kind: their `of` are "subject:handle". */
+    public const MIXED = 'mixed';
 
     public const USER = 'user';
 
@@ -57,14 +68,16 @@ final class Shape
     public const VALUE = 'value';
 
     /**
-     * @param  list<string>  $of  entry: its collections; term: its taxonomies; block: its fieldsets; global: its set. None means any.
+     * @param  list<string>  $of  entry: its collections; term: its taxonomies; block: its fieldsets; global: its set; values: the blueprints' subjects. None means any.
      * @param  list<Field>  $fields  group, row: the fields it holds, which belong to nothing else
+     * @param  string|null  $subject  values: what the fields are of (collection, listing, taxonomy, index, fieldset or global)
      */
     private function __construct(
         public readonly string $kind,
         public readonly ?Shape $item = null,
         public readonly array $of = [],
         public readonly array $fields = [],
+        public readonly ?string $subject = null,
     ) {}
 
     public static function of(string $kind): self
@@ -87,6 +100,24 @@ final class Shape
     public static function term(array $taxonomies = []): self
     {
         return new self(self::TERM, of: $taxonomies);
+    }
+
+    /** @param  list<string>  $taxonomies */
+    public static function termTranslation(array $taxonomies = []): self
+    {
+        return new self(self::TERM_TRANSLATION, of: $taxonomies);
+    }
+
+    /**
+     * The fields of a blueprint, by handle: an entry page's `$values` are
+     * values('collection', ['articles']).
+     *
+     * @param  string  $subject  collection, listing, taxonomy, index, fieldset or global; MIXED with "subject:handle"s
+     * @param  list<string>  $of  the handles of the collections (taxonomies…) they may be of; none for any
+     */
+    public static function values(string $subject, array $of = []): self
+    {
+        return new self(self::VALUES, of: $of, subject: $subject);
     }
 
     /** @param  list<string>  $fieldsets */
@@ -147,6 +178,8 @@ final class Shape
             self::ASSET => 'file',
             self::GLOBALS => 'global set',
             self::MENU_ITEM => 'menu item',
+            self::TERM_TRANSLATION => 'term',
+            self::VALUES => 'fields',
             default => $this->kind,
         };
     }
@@ -160,7 +193,8 @@ final class Shape
         return match (true) {
             $this->isList() => 'list<'.($this->item?->spell() ?? '?').'>',
             $this->fields !== [] => $this->kind.'{'.implode(', ', array_map(fn (Field $field) => $field->handle, $this->fields)).'}',
-            $this->of !== [] => $this->kind.'('.implode('|', $this->of).')',
+            $this->of !== [] => $this->kind.($this->subject === null ? '' : ':'.$this->subject).'('.implode('|', $this->of).')',
+            $this->subject !== null => $this->kind.':'.$this->subject,
             default => $this->kind,
         };
     }
@@ -172,6 +206,7 @@ final class Shape
             'kind' => $this->kind,
             'item' => $this->item?->toArray(),
             'of' => $this->of,
+            'subject' => $this->subject,
             'fields' => array_map(fn (Field $field) => $field->toArray(), $this->fields),
         ], fn ($value) => $value !== null && $value !== []);
     }

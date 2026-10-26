@@ -211,7 +211,7 @@ class TemplateController extends Controller
     /** Whether whoever asks may edit code: put Blade and PHP of their own into a template. */
     private function mayCode(Request $request): bool
     {
-        return Access::may($request->user(config('sunrice.auth.guard')), Access::CODE);
+        return Access::may($request->user(Access::guard()), Access::CODE);
     }
 
     private function origin(Request $request): string
