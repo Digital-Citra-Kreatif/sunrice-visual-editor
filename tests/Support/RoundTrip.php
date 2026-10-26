@@ -488,11 +488,15 @@ final class RoundTrip
                 $root = self::root($node);
                 try {
                     self::edit('unwrap', $node);
+                    if (str_ends_with((string) self::$refused, 'with no loop around it.')) {
+                        // A loop holding its own @continue or @break: without the loop those would stop the page, and the editor says so.
+                        throw new EditRejected((string) self::$refused);
+                    }
                     $out = $root->print();
                     $naive = $slice(0, $start).substr($text, strlen($holder->open), strlen($text) - strlen($holder->open) - strlen($node->close)).$slice($finish, $end);
                     $record('unwrap', self::squash($out) === self::squash($naive) ? self::verify($out, $out) : 'more than the wrapper went', $where);
                 } catch (EditRejected) {
-                    // What was inside can't stand on its own (the arms of a @switch).
+                    // What was inside can't stand on its own (the arms of a @switch, a @continue).
                     $skip('unwrap');
                 }
             } else {

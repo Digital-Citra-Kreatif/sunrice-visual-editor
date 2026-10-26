@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\ServiceProvider;
-use Inertia\Inertia;
-use Sunrice\Facades\Sunrice;
-use Sunrice\Permissions\PermissionRegistry;
-use Sunrice\Permissions\SyncPermissions;
+use Sunrice\Admin\Support\PackageConfig;
 use Sunrice\VisualEditor\Fields\Catalog;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
-use Sunrice\VisualEditor\Mcp\EditTemplate;
-use Sunrice\VisualEditor\Mcp\GetTemplateTree;
 use Sunrice\VisualEditor\Rendering\CustomCss;
 use Sunrice\VisualEditor\Rendering\CustomJs;
 use Sunrice\VisualEditor\Support\Access;
-use Sunrice\VisualEditor\Support\RegisteredPermissions;
-use Sunrice\VisualEditor\Support\SunriceBridge;
 
+/**
+ * The package's Laravel side: its config, its published files, the custom
+ * CSS and JS on the site's pages, and the middleware that draws a page for
+ * the editor's frame. What it adds to the admin is the plugin's
+ * (VisualEditorPlugin), added in the app's panel provider.
+ */
 class VisualEditorServiceProvider extends ServiceProvider
 {
     /** Where the admin script and stylesheet are published, under public/. */
@@ -27,13 +25,20 @@ class VisualEditorServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/sunrice-visual-editor.php', 'sunrice-visual-editor');
+        PackageConfig::merge($this->app, __DIR__.'/../config/sunrice-visual-editor.php', 'sunrice-visual-editor', whole: ['widths']);
 
         // The site's blueprints are read once for a request, whoever asks.
         $this->app->scoped(Catalog::class);
 
-        // Sunrice's sync creates a package's permission a second time and fails (see RegisteredPermissions).
-        $this->app->when(SyncPermissions::class)->needs(PermissionRegistry::class)->give(RegisteredPermissions::class);
+        // The CMS reads its site middleware when it boots: added before any
+        // provider boots, the editor's is on every page of the site. It does
+        // nothing unless a page is asked for by the editor (see EditorRender).
+        $this->app->booting(function (): void {
+            if (Access::enabled()) {
+                $middleware = config('sunrice-cms.site.middleware', ['web']);
+                config(['sunrice-cms.site.middleware' => [...(is_array($middleware) ? $middleware : ['web']), EditorRender::class]]);
+            }
+        });
     }
 
     public function boot(): void
@@ -42,63 +47,15 @@ class VisualEditorServiceProvider extends ServiceProvider
             __DIR__.'/../config/sunrice-visual-editor.php' => config_path('sunrice-visual-editor.php'),
         ], 'sunrice-visual-editor-config');
 
+        // Also "laravel-assets", which Laravel apps publish on every composer update.
         $this->publishes([
             __DIR__.'/../dist' => public_path(self::ASSETS),
-        ], 'sunrice-visual-editor-assets');
+        ], ['sunrice-visual-editor-assets', 'laravel-assets']);
 
         // The site's custom CSS and script are added to its pages whether or not the editor
         // is on: the deployed site has what was written on a local copy.
         CustomCss::register();
         CustomJs::register();
-
-        // Off: no routes, no admin script, nothing else different about rendering.
-        if (! Access::enabled()) {
-            return;
-        }
-
-        // Roles are given these in Sunrice's admin; `sunrice:sync-permissions` creates them.
-        foreach (Access::LABELS as $permission => $label) {
-            Sunrice::registerPermission($permission, $label, 'Visual editor');
-        }
-
-        Sunrice::adminRoutes(fn () => $this->loadRoutesFrom(__DIR__.'/../routes/admin.php'));
-
-        // Sunrice reads this list once every provider has booted, when it
-        // adds its frontend routes. The middleware does nothing unless a
-        // page is asked for by the editor (see EditorRender).
-        config(['sunrice.frontend.middleware' => [
-            ...(array) config('sunrice.frontend.middleware', ['web']),
-            EditorRender::class,
-        ]]);
-
-        // Tools for AI agents, on Sunrice's MCP server.
-        SunriceBridge::registerMcpTools(self::mcpTools());
-
-        Sunrice::registerAdminScript(self::asset('visual-editor.js'));
-        Sunrice::registerAdminStyle(self::asset('visual-editor.css'));
-
-        // The admin's pages are told whether whoever is signed in may open the editor: an entry's
-        // page then offers "Edit with Visual Editor" (resources/js/launch.ts).
-        Inertia::share('visualEditor', fn (): ?array => Access::allowed(request()->user(config('sunrice.auth.guard'))) ? ['open' => true] : null);
-
-        Sunrice::addNavigationItem(
-            label: 'Visual editor',
-            href: 'visual-editor',
-            icon: 'layout-template',
-            group: 'Manage',
-            can: fn (?Authenticatable $user): bool => Access::allowed($user),
-        );
-    }
-
-    /**
-     * The tools the package has for AI agents: a template read as a tree,
-     * and changed by operations on it.
-     *
-     * @return list<class-string>
-     */
-    public static function mcpTools(): array
-    {
-        return [GetTemplateTree::class, EditTemplate::class];
     }
 
     /**

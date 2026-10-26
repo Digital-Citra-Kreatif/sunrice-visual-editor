@@ -84,16 +84,18 @@ it('names each entry once, in its group', function () {
     }
 });
 
-it('names a collection, taxonomy or form of the site in each of Sunrice\'s components', function () {
+it('names a collection, taxonomy or form of the site in each of the CMS\'s components', function () {
     $entries = collect(sveLibrary())->keyBy('id');
 
-    expect($entries['sunrice.entries.articles']['blade'])->toContain('<x-sunrice::entries collection="articles"', '<a href="{{ $item->url }}">{{ $item->title }}</a>')
+    expect($entries['sunrice.entries.articles']['blade'])->toContain('<x-sunrice-cms::entries collection="articles"', '<a href="{{ $item->url() }}">{{ $item->title }}</a>')
         // Each one is $item: on an entry's page $entry is the page's own.
         ->and($entries['sunrice.entries.articles']['blade'])->toContain('as $item)')->not->toContain('$entry')
         // Entries without a page of their own have no address to link to.
         ->and($entries['sunrice.entries.team']['blade'])->toContain('<h3>{{ $item->title }}</h3>')->not->toContain('href')
-        ->and($entries['sunrice.terms.categories']['blade'])->toContain('<x-sunrice::terms taxonomy="categories">')
-        ->and($entries['sunrice.form.contact']['blade'])->toContain('<x-sunrice::form handle="contact">', 'name="{{ $name }}"');
+        ->and($entries['sunrice.terms.categories']['blade'])->toContain('<x-sunrice-cms::terms taxonomy="categories">', '{{ $item->title() }}')
+        // The form prints its own fields, errors and thank-you message.
+        ->and($entries['sunrice.form.contact']['blade'])->toBe('<x-sunrice-cms::form handle="contact" />')
+        ->and($entries['sunrice.code.body-end']['blade'])->toBe('<x-sunrice-cms::code place="body-end" />');
 });
 
 it('leaves out what has a handle that could not be written into Blade as it is', function () {
@@ -109,21 +111,22 @@ it('leaves out what has a handle that could not be written into Blade as it is',
 
 it('offers the site\'s partials as includes, with what each needs', function () {
     $this->setUpStarterSite();
-    $file = fn (string $path, string $origin = TemplateFile::SITE, string $role = 'partial') => new TemplateFile($path, $origin, 'sunrice.'.str_replace('/', '.', substr($path, 0, -10)), $role, [], $this->templates.'/'.$path);
+    file_put_contents($this->templates.'/partials/notice.blade.php', '<p class="notice">{{ cms_global(\'site\')[\'name\'] ?? \'\' }}</p>');
+    $file = fn (string $path, string $origin = TemplateFile::SITE, string $role = 'partial') => new TemplateFile($path, $origin, 'cms.'.str_replace('/', '.', substr($path, 0, -10)), $role, [], $this->templates.'/'.$path);
 
     $entries = collect(Library::partials([
         $file('partials/card.blade.php'),
         $file('partials/menu.blade.php'),
-        $file('partials/header.blade.php'),
+        $file('partials/notice.blade.php'),
         // Not partials, and not the site's: not offered.
-        $file('layouts/app.blade.php', role: 'layout'),
+        $file('layout.blade.php', role: 'layout'),
         $file('blocks/hero.blade.php', role: 'block'),
-        $file('partials/footer.blade.php', TemplateFile::PACKAGE),
+        $file('partials/pagination.blade.php', TemplateFile::PACKAGE),
     ]))->keyBy('id');
 
-    expect($entries->keys()->all())->toBe(['partial.sunrice.partials.card', 'partial.sunrice.partials.menu', 'partial.sunrice.partials.header'])
-        ->and($entries['partial.sunrice.partials.card'])->toMatchArray(['group' => Library::PARTIALS, 'title' => 'partials/card', 'hint' => 'Needs $entry', 'blade' => "@include('sunrice.partials.card')"])
-        ->and($entries['partial.sunrice.partials.menu']['hint'])->toBe('Needs $items')
-        // The header reads the site's globals and menu itself.
-        ->and($entries['partial.sunrice.partials.header']['hint'])->toBe('@include');
+    expect($entries->keys()->all())->toBe(['partial.cms.partials.card', 'partial.cms.partials.menu', 'partial.cms.partials.notice'])
+        ->and($entries['partial.cms.partials.card'])->toMatchArray(['group' => Library::PARTIALS, 'title' => 'partials/card', 'hint' => 'Needs $item', 'blade' => "@include('cms.partials.card')"])
+        ->and($entries['partial.cms.partials.menu']['hint'])->toBe('Needs $items')
+        // It reads the site's global set itself.
+        ->and($entries['partial.cms.partials.notice']['hint'])->toBe('@include');
 });

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
-use Sunrice\Facades\Sunrice;
+use Sunrice\Admin\Panel;
 use Sunrice\VisualEditor\Blade\Node;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Guard\CodeGuard;
@@ -30,7 +30,7 @@ use function Pest\Laravel\putJson;
 uses(WithStarterSite::class, WithEveryField::class);
 
 const SVE_HERO = 'blocks/hero.blade.php';
-const SVE_HERO_API = '/cms/visual-editor/api/templates/'.SVE_HERO;
+const SVE_HERO_API = '/admin/visual-editor/api/templates/'.SVE_HERO;
 
 /** What would run on the server if it got into a template as code. */
 const SVE_CODE = [
@@ -41,10 +41,10 @@ const SVE_CODE = [
     'a @php block' => "@php system('id'); @endphp",
     'PHP tags' => "<?php system('id'); ?>",
     'a PHP echo tag' => "<?= system('id') ?>",
-    'an include of a view that is not the site\'s' => "@include('sunrice::admin.layout')",
+    'an include of a view that is not the site\'s' => "@include('sunrice-admin::app')",
     'a condition' => "@if (system('id')) x @endif",
     'a loop' => "@foreach (glob('/etc/*') as \$found) {{ \$found }} @endforeach",
-    'a component given code' => '<x-sunrice::entries collection="articles" :where="system(\'id\')" />',
+    'a component given code' => '<x-sunrice-cms::entries collection="articles" :where="system(\'id\')" />',
     'a directive that prints' => '@json($_SERVER)',
     'a call on a value that is there' => '{{ $block->delete() }}',
     'code in an attribute' => '<a href="{{ phpinfo() }}">x</a>',
@@ -54,17 +54,17 @@ const SVE_CODE = [
 beforeEach(function () {
     $this->setUpStarterSite();
     $this->setUpEveryField();
-    File::deleteDirectory(storage_path('app/sunrice/template-backups'));
+    File::deleteDirectory(storage_path('app/sunrice-cms/template-backups'));
     $this->hero = $this->templates.'/'.SVE_HERO;
     $this->original = File::get($this->hero);
 
     /** Signs in someone who may use the admin and has these of the editor's permissions. */
     $this->as = function (string ...$permissions) {
         $user = createUser(email: implode('-', array_map(fn (string $name) => substr($name, 14), $permissions) ?: ['nobody']).'@example.com');
-        foreach (['sunrice.access-admin', ...$permissions] as $name) {
-            $user->givePermissionTo(Permission::findOrCreate($name, config('sunrice.auth.guard', 'web')));
+        foreach (['sunrice.access', ...$permissions] as $name) {
+            $user->givePermissionTo(Permission::findOrCreate($name, Access::guard()));
         }
-        actingAs($user, config('sunrice.auth.guard', 'web'));
+        actingAs($user, Access::guard());
 
         return $user;
     };
@@ -98,12 +98,12 @@ beforeEach(function () {
     };
 });
 
-afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice/template-backups')));
+afterEach(fn () => File::deleteDirectory(storage_path('app/sunrice-cms/template-backups')));
 
 // --- Who may what --------------------------------------------------------------
 
 it('registers its permissions with Sunrice, for roles to be given', function () {
-    expect(collect(Sunrice::permissions())->where('group', 'Visual editor')->pluck('label', 'name')->all())->toBe([
+    expect(collect(app(Panel::class)->getPermissions())->where('group', 'Visual editor')->pluck('label', 'name')->all())->toBe([
         'visual-editor.open' => 'Open the visual editor',
         'visual-editor.edit' => 'Change templates and styles in the visual editor',
         'visual-editor.code' => 'Edit template code in the visual editor',
@@ -138,8 +138,8 @@ it('tells the screen what whoever opened it may do', function (array $has, ?arra
     ($this->as)(...$has);
 
     $can === null
-        ? get('/cms/visual-editor')->assertForbidden()
-        : get('/cms/visual-editor')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('can', $can));
+        ? get('/admin/visual-editor')->assertForbidden()
+        : get('/admin/visual-editor')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('can', $can));
 })->with([
     'none' => [[], null],
     'open' => [[Access::OPEN], ['edit' => false, 'code' => false, 'build' => false]],
@@ -153,55 +153,55 @@ it('lets someone who may only open the editor read everything and change nothing
     $version = sha1($this->original);
 
     foreach (['templates', 'templates/'.SVE_HERO, 'templates/'.SVE_HERO.'/fields?version='.$version, 'inserts', 'site', 'styles?class=card'] as $read) {
-        getJson('/cms/visual-editor/api/'.$read)->assertOk();
+        getJson('/admin/visual-editor/api/'.$read)->assertOk();
     }
 
-    $css = File::get($this->theme.'/app.css');
-    $layout = File::get($this->templates.'/layouts/app.blade.php');
+    $css = File::get($this->theme.'/site.css');
+    $layout = File::get($this->templates.'/layout.blade.php');
     foreach ([
         ['POST', 'templates/'.SVE_HERO.'/operations', ['version' => $version, 'operations' => [['type' => 'addClass', 'node' => ($this->node)('<h1>'), 'class' => 'x']]]],
         ['PUT', 'templates/'.SVE_HERO.'/source', ['version' => $version, 'source' => '<p>x</p>']],
-        ['POST', 'templates/defaults/term.blade.php/copy', []],
-        ['POST', 'styles/files/app.css/changes', ['version' => sha1($css), 'changes' => [['type' => 'rule', 'selector' => '.x']]]],
-        ['PUT', 'styles/files/app.css/source', ['version' => sha1($css), 'source' => '']],
-        ['POST', 'styles/link', ['template' => 'layouts/app.blade.php', 'version' => sha1($layout), 'stylesheet' => 'app.css']],
+        ['POST', 'templates/term.blade.php/copy', []],
+        ['POST', 'styles/files/site.css/changes', ['version' => sha1($css), 'changes' => [['type' => 'rule', 'selector' => '.x']]]],
+        ['PUT', 'styles/files/site.css/source', ['version' => sha1($css), 'source' => '']],
+        ['POST', 'styles/link', ['template' => 'layout.blade.php', 'version' => sha1($layout), 'stylesheet' => 'site.css']],
     ] as [$method, $uri, $body]) {
-        $this->json($method, '/cms/visual-editor/api/'.$uri, $body)->assertForbidden()->assertJsonPath('reason', 'forbidden');
+        $this->json($method, '/admin/visual-editor/api/'.$uri, $body)->assertForbidden()->assertJsonPath('reason', 'forbidden');
     }
 
     expect(File::get($this->hero))->toBe($this->original)
-        ->and(File::get($this->theme.'/app.css'))->toBe($css)
-        ->and(File::get($this->templates.'/layouts/app.blade.php'))->toBe($layout);
+        ->and(File::get($this->theme.'/site.css'))->toBe($css)
+        ->and(File::get($this->templates.'/layout.blade.php'))->toBe($layout);
 });
 
 it('lets nobody in who has none of the permissions', function () {
     ($this->as)();
 
-    getJson('/cms/visual-editor/api/templates')->assertForbidden()->assertJsonPath('reason', 'forbidden');
-    getJson('/cms/visual-editor/api/styles')->assertForbidden();
+    getJson('/admin/visual-editor/api/templates')->assertForbidden()->assertJsonPath('reason', 'forbidden');
+    getJson('/admin/visual-editor/api/styles')->assertForbidden();
 });
 
 it('lets someone who may edit change stylesheets, link one and copy a view: none of it is code', function () {
     ($this->as)(Access::EDIT);
-    $css = File::get($this->theme.'/app.css');
+    $css = File::get($this->theme.'/site.css');
     File::delete($this->templates.'/taxonomies/show.blade.php');
 
-    postJson('/cms/visual-editor/api/styles/files/app.css/changes', ['version' => sha1($css), 'changes' => [['type' => 'rule', 'selector' => '.x', 'declarations' => [['color', 'red']]]]])->assertOk();
-    postJson('/cms/visual-editor/api/styles/files/editor.css/changes', ['version' => sha1(''), 'changes' => [['type' => 'rule', 'selector' => '.y']]])->assertOk();
-    postJson('/cms/visual-editor/api/styles/link', ['template' => 'layouts/app.blade.php', 'version' => sha1(File::get($this->templates.'/layouts/app.blade.php')), 'stylesheet' => 'editor.css'])->assertOk();
-    postJson('/cms/visual-editor/api/templates/defaults/term.blade.php/copy')->assertCreated();
+    postJson('/admin/visual-editor/api/styles/files/site.css/changes', ['version' => sha1($css), 'changes' => [['type' => 'rule', 'selector' => '.x', 'declarations' => [['color', 'red']]]]])->assertOk();
+    postJson('/admin/visual-editor/api/styles/files/editor.css/changes', ['version' => sha1(''), 'changes' => [['type' => 'rule', 'selector' => '.y']]])->assertOk();
+    postJson('/admin/visual-editor/api/styles/link', ['template' => 'layout.blade.php', 'version' => sha1(File::get($this->templates.'/layout.blade.php')), 'stylesheet' => 'editor.css'])->assertOk();
+    postJson('/admin/visual-editor/api/templates/term.blade.php/copy')->assertCreated();
 });
 
 it('lets only someone who may edit code write the custom script, which runs in every visitor\'s browser', function () {
     $script = $this->theme.'/custom.js';
 
     ($this->as)(Access::EDIT);
-    getJson('/cms/visual-editor/api/scripts/custom')->assertOk();
-    putJson('/cms/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'alert(document.cookie);'])->assertForbidden();
+    getJson('/admin/visual-editor/api/scripts/custom')->assertOk();
+    putJson('/admin/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'alert(document.cookie);'])->assertForbidden();
     expect(File::exists($script))->toBeFalse();
 
     ($this->as)(Access::CODE);
-    putJson('/cms/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'console.log(1);'])->assertOk();
+    putJson('/admin/visual-editor/api/scripts/custom', ['version' => sha1(''), 'source' => 'console.log(1);'])->assertOk();
     expect(File::get($script))->toBe('console.log(1);');
 });
 
@@ -265,7 +265,7 @@ it('refuses an expression, a condition, a loop and a node rewritten by hand', fu
     'a condition compared with code' => [['type' => 'setArguments', 'arguments' => "\$block->subheading == system('id')"], '@if ($block->subheading)'],
     'a condition compared with a text that holds code' => [['type' => 'setArguments', 'arguments' => '$block->subheading == "{$block->delete()}"'], '@if ($block->subheading)'],
     'a condition compared with two things' => [['type' => 'setArguments', 'arguments' => "\$block->subheading == 'a'.phpinfo()"], '@if ($block->subheading)'],
-    'the arguments of a @php' => [['type' => 'setArguments', 'arguments' => "system('id')"], '@php($image'],
+    'the arguments of a @php' => [['type' => 'setArguments', 'arguments' => "system('id')"], '@php($link'],
     'a node as code' => [['type' => 'setCode', 'code' => '{{ phpinfo() }}'], '<h1>'],
     'a node as code, with PHP tags' => [['type' => 'setCode', 'code' => "<h1><?php system('id'); ?></h1>"], '<h1>'],
     'a wrapper with code' => [['type' => 'wrap', 'wrapper' => "@if (system('id'))\n@endif"], '<h1>'],
@@ -282,10 +282,10 @@ it('refuses a loop over anything but a list that is there, under any name but a 
     expect(File::get($this->hero))->toBe($this->original);
 })->with([
     "glob('/etc/*') as \$found",
-    "sunrice_menu('main') ?? [] as \$item->x",
-    "sunrice_menu('main') ?? [] as \$this",
-    "sunrice_menu(system('id')) ?? [] as \$item",
-    "sunrice_menu('main') ?? system('id') as \$item",
+    "cms_menu('main') ?? [] as \$item->x",
+    "cms_menu('main') ?? [] as \$this",
+    "cms_menu(system('id')) ?? [] as \$item",
+    "cms_menu('main') ?? system('id') as \$item",
 ]);
 
 it('refuses a whole text that runs anything new, and takes one that does not', function (string $code) {
@@ -298,8 +298,8 @@ it('refuses a whole text that runs anything new, and takes one that does not', f
 
 it('lets someone who may not edit code rewrite what runs no code, and rearrange code that is there', function () {
     ($this->as)(Access::EDIT);
-    // A paragraph added, the heading's echo moved into it, the image's condition gone: nothing new.
-    $changed = str_replace(['<h1>{{ $block->heading }}</h1>', "    @if (\$image)\n", "    @endif\n    <h1>"], ['<h1>Hello</h1><p class="lead">{{ $block->heading }}</p>', '', '    <h1>'], $this->original);
+    // A paragraph added, the heading's echo moved into it, the subheading's condition gone: nothing new.
+    $changed = str_replace(['<h1>{{ $block->heading }}</h1>', "    @if (\$block->subheading)\n", "    @endif\n    {{--"], ['<h1>Hello</h1><p class="lead">{{ $block->heading }}</p>', '', '    {{--'], $this->original);
 
     putJson(SVE_HERO_API.'/source', ['version' => sha1($this->original), 'source' => $changed])->assertOk();
 
@@ -339,7 +339,7 @@ it('checks a whole text against the version it replaces, not against what the fi
 
 it('takes everything the Insert library offers', function () {
     ($this->as)(Access::EDIT);
-    $inserts = getJson('/cms/visual-editor/api/inserts')->assertOk()->json('inserts');
+    $inserts = getJson('/admin/visual-editor/api/inserts')->assertOk()->json('inserts');
     // All but the block of PHP, which is for those who may write PHP.
     expect(count($inserts))->toBeGreaterThan(20)
         ->and(array_column($inserts, 'id'))->not->toContain('blade.php')->toContain('blade.if', 'blade.foreach');
@@ -476,10 +476,10 @@ it('takes the wrappers the Settings panel offers, which are the ones it lists', 
 
 it('takes plain values for what a component is given, and refuses code there', function () {
     ($this->as)(Access::EDIT);
-    $entries = collect(getJson('/cms/visual-editor/api/inserts')->json('inserts'))->first(fn (array $insert) => str_contains($insert['blade'], '<x-sunrice::entries'));
+    $entries = collect(getJson('/admin/visual-editor/api/inserts')->json('inserts'))->first(fn (array $insert) => str_contains($insert['blade'], '<x-sunrice-cms::entries'));
     ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<h1>'), 'blade' => $entries['blade']])->assertOk();
     $this->original = File::get($this->hero);
-    $tag = fn () => ($this->node)('<x-sunrice::entries');
+    $tag = fn () => ($this->node)('<x-sunrice-cms::entries');
 
     // As the Entries controls send them: several at once for one tag.
     ($this->send)(
@@ -515,7 +515,7 @@ it('takes plain values for what a component is given, and refuses code there', f
 
 it('lets a change be undone and done again by writing the template as it was', function () {
     ($this->as)(Access::EDIT);
-    $field = collect(($this->picked)(($this->node)('<h1>')))->first(fn (array $value) => $value['print'] !== null && str_contains($value['code'], '$sunricePage'));
+    $field = collect(($this->picked)(($this->node)('<h1>')))->first(fn (array $value) => $value['print'] !== null && str_contains($value['code'], 'cms_page()'));
 
     ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<h1>'), 'blade' => $field['print']])->assertOk();
     $changed = File::get($this->hero);

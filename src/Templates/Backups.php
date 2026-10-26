@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Templates;
 
+use Sunrice\VisualEditor\Support\SunriceBridge;
+
 /**
  * The copies kept of a template each time it was written
- * (storage/app/sunrice/template-backups): what the file has been.
+ * (SunriceBridge::backups()): what the file has been.
  */
 final class Backups
 {
@@ -22,7 +24,7 @@ final class Backups
      */
     public static function had(TemplateFile $file, string $source, int $within = 43200): bool
     {
-        $copies = glob(storage_path('app/sunrice/template-backups/*/sunrice/'.$file->path)) ?: [];
+        $copies = glob(SunriceBridge::backups('*', $file->path)) ?: [];
         rsort($copies);
         $earliest = date('Y-m-d_His', time() - $within);
 

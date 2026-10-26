@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Tests\Support;
 
-use Sunrice\Frontend\RouteMatcher;
-use Sunrice\Models\Asset;
-use Sunrice\Models\Blueprint;
-use Sunrice\Models\Collection;
-use Sunrice\Models\Entry;
-use Sunrice\Models\Fieldset;
-use Sunrice\Models\Taxonomy;
-use Sunrice\Models\Term;
-use Sunrice\Support\Locales;
+use Sunrice\Admin\Media\Media;
+use Sunrice\Cms\Actions\Entries\CreateEntry;
+use Sunrice\Cms\Actions\Entries\PublishEntry;
+use Sunrice\Cms\Models\Collection;
+use Sunrice\Cms\Models\Entry;
+use Sunrice\Cms\Models\Term;
+use Sunrice\Cms\Structure\StructureImporter;
+use Sunrice\Cms\Support\Locales;
 
 /**
- * Content with a field of every type Sunrice has, on top of the starter
+ * Content with a field of every type the CMS has, on top of the starter
  * site (WithStarterSite): a `things` collection with a listing page, a
  * `topics` taxonomy, and two things: one with every field filled and one
  * with none.
@@ -28,64 +27,65 @@ trait WithEveryField
 
     protected function setUpEveryField(): void
     {
-        $topics = Taxonomy::create([
-            'handle' => 'topics', 'title' => 'Topics', 'hierarchical' => false,
-            'blueprint_id' => Blueprint::create(['handle' => 'topic', 'title' => 'Topic', 'fields' => [
-                ['handle' => 'description', 'type' => 'textarea', 'label' => 'Description'],
-            ]])->id,
-            'settings' => ['has_archive' => true],
+        $main = Locales::default();
+        $field = fn (string $handle, string $type, string $label, array $config = [], array $fields = []): array => ['handle' => $handle, 'type' => $type, 'label' => $label, 'config' => $config, 'fields' => $fields];
+        $term = fn (string $slug, string $title, array $data = []): array => ['taxonomy' => 'topics', 'slug' => $slug, 'translations' => [$main => ['title' => $title, 'slug' => $slug, 'data' => $data]]];
+
+        app(StructureImporter::class)->import([
+            'fieldsets' => [
+                ['handle' => 'cta', 'title' => 'Call to action', 'fields' => [$field('label', 'text', 'Label'), $field('target', 'link', 'Target')]],
+            ],
+            'blueprints' => [
+                ['handle' => 'topic', 'title' => 'Topic', 'fields' => [$field('description', 'textarea', 'Description')]],
+                ['handle' => 'thing', 'title' => 'Thing', 'fields' => [
+                    $field('summary', 'text', 'Summary'),
+                    $field('notes', 'textarea', 'Notes'),
+                    $field('body', 'rich_text', 'Body'),
+                    $field('price', 'number', 'Price'),
+                    $field('featured', 'toggle', 'Featured'),
+                    $field('colour', 'select', 'Colour', ['options' => [['value' => 'red', 'label' => 'Red'], ['value' => 'blue', 'label' => 'Blue']]]),
+                    $field('sizes', 'select', 'Sizes', ['options' => [['value' => 's', 'label' => 'Small'], ['value' => 'l', 'label' => 'Large']], 'multiple' => true]),
+                    $field('made_on', 'date', 'Made on'),
+                    $field('more', 'link', 'More'),
+                    $field('cover', 'media', 'Cover'),
+                    $field('photos', 'media', 'Photos', ['multiple' => true]),
+                    $field('related', 'entries', 'Related articles', ['collections' => ['articles'], 'multiple' => true]),
+                    $field('see_also', 'entries', 'See also', ['collections' => ['articles', 'pages'], 'multiple' => true]),
+                    $field('topics', 'terms', 'Topics', ['taxonomy' => 'topics', 'multiple' => true]),
+                    $field('details', 'group', 'Details', [], [
+                        $field('material', 'text', 'Material'),
+                        $field('weight', 'number', 'Weight'),
+                        $field('picture', 'media', 'Picture'),
+                    ]),
+                    $field('steps', 'repeater', 'Steps', [], [
+                        $field('label', 'text', 'Label'),
+                        $field('text', 'rich_text', 'Text'),
+                        $field('icon', 'media', 'Icon'),
+                    ]),
+                    $field('sections', 'flexible', 'Sections', ['blocks' => ['hero', 'text', 'cta']]),
+                ]],
+                ['handle' => 'things_listing', 'title' => 'Things listing', 'fields' => [
+                    $field('image', 'media', 'Image'),
+                    $field('description', 'rich_text', 'Description'),
+                ]],
+            ],
+            'collections' => [
+                ['handle' => 'things', 'title' => 'Things', 'blueprint' => 'thing', 'route' => '/things/{slug}', 'listing_route' => '/things', 'listing_blueprint' => 'things_listing'],
+            ],
+            'taxonomies' => [
+                ['handle' => 'topics', 'title' => 'Topics', 'route' => '/topics/{slug}', 'blueprint' => 'topic', 'collections' => ['things']],
+            ],
+            'terms' => [$term('news', 'News', ['description' => 'What happened.']), $term('tips', 'Tips')],
         ]);
-        $news = $this->term($topics, 'News', ['description' => 'What happened.']);
-        $tips = $this->term($topics, 'Tips');
 
-        Fieldset::create(['handle' => 'cta', 'title' => 'Call to action', 'fields' => [
-            ['handle' => 'label', 'type' => 'text', 'label' => 'Label'],
-            ['handle' => 'target', 'type' => 'link', 'label' => 'Target'],
-        ]]);
-
-        $thing = Blueprint::create(['handle' => 'thing', 'title' => 'Thing', 'fields' => [
-            ['handle' => 'summary', 'type' => 'text', 'label' => 'Summary'],
-            ['handle' => 'notes', 'type' => 'textarea', 'label' => 'Notes'],
-            ['handle' => 'body', 'type' => 'rich_text', 'label' => 'Body'],
-            ['handle' => 'price', 'type' => 'number', 'label' => 'Price'],
-            ['handle' => 'featured', 'type' => 'toggle', 'label' => 'Featured'],
-            ['handle' => 'colour', 'type' => 'select', 'label' => 'Colour', 'config' => ['options' => ['red' => 'Red', 'blue' => 'Blue']]],
-            ['handle' => 'sizes', 'type' => 'select', 'label' => 'Sizes', 'config' => ['options' => ['s' => 'Small', 'l' => 'Large'], 'multiple' => true]],
-            ['handle' => 'made_on', 'type' => 'date', 'label' => 'Made on'],
-            ['handle' => 'more', 'type' => 'link', 'label' => 'More'],
-            ['handle' => 'cover', 'type' => 'asset', 'label' => 'Cover'],
-            ['handle' => 'photos', 'type' => 'asset', 'label' => 'Photos', 'config' => ['multiple' => true]],
-            ['handle' => 'related', 'type' => 'entries', 'label' => 'Related articles', 'config' => ['collections' => ['articles']]],
-            ['handle' => 'see_also', 'type' => 'entries', 'label' => 'See also'],
-            ['handle' => 'topics', 'type' => 'terms', 'label' => 'Topics', 'config' => ['taxonomy' => 'topics']],
-            ['handle' => 'details', 'type' => 'group', 'label' => 'Details', 'config' => ['fields' => [
-                ['handle' => 'material', 'type' => 'text', 'label' => 'Material'],
-                ['handle' => 'weight', 'type' => 'number', 'label' => 'Weight'],
-                ['handle' => 'picture', 'type' => 'asset', 'label' => 'Picture'],
-            ]]],
-            ['handle' => 'steps', 'type' => 'repeater', 'label' => 'Steps', 'config' => ['fields' => [
-                ['handle' => 'label', 'type' => 'text', 'label' => 'Label'],
-                ['handle' => 'text', 'type' => 'rich_text', 'label' => 'Text'],
-                ['handle' => 'icon', 'type' => 'asset', 'label' => 'Icon'],
-            ]]],
-            ['handle' => 'sections', 'type' => 'flexible', 'label' => 'Sections', 'config' => ['fieldsets' => ['hero', 'text', 'cta']]],
-        ]]);
-        $listing = Blueprint::create(['handle' => 'things_listing', 'title' => 'Things listing', 'fields' => [
-            ['handle' => 'image', 'type' => 'asset', 'label' => 'Image'],
-            ['handle' => 'description', 'type' => 'rich_text', 'label' => 'Description'],
-        ]]);
-
-        $things = Collection::create([
-            'handle' => 'things', 'title' => 'Things', 'blueprint_id' => $thing->id,
-            'settings' => ['route' => '/things/{slug}', 'archive_route' => '/things', 'has_single' => true, 'has_archive' => true, 'translatable' => false, 'sluggable' => true, 'archive_blueprint_id' => $listing->id],
-        ]);
-
-        $image = fn (string $name): Asset => Asset::factory()->create(['filename' => $name.'.jpg', 'path' => 'sunrice/'.$name.'.jpg', 'alt' => 'Alt of '.$name]);
+        $topic = fn (string $slug): int => (int) Term::query()->whereHas('translations', fn ($query) => $query->where('slug', $slug))->firstOrFail()->id;
+        $image = fn (string $name): int => (int) Media::query()->create(['disk' => 'public', 'path' => 'media/'.$name.'.jpg', 'filename' => $name.'.jpg', 'mime_type' => 'image/jpeg', 'size' => 1, 'alt' => 'Alt of '.$name])->id;
         $articles = Collection::query()->where('handle', 'articles')->firstOrFail();
         $article = fn (string $slug): int => (int) Entry::query()->where('collection_id', $articles->id)
             ->whereHas('translations', fn ($query) => $query->where('slug', $slug))->firstOrFail()->id;
+        $things = Collection::query()->where('handle', 'things')->firstOrFail();
 
-        $this->everything = $this->entry($things, $thing, 'Everything', [
+        $this->everything = $this->thing($things, 'Everything', [
             'summary' => 'A thing with everything.',
             'notes' => "First line.\nSecond line.",
             'body' => '<p>The <strong>body</strong> of the thing.</p>',
@@ -95,50 +95,35 @@ trait WithEveryField
             'sizes' => ['s', 'l'],
             'made_on' => '2026-03-14',
             'more' => ['type' => 'url', 'url' => 'https://example.com/more', 'label' => 'More about it', 'new_tab' => true],
-            'cover' => $image('cover')->id,
-            'photos' => [$image('photo-one')->id, $image('photo-two')->id],
+            'cover' => $image('cover'),
+            'photos' => [$image('photo-one'), $image('photo-two')],
             'related' => [$article('first-post'), $article('second-post')],
             'see_also' => [$article('third-post')],
-            'topics' => [$news->id, $tips->id],
-            'details' => ['material' => 'Oak', 'weight' => 12, 'picture' => $image('detail')->id],
+            'topics' => [$topic('news'), $topic('tips')],
+            'details' => ['material' => 'Oak', 'weight' => 12, 'picture' => $image('detail')],
             'steps' => [
-                ['label' => 'Cut', 'text' => '<p>Cut the wood.</p>', 'icon' => $image('saw')->id],
+                ['label' => 'Cut', 'text' => '<p>Cut the wood.</p>', 'icon' => $image('saw')],
                 ['label' => 'Sand', 'text' => '<p>Sand it down.</p>', 'icon' => null],
             ],
             'sections' => [
-                ['id' => 'thing-hero', 'type' => 'hero', 'values' => ['heading' => 'A hero in a thing', 'subheading' => 'Under it.']],
-                ['id' => 'thing-cta', 'type' => 'cta', 'values' => ['label' => 'Buy it', 'target' => ['type' => 'url', 'url' => 'https://example.com/buy', 'label' => 'Buy', 'new_tab' => false]]],
+                ['type' => 'hero', 'key' => 'thing-hero', 'values' => ['heading' => 'A hero in a thing', 'subheading' => 'Under it.']],
+                ['type' => 'cta', 'key' => 'thing-cta', 'values' => ['label' => 'Buy it', 'target' => ['type' => 'url', 'url' => 'https://example.com/buy', 'label' => 'Buy', 'new_tab' => false]]],
             ],
-        ]);
-        $this->everything->terms()->sync([$news->id]);
-        $this->nothing = $this->entry($things, $thing, 'Nothing', []);
-
-        RouteMatcher::flush();
+        ], ['topics' => [$topic('news')]]);
+        $this->nothing = $this->thing($things, 'Nothing', []);
     }
 
-    /** @param  array<string, mixed>  $data */
-    private function term(Taxonomy $taxonomy, string $name, array $data = []): Term
+    /**
+     * A published thing in the main language.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<string, list<int>>  $terms  its own terms, by taxonomy
+     */
+    private function thing(Collection $things, string $title, array $data, array $terms = []): Entry
     {
-        $term = Term::create(['taxonomy_id' => $taxonomy->id, 'sort_order' => 0]);
-        $term->translations()->create(['taxonomy_id' => $taxonomy->id, 'locale' => Locales::main(), 'name' => $name, 'slug' => str($name)->slug()->toString(), 'data' => $data]);
+        $translation = app(CreateEntry::class)->handle($things, ['title' => $title, 'slug' => str($title)->slug()->toString(), 'data' => $data, 'terms' => $terms === [] ? null : $terms]);
+        app(PublishEntry::class)->handle($translation);
 
-        return $term->refresh();
-    }
-
-    /** @param  array<string, mixed>  $data */
-    private function entry(Collection $collection, Blueprint $blueprint, string $title, array $data): Entry
-    {
-        $entry = Entry::create(['collection_id' => $collection->id, 'blueprint_id' => $blueprint->id, 'status' => 'published', 'published_at' => now()]);
-        $entry->translations()->create([
-            'collection_id' => $collection->id,
-            'locale' => Locales::main(),
-            'title' => $title,
-            'slug' => str($title)->slug()->toString(),
-            'data' => $data,
-            'is_ready' => true,
-            'content_published_at' => now(),
-        ]);
-
-        return $entry->refresh();
+        return $translation->entry->refresh();
     }
 }

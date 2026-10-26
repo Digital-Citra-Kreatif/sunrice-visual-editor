@@ -9,7 +9,7 @@ use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * The stylesheets the editor works with: the CSS files of the site's
- * theme, in public/sunrice-theme. Only files found by listing that
+ * theme, in public/cms. Only files found by listing that
  * directory are ever read or written, so a path can't lead anywhere else;
  * the files that may be created are the editor's own (config
  * `theme_css`), where rules that do not exist yet go, and the site's
@@ -97,9 +97,9 @@ final class ThemeRepository
         return new ThemeFile($path, $file, self::url($path), is_file($file));
     }
 
-    /** Where pages link a theme file from, as the templates write it: asset('sunrice-theme/…'). */
+    /** Where pages link a theme file from, as the templates write it: asset('cms/…'). */
     private static function url(string $path): string
     {
-        return asset('sunrice-theme/'.$path);
+        return SunriceBridge::themeUrl($path);
     }
 }

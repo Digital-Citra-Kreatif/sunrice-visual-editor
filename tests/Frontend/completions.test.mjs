@@ -7,7 +7,7 @@ const variable = (code, fields, more = {}) => ({ code, title: `The ${code}`, fro
 
 const cover = field('cover', 'Cover', null, { what: 'file', groups: [{ title: 'Every file', fields: [field('alt', 'Alt text', "$entry->get('cover')?->alt")] }] });
 const entry = variable('$entry', [field('title', 'Title', '$entry->title'), field('summary', 'Summary', "$entry->get('summary')"), field('body', 'Body', "$entry->get('body')", { print: "{!! $entry->get('body') !!}", what: 'rich text' }), cover]);
-const site = variable("sunrice_global('site')", [field('name', 'Name', "sunrice_global('site')->name")], { from: 'site' });
+const site = variable("cms_global('site')", [field('name', 'Name', "cms_global('site')->name")], { from: 'site' });
 const photo = variable('$photo', [field('alt', 'Alt text', '$photo->alt')], { from: 'loop', expression: null });
 const locale = variable('$locale', [], { from: 'site', expression: '$locale', print: '{{ $locale }}', what: 'text', groups: [] });
 const all = [photo, entry, locale, site];
@@ -32,16 +32,16 @@ test('narrows by what is typed after it, by handle or by name', () => {
 });
 
 test('knows a value that is no plain variable, and not the end of a longer name', () => {
-    const found = offersFor("<title>{{ sunrice_global('site')->", all);
+    const found = offersFor("<title>{{ cms_global('site')->", all);
     assert.deepEqual(labels(found), ['Name']);
-    assert.equal(found.offers[0].insert, "sunrice_global('site')->name");
+    assert.equal(found.offers[0].insert, "cms_global('site')->name");
     assert.equal(offersFor('{{ $myentry->', all), null);
     assert.equal(offersFor('{{ $entries->', all), null);
 });
 
 test('offers what can be printed after the braces of an echo, the place and the template before the site', () => {
     const found = offersFor('<p>{{ ', all);
-    assert.deepEqual(labels(found), ['$photo › Alt text', '$entry › Title', '$entry › Summary', '$entry › Cover › Alt text', '$locale', "sunrice_global('site') › Name"]);
+    assert.deepEqual(labels(found), ['$photo › Alt text', '$entry › Title', '$entry › Summary', '$entry › Cover › Alt text', '$locale', "cms_global('site') › Name"]);
     assert.equal(found.from, '<p>{{ '.length);
     // Rich text only where HTML is printed.
     assert.ok(labels(offersFor('<div>{!! ', all)).includes('$entry › Body'));

@@ -12,6 +12,7 @@ use Sunrice\VisualEditor\Rendering\EditorEngine;
 use Sunrice\VisualEditor\Rendering\Manifest;
 use Sunrice\VisualEditor\Rendering\TailwindPreview;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
 use Sunrice\VisualEditor\VisualEditorServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
  * every element marked with the template it came from, and a list of the
  * templates that drew it.
  *
- * It is on Sunrice's frontend routes and does nothing unless the address
+ * It is on the CMS's site routes and does nothing unless the address
  * carries `sve=1` and the person signed in may use the editor. Then, for
  * this one request, Blade's engine is swapped for one that runs marked
  * copies of the templates. Nothing a visitor is served is touched: not the
@@ -39,11 +40,11 @@ final class EditorRender
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->query(self::PARAMETER) !== '1' || ! Access::allowed($request->user(config('sunrice.auth.guard')))) {
+        if ($request->query(self::PARAMETER) !== '1' || ! Access::allowed($request->user(Access::guard()))) {
             return $next($request);
         }
 
-        // Never into a full-page cache (spatie/laravel-responsecache, when Sunrice has it on).
+        // Never into a full-page cache (spatie/laravel-responsecache, when the CMS has it on; it keeps no page for someone signed in either).
         $request->attributes->set('responsecache.doNotCache', true);
 
         /** @var EngineResolver $engines */
@@ -104,7 +105,7 @@ final class EditorRender
             .json_encode($manifest->toArray() + ['status' => $response->getStatusCode()] + ($preview === '' ? [] : ['preview' => true]), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
             .'</script>'
             // The bridge: tells the editor what the pointer is over and what was clicked.
-            .'<script src="'.e(asset(VisualEditorServiceProvider::asset('bridge.js'))).'" defer></script>';
+            .'<script src="'.e(asset(VisualEditorServiceProvider::asset('bridge.js'))).'"'.SunriceBridge::nonceAttribute().' defer></script>';
         $end = strripos($content, '</body>');
         $response->setContent($end === false ? $content.$script : substr($content, 0, $end).$script."\n".substr($content, $end));
 

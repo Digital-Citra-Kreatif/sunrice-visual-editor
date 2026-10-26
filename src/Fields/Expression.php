@@ -6,8 +6,8 @@ namespace Sunrice\VisualEditor\Fields;
 
 /**
  * Reads a PHP expression as far as it says what its value is:
- * `$entry->get('related') ?? []` is a list of articles when `$entry` is a
- * thing. It knows variables, the ways Sunrice's values are read (the
+ * `$values['related'] ?? []` is a list of articles when `$values` are an
+ * article's fields. It knows variables, the ways the CMS's values are read (the
  * catalog), `??`, `?:`, and a few functions and list methods. Anything
  * else comes out as unknown (null), never as a guess.
  *
@@ -32,7 +32,7 @@ final class Expression
 
     private int $at = 0;
 
-    /** @var array<string, Shape|null> what the expression sets on its way: `($image =->get('image')) && …` */
+    /** @var array<string, Shape|null> what the expression sets on its way: `($image =['image']) && …` */
     private array $set = [];
 
     /**
@@ -76,7 +76,7 @@ final class Expression
     }
 
     /**
-     * What a loop goes over: from `$entry->get('steps') ?? [] as $index => $step`
+     * What a loop goes over: from `$values['steps'] ?? [] as $index => $step`
      * the name of each item, of its key if it has one, and what an item is.
      *
      * @param  array<string, Shape|null>  $known
@@ -107,7 +107,7 @@ final class Expression
 
     /**
      * The arguments of a call, each as it is written: from
-     * `'sunrice.partials.card', ['entry' => $item]` two pieces.
+     * `'cms.partials.card', ['item' => $entry]` two pieces.
      *
      * @return list<string>
      */
@@ -210,7 +210,7 @@ final class Expression
         }
     }
 
-    /** One value with everything read from it: `$entry->get('cover')?->url('large')`. */
+    /** One value with everything read from it: `$values['cover']?->url('large')`. */
     private function value(): ?Shape
     {
         if ($this->is('!')) {
@@ -288,7 +288,7 @@ final class Expression
             $name = substr($this->text(), 1);
             $this->at++;
             if ($this->is('=')) {
-                // $image = $entry->get('image'): its value is what is set, and the variable is that from here on.
+                // $image = $values['image']: its value is what is set, and the variable is that from here on.
                 $this->at++;
                 $shape = $this->expression();
                 $this->set[$name] = $shape;
@@ -413,6 +413,10 @@ final class Expression
                 return ['?', null];
             }
         }
+        if (! $this->is(')')) {
+            // The brackets never close: not a call this reads.
+            return ['?', null];
+        }
         $written = '';
         for ($at = $open + 1; $at < $this->at; $at++) {
             $token = $this->tokens[$at];
@@ -431,12 +435,13 @@ final class Expression
     private function called(string $function, ?string $literal, array $arguments): ?Shape
     {
         return match ($function) {
-            'sunrice_global' => $literal === null ? null : Shape::globals($literal),
-            'sunrice_menu' => Shape::listOf(Shape::of(Shape::MENU_ITEM)),
-            'sunrice_entries' => Shape::listOf(Shape::entry($literal === null ? [] : [$literal])),
+            'cms_global' => $literal === null ? null : Shape::globals($literal),
+            'cms_menu' => Shape::listOf(Shape::of(Shape::MENU_ITEM)),
+            'cms_entries' => Shape::listOf(Shape::entry($literal === null ? [] : [$literal])),
+            'cms_page' => Shape::of(Shape::PAGE),
             'collect', 'array_values', 'array_filter', 'array_reverse', 'array_slice', 'array_unique' => ($arguments[0] ?? null)?->isList() ? $arguments[0] : null,
             'now', 'today' => Shape::of(Shape::DATE),
-            '__', 'trans', 'trans_choice', 'e', 'route', 'url', 'asset', 'config', 'implode', 'ucfirst', 'strtoupper', 'strtolower', 'trim', 'nl2br', 'strip_tags', 'number_format', 'sunrice_body_class' => Shape::of(Shape::TEXT),
+            '__', 'trans', 'trans_choice', 'e', 'route', 'url', 'asset', 'config', 'implode', 'ucfirst', 'strtoupper', 'strtolower', 'trim', 'nl2br', 'strip_tags', 'number_format', 'cms_body_class', 'cms_nonce' => Shape::of(Shape::TEXT),
             'count', 'strlen', 'mb_strlen', 'round', 'floor', 'ceil', 'abs', 'min', 'max' => Shape::of(Shape::NUMBER),
             'is_array', 'is_string', 'is_null', 'in_array', 'array_key_exists', 'str_contains', 'str_starts_with', 'str_ends_with', 'filled', 'blank' => Shape::of(Shape::BOOL),
             default => null,
@@ -444,7 +449,7 @@ final class Expression
     }
 
     /**
-     * What is read from a value: `->title`, `->get('excerpt')`,
+     * What is read from a value: `->title`, `->values()['excerpt']`,
      * `['url']`, `->url('large')`, `->first()`.
      *
      * @param  'property'|'call'|'key'  $how
@@ -467,6 +472,18 @@ final class Expression
             };
         }
 
+        // What has fields of a blueprint gives them all as an array.
+        $values = match (true) {
+            $how === 'call' && $name === 'values' && $written === '' && $owner->kind === Shape::ENTRY => Shape::values('collection', $owner->of),
+            $how === 'call' && $name === 'values' && $written === '' && $owner->kind === Shape::TERM_TRANSLATION => Shape::values('taxonomy', $owner->of),
+            $how === 'property' && $name === 'values' && $owner->kind === Shape::BLOCK => Shape::values('fieldset', $owner->of),
+            $how === 'call' && $name === 'translation' && $owner->kind === Shape::TERM => Shape::termTranslation($owner->of),
+            default => null,
+        };
+        if ($values !== null) {
+            return $values;
+        }
+
         $read = match ($how) {
             'property' => '%s->'.$name,
             'call' => '%s->'.$name.'('.$written.')',
@@ -482,8 +499,8 @@ final class Expression
             }
         }
 
-        // A block's fields and a global set's are read as a property, with get() or as a key, all the same.
-        $anyWay = in_array($owner->kind, [Shape::BLOCK, Shape::GLOBALS], true);
+        // A block's fields are read as a property, with get() or as a key, all the same.
+        $anyWay = $owner->kind === Shape::BLOCK;
         $handle = $how === 'call' ? ($name === 'get' ? $literal : null) : ($how === 'property' || $anyWay ? $name : null);
         if ($handle !== null && ($anyWay || $how === 'call')) {
             foreach ($fields as $field) {

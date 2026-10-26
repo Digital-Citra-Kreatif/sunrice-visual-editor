@@ -25,7 +25,7 @@ done
 echo "$(echo "$shipped" | grep -vc '/$') files"
 
 if [ -z "${INSTALL_SKIP_CREATE:-}" ]; then
-    step "A new Laravel application, and Sunrice as its own installation page says"
+    step "A new Laravel application, and the Sunrice panel and CMS as their installation page says"
     "$package/.github/new-site.sh" "$site"
 fi
 cd "$site"
@@ -34,9 +34,11 @@ step "docs/installation.md: Install"
 git -C "$package" branch -f install-check HEAD
 composer config repositories.sunrice-visual-editor vcs "$package"
 composer require sunrice/visual-editor:dev-install-check --no-interaction --no-ansi
+php artisan sunrice:install --plugins --no-user --no-interaction --no-ansi
+grep -q 'VisualEditorPlugin::make()' app/Providers/AdminPanelProvider.php
 php artisan vendor:publish --tag=sunrice-visual-editor-assets --force --no-ansi
 php artisan sunrice:sync-permissions --no-ansi
-# A second time: Sunrice's sync used to fail on a package's permissions that exist.
+# A second time: a sync with the package's permissions there already changes nothing.
 php artisan sunrice:sync-permissions --no-ansi
 
 step "docs/installation.md: Where it is on"
@@ -56,6 +58,8 @@ SUNRICE_VISUAL_EDITOR=true DB_CONNECTION=sqlite DB_DATABASE="$site/database/data
 tests=$(grep -E '^OK \(' "$site/storage/logs/installed-test.log")
 
 step "docs/installation.md: Removing"
+sed -i '/VisualEditorPlugin/d' app/Providers/AdminPanelProvider.php
+sed -i 's/->plugin(CmsPlugin::make())$/->plugin(CmsPlugin::make());/' app/Providers/AdminPanelProvider.php
 composer remove sunrice/visual-editor --no-interaction --no-ansi
 rm -rf public/vendor/sunrice-visual-editor tests/Feature/InstalledTest.php
 [ "$(routes)" -eq 0 ]

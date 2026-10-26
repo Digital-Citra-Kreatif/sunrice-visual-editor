@@ -27,8 +27,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | Keep the previous version of every file the editor writes, in
-    | storage/app/sunrice/template-backups/, like templates written by AI
-    | agents.
+    | storage/app/sunrice-cms/template-backups/, beside the CMS's copies of
+    | templates written by AI agents.
     |
     */
 
@@ -39,8 +39,8 @@ return [
     | Editor stylesheet
     |--------------------------------------------------------------------------
     |
-    | File in public/sunrice-theme/ that receives CSS rules the editor
-    | creates. Rules that already exist are changed where they are.
+    | File in public/cms/ (the theme directory) that receives CSS rules the
+    | editor creates. Rules that already exist are changed where they are.
     |
     */
 
@@ -51,9 +51,9 @@ return [
     | Custom CSS
     |--------------------------------------------------------------------------
     |
-    | A stylesheet of the site's own, in public/sunrice-theme/, written in
-    | the editor's Custom CSS tab. It is linked from every page of the site
-    | by pushing a <link> onto the layout's `@stack('head')` (the starter
+    | A stylesheet of the site's own, in public/cms/, written in the
+    | editor's Custom CSS tab. It is linked from every page of the site by
+    | pushing a <link> onto the layout's `@stack('head')` (the CMS's starter
     | layout has one): no template is changed for it.
     |
     | The link is added whether or not the editor is on, so the deployed
@@ -73,12 +73,12 @@ return [
     | Custom JS
     |--------------------------------------------------------------------------
     |
-    | A script of the site's own, in public/sunrice-theme/, written in the
-    | editor's Custom JS tab by people who may edit code. Every page of the
-    | site loads it (deferred) from a <script> pushed onto the layout's
-    | `@stack('scripts')` (the starter layout has one, at the end of the
-    | body): no template is changed for it. For a script one template needs,
-    | write `@push('scripts')` in that template instead.
+    | A script of the site's own, in public/cms/, written in the editor's
+    | Custom JS tab by people who may edit code. Every page of the site
+    | loads it (deferred, so it runs once the page is read) from a <script>
+    | pushed onto the layout's `@stack('head')` (the CMS's starter layout
+    | has one): no template is changed for it. For a script one template
+    | needs, write `@push('head')` in that template instead.
     |
     | As for the custom CSS, it is added whether or not the editor is on.
     | Set `inject` to false to load the file from the layout yourself.
@@ -88,7 +88,7 @@ return [
     'custom_js' => [
         'file' => 'custom.js',
         'inject' => env('SUNRICE_VISUAL_EDITOR_CUSTOM_JS', true),
-        'stack' => 'scripts',
+        'stack' => 'head',
     ],
 
     /*
@@ -145,7 +145,7 @@ return [
     | The command is this setting and nothing else: nothing a request sends
     | is ever run. Running it takes a permission of its own
     | (visual-editor.build), and it is stopped after `timeout` seconds.
-    | Node has to be installed where the site runs: Sunrice itself does not
+    | Node has to be installed where the site runs: the CMS itself does not
     | need it.
     |
     */
@@ -160,16 +160,19 @@ return [
     | Paths
     |--------------------------------------------------------------------------
     |
-    | Where the site's templates and theme files are. Leave both null for
-    | Sunrice's own places: resources/views/sunrice and public/sunrice-theme.
-    | The templates directory must be named "sunrice" and its parent must be
-    | a view path, since templates are the views "sunrice.…".
+    | Where the site's templates and theme files are. Leave them null for
+    | the CMS's own places: resources/views/cms (the views "cms.…") and
+    | public/cms (linked as asset('cms/…'), where the starter templates'
+    | site.css is). The templates directory must be named "cms" and its
+    | parent must be a view path. `theme_url` is the theme directory's path
+    | under public/, when `theme` is somewhere else.
     |
     */
 
     'paths' => [
         'templates' => null,
         'theme' => null,
+        'theme_url' => null,
     ],
 
 ];

@@ -17,7 +17,7 @@ it('finds the variables a template needs', function (string $blade, array $neede
     'what a loop goes over, not what it calls each one' => ['@foreach ($rows as $key => $row) {{ $key }} {{ $row->x }} {{ $loop->index }} @endforeach', ['rows']],
     'set before it is read' => ['@php($n = 1) {{ $n }}', []],
     'read before it is set' => ['{{ $n }} @php($n = 1)', ['n']],
-    'set in a @php block' => ["@php\n    \$site = sunrice_global('site');\n@endphp\n{{ \$site->name }}", []],
+    'set in a @php block' => ["@php\n    \$site = cms_global('site');\n@endphp\n{{ \$site->name }}", []],
     'set with others at once' => ['@php([$value, $label] = $option) {{ $value }}{{ $label }}', ['option']],
     'set only if it was missing' => ['@php($total ??= 0) {{ $total }}', []],
     'added to: it has to be there already' => ['@php($list .= "x")', ['list']],
@@ -30,7 +30,7 @@ it('finds the variables a template needs', function (string $blade, array $neede
     'in a string' => ['{{ "Hello $name" }}', ['name']],
     'passed on to an include' => ["@include('sunrice.partials.menu', ['items' => \$mainMenu])", ['mainMenu']],
     'a static property is not a variable' => ['{{ App\Models\Post::$count }}', []],
-    'what Blade and Sunrice give every template' => ['{{ $locale }} {{ $pageType }} {{ $sunricePage->entry }} {{ $errors->first() }} {{ $loop->first }}', []],
+    'what Blade and Laravel give every template' => ['{{ $locale }} {{ cms_page()->entry }} {{ $errors->first() }} {{ $loop->first }}', []],
     'nothing' => ['<p>Plain</p>', []],
 ]);
 

@@ -6,7 +6,7 @@
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright-core';
 
-const base = process.env.BASE_URL ?? 'http://127.0.0.1:8089';
+const base = process.env.BASE_URL ?? 'http://127.0.0.1:8000';
 const browser = await chromium.launch(process.env.BROWSER_PATH ? { executablePath: process.env.BROWSER_PATH } : { channel: process.env.BROWSER_CHANNEL ?? 'chrome' });
 const page = await browser.newPage({ viewport: { width: 1440, height: 860 } });
 
@@ -59,9 +59,9 @@ const bar = page.locator('.sve-bar');
 const idle = () => page.waitForFunction(() => document.querySelector('.sve-shell')?.getAttribute('aria-busy') !== 'true');
 const signIn = async (email) => {
     await page.context().clearCookies();
-    await page.goto(`${base}/cms/login`);
+    await page.goto(`${base}/admin/login`);
     await page.fill('#email', email);
-    await page.fill('#password', 'password');
+    await page.fill('#password', 'Sunrice-Demo-2026!');
     await Promise.all([
         page.waitForURL((url) => !url.pathname.endsWith('/login')),
         page.click('button[type=submit]'),
@@ -92,7 +92,7 @@ await step('refuse an address on another site', async () => {
 });
 
 await step('open on the page named in the link', async () => {
-    await page.goto(`${base}/cms/visual-editor?url=/articles`);
+    await page.goto(`${base}/admin/visual-editor?url=/articles`);
     await frame.getByRole('link', { name: 'Fifth post', exact: true }).waitFor();
 });
 
@@ -101,7 +101,7 @@ await step('open on the page named in the link', async () => {
 const code = page.locator('section[aria-label^="Code of"] .sve-code__editor');
 /** The code editor's text, asked of the editor itself: it draws only the lines that are in view. */
 const codeText = () => code.evaluate((holder) => holder.sveCodeEditor.text());
-const onDisk = async (path) => (await (await page.request.get(`${base}/cms/visual-editor/api/templates/${path}`)).json()).template.source;
+const onDisk = async (path) => (await (await page.request.get(`${base}/admin/visual-editor/api/templates/${path}`)).json()).template.source;
 const codeIs = async (expected) => {
     for (let tries = 0; tries < 50 && (await codeText()) !== expected; tries++) {
         await page.waitForTimeout(100);
@@ -119,7 +119,7 @@ const addressIs = (path) => page.waitForFunction((expected) => document.querySel
 const listed = () => page.locator('.sve-side--left .sve-templates').first().locator('.sve-template__name').allTextContents();
 
 await step('show the tree on the left, the page in the middle and the code on the right', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-layer');
     await code.locator('.cm-editor').waitFor();
     const tree = await page.locator('.sve-side--left').boundingBox();
@@ -138,34 +138,34 @@ await step('show the tree on the left, the page in the middle and the code on th
 
 await step('list the templates that drew the homepage, the layout first', async () => {
     const names = await listed();
-    for (const name of ['layouts/app', 'show', 'partials/header', 'partials/footer', 'blocks/hero', 'blocks/text']) {
+    for (const name of ['layout', 'collections/show', 'partials/blocks', 'partials/menu', 'blocks/hero', 'blocks/text']) {
         if (!names.includes(name)) {
             throw new Error(`"${name}" is not in the list: ${names.join(', ')}`);
         }
     }
-    if (names[0] !== 'layouts/app') {
+    if (names[0] !== 'layout') {
         throw new Error(`The list starts with "${names[0]}"`);
     }
 });
 
 await step('open the page\'s own template to begin with, in the code too', async () => {
-    await openIs('show');
-    await codeIs(await onDisk('show.blade.php'));
+    await openIs('collections/show');
+    await codeIs(await onDisk('collections/show.blade.php'));
 });
 
 await step('outline the template under the pointer, with its name', async () => {
-    await frame.locator('.site-header .brand').hover();
+    await frame.locator('.site-header .site-name').hover();
     await page.waitForSelector('.sve-outline--hover');
     const label = await page.locator('.sve-outline--hover .sve-outline__label').first().textContent();
-    if (label !== 'partials/header') {
+    if (label !== 'layout') {
         throw new Error(`The outline is labelled "${label}"`);
     }
 });
 
 await step('open the header when it is clicked on the page, and stay on the page', async () => {
-    await frame.locator('.site-header .brand').click();
-    await openIs('partials/header');
-    await codeIs(await onDisk('partials/header.blade.php'));
+    await frame.locator('.site-header .site-name').click();
+    await openIs('layout');
+    await codeIs(await onDisk('layout.blade.php'));
     await frame.getByText('Templates you can see').waitFor();
 });
 
@@ -186,7 +186,7 @@ await step('follow a link when browsing, with the address and the list following
     }
     await frame.getByRole('link', { name: 'Articles', exact: true }).first().click();
     await addressIs('/articles');
-    await openIs('index');
+    await openIs('collections/index');
     await frame.getByRole('link', { name: 'Fifth post', exact: true }).waitFor();
     // An editor render all the way: the page in the frame still carries marks.
     await frame.locator('[data-sve]').first().waitFor({ state: 'attached' });
@@ -201,18 +201,18 @@ await step('open a template that is on another page, and bring that page', async
     await frame.getByText('Templates you can see').waitFor();
 });
 
-await step('show Sunrice\'s own views as read-only: a fallback with a way to copy it to the site, a view of its own with why not', async () => {
-    await page.locator('.sve-others .sve-template', { hasText: 'defaults/index' }).click();
-    await openIs('defaults/index');
+await step('show the CMS\'s own views as read-only: a fallback with a way to copy it to the site, a view of its own with why not', async () => {
+    await page.locator('.sve-others .sve-template').filter({ has: page.locator('.sve-template__name', { hasText: /^listing$/ }) }).click();
+    await openIs('listing');
     await codeBar.getByText('Read-only').waitFor();
-    await page.locator('.sve-code__banner').getByText('used while the site has no index.blade.php').waitFor();
+    await page.locator('.sve-code__banner').getByText('used while the site has no collections/index.blade.php').waitFor();
     await page.locator('.sve-code__banner').getByRole('button', { name: 'Copy to site' }).waitFor();
 
-    await page.locator('.sve-others .sve-template', { hasText: 'defaults/draft-banner' }).click();
-    await openIs('defaults/draft-banner');
-    await page.locator('.sve-code__banner').getByText('Sunrice never looks for it among the site’s templates').waitFor();
+    await page.locator('.sve-others .sve-template').filter({ has: page.locator('.sve-template__name', { hasText: /^draft-banner$/ }) }).click();
+    await openIs('draft-banner');
+    await page.locator('.sve-code__banner').getByText('The CMS never looks for it among the site’s templates').waitFor();
     if ((await page.locator('.sve-code__banner').getByRole('button', { name: 'Copy to site' }).count()) !== 0) {
-        throw new Error('A view Sunrice never looks for in the site is offered to be copied there');
+        throw new Error('A view the CMS never looks for in the site is offered to be copied there');
     }
 });
 
@@ -242,7 +242,7 @@ const outlineSettles = (selector) =>
     });
 const cursorLine = () => code.locator('.cm-activeLine').first().textContent();
 const cursorLineHas = (text) => until(`The cursor is not on a line with ${text}`, async () => ((await cursorLine()) ?? '').includes(text) || (await cursorLine()));
-const heroApi = `${base}/cms/visual-editor/api/templates/blocks/hero.blade.php`;
+const heroApi = `${base}/admin/visual-editor/api/templates/blocks/hero.blade.php`;
 const heroNow = async () => {
     await idle();
 
@@ -251,7 +251,7 @@ const heroNow = async () => {
 let heroCode = '';
 
 await step('select an element by clicking it on the page: its template opens, its row is selected, the code is on it', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
     heroCode = await onDisk('blocks/hero.blade.php');
     await frame.locator('.hero h1').click();
@@ -289,7 +289,7 @@ await step('show a field, which has no box of its own, by the element around it'
 
 await step('show a node inside a loop once for every turn of the loop', async () => {
     await open('/articles');
-    await openIs('index');
+    await openIs('collections/index');
     await frame.locator('.card p.muted').nth(1).click();
     await openIs('partials/card');
     await layerIs('p.muted');
@@ -298,14 +298,14 @@ await step('show a node inside a loop once for every turn of the loop', async ()
 
 await step('scroll the page to a row of the tree that is out of sight, and outline it there', async () => {
     await page.setViewportSize({ width: 1440, height: 520 });
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
-    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
-    await openIs('partials/footer');
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'layout' }).click();
+    await openIs('layout');
     await page.waitForFunction(() => document.querySelector('iframe.sve-frame').contentWindow.scrollY === 0);
-    await layerRow('p').last().locator('.sve-layer__pick').click();
+    await layerRow('p.muted').last().locator('.sve-layer__pick').click();
     await until('The page did not scroll to the footer', async () => (await page.evaluate(() => document.querySelector('iframe.sve-frame').contentWindow.scrollY)) > 100 || (await page.evaluate(() => document.querySelector('iframe.sve-frame').contentWindow.scrollY)));
-    await outlineSettles('.site-footer p >> nth=-1');
+    await outlineSettles('.site-footer p.muted');
     await page.setViewportSize({ width: 1440, height: 860 });
 });
 
@@ -317,7 +317,7 @@ const undo = bar.getByRole('button', { name: 'Undo', exact: true });
 const redo = bar.getByRole('button', { name: 'Redo', exact: true });
 
 await step('move a row down and up again with the keys, and see it on the page', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
     await frame.locator('.hero h1').click();
     await layerIs('h1');
@@ -381,11 +381,11 @@ const added = '<p class="sve-browser-test">Edited in the code.</p>';
 let footer = '';
 
 await step('open the footer in the code editor, coloured and character for character', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
-    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
-    await openIs('partials/footer');
-    footer = await onDisk('partials/footer.blade.php');
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'layout' }).click();
+    await openIs('layout');
+    footer = await onDisk('layout.blade.php');
     await codeIs(footer);
     if (!footer.includes('<footer')) {
         throw new Error('The editor does not hold the footer');
@@ -408,8 +408,8 @@ await step('type at the end of the footer, save with Ctrl+S and see it on the pa
     await page.keyboard.press('Control+s');
     await frame.getByText('Edited in the code.').waitFor();
     await saved();
-    await page.locator('.sve-notice--done', { hasText: 'Saved partials/footer.blade.php.' }).waitFor();
-    if ((await onDisk('partials/footer.blade.php')) !== `${footer}${added}\n`) {
+    await page.locator('.sve-notice--done', { hasText: 'Saved layout.blade.php.' }).waitFor();
+    if ((await onDisk('layout.blade.php')) !== `${footer}${added}\n`) {
         throw new Error('The file is not what was typed');
     }
 });
@@ -448,7 +448,7 @@ await step('refuse code that doesn\'t compile, say why, and leave the site as it
 await step('undo a save from the bar, back to the footer as it was', async () => {
     await undo.click();
     await idle();
-    await until('The footer is not as it was', async () => (await onDisk('partials/footer.blade.php')) === footer);
+    await until('The footer is not as it was', async () => (await onDisk('layout.blade.php')) === footer);
     await frame.getByText('Edited in the code.').waitFor({ state: 'detached' });
     await codeIs(footer);
 });
@@ -464,18 +464,18 @@ const write = (path, source) =>
 
             return answer.status;
         },
-        [`${base}/cms/visual-editor/api/templates/${path}`, source],
+        [`${base}/admin/visual-editor/api/templates/${path}`, source],
     );
 
 await step('give a file written on Windows back with the line breaks it came with', async () => {
     const windows = footer.replaceAll('\n', '\r\n');
-    if ((await write('partials/footer.blade.php', windows)) !== 200) {
+    if ((await write('layout.blade.php', windows)) !== 200) {
         throw new Error('The footer could not be written with other line breaks');
     }
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
-    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
-    await openIs('partials/footer');
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'layout' }).click();
+    await openIs('layout');
     await codeIs(windows);
 
     await code.evaluate((holder) => holder.sveCodeEditor.focus());
@@ -484,23 +484,23 @@ await step('give a file written on Windows back with the line breaks it came wit
     await page.keyboard.press('Enter');
     await page.keyboard.press('Control+s');
     await saved();
-    await page.locator('.sve-notice--done', { hasText: 'Saved partials/footer.blade.php.' }).waitFor();
+    await page.locator('.sve-notice--done', { hasText: 'Saved layout.blade.php.' }).waitFor();
     // What was typed, a line break of the file's own kind after it, and not one other byte.
-    if ((await onDisk('partials/footer.blade.php')) !== `${windows}<!-- typed -->\r\n`) {
+    if ((await onDisk('layout.blade.php')) !== `${windows}<!-- typed -->\r\n`) {
         throw new Error('The file did not keep its line breaks');
     }
 
-    if ((await write('partials/footer.blade.php', footer)) !== 200 || (await onDisk('partials/footer.blade.php')) !== footer) {
+    if ((await write('layout.blade.php', footer)) !== 200 || (await onDisk('layout.blade.php')) !== footer) {
         throw new Error('The footer is not as it was');
     }
 });
 
 await step('show the code in a plain field when the code editor\'s script can\'t be fetched, and save from there', async () => {
     await page.route('**/code-editor.js*', (route) => route.abort());
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
-    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'partials/footer' }).click();
-    await openIs('partials/footer');
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'layout' }).click();
+    await openIs('layout');
     const field = page.locator('section[aria-label^="Code of"] .sve-code__field');
     await field.waitFor();
     await until('The plain field does not hold the footer', async () => (await field.inputValue()) === footer);
@@ -521,18 +521,18 @@ const unsavedTabs = () => page.locator('.sve-tab', { has: page.locator('.sve-tab
 let headerCode = '';
 
 await step('open a template clicked on the page as a tab of the code', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
-    headerCode = await onDisk('partials/header.blade.php');
-    await openIs('show');
-    if (JSON.stringify(await tabNames()) !== JSON.stringify(['show'])) {
+    headerCode = await onDisk('layout.blade.php');
+    await openIs('collections/show');
+    if (JSON.stringify(await tabNames()) !== JSON.stringify(['collections/show'])) {
         throw new Error(`The tabs are ${JSON.stringify(await tabNames())}`);
     }
     await frame.locator('.hero h1').click();
     await openIs('blocks/hero');
     await codeIs(heroCode);
     await cursorLineHas('<h1>{{ $block->heading }}</h1>');
-    if (JSON.stringify(await tabNames()) !== JSON.stringify(['show', 'blocks/hero'])) {
+    if (JSON.stringify(await tabNames()) !== JSON.stringify(['collections/show', 'blocks/hero'])) {
         throw new Error(`The tabs are ${JSON.stringify(await tabNames())}`);
     }
 });
@@ -543,8 +543,8 @@ await step('leave text typed and not saved in one tab, save another, and find th
     await codeBar.getByText('Not saved').waitFor();
 
     // The header, from the page: the hero's text stays with its tab.
-    await frame.locator('.site-header .brand').click();
-    await openIs('partials/header');
+    await frame.locator('.site-header .site-name').click();
+    await openIs('layout');
     await codeIs(headerCode);
     await cursorLineHas('{{');
     if (JSON.stringify(await unsavedTabs()) !== JSON.stringify(['blocks/hero']) || (await codeBar.locator('.sve-tag').count()) !== 0) {
@@ -553,8 +553,8 @@ await step('leave text typed and not saved in one tab, save another, and find th
     await page.keyboard.press('End');
     await page.keyboard.type(' <!-- header -->');
     await page.keyboard.press('Control+s');
-    await page.locator('.sve-notice--done', { hasText: 'Saved partials/header.blade.php.' }).waitFor();
-    if (!(await onDisk('partials/header.blade.php')).includes('<!-- header -->') || (await onDisk('blocks/hero.blade.php')) !== heroCode) {
+    await page.locator('.sve-notice--done', { hasText: 'Saved layout.blade.php.' }).waitFor();
+    if (!(await onDisk('layout.blade.php')).includes('<!-- header -->') || (await onDisk('blocks/hero.blade.php')) !== heroCode) {
         throw new Error('The header was not saved alone');
     }
 
@@ -584,8 +584,8 @@ await step('undo in a tab that was left and come back to, with the editor\'s own
     await codeIs(heroCode);
     await saved();
 
-    await codeTab('partials/header').locator('.sve-tab__name').click();
-    await openIs('partials/header');
+    await codeTab('layout').locator('.sve-tab__name').click();
+    await openIs('layout');
     await until('The header is not shown', async () => (await codeText()).includes('<!-- header -->'));
     await page.waitForFunction(() => document.querySelector('section[aria-label^="Code of"] .cm-content')?.getAttribute('aria-readonly') !== 'true');
     await code.evaluate((holder) => holder.sveCodeEditor.focus());
@@ -593,7 +593,7 @@ await step('undo in a tab that was left and come back to, with the editor\'s own
     await codeIs(headerCode);
     await page.keyboard.press('Control+s');
     await saved();
-    await until('The header is not as it was', async () => (await onDisk('partials/header.blade.php')) === headerCode);
+    await until('The header is not as it was', async () => (await onDisk('layout.blade.php')) === headerCode);
 });
 
 await step('outline on the page, and in the tree, the element the cursor is in', async () => {
@@ -668,7 +668,7 @@ await step('say so when a saved change breaks the page where it is drawn, and un
     const errorsBefore = errors.length;
     await page.keyboard.press('End');
     await page.keyboard.press('Enter');
-    await page.keyboard.type("@include('sunrice.partials.menu')");
+    await page.keyboard.type("@include('cms.partials.menu')");
     await page.keyboard.press('Control+s');
     const broken = page.locator('.sve-notice--problem', { hasText: 'could not be drawn after that change' });
     await broken.waitFor({ timeout: 15000 });
@@ -700,7 +700,7 @@ await step('drag the line between the page and the code, and find it there when 
     await until('The code did not get the room', async () => Math.abs((await widthOf()) - before - 120) < 8 || [(await widthOf()), before]);
     const wide = await widthOf();
 
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await code.locator('.cm-editor').waitFor();
     if (Math.abs((await widthOf()) - wide) > 2) {
         throw new Error(`The code is ${await widthOf()} wide, and was left ${wide} wide`);
@@ -728,7 +728,7 @@ await step('fold the tree and the code to the sides: the page takes their room, 
     if (kept?.left !== false || kept?.right !== false) {
         throw new Error(`The editor is left as ${JSON.stringify(kept)}`);
     }
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await frame.getByText('Templates you can see').waitFor();
     if (await page.locator('.sve-side--left').isVisible() || await page.locator('.sve-side--code').isVisible()) {
         throw new Error('A folded side is shown again');
@@ -781,7 +781,7 @@ await step('list what the template can read where the cursor is, and write a fie
     await page.keyboard.press('Enter');
     await fieldsTab.click();
     await fieldRow('Subheading').first().waitFor();
-    await page.locator('.sve-fields').getByText('$sunricePage').first().waitFor();
+    await page.locator('.sve-fields').getByText('The page being shown').first().waitFor();
     await fieldRow('Subheading').first().click();
     // Back in the code, written at the cursor as the picker writes it, indented as the line is.
     await page.waitForFunction(() => document.querySelector('.sve-code-tabs__tab[aria-selected="true"]')?.textContent?.startsWith('Template'));
@@ -793,7 +793,6 @@ await step('list what the template can read where the cursor is, and write a fie
 // --- Content --------------------------------------------------------------------------
 
 const contentTab = page.locator('.sve-code-tabs__tab', { hasText: 'Content' });
-const admin = page.frameLocator('.sve-content__frame');
 
 await step('say there is no single entry to edit on a listing', async () => {
     await open('/articles');
@@ -803,43 +802,52 @@ await step('say there is no single entry to edit on a listing', async () => {
     await page.getByText('This page shows no single entry').waitFor();
 });
 
-await step('edit the content of the entry the page shows beside it, and see the page drawn again when it is saved', async () => {
-    await open('/articles/fifth-post');
-    await addressIs('/articles/fifth-post');
-    const title = admin.getByLabel('Title', { exact: true });
+/** The entry's page in the admin, opened from the Content tab in a tab of its own: its title published as given, then back to the editor. */
+const publishTitle = async (from, to) => {
+    const link = page.locator('.sve-content__open a', { hasText: `Edit ${from}` });
+    await link.waitFor();
+    const [admin] = await Promise.all([page.context().waitForEvent('page'), link.click()]);
+    const title = admin.getByLabel('Title', { exact: true }).first();
     await title.waitFor();
-    if ((await title.inputValue()) !== 'Fifth post') {
+    if ((await title.inputValue()) !== from) {
         throw new Error(`The content is of ${await title.inputValue()}`);
     }
-    // Sunrice's own page for the entry, without the button that would open the editor in the editor.
-    if ((await admin.locator('#sve-launch').count()) !== 0) {
-        throw new Error('The entry\'s page in the editor offers to open the editor');
-    }
-    await title.fill('Fifth post, edited beside the page');
-    await admin.getByRole('button', { name: /^Save/ }).first().click();
-    await page.locator('.sve-notice--done', { hasText: 'Saved Fifth post.' }).waitFor();
-    await title.fill('Fifth post');
-    await admin.getByRole('button', { name: /^Save/ }).first().click();
-    await admin.getByText(/saved/i).first().waitFor();
+    await title.fill(to);
+    await admin.getByRole('button', { name: /^Publish/ }).first().click();
+    await admin.getByText('Changes pending').first().waitFor({ state: 'detached' });
+    await admin.locator('h1', { hasText: to }).first().waitFor();
+    await admin.close();
+    await page.bringToFront();
+    // Back in the editor's window.
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+};
+
+await step('open the entry the page shows in the admin, in a tab of its own, and draw the page again on coming back', async () => {
+    await open('/articles/fifth-post');
+    await addressIs('/articles/fifth-post');
+    await publishTitle('Fifth post', 'Fifth post, edited in the admin');
+    await frame.getByText('Fifth post, edited in the admin').first().waitFor();
+    await publishTitle('Fifth post, edited in the admin', 'Fifth post');
+    await frame.getByText('Fifth post, edited in the admin').first().waitFor({ state: 'detached' });
     await page.locator('.sve-code-tabs__tab', { hasText: 'Template' }).click();
 });
 
 // --- Custom CSS ----------------------------------------------------------------------
 
 const custom = page.locator('.sve-custom-css .sve-code__editor');
-const customApi = `${base}/cms/visual-editor/api/styles/custom`;
+const customApi = `${base}/admin/visual-editor/api/styles/custom`;
 const customNow = async () => (await (await page.request.get(customApi)).json()).custom;
 let customBefore = '';
 
 await step('write custom CSS beside the page, save it, and see it on the page with no template changed', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
     await frame.locator('.hero h1').waitFor();
     customBefore = (await customNow()).source;
-    const layout = await onDisk('layouts/app.blade.php');
+    const layout = await onDisk('layout.blade.php');
     await page.locator('.sve-code-tabs__tab', { hasText: 'Custom CSS' }).click();
     await custom.locator('.cm-editor').waitFor();
-    await page.locator('.sve-custom-css__note').getByText("@stack('head')").waitFor();
+    await page.locator('.sve-custom-css .sve-custom-css__note').getByText("@stack('head')").waitFor();
     await custom.evaluate((holder, text) => {
         holder.sveCodeEditor.setText(text);
         holder.sveCodeEditor.focus();
@@ -848,7 +856,7 @@ await step('write custom CSS beside the page, save it, and see it on the page wi
     await page.keyboard.press('Control+s');
     await page.locator('.sve-notice--done', { hasText: 'Saved custom.css.' }).waitFor();
     await until('The page does not show the custom CSS', async () => (await frame.locator('.hero h1').evaluate((element) => getComputedStyle(element).color)) === 'rgb(200, 0, 100)' || 'not yet');
-    if ((await frame.locator('link[data-sunrice-custom-css]').count()) !== 1 || (await onDisk('layouts/app.blade.php')) !== layout) {
+    if ((await frame.locator('link[data-sunrice-custom-css]').count()) !== 1 || (await onDisk('layout.blade.php')) !== layout) {
         throw new Error('The custom CSS is not linked once, or the layout was changed for it');
     }
     // The site itself has it, not only the editor.
@@ -881,7 +889,7 @@ await step('put the custom CSS back', async () => {
 });
 
 const customJs = page.locator('.sve-custom-js .sve-code__editor');
-const jsApi = `${base}/cms/visual-editor/api/scripts/custom`;
+const jsApi = `${base}/admin/visual-editor/api/scripts/custom`;
 const jsNow = async () => (await (await page.request.get(jsApi)).json()).custom;
 let jsBefore = '';
 
@@ -889,7 +897,7 @@ await step('write custom JS beside the page, save it, and see it run on the page
     jsBefore = (await jsNow()).source;
     await page.locator('.sve-code-tabs__tab', { hasText: 'Custom JS' }).click();
     await customJs.locator('.cm-editor').waitFor();
-    await page.locator('.sve-custom-js .sve-custom-css__note').getByText("@push('scripts')").waitFor();
+    await page.locator('.sve-custom-js .sve-custom-css__note').getByText("@push('head')").waitFor();
     await customJs.evaluate((holder, text) => {
         holder.sveCodeEditor.setText(text);
         holder.sveCodeEditor.focus();
@@ -913,44 +921,24 @@ await step('put the custom JS back', async () => {
     await page.locator('.sve-code-tabs__tab', { hasText: 'Template' }).click();
 });
 
-// --- From an entry's page ----------------------------------------------------------------
+// --- From anywhere in the admin --------------------------------------------------------
 
-await step('offer "Edit with Visual Editor" on an entry\'s page, beside View page', async () => {
-    await page.goto(`${base}/cms/collections/pages/entries`);
-    await page.getByRole('link', { name: 'About', exact: true }).first().click();
-    await page.locator('h1.sunrice-page-title', { hasText: 'About' }).waitFor();
-    const launch = page.locator('#sve-launch');
-    await launch.waitFor();
-    if ((await launch.textContent())?.trim() !== 'Edit with Visual Editor' || !(await launch.getAttribute('href')).endsWith('/cms/visual-editor?url=%2Fabout')) {
-        throw new Error(`The button says ${await launch.textContent()} and goes to ${await launch.getAttribute('href')}`);
-    }
-    // Among the page's own buttons, first.
-    const group = await launch.evaluate((element) => [...element.parentElement.children].map((child) => child.textContent?.trim()));
-    if (!group.some((label) => label?.includes('View page'))) {
-        throw new Error(`The button is among ${JSON.stringify(group)}`);
-    }
-});
-
-await step('open the editor on the entry\'s page from there', async () => {
-    await page.locator('#sve-launch').click();
+await step('find a page by its title in the command palette, and open the editor on it', async () => {
+    await page.goto(`${base}/admin`);
+    await page.getByRole('button', { name: /Go to/ }).first().click();
+    await page.locator('[role=dialog] input[role=combobox]').fill('About');
+    const item = page.locator('[role=dialog] [role=option]', { hasText: 'Edit About in the visual editor' }).first();
+    await item.waitFor();
+    await item.click();
     await page.waitForSelector('.sve-shell');
     await addressIs('/about');
     await frame.getByText('A page with a rich text body and no blocks.').waitFor();
 });
 
-await step('offer nothing on a new entry, which has no page yet', async () => {
-    await page.goto(`${base}/cms/collections/pages/entries/create`);
-    await page.locator('h1.sunrice-page-title').waitFor();
-    await page.waitForTimeout(300);
-    if ((await page.locator('#sve-launch').count()) !== 0) {
-        throw new Error('A new entry offers the editor');
-    }
-});
-
 // --- Odd pages --------------------------------------------------------------------------
 
 await step('keep what is typed in the address field while a page is still arriving', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
     await open('/articles');
     await page.fill('#sve-address', 'about');
@@ -970,7 +958,7 @@ await step('follow a missing page, or say that it can\'t be followed', async () 
     await page.waitForFunction(() => {
         const names = [...document.querySelectorAll('.sve-side--left > section.sve-panel:first-of-type .sve-panel__body > .sve-templates .sve-template__name')].map((name) => name.textContent);
 
-        return !names.includes('show') && (names.length > 0 || document.querySelector('.sve-side--left > section.sve-panel:first-of-type .sve-panel__body > .sve-empty') !== null);
+        return !names.includes('collections/show') && (names.length > 0 || document.querySelector('.sve-side--left > section.sve-panel:first-of-type .sve-panel__body > .sve-empty') !== null);
     });
 });
 
@@ -981,7 +969,7 @@ await step('say so when what is in the frame is no page of the site', async () =
 });
 
 await step('refuse the admin\'s own address', async () => {
-    await open('/cms/users');
+    await open('/admin/users');
     await page.getByRole('alert').getByText('admin').waitFor();
 });
 
@@ -990,7 +978,7 @@ await step('refuse the admin\'s own address', async () => {
 const buildButton = page.locator('.sve-bar__build');
 
 await step('say that a build is needed once a template has changed, run it, and say how long it took', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await page.waitForSelector('.sve-template');
     await frame.locator('.hero h1').waitFor();
     if ((await buildButton.textContent())?.trim() !== 'Build') {
@@ -1033,7 +1021,7 @@ await step('show what a build that failed printed, until it is put away', async 
 });
 
 await step('take a screenshot', async () => {
-    await page.goto(`${base}/cms/visual-editor`);
+    await page.goto(`${base}/admin/visual-editor`);
     await frame.getByText('Templates you can see').waitFor();
     await page.waitForSelector('.sve-template');
     await frame.locator('.hero h1').click();

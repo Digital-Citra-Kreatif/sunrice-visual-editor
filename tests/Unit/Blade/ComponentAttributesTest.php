@@ -26,13 +26,13 @@ function onComponent(string $source, array $operation, int $nth = 0): string
 
 const ENTRIES = <<<'BLADE'
     <section>
-        <x-sunrice::entries collection="articles" :limit="6">
+        <x-sunrice-cms::entries collection="articles" :limit="6">
             @foreach ($component->entries as $item)
                 <p>{{ $item->title }}</p>
             @endforeach
-        </x-sunrice::entries>
-        <x-sunrice::seo :default-title="$heading" />
-        <x-sunrice::code />
+        </x-sunrice-cms::entries>
+        <x-sunrice-cms::seo :default-title="$heading" />
+        <x-sunrice-cms::code />
     </section>
     BLADE;
 
@@ -55,7 +55,7 @@ it('does the same for a component that closes itself, with attributes or without
     expect(onComponent(ENTRIES, ['type' => 'setAttribute', 'name' => ':default-title', 'value' => '$entry->title', 'blade' => true], 1))
         ->toBe(str_replace(':default-title="$heading"', ':default-title="$entry->title"', ENTRIES))
         ->and(onComponent(ENTRIES, ['type' => 'setAttribute', 'name' => 'key', 'value' => 'head'], 2))
-        ->toBe(str_replace('<x-sunrice::code />', '<x-sunrice::code key="head" />', ENTRIES))
+        ->toBe(str_replace('<x-sunrice-cms::code />', '<x-sunrice-cms::code key="head" />', ENTRIES))
         ->and(onComponent(ENTRIES, ['type' => 'removeAttribute', 'name' => ':default-title'], 1))
         ->toBe(str_replace(' :default-title="$heading"', '', ENTRIES));
 });
@@ -68,7 +68,7 @@ it('writes a plain value so that it stays plain, and a bound one as given', func
     expect($out)->toContain('title="a &quot;quoted&quot; &lt;b&gt; &amp; ')
         ->and(RoundTrip::phpError($out))->toBeNull()
         ->and(Template::open($out)->toArray()['tree']['children'][0]['children'][0]['children'][0]['attributes'])->toHaveCount(3)
-        ->and($tag->open)->toStartWith('<x-sunrice::entries collection="articles" :limit="6" title="');
+        ->and($tag->open)->toStartWith('<x-sunrice-cms::entries collection="articles" :limit="6" title="');
 
     // What it holds three quotes deep is the template's to write: an array for `where`.
     $where = onComponent(ENTRIES, ['type' => 'setAttribute', 'name' => ':where', 'value' => "[['price', '>', 10]]", 'blade' => true]);
@@ -110,8 +110,8 @@ it('refuses what a component\'s tag does not take', function (array $operation, 
 it('is not marked as an element when the page is drawn for the editor', function () {
     $marked = Marker::mark(Template::open(ENTRIES), 'k');
 
-    expect($marked)->toContain('<x-sunrice::entries collection="articles" :limit="6">')
-        ->and($marked)->toContain('<x-sunrice::seo :default-title="$heading" />')
+    expect($marked)->toContain('<x-sunrice-cms::entries collection="articles" :limit="6">')
+        ->and($marked)->toContain('<x-sunrice-cms::seo :default-title="$heading" />')
         ->and(Rules::hasAttributes(componentTag(Template::open(ENTRIES))))->toBeFalse();
 });
 

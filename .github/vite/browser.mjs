@@ -25,15 +25,15 @@ const idle = () => page.waitForFunction(() => document.querySelector('.sve-shell
 
 /**
  * The header's code, as the code editor beside the page holds it, changed and saved: how a class is given on the screen.
- * The brand is found by the start of its class list: the checks before this one may have left classes of their own on it.
+ * The site's name is found by the start of its class list: the checks before this one may have left classes of their own on it.
  */
 const saveHeader = async (change) => {
-    await frame.locator('.site-header .brand').first().click();
-    await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'partials/header');
+    await frame.locator('.site-header .site-name').first().click();
+    await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'layout');
     // The header's own code: until it has been read, the code beside the page still shows the template before.
-    const code = page.locator('section[aria-label="Code of partials/header.blade.php"] .sve-code__editor');
+    const code = page.locator('section[aria-label="Code of layout.blade.php"] .sve-code__editor');
     await code.locator('.cm-editor').waitFor();
-    await page.waitForFunction((from) => document.querySelector('section[aria-label="Code of partials/header.blade.php"] .sve-code__editor')?.sveCodeEditor?.text().includes(from) === true, change[0]);
+    await page.waitForFunction((from) => document.querySelector('section[aria-label="Code of layout.blade.php"] .sve-code__editor')?.sveCodeEditor?.text().includes(from) === true, change[0]);
     await code.evaluate((holder, [from, to]) => {
         const text = holder.sveCodeEditor.text();
         if (!text.includes(from)) {
@@ -63,21 +63,21 @@ const coloured = async (selector) => {
 };
 
 await step('sign in', async () => {
-    await page.goto(`${base}/cms/login`);
+    await page.goto(`${base}/admin/login`);
     await page.fill('#email', 'admin@example.com');
-    await page.fill('#password', 'password');
+    await page.fill('#password', 'Sunrice-Demo-2026!');
     await Promise.all([page.waitForURL((url) => !url.pathname.endsWith('/login')), page.click('button[type=submit]')]);
 });
 
 await step('show a page whose CSS comes from the dev server, marked for the editor', async () => {
-    await page.goto(`${base}/cms/visual-editor?url=/demo`);
+    await page.goto(`${base}/admin/visual-editor?url=/about`);
     await page.waitForSelector('.sve-template');
     await frame.locator('script[src*="@vite/client"]').first().waitFor({ state: 'attached' });
     await frame.locator('[data-sve]').first().waitFor({ state: 'attached' });
 });
 
 await step('add a Tailwind class no rule was written for yet, and see its colour on the page', async () => {
-    await saveHeader(['class="brand', 'class="brand bg-sky-400']);
+    await saveHeader(['class="site-name', 'class="site-name bg-sky-400']);
     await frame.locator('.site-header .bg-sky-400').first().waitFor();
     console.log(`     it is ${await coloured('.site-header .bg-sky-400')}`);
 });
@@ -88,14 +88,14 @@ await step('keep the editor in step with the page while Vite reloads it: the tem
     await page.waitForTimeout(2500);
     await idle();
     await frame.locator('.site-header .bg-sky-400[data-sve]').first().waitFor({ state: 'attached' });
-    await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'partials/header');
-    await frame.locator('.site-header .brand').first().click();
+    await page.waitForFunction(() => document.querySelector('.sve-tab--open .sve-tab__name')?.firstChild?.textContent === 'layout');
+    await frame.locator('.site-header .site-name').first().click();
     await page.locator('.sve-layer[aria-selected="true"]').waitFor();
     await page.locator('.sve-outline--selected').first().waitFor();
 });
 
 await step('take the class off, and it goes from the page', async () => {
-    await saveHeader(['class="brand bg-sky-400', 'class="brand']);
+    await saveHeader(['class="site-name bg-sky-400', 'class="site-name']);
     await idle();
     for (let attempt = 0; attempt < 40 && (await frame.locator('.site-header .bg-sky-400').count()) > 0; attempt++) {
         await page.waitForTimeout(250);

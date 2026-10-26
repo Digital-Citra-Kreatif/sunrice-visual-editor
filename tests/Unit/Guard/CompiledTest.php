@@ -32,8 +32,8 @@ it('tells code apart that only spaces tell apart', function () {
 });
 
 it('reads what a component is given as code of the component', function () {
-    $plain = Compiled::islands('<x-sunrice::entries collection="articles" :limit="3" />');
-    $code = Compiled::islands('<x-sunrice::entries collection="articles" :limit="system(1)" />');
+    $plain = Compiled::islands('<x-sunrice-cms::entries collection="articles" :limit="3" />');
+    $code = Compiled::islands('<x-sunrice-cms::entries collection="articles" :limit="system(1)" />');
 
     expect($plain)->not->toBe([])
         ->and(array_diff_key($code, $plain))->not->toBe([])

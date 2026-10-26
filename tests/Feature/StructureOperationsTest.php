@@ -36,7 +36,7 @@ const SVE_STRUCTURE_TEMPLATE = <<<'BLADE'
 
 BLADE;
 
-const SVE_STRUCTURE_API = '/cms/visual-editor/api/templates/partials/sve-structure.blade.php/operations';
+const SVE_STRUCTURE_API = '/admin/visual-editor/api/templates/partials/sve-structure.blade.php/operations';
 
 /** The id of the node that starts at some text; "b:…" for the arm that starts there. */
 function sveStructureNode(string $at): string

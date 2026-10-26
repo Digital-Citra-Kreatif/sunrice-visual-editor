@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Rendering;
 
+use Sunrice\VisualEditor\Support\SunriceBridge;
+
 /**
  * Tailwind's own browser build, for pages drawn for the editor and for no
  * others: a class added in the editor shows at once, on a site whose CSS
@@ -36,8 +38,10 @@ final class TailwindPreview
         }
         $entry = self::entry();
 
-        return '<script src="'.e($script).'" data-sve-preview></script>'
-            .($entry === null ? '' : '<style type="text/tailwindcss" data-sve-preview>'.$entry.'</style>');
+        $nonce = SunriceBridge::nonceAttribute();
+
+        return '<script src="'.e($script).'"'.$nonce.' data-sve-preview></script>'
+            .($entry === null ? '' : '<style type="text/tailwindcss"'.$nonce.' data-sve-preview>'.$entry.'</style>');
     }
 
     /** The site's CSS entry file as the browser build can read it; null when there is none. */

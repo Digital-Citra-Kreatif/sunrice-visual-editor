@@ -1,12 +1,13 @@
 # AI agents
 
-Sunrice has an MCP server that lets an AI agent (Claude Code, Cursor, any
-MCP client) work on a site: read its structure, write content, write
-templates. See Sunrice's own
-[AI agents](https://github.com/littleboy130491/sunrice-cms/blob/main/docs/ai-agents.md)
-page for connecting one.
+The Sunrice panel has an MCP server that lets an AI agent (Claude Code,
+Cursor, any MCP client) work on a site: read its structure, write content,
+write templates. See the panel's
+[AI access](https://github.com/Digital-Citra-Kreatif/sunrice/blob/main/packages/admin/docs/ai.md)
+page for connecting one, and the CMS's
+[AI tools](https://github.com/Digital-Citra-Kreatif/sunrice/blob/main/packages/cms/docs/ai.md).
 
-Sunrice's `write_template` tool writes a whole file. That is right for a
+The CMS's `cms_write_template` tool writes a whole file. That is right for a
 new template. For a small change to a template that exists it is a poor
 fit: the agent has to reproduce every other line exactly, and now and then
 it will not.
@@ -14,20 +15,17 @@ it will not.
 This package adds two tools that work on a template the way the editor's
 screen does: by naming a node and saying what to do to it.
 
-> **Needs a Sunrice from 11 October 2026 or later.** That is when Sunrice
-> began taking tools from packages
-> ([sunrice-cms#40](https://github.com/littleboy130491/sunrice-cms/pull/40)).
-> On a site whose Sunrice is older, nothing is registered and nothing
-> fails: `composer update sunrice/cms` brings the tools.
+The plugin adds them to the panel's MCP server (`$panel->tools()`); a
+plugin's tools are named after it, hence the `visual_editor_` in front.
 
-## `get_template_tree`
+## `visual_editor_get_template_tree`
 
 Read-only.
 
-- Without arguments: the site's templates and Sunrice's own views, and
+- Without arguments: the site's templates and the CMS's own views, and
   whether each opens as a tree.
 - With `path` (`"blocks/hero.blade.php"`): the template's `version` and its
-  tree. `origin: "package"` reads one of Sunrice's own views.
+  tree. `origin: "package"` reads one of the CMS's own views.
 
 A node of the tree:
 
@@ -50,7 +48,7 @@ A node of the tree:
 is (an `@else`, a tag that does not nest) lists neither `move` nor
 `delete`.
 
-## `edit_template`
+## `visual_editor_edit_template`
 
 Takes `path`, the `version` that was read, and a list of `operations`:
 
@@ -107,21 +105,23 @@ that user may do in the editor ([Permissions](permissions.md)):
 
 | Tool | Needs |
 | --- | --- |
-| `get_template_tree` | `visual-editor.open` |
-| `edit_template` | `visual-editor.edit` |
-| `edit_template` writing Blade or PHP of the agent's own | `visual-editor.code` |
+| `visual_editor_get_template_tree` | `visual-editor.open` |
+| `visual_editor_edit_template` | `visual-editor.edit` |
+| `visual_editor_edit_template` writing Blade or PHP of the agent's own | `visual-editor.code` |
 
 An agent whose user has `edit` and not `code` can restructure markup, set
 texts and classes, and insert what the editor's own lists offer. It can't
 make the template run new PHP, by the same check as for a person.
 
-Two switches turn the tools off entirely: the editor being
-[off](installation.md#where-it-is-on) (they exist only where it is on,
-which is local by default), and Sunrice's `sunrice.mcp.templates` set to
-`false`, which keeps agents from templates altogether.
+Two switches decide whether agents may use them: the editor being
+[off](installation.md#where-it-is-on) (the tools exist only where it is
+on, which is local by default), and the CMS's `sunrice-cms.ai.templates`
+(`SUNRICE_AI_TEMPLATES`), off by default, which keeps agents from changing
+templates altogether: without it `visual_editor_edit_template` refuses,
+and reading still works.
 
 ## Stylesheets
 
 There is no tool yet that changes one declaration of a stylesheet. An agent
-changes the theme's CSS with Sunrice's `write_template`, which writes the
-whole file.
+changes the theme's CSS with the CMS's `cms_write_template`, which writes
+the whole file.

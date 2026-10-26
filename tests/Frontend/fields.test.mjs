@@ -25,7 +25,7 @@ const variables = [
         from: 'page',
         sure: true,
     },
-    { ...value("sunrice_global('site')", 'global set', { groups: [{ title: 'Site', fields: [field('name', 'Name', text("sunrice_global('site')->name"))] }] }), title: 'Site', from: 'site', sure: true },
+    { ...value("cms_global('site')", 'global set', { groups: [{ title: 'Site', fields: [field('name', 'Name', text("cms_global('site')->name"))] }] }), title: 'Site', from: 'site', sure: true },
     { ...text('$locale'), title: 'The language of the page', from: 'site', sure: true },
 ];
 

@@ -20,8 +20,12 @@ use Sunrice\VisualEditor\Support\SunriceBridge;
  */
 final class Emit
 {
-    /** Names Blade and Sunrice use themselves: a loop over entries must not call each one `$entry`, which the page has. */
-    private const THEIRS = ['this', 'loop', 'slot', 'component', 'attributes', 'errors', 'app', 'locale', 'pageType', 'sunricePage', 'entry', 'entries', 'term', 'collection', 'taxonomy'];
+    /** Names Blade and the CMS use themselves: a loop over entries must not call each one `$entry`, which the page has. */
+    private const THEIRS = [
+        'this', 'loop', 'slot', 'component', 'attributes', 'errors', 'app', 'locale',
+        'page', 'entry', 'entries', 'term', 'terms', 'collection', 'taxonomy', 'values', 'title', 'richText', 'code',
+        'preview', 'draft', 'fallback', 'contentLocale', 'url', 'query', 'results',
+    ];
 
     public function __construct(private readonly Catalog $catalog) {}
 
@@ -88,7 +92,7 @@ final class Emit
 
             return [new Insert('Each block, drawn by its own template', Insert::STRUCTURE, implode("\n", [
                 '@foreach ('.$reading->looped().' as $'.$block.')',
-                "    @includeFirst(['sunrice.blocks.'.\$".$block."->type, 'sunrice.blocks.default'], ['block' => \$".$block.'])',
+                "    @includeFirst(['cms.blocks.'.\$".$block."->type, 'cms.partials.block'], ['block' => \$".$block.'])',
                 '@endforeach',
             ]))];
         }
@@ -98,7 +102,7 @@ final class Emit
             return [new Insert('Menu', Insert::STRUCTURE, implode("\n", [
                 '<ul>',
                 '    @foreach ('.$reading->looped().' as $'.$each.')',
-                '        <li><a href="{{ $'.$each.'->url }}">{{ $'.$each.'->label }}</a></li>',
+                '        <li><a href="{{ $'.$each."['url'] }}\">{{ $".$each."['label'] }}</a></li>",
                 '    @endforeach',
                 '</ul>',
             ]))];
@@ -108,7 +112,7 @@ final class Emit
         $one = $reading->item($each);
         $inside = match ($item->kind) {
             Shape::ENTRY => [$this->entry($one, $item)],
-            Shape::TERM => $this->term($one, $item, relation: ! $reading->fromField),
+            Shape::TERM => [$this->term($one, $item)],
             Shape::ASSET => [$this->image($one)],
             Shape::ROW => $this->row($one, [...$taken, $each]),
             Shape::TEXT, Shape::NUMBER, Shape::VALUE => ['{{ $'.$each.' }}'],
@@ -134,26 +138,18 @@ final class Emit
         $pages = $possible !== [] && array_filter($possible, fn (array $collection) => ! $collection['single']) === [];
 
         return $pages
-            ? '<a href="{{ '.$entry->code.'->url }}">{{ '.$entry->code.'->title }}</a>'
+            ? '<a href="{{ '.$entry->code.'->url() }}">{{ '.$entry->code.'->title }}</a>'
             : '{{ '.$entry->code.'->title }}';
     }
 
-    /**
-     * A term in a list: its name, linked when terms of its taxonomies have pages.
-     *
-     * @param  bool  $relation  the terms are not a field's (an entry's own, a term's children): those may not be in the page's language yet
-     * @return list<string>
-     */
-    private function term(Reading $term, Shape $shape, bool $relation): array
+    /** A term in a list: its title in the page's language, linked when terms of its taxonomies have pages. */
+    private function term(Reading $term, Shape $shape): string
     {
         $taxonomies = SunriceBridge::taxonomies();
         $possible = $shape->of === [] ? $taxonomies : array_filter($taxonomies, fn (array $taxonomy) => in_array($taxonomy['handle'], $shape->of, true));
         $pages = $possible !== [] && array_filter($possible, fn (array $taxonomy) => ! $taxonomy['archive']) === [];
 
-        return [
-            ...($relation ? ['@php('.$term->code.'->resolveFor($locale))'] : []),
-            $pages ? '<a href="{{ '.$term->code.'->url }}">{{ '.$term->code.'->name }}</a>' : '<span>{{ '.$term->code.'->name }}</span>',
-        ];
+        return $pages ? '<a href="{{ '.$term->code.'->url() }}">{{ '.$term->code.'->title() }}</a>' : '<span>{{ '.$term->code.'->title() }}</span>';
     }
 
     /**
@@ -196,21 +192,21 @@ final class Emit
     {
         $large = $this->catalog->member($file->shape, 'url:large') ?? $this->catalog->member($file->shape, 'url');
 
-        return '<img src="{{ '.($large?->from($file->code) ?? $file->code.'->url()').' }}" alt="{{ '.$file->code.'->alt }}">';
+        return '<img src="{{ '.($large?->from($file->code) ?? $file->code.'->url()').' }}" alt="{{ '.$file->code.'->altIn() }}">';
     }
 
     /** @param  list<string>  $taken */
     private function link(Reading $reading, string $label, array $taken): string
     {
         [$link, $open, $close] = $this->held($reading, $label, $taken, also: "! empty(%s['url'])");
-        $tag = '<a href="{{ '.$link->code."['url'] }}\" @if (! empty(".$link->code."['new_tab'])) target=\"_blank\" rel=\"noopener\" @endif>{{ ".$link->code."['label'] ?: ".$link->code."['url'] }}</a>";
+        $tag = '<a href="{{ '.$link->code."['url'] }}\" @if (! empty(".$link->code."['new_tab'])) target=\"_blank\" rel=\"noopener\" @endif>{{ ".$link->code."['label'] ?? ".$link->code."['title'] ?? ".$link->code."['url'] }}</a>";
 
         return implode("\n", [...$open, '    '.$tag, ...$close]);
     }
 
     /**
      * Something read once and held in a variable while it is shown, as
-     * Sunrice's own templates do: `@if ($cover = $entry->get('cover'))`.
+     * the CMS's own templates do: `@if ($cover = $values['cover'] ?? null)`.
      * A value that is a variable already, and sure to be there, needs
      * neither the variable nor the condition.
      *
@@ -277,7 +273,7 @@ final class Emit
     private function name(string $wanted, array $taken): string
     {
         $wanted = $this->variable($wanted);
-        // Never one of the names Blade and Sunrice use themselves.
+        // Never one of the names Blade and the CMS use themselves.
         $taken = [...$taken, ...self::THEIRS];
         if (! in_array($wanted, $taken, true)) {
             return $wanted;

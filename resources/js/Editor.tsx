@@ -1,3 +1,4 @@
+import { Head, Link } from '@inertiajs/react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { editorAddress, isEditorAddress, markValue, shortcutOf, unwrap, type FromPage, type ManifestFile, type Mark, type Measured, type Mode, type Shortcut, type ShownEntry } from './bridge/protocol';
 import { NoticeBar, type Notice } from './canvas/Notice';
@@ -1045,7 +1046,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             : !mayEdit
               ? 'You may look at this template here, not change it.'
               : !template.data.editable
-                ? 'This is one of Sunrice’s own views: it can’t be changed here.'
+                ? 'This is one of the CMS’s own views: it can’t be changed here.'
                 : tree === null
                   ? 'This template can only be edited as code.'
                   : unsaved
@@ -1086,10 +1087,10 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 style={{ '--sve-code-share': String(arranged.share) } as CSSProperties}
                 aria-busy={applying}
             >
-                <Sunrice.inertia.Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
+                <Head title={page === null ? 'Visual editor' : `${page.title} · Visual editor`} />
 
                 <header className="sve-bar">
-                    <Sunrice.inertia.Link
+                    <Link
                         href={Sunrice.adminUrl()}
                         className="sve-bar__back"
                         title="Back to the admin"
@@ -1097,7 +1098,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         onBefore={() => !anyUnsaved || window.confirm('Leave the editor without saving what you changed in the code?')}
                     >
                         <span aria-hidden="true">←</span> Admin
-                    </Sunrice.inertia.Link>
+                    </Link>
                     <strong className="sve-bar__title">Visual editor</strong>
 
                     <form className="sve-address" onSubmit={go}>
@@ -1404,7 +1405,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                                     (codeOf.copyTo !== null ? (
                                         <div className="sve-code__banner">
                                             <p>
-                                                This is one of Sunrice’s own views, used while the site has no <code>{codeOf.copyTo}</code>. Copy it to the site to change it: the site uses the copy from then on.
+                                                This is one of the CMS’s own views, used while the site has no <code>{codeOf.copyTo}</code>. Copy it to the site to change it: the site uses the copy from then on.
                                             </p>
                                             {mayEdit && (
                                                 <button type="button" className="sve-button" disabled={copying} onClick={() => copy(codeOf.path)}>
@@ -1414,7 +1415,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                                         </div>
                                     ) : (
                                         <p className="sve-code__banner">
-                                            This is one of Sunrice’s own views, drawn by Sunrice itself (a component, or its draft banner). Sunrice never looks for it among the site’s templates, so it can’t be changed here: style what it draws with Custom CSS, or change the template around it.
+                                            This is one of the CMS’s own views, drawn by the CMS itself (a component, its draft banner or its comments). The CMS never looks for it among the site’s templates, so it can’t be changed here: style what it draws with Custom CSS, or change the template around it.
                                         </p>
                                     ))}
                                 {!isPackage && !mayCode && <p className="sve-code__banner">You may read the code here, not change it.</p>}
@@ -1425,7 +1426,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         <p className="sve-fields__where">
                             {fieldsOf === null
                                 ? template.state === 'ready'
-                                    ? 'This is one of Sunrice’s own views: it can’t be written in, so there is nothing to put in it.'
+                                    ? 'This is one of the CMS’s own views: it can’t be written in, so there is nothing to put in it.'
                                     : 'Open a template to see what it can read.'
                                 : !mayCode
                                   ? 'What the template can read where the cursor is. Writing it in takes the permission to edit code.'
@@ -1453,8 +1454,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         )}
                     </div>
                     <div className="sve-code-pane" hidden={codeTab !== 'content'}>
-                        {contentSeen && <ContentPanel entry={page?.entry ?? null} waiting={page === null} shown={codeTab === 'content'} onSaved={(title) => {
-                            say('done', `Saved ${title}.`);
+                        {contentSeen && <ContentPanel entry={page?.entry ?? null} waiting={page === null} shown={codeTab === 'content'} onBack={() => {
+                            // Whatever was saved there (or nothing): the page as it is now.
                             redraw();
                             redrawPreviews();
                         }} />}

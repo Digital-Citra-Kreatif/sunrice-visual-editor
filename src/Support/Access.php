@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Sunrice\VisualEditor\Support;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Sunrice\Admin\Panel;
 
 /**
  * Who may use the editor, and for what. Three permissions, registered
- * with Sunrice and given to roles in its admin (Users → Roles):
+ * on the panel (VisualEditorPlugin) and given to roles in its admin
+ * (Administration → Roles):
  *
  *   visual-editor.open   look: the page, its templates, their layers
  *   visual-editor.edit   change templates and stylesheets without writing code
@@ -42,7 +44,7 @@ final class Access
         self::BUILD => [self::BUILD],
     ];
 
-    /** What Sunrice's role editor lists: each permission and what it says there. */
+    /** What the panel's role editor lists: each permission and what it says there. */
     public const LABELS = [
         self::OPEN => 'Open the visual editor',
         self::EDIT => 'Change templates and styles in the visual editor',
@@ -53,6 +55,18 @@ final class Access
     public static function enabled(): bool
     {
         return (bool) config('sunrice-visual-editor.enabled', false);
+    }
+
+    /** The auth guard the panel's people sign in with. */
+    public static function guard(): string
+    {
+        return app()->bound(Panel::class) ? app(Panel::class)->getGuard() : 'web';
+    }
+
+    /** Whoever is signed in to the panel, if anyone. */
+    public static function user(): ?Authenticatable
+    {
+        return auth(self::guard())->user();
     }
 
     /** Whether someone may use the editor at all. */

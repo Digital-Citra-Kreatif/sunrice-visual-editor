@@ -15,7 +15,7 @@ it('checks Blade for syntax errors, knowing the application\'s directives', func
     expect(Syntax::error('<p>{{ $entry->title }}</p> @if ($a) x @endif <body @bodyClass>'))->toBeNull()
         ->and(Syntax::error('@if ($a) <p>never closed</p>'))->toContain('of the compiled template')
         ->and(Syntax::error('{{ $a +* }}'))->toContain('syntax error')
-        ->and(Syntax::error('<x-sunrice::form handle="contact"></x-sunrice::form>'))->toBeNull();
+        ->and(Syntax::error('<x-sunrice-cms::form handle="contact"></x-sunrice-cms::form>'))->toBeNull();
 });
 
 it('reports a component the application doesn\'t have, unless asked to leave components alone', function () {
@@ -32,8 +32,8 @@ it('refuses an operation that brings in a component the application doesn\'t hav
 
     expect(fn () => Operations::apply($source, [['type' => 'insertAfter', 'node' => $paragraph, 'blade' => '<x-sve-missing />']]))
         ->toThrow(ResultRejected::class, 'sve-missing')
-        ->and(Operations::apply($source, [['type' => 'insertAfter', 'node' => $paragraph, 'blade' => '<x-sunrice::form handle="contact" />']]))
-        ->toBe('<main><p>Hi</p><x-sunrice::form handle="contact" /></main>');
+        ->and(Operations::apply($source, [['type' => 'insertAfter', 'node' => $paragraph, 'blade' => '<x-sunrice-cms::form handle="contact" />']]))
+        ->toBe('<main><p>Hi</p><x-sunrice-cms::form handle="contact" /></main>');
 });
 
 it('still edits a template that names a missing component, as long as its PHP is sound', function () {
