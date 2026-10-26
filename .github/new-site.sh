@@ -25,4 +25,7 @@ php artisan sunrice:install --no-user --no-interaction --no-ansi
 sed -i "/Route::get('\/', function () {/,/});/d" routes/web.php
 ! grep -q "view('welcome')" routes/web.php
 php artisan vendor:publish --tag=sunrice-cms-templates --no-ansi
+# The CMS's demo has texts in English and Indonesian, and a new site has English only: the demo needs both.
+echo 'SUNRICE_LOCALES=en,id' >> .env
+php artisan config:clear --no-ansi
 php artisan sunrice:demo-content --no-ansi
