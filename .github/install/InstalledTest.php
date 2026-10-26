@@ -55,7 +55,8 @@ class InstalledTest extends TestCase
 
         $page = $this->get('/admin/visual-editor?url=/about')->assertOk()->getContent();
         $this->assertStringContainsString('VisualEditor\/Editor', $page);
-        $this->assertStringContainsString('vendor/sunrice-visual-editor/visual-editor.js', $page);
+        // The panel's page data, as JSON: slashes escaped.
+        $this->assertStringContainsString('vendor\/sunrice-visual-editor\/visual-editor.js', $page);
         // Where the code editor's script will be fetched from, when code is first shown.
         $this->assertStringContainsString('vendor\/sunrice-visual-editor\/code-editor.js', $page);
         $this->assertStringContainsString('Visual editor', $page);
@@ -86,7 +87,7 @@ class InstalledTest extends TestCase
         $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access', 'visual-editor.edit']));
 
         $template = $this->getJson('/admin/visual-editor/api/templates/'.self::HEADER)->assertOk()->json('template');
-        $element = $this->firstElement($template['tree']);
+        $element = $this->siteHeader($template['tree']);
 
         $this->postJson('/admin/visual-editor/api/templates/'.self::HEADER.'/operations', [
             'version' => $template['version'],
@@ -108,7 +109,7 @@ class InstalledTest extends TestCase
         $this->actingAs($this->someone('designer@example.com', permissions: ['sunrice.access', 'visual-editor.edit']));
 
         $template = $this->getJson('/admin/visual-editor/api/templates/'.self::HEADER)->assertOk()->json('template');
-        $element = $this->firstElement($template['tree']);
+        $element = $this->siteHeader($template['tree']);
 
         $this->postJson('/admin/visual-editor/api/templates/'.self::HEADER.'/operations', [
             'version' => $template['version'],
@@ -165,22 +166,24 @@ class InstalledTest extends TestCase
     }
 
     /**
+     * The layout's `<header class="site-header">`: an element whose attributes may be changed, and which has a class.
+     *
      * @param  array<string, mixed>  $node
      * @return array<string, mixed>
      */
-    private function firstElement(array $node): array
+    private function siteHeader(array $node): array
     {
-        if (($node['type'] ?? null) === 'element' && in_array('attributes', array_keys(array_filter($node['can'] ?? [])), true)) {
+        if (($node['type'] ?? null) === 'element' && ($node['name'] ?? null) === 'header' && in_array('attributes', array_keys(array_filter($node['can'] ?? [])), true)) {
             return $node;
         }
         foreach ($node['children'] ?? [] as $child) {
             try {
-                return $this->firstElement($child);
+                return $this->siteHeader($child);
             } catch (\RuntimeException) {
                 continue;
             }
         }
 
-        throw new \RuntimeException('The template has no element.');
+        throw new \RuntimeException('The template has no <header>.');
     }
 }
