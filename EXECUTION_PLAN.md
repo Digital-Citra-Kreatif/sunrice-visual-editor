@@ -26,7 +26,7 @@ This plan turns `SPEC.md` into a working package. It follows the format of Sunri
 | Composer package | `sunrice/visual-editor` |
 | PHP namespace | `Sunrice\VisualEditor\` → `src/`; tests `Sunrice\VisualEditor\Tests\` → `tests/` |
 | Service provider | `Sunrice\VisualEditor\VisualEditorServiceProvider` (auto-discovered): config, published files, what it adds to the site's pages |
-| Panel plugin | `Sunrice\VisualEditor\VisualEditorPlugin` (id `visual-editor`, requires `cms`), added in the app's panel provider: permissions, navigation, routes, its page bundle, AI tools, command-palette search |
+| Panel plugin | `Sunrice\VisualEditor\VisualEditorPlugin` (id `visual-editor`, requires `cms`), added in the app's panel provider: permissions, navigation, routes, its page bundle, AI tools, command-palette search; in `boot()`, the entry pages' **Edit with Visual Editor** link (`Cms::entryLinksUsing()`) |
 | Config | `config/sunrice-visual-editor.php`, key `sunrice-visual-editor` |
 | Admin routes | `routes/admin.php`, added by the plugin (`$panel->routes()`), under `{admin}/visual-editor`, named `sunrice.admin.visual-editor.*` |
 | Admin page | `VisualEditor/Editor`, in the plugin's bundle (`PluginBundle`, pages `VisualEditor/`), registered with `window.Sunrice.registerPage()`, `bare = true` (full screen) |

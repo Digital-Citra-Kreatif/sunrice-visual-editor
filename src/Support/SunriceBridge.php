@@ -74,15 +74,42 @@ final class SunriceBridge
         $found = [];
         foreach (EntryTranslation::query()->live()->with('entry.collection')->where('title', 'like', '%'.$words.'%')
             ->orderByRaw('length(title)')->limit($limit * 2)->get() as $translation) {
-            $url = $translation->url();
-            $path = $url === null ? null : parse_url($url, PHP_URL_PATH);
-            if (is_string($path) && count($found) < $limit) {
-                $query = parse_url((string) $url, PHP_URL_QUERY);
-                $found[] = ['id' => $translation->id, 'title' => $translation->title, 'collection' => $translation->entry->collection->title, 'path' => $path.(is_string($query) ? '?'.$query : '')];
+            $path = self::sitePath($translation);
+            if ($path !== null && count($found) < $limit) {
+                $found[] = ['id' => $translation->id, 'title' => $translation->title, 'collection' => $translation->entry->collection->title, 'path' => $path];
             }
         }
 
         return $found;
+    }
+
+    /**
+     * The path of an entry's page on the site in its language, with any
+     * query (/about, /id/tentang): null while it has none to open, being
+     * not yet live (a draft, or dated to come), in the trash, or of a
+     * collection without pages.
+     */
+    public static function pagePath(EntryTranslation $translation): ?string
+    {
+        $entry = $translation->entry;
+        if (! $translation->isLive() || $entry->trashed() || $entry->collection->trashed()) {
+            return null;
+        }
+
+        return self::sitePath($translation);
+    }
+
+    /** A live translation's page as a path on the site, with any query; null when it has none. */
+    private static function sitePath(EntryTranslation $translation): ?string
+    {
+        $url = $translation->url();
+        $path = $url === null ? null : parse_url($url, PHP_URL_PATH);
+        if (! is_string($path)) {
+            return null;
+        }
+        $query = parse_url($url, PHP_URL_QUERY);
+
+        return $path.(is_string($query) ? '?'.$query : '');
     }
 
     /** The site's templates: views "cms.…", in resources/views/cms. */
