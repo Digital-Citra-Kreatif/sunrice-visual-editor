@@ -12,9 +12,12 @@ use Sunrice\Admin\Navigation\NavigationItem;
 use Sunrice\Admin\Panel;
 use Sunrice\Admin\Permissions\Permission;
 use Sunrice\Cms\CmsPlugin;
+use Sunrice\Cms\Content;
+use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\VisualEditor\Mcp\EditTemplate;
 use Sunrice\VisualEditor\Mcp\GetTemplateTree;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * The editor, added to the panel in the app's panel provider, after the
@@ -75,5 +78,35 @@ final class VisualEditorPlugin extends BasePlugin
                 Visual editor: visual_editor_get_template_tree reads a template of resources/views/cms as a tree of nodes, each with its id; visual_editor_edit_template changes it by operations on those ids (set an attribute or a text, insert, move, wrap, delete), onto the version that was read. Prefer these to rewriting a whole file: they keep every byte they don't touch.
                 MD)
             ->docs('Visual editor', dirname(__DIR__).'/docs');
+    }
+
+    public function boot(Panel $panel): void
+    {
+        if (! Access::enabled()) {
+            return;
+        }
+
+        // The ⋮ menu of an entry's page in the admin: "Edit with Visual Editor", on its page in that language.
+        Content::entryLinksUsing(fn (EntryTranslation $entry, Authorizable $user): array => self::entryLinks($entry, $user));
+    }
+
+    /**
+     * The editor on an entry's page in the language being edited, for
+     * those who may open the editor, while the entry has a page on the
+     * site to open it on.
+     *
+     * @return list<array{label: string, href: string}>
+     */
+    private static function entryLinks(EntryTranslation $entry, Authorizable $user): array
+    {
+        if (! $user instanceof Authenticatable || ! Access::allowed($user)) {
+            return [];
+        }
+        $path = SunriceBridge::pagePath($entry);
+
+        return $path === null ? [] : [[
+            'label' => 'Edit with Visual Editor',
+            'href' => route('sunrice.admin.visual-editor.show', ['url' => $path], false),
+        ]];
     }
 }

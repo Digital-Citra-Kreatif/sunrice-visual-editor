@@ -96,6 +96,10 @@ content in the admin.
   entry the page shows, in a tab of its own (the panel is never shown in a
   frame): its fields, validation, drafts, revisions and **Publish** are
   the CMS's. Back in the editor, the page is drawn again.
+- **Edit with Visual Editor** in the ⋮ menu of an entry's page in the
+  admin opens the editor on that entry's page of the site, in the language
+  being edited, for those who may open the editor and while the entry is
+  live (Sunrice main, the release after 0.2.0).
 - The panel's command palette (Cmd/Ctrl+K), on every page of the admin,
   finds the site's pages by title: **Edit About in the visual editor**
   opens the editor on that page.
@@ -173,8 +177,8 @@ it, change things and write code is decided by three
 build by a fourth.
 
 **Opening it.** *Visual editor* in the panel's sidebar, under Structure,
-**Edit … in the visual editor** in the command palette (Cmd/Ctrl+K), or
-directly:
+**Edit with Visual Editor** in the ⋮ menu of an entry's page, **Edit … in
+the visual editor** in the command palette (Cmd/Ctrl+K), or directly:
 
 | Address | Opens |
 | --- | --- |

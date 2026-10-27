@@ -108,10 +108,11 @@ other page that uses the template.
   plain text field, which still saves.
 - Which sides are folded and how wide the code is are kept in that browser, not
   for the person.
-- There is no button on the CMS's entry pages: a plugin's script runs
-  only on its own pages. The panel's command palette finds a page by its
-  title and opens the editor on it; a new entry with no published page is
-  not found.
+- **Edit with Visual Editor**, in the ⋮ menu of an entry's page, is
+  there only while the entry has a page on the site: not for a draft, an
+  entry dated to come, one in the trash or one of a collection without
+  pages. The same goes for the command palette, which finds a page by its
+  title: a new entry with no published page is not found.
 - The editor is for a desktop browser. It has been checked in Chromium;
   Firefox and Safari have not been tested.
 - The editor's own screen is in English only.

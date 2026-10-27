@@ -12,8 +12,11 @@ writes the files themselves.
   and belong in the project's git repository. Use it on a local copy of the
   site, or on a staging copy, then commit and deploy. It is off on
   production unless you turn it on.
-- PHP 8.4 or newer, and a site that already runs Sunrice 0.2: the panel
-  and the CMS, installed with `php artisan sunrice:install` (Laravel 13).
+- PHP 8.4 or newer, and a site that already runs Sunrice newer than 0.2.0
+  (its `main` until the next release): the panel and the CMS, installed
+  with `php artisan sunrice:install` (Laravel 13). The entry pages' link
+  to the editor needs the CMS's `Cms::entryLinksUsing()`, which came
+  after 0.2.0.
 - The web server's user must be able to write `resources/views/cms/` and
   `public/cms/`. On a local copy served with `php artisan serve` that is
   already so.
@@ -66,9 +69,11 @@ command there: on a staging copy, after setting
 **Visual editor** now appears in the panel's sidebar, under *Structure*,
 for Super Admins and for anyone given one of its permissions. It is also
 at `/admin/visual-editor` (`/admin` being the panel's path), and
-`/admin/visual-editor?url=/about` opens it on that page. The panel's
-command palette (Cmd/Ctrl+K) finds the site's pages by title: **Edit
-About in the visual editor** opens the editor on that page.
+`/admin/visual-editor?url=/about` opens it on that page. An entry's page
+in the admin has **Edit with Visual Editor** in its ⋮ menu, while the
+entry is live, and the panel's command palette (Cmd/Ctrl+K) finds the
+site's pages by title: **Edit About in the visual editor** opens the
+editor on that page.
 
 ## Where it is on
 

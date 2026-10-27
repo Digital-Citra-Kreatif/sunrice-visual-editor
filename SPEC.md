@@ -97,7 +97,8 @@ The editor is three parts side by side: the tree on the left, the page in the mi
 
 ### From the admin
 
-- The panel's command palette (Cmd/Ctrl+K), on every page of the admin, finds the site's live pages by title for people who may open the editor: **Edit {title} in the visual editor** opens the editor on that page. (A plugin's script runs only on its own pages, so there is no button on the CMS's entry page.)
+- The panel's command palette (Cmd/Ctrl+K), on every page of the admin, finds the site's live pages by title for people who may open the editor: **Edit {title} in the visual editor** opens the editor on that page.
+- The ⋮ menu of an entry's page in the admin has **Edit with Visual Editor** (the CMS's `Cms::entryLinksUsing()`, Sunrice after 0.2.0), for people who may open the editor, while the entry has a live page on the site: it opens the editor on that page, in the language being edited.
 
 ### Fields and variables
 
@@ -188,4 +189,4 @@ Tailwind writes CSS only for the classes it finds in the site's files, so a clas
 | 3 | May Sunrice core gain the three small public APIs in `EXECUTION_PLAN.md` Phase 0? | Yes; until they merge the package wraps the internals in one adapter class. |
 | 4 | Licence of this package. | Same as Sunrice (MIT); not stated in the repository yet. |
 | 5 | Is the code panel's own small editor enough, or is CodeMirror wanted (search and replace, several cursors, folding)? | CodeMirror, always beside the page (decided October 2026). |
-| 6 | Should a draft's banner on the site carry an **Edit visually** link? Sunrice would need a hook for it. | No link on the site; the editor is opened from the admin (its sidebar entry, or the command palette's **Edit … in the visual editor**) or by `?url=`. |
+| 6 | Should a draft's banner on the site carry an **Edit visually** link? Sunrice would need a hook for it. | No link on the site; the editor is opened from the admin (its sidebar entry, an entry page's **Edit with Visual Editor**, or the command palette's **Edit … in the visual editor**) or by `?url=`. |

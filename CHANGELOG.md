@@ -5,6 +5,21 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+### Edit with Visual Editor, on entry pages again
+
+- **Edit with Visual Editor** is back in the ⋮ menu of an entry's page in
+  the admin: it opens the editor on the entry's page of the site, in the
+  language being edited. It is there for people who may open the editor
+  (`visual-editor.open`, or `edit` or `code`), while the entry has a live
+  page (not a draft, an entry dated to come, one in the trash, or one of a
+  collection without pages). The plugin adds it in its `boot()` with the
+  CMS's `Cms::entryLinksUsing()`.
+- The command palette's **Edit {page} in the visual editor** stays: it
+  works from every page of the admin, not only an entry's.
+- **Requires** Sunrice after 0.2.0 (`sunrice/admin` and `sunrice/cms`
+  `^0.2.1 || dev-main`; `main` until the next release), which has
+  `Cms::entryLinksUsing()`.
+
 ### A tighter screen, for developers
 
 - **The left side is two tabs**, **Templates** and **Layers**, in place of
