@@ -12,11 +12,10 @@ writes the files themselves.
   and belong in the project's git repository. Use it on a local copy of the
   site, or on a staging copy, then commit and deploy. It is off on
   production unless you turn it on.
-- PHP 8.4 or newer, and a site that already runs Sunrice newer than 0.2.0
-  (its `main` until the next release): the panel and the CMS, installed
+- PHP 8.4 or newer, and a site that already runs Sunrice 0.2.0 or later:
+  the panel and the CMS, installed
   with `php artisan sunrice:install` (Laravel 13). The entry pages' link
-  to the editor needs the CMS's `Cms::entryLinksUsing()`, which came
-  after 0.2.0.
+  to the editor needs the CMS's `Cms::entryLinksUsing()` (0.2.0).
 - The web server's user must be able to write `resources/views/cms/` and
   `public/cms/`. On a local copy served with `php artisan serve` that is
   already so.

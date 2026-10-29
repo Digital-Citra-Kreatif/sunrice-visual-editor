@@ -98,7 +98,7 @@ The editor is three parts side by side: the tree on the left, the page in the mi
 ### From the admin
 
 - The panel's command palette (Cmd/Ctrl+K), on every page of the admin, finds the site's live pages by title for people who may open the editor: **Edit {title} in the visual editor** opens the editor on that page.
-- The ⋮ menu of an entry's page in the admin has **Edit with Visual Editor** (the CMS's `Cms::entryLinksUsing()`, Sunrice after 0.2.0), for people who may open the editor, while the entry has a live page on the site: it opens the editor on that page, in the language being edited.
+- The ⋮ menu of an entry's page in the admin has **Edit with Visual Editor** (the CMS's `Cms::entryLinksUsing()`, Sunrice 0.2.0), for people who may open the editor, while the entry has a live page on the site: it opens the editor on that page, in the language being edited.
 
 ### Fields and variables
 
