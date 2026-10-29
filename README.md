@@ -99,7 +99,7 @@ content in the admin.
 - **Edit with Visual Editor** in the ⋮ menu of an entry's page in the
   admin opens the editor on that entry's page of the site, in the language
   being edited, for those who may open the editor and while the entry is
-  live (Sunrice main, the release after 0.2.0).
+  live (Sunrice 0.2.0 or later).
 - The panel's command palette (Cmd/Ctrl+K), on every page of the admin,
   finds the site's pages by title: **Edit About in the visual editor**
   opens the editor on that page.

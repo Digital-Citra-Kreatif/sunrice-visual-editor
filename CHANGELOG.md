@@ -16,9 +16,8 @@ minor version may change behaviour; what changes is said here.
   CMS's `Cms::entryLinksUsing()`.
 - The command palette's **Edit {page} in the visual editor** stays: it
   works from every page of the admin, not only an entry's.
-- **Requires** Sunrice after 0.2.0 (`sunrice/admin` and `sunrice/cms`
-  `^0.2.1 || dev-main`; `main` until the next release), which has
-  `Cms::entryLinksUsing()`.
+- **Requires** Sunrice 0.2.0 or later (`sunrice/admin` and `sunrice/cms`
+  `^0.2 || dev-main`), which has `Cms::entryLinksUsing()`.
 
 ### A tighter screen, for developers
 
