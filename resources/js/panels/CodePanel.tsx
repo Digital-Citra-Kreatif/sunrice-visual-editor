@@ -5,6 +5,7 @@ import { ApiError, saveSource, type PickVariable, type TemplateData } from '../l
 import { codeEditorScript, type CodeEditorScript } from '../lib/codeEditor';
 import { highlight } from '../lib/highlight';
 import { sameTemplate, type TemplateName } from '../lib/templates';
+import type { Draft } from '../lib/drafts';
 
 type Props = {
     /** The template whose code is shown. While another is being read, it is still the one before. */
@@ -15,7 +16,9 @@ type Props = {
     draft: string | null;
     onDraft(draft: string | null): void;
     /** The file was written: here it is as it is now. */
-    onSaved(template: TemplateData): void;
+    onSaved(template: TemplateData, sent: Draft): void;
+    /** The draft is based on an earlier disk version: keep it until the person explicitly reloads. */
+    conflict?: boolean;
     /** Whether whoever is editing may write code: without it the code is shown, not changed. */
     mayCode: boolean;
     /** Read the file again as it is on disk, dropping what was typed. */
@@ -84,7 +87,7 @@ export function useCodeScript(editorScript: string | null): CodeEditorScript | '
  * changed since it was read or when the text doesn't compile, and nothing
  * is written.
  */
-export function CodePanel({ template, current: opened, draft, onDraft, onSaved, mayCode, onReload, editorScript, tabs, onOpenTab, onCloseTab, goTo, onCursor, fields, children }: Props) {
+export function CodePanel({ template, current: opened, draft, onDraft, onSaved, conflict = false, mayCode, onReload, editorScript, tabs, onOpenTab, onCloseTab, goTo, onCursor, fields, children }: Props) {
     const script = useCodeScript(editorScript);
     const [saving, setSaving] = useState(false);
     const [trouble, setTrouble] = useState<Trouble | null>(null);
@@ -111,7 +114,7 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
         setSaving(true);
         setTrouble(null);
         saveSource(template.path, template.version, text)
-            .then(onSaved)
+            .then((data) => onSaved(data, { text, base: { source: original, version: template.version } }))
             .catch((error: unknown) => {
                 const kind = error instanceof ApiError && (error.reason === 'syntax' || error.reason === 'conflict') ? error.reason : 'other';
                 setTrouble({ kind, message: error instanceof Error ? error.message : 'The template could not be saved.' });
@@ -157,14 +160,14 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
 
             {children}
 
-            {trouble !== null && (
+            {(trouble !== null || conflict) && (
                 <div className="sve-code__trouble" role="alert">
                     <p>
-                        {trouble.kind === 'syntax' && <strong>Not saved: this doesn’t compile. </strong>}
-                        {trouble.kind === 'conflict' && <strong>Not saved. </strong>}
-                        {trouble.message}
+                        {trouble?.kind === 'syntax' && <strong>Not saved: this doesn’t compile. </strong>}
+                        {(trouble?.kind === 'conflict' || conflict) && <strong>Not saved. </strong>}
+                        {trouble?.message ?? 'The file changed on disk while this draft was open. Your draft is kept; reload only when you are ready to discard it.'}
                     </p>
-                    {trouble.kind === 'conflict' && (
+                    {(trouble?.kind === 'conflict' || conflict) && (
                         <button type="button" className="sve-button sve-button--quiet" onClick={onReload}>
                             Load the file as it is now
                         </button>

@@ -49,9 +49,9 @@ final class Manifest
      *
      * @param  bool  $opens  whether it opened as a tree, and so carries marks
      */
-    public function record(TemplateFile $file, bool $opens): void
+    public function record(TemplateFile $file, bool $opens, ?string $version = null): void
     {
-        $this->files[self::key($file)] ??= ['key' => self::key($file)] + $file->toArray() + ['opens' => $opens];
+        $this->files[self::key($file)] ??= ['key' => self::key($file)] + $file->toArray() + ['opens' => $opens, 'version' => $version];
     }
 
     /** Notes the entry the page is of, as its own template was given it: the first one, the page's. */

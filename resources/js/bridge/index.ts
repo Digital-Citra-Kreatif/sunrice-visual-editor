@@ -69,7 +69,7 @@ function targetOf(element: Element): Target | null {
         }
     }
 
-    return { mark, tag: element.tagName.toLowerCase(), rect: rectOf(element), path };
+    return { mark, version: manifest().files.find((file) => file.key === mark.file)?.version ?? null, tag: element.tagName.toLowerCase(), rect: rectOf(element), path };
 }
 
 /** Every element on the page drawn from one node: one per copy of its template. */

@@ -5,6 +5,7 @@ import { NoticeBar, type Notice } from './canvas/Notice';
 import { Outlines, type Outline } from './canvas/Outlines';
 import { ApiError, applyOperations, copyToSite, fieldsAt, listTemplates, readTemplate, runBuild, saveSource, type Built, type FieldsAt, type Loaded, type Operation, type TemplateData, type TemplateInfo, type TreeNode } from './lib/api';
 import { useBridge } from './lib/frame';
+import { typedDraft, savedDraft, sameVersion, type Draft } from './lib/drafts';
 import { canRedo, canUndo, recorded, redoStep, redone, undoStep, undone, type History } from './lib/history';
 import { readLayout, shareOf, siding, writeLayout } from './lib/layout';
 import { pageOf, rememberPage } from './lib/memory';
@@ -168,22 +169,32 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const openNow = useRef(open);
     openNow.current = open;
     /** The code of each template as typed and not saved, by "origin:path": going to another template leaves it where it is. */
-    const [drafts, setDrafts] = useState<Record<string, string>>({});
+    const [drafts, setDrafts] = useState<Record<string, Draft>>({});
     /** The templates opened since the editor was, in the order they were: the tabs of the code. */
     const [tabs, setTabs] = useState<TemplateName[]>([]);
+    const tabsNow = useRef(tabs);
+    tabsNow.current = tabs;
     /** A place in a template's code the cursor is asked to go to. */
     const [codePlace, setCodePlace] = useState<CodePlace | null>(null);
     const asked = useRef(0);
     const draft = open === null ? null : (drafts[historyKey(open)] ?? null);
     /** What is typed in a template's code and not saved; null when it is the file again, or was saved. */
-    const setDraft = (text: string | null, of: TemplateName | null = openNow.current) => {
+    const setDraft = (text: string | null, of: TemplateName | TemplateData | null = openNow.current) => {
         if (of === null) {
             return;
         }
         setDrafts((all) => {
             const { [historyKey(of)]: had, ...others } = all;
 
-            return text === null ? (had === undefined ? all : others) : had === text ? all : { ...others, [historyKey(of)]: text };
+            if (text === null) {
+                return had === undefined ? all : others;
+            }
+            if (!('source' in of) || of.source === null) {
+                return all;
+            }
+            const next = typedDraft(had, { source: of.source, version: of.version }, text);
+
+            return next === undefined ? others : { ...others, [historyKey(of)]: next };
         });
     };
     /** The open template has code that is not saved: the tree waits for it. */
@@ -242,7 +253,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     /** The selected node of the open template, by its id in the tree. */
     const [selected, setSelected] = useState<string | null>(null);
     /** A node to select once the template it is in has been opened and read. */
-    const toSelect = useRef<{ template: TemplateName; id: string } | null>(null);
+    const toSelect = useRef<{ template: TemplateName; id: string; version: string } | null>(null);
     const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
 
     /** What the pointer is over: an element of the page, a row of the template list, a row of the tree. */
@@ -306,7 +317,15 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             }
             const { file: key, id } = said.target.mark;
             const file = page?.files.find((candidate) => candidate.key === key);
-            if (file === undefined) {
+            if (file === undefined || !sameVersion(said.target.version, file.version)) {
+                return;
+            }
+            if (sameTemplate(file, open) && template.state === 'ready' && !sameVersion(file.version, template.data.version)) {
+                setSelected(null);
+                say('problem', 'The preview is from an earlier file version. Refreshing it; select the element again.');
+                setReadings((count) => count + 1);
+                redraw();
+
                 return;
             }
             // What was clicked is shown in its code, and in the layers.
@@ -320,7 +339,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 }
             } else {
                 // An element of another template: open that one, and select the element once it is read.
-                toSelect.current = { template: { path: file.path, origin: file.origin }, id };
+                toSelect.current = { template: { path: file.path, origin: file.origin }, id, version: file.version as string };
                 openTemplate({ path: file.path, origin: file.origin });
             }
         } else if (said.type === 'key') {
@@ -570,7 +589,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     if (template.state === 'ready') {
         lastRead.current = template.data;
     }
-    const codeOf = template.state === 'ready' ? template.data : template.state === 'loading' ? lastRead.current : null;
+    const readCode = template.state === 'ready' ? template.data : template.state === 'loading' ? lastRead.current : null;
+    const codeDraft = readCode === null ? undefined : drafts[historyKey(readCode)];
+    // A refreshed disk version must never become the base of an older draft.
+    const codeOf = readCode === null || codeDraft === undefined ? readCode : { ...readCode, ...codeDraft.base };
+    const draftConflict = readCode !== null && codeDraft !== undefined && codeDraft.base.version !== readCode.version;
 
     /** The editor's whole width, which the line between the page and the code is dragged across. */
     const shell = useRef<HTMLDivElement>(null);
@@ -648,7 +671,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     // What can be read where the cursor is, in the text as it is typed: offered by the code editor
     // after `$entry->` and the like. Asked a moment after the typing or the cursor stops.
     const fieldsOf = codeOf !== null && codeOf.origin === 'site' && codeOf.editable && codeOf.source !== null ? codeOf : null;
-    const fieldsText = fieldsOf === null ? null : (drafts[historyKey(fieldsOf)] ?? fieldsOf.source);
+    const fieldsText = fieldsOf === null ? null : (drafts[historyKey(fieldsOf)]?.text ?? fieldsOf.source);
     const fieldsByte = fieldsOf !== null && codeCursor !== null && codeCursor.of === historyKey(fieldsOf) ? codeCursor.byte : 0;
     const fieldsWanted = mayCode && template.state === 'ready' && fieldsOf !== null;
     useEffect(() => {
@@ -745,14 +768,24 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 if (stale) {
                     return;
                 }
+                const previous = lastRead.current;
+                if (previous !== null && sameTemplate(previous, data) && !sameVersion(previous.version, data.version)) {
+                    // Offsets selected in the previous tree no longer name the same nodes,
+                    // even when the refreshed preview already matches the new disk version.
+                    setSelected(null);
+                }
                 setTemplate({ state: 'ready', data });
+                if (openFile !== null && !sameVersion(openFile.version, data.version)) {
+                    setSelected(null);
+                    redraw();
+                }
                 // The element that was clicked to get here. One clicked for another template is
                 // not this reading's to take: the template that was open may still be arriving
                 // when the click sends the editor on.
                 const waitingFor = toSelect.current;
                 if (waitingFor !== null && sameTemplate(waitingFor.template, open)) {
                     toSelect.current = null;
-                    if (findNode(data.tree, waitingFor.id) !== null) {
+                    if (sameVersion(waitingFor.version, data.version) && findNode(data.tree, waitingFor.id) !== null) {
                         setSelected(waitingFor.id);
                         pointCode(open, findNode(data.tree, waitingFor.id), true);
                     }
@@ -763,7 +796,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         return () => {
             stale = true;
         };
-    }, [open?.path, open?.origin, readings]);
+    }, [open?.path, open?.origin, readings, openFile?.version]);
 
     // Undo and redo from the keyboard, wherever in the editor it is, except in a field, which has
     // its own (the code has its own undo). Delete is not listened for here: only on a row, or on the page (the bridge).
@@ -792,10 +825,19 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     }, [anyUnsaved]);
 
     /** The code was saved: show the template as it is now, in the tree and on the page. */
-    const saved = (data: TemplateData) => {
+    const saved = (data: TemplateData, sent: Draft) => {
         remember(data);
         say('done', `Saved ${data.path}.`);
-        setDraft(null, data);
+        setDrafts((all) => {
+            const key = historyKey(data);
+            const { [key]: current, ...others } = all;
+            if (!tabsNow.current.some((tab) => sameTemplate(tab, data))) {
+                return others;
+            }
+            const next = savedDraft(current, sent, { source: data.source ?? sent.text, version: data.version });
+
+            return next === undefined ? others : { ...others, [key]: next };
+        });
         if (sameTemplate(openNow.current, data)) {
             setTemplate({ state: 'ready', data });
             // The ids of the old tree mean nothing in the new one.
@@ -1042,6 +1084,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 ? 'This is one of the CMS’s own views: it can’t be changed here.'
                 : tree === null
                   ? 'This template can only be edited as code.'
+                  : openFile !== null && !sameVersion(openFile.version, template.data.version)
+                    ? 'The preview is from another file version. Wait for it to refresh before changing layers.'
                   : unsaved
                     ? 'The code of this template has changes that are not saved. Save or revert them first.'
                     : null;
@@ -1398,7 +1442,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                                 template={codeOf}
                                 current={open}
                                 mayCode={mayCode && template.state === 'ready'}
-                                draft={drafts[historyKey(codeOf)] ?? null}
+                                draft={drafts[historyKey(codeOf)]?.text ?? null}
+                                conflict={draftConflict}
                                 onDraft={(text) => setDraft(text, codeOf)}
                                 tabs={tabs.map((tab) => ({ ...tab, unsaved: drafts[historyKey(tab)] !== undefined }))}
                                 onOpenTab={openTemplate}

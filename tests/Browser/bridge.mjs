@@ -120,6 +120,7 @@ await step('says what the pointer is over: the nearest marked element, its box a
 
     assert.deepEqual(hover.target.mark, { file: 'cccccccccc', id: '60' });
     assert.equal(hover.target.tag, 'em');
+    assert.equal(hover.target.version, 'fixture-v1');
     assert.ok(close(hover.target.rect, await boxOf('#word')), JSON.stringify(hover.target.rect));
     assert.deepEqual(hover.target.path, [
         { file: 'cccccccccc', id: '60' },

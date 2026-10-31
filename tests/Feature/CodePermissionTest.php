@@ -542,3 +542,12 @@ it('lets someone who may edit code write any', function (string $code) {
 
     putJson(SVE_HERO_API.'/source', ['version' => sha1(File::get($this->hero)), 'source' => $this->original."\n{{ phpinfo() }}\n"])->assertOk();
 })->with([SVE_CODE['an echo'], SVE_CODE['a short @php'], SVE_CODE['a condition'], SVE_CODE['a component given code']]);
+
+it('lets an editor insert the offered array-backed menu condition without adding arbitrary code', function () {
+    ($this->as)(Access::EDIT);
+    $node = ($this->node)('<section');
+    $menu = collect(($this->picked)($node, true))->firstWhere('code', "cms_menu('main')");
+    expect($menu)->not->toBeNull();
+    ($this->send)(['type' => 'append', 'node' => $node, 'blade' => $menu['inserts'][1]['blade']])->assertOk();
+    get('/')->assertOk();
+});

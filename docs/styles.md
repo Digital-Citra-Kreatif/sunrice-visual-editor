@@ -186,7 +186,8 @@ permission is not listed yet). The top bar then has a **Build** button.
   editor was opened; the editor does not look into the built files.
 - A click runs the command in the site's directory and waits for it. When
   it ends well the page is drawn again with the new CSS, and the bar says
-  how long the build took.
+  how long the build took. A successful build also invalidates the CMS’s
+  cached pages, so visitors get HTML pointing at the new assets.
 - When it fails, what the command printed is shown under the bar: a
   mistyped class in an `@apply`, a missing package. Nothing of the site
   changes because of a failed build beyond what the command itself did.

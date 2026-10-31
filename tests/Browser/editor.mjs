@@ -499,6 +499,67 @@ const write = (path, source) =>
         [`${base}/admin/visual-editor/api/templates/${path}`, source],
     );
 
+await step('keep typing made while a template save response is pending', async () => {
+    await codeIs(footer);
+    const sent = `${footer}<!-- submitted -->\n`;
+    const newer = `${sent}<!-- typed while saving -->\n`;
+    const pattern = '**/visual-editor/api/templates/layout.blade.php/source';
+    let release;
+    let received;
+    const gate = new Promise((resolve) => { release = resolve; });
+    const arrived = new Promise((resolve) => { received = resolve; });
+    await page.route(pattern, async (route) => {
+        const response = await route.fetch();
+        received();
+        await gate;
+        await route.fulfill({ response });
+    }, { times: 1 });
+    try {
+        await code.evaluate((holder, text) => holder.sveCodeEditor.setText(text), sent);
+        await codeBar.getByRole('button', { name: 'Save', exact: true }).click();
+        await arrived;
+        await code.evaluate((holder, text) => holder.sveCodeEditor.setText(text), newer);
+        release();
+        await codeBar.getByRole('button', { name: 'Save', exact: true }).waitFor();
+        await codeIs(newer);
+        await codeBar.getByText('Not saved').waitFor();
+        if ((await onDisk('layout.blade.php')) !== sent) throw new Error('Later typing was unexpectedly saved');
+        await codeBar.getByRole('button', { name: 'Revert' }).click();
+        await codeIs(sent);
+    } finally {
+        release();
+        await page.unroute(pattern);
+        await write('layout.blade.php', footer);
+    }
+    await page.goto(`${base}/admin/visual-editor`);
+    await showTemplates();
+    await page.locator('.sve-side--left .sve-templates').first().locator('.sve-template', { hasText: 'layout' }).click();
+    await openIs('layout');
+    await codeIs(footer);
+});
+
+await step('retain a draft and refuse its stale version after an external edit and tab switch', async () => {
+    const draft = `${footer}<!-- unsaved draft -->\n`;
+    const external = `${footer}<!-- external change -->\n`;
+    await code.evaluate((holder, text) => holder.sveCodeEditor.setText(text), draft);
+    await frame.locator('.hero h1').click();
+    await openIs('blocks/hero');
+    if ((await write('layout.blade.php', external)) !== 200) throw new Error('The external edit failed');
+    try {
+        await codeTab('layout').locator('.sve-tab__name').click();
+        await openIs('layout');
+        await codeIs(draft);
+        await page.locator('.sve-code__trouble').getByText('The file changed on disk', { exact: false }).waitFor();
+        await codeBar.getByRole('button', { name: 'Save', exact: true }).click();
+        await page.locator('.sve-code__trouble').getByText('Load it again before changing it.', { exact: false }).waitFor();
+        if ((await onDisk('layout.blade.php')) !== external) throw new Error('The old draft overwrote the external change');
+        await page.getByRole('button', { name: 'Load the file as it is now', exact: true }).click();
+        await codeIs(external);
+    } finally {
+        await write('layout.blade.php', footer);
+    }
+});
+
 await step('give a file written on Windows back with the line breaks it came with', async () => {
     const windows = footer.replaceAll('\n', '\r\n');
     if ((await write('layout.blade.php', windows)) !== 200) {

@@ -77,7 +77,7 @@ final class Reading
     public function asked(): string
     {
         return match (true) {
-            $this->shape->isList() => $this->maybe || $this->loose ? 'collect('.$this->code.($this->loose ? ' ?? []' : '').')->isNotEmpty()' : $this->code.'->isNotEmpty()',
+            $this->shape->isList() => 'collect('.$this->code.($this->loose ? ' ?? []' : '').')->isNotEmpty()',
             $this->loose => '! empty('.$this->code.')',
             default => $this->code,
         };
