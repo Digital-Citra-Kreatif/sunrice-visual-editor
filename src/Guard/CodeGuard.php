@@ -149,7 +149,8 @@ final class CodeGuard
             // Text and literal expressions inside executable elements are code, even
             // if no PHP is added. Work against the original tree for every operation.
             if (in_array($operation->type, ['setText', 'setExpression', 'setTag', 'setAttribute', 'append', 'prepend', 'insertBefore', 'insertAfter'], true)) {
-                for ($at = $node; $at !== null; $at = $at->parent) {
+                $context = in_array($operation->type, ['insertBefore', 'insertAfter'], true) ? $node?->parent : $node;
+                for ($at = $context; $at !== null; $at = $at->parent) {
                     if (in_array(strtolower($at->name), ['script', 'style', 'iframe', 'object', 'embed', 'svg', 'math'], true)) {
                         $allowed = false;
                     }

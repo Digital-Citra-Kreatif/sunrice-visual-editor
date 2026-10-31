@@ -35,6 +35,12 @@ metadata requests and anonymous API rate limits. Git must be installed;
 a public checkout needs no GitHub token. Private repositories still need
 their own Git credentials.
 
+If the application's `composer.json` already declares other GitHub VCS
+repositories (for example the Sunrice panel and CMS), add `"no-api": true`
+to those entries too. Composer uses the application's repository settings;
+settings inside a dependency are not inherited. Keep existing path repositories
+as path repositories. The fresh-site CI setup applies this to the Sunrice splits.
+
 For a monorepo or CI, use a local checkout as a path repository instead.
 This also avoids enumerating remote branches. From the Laravel application:
 

@@ -626,3 +626,24 @@ it('refuses executable attributes forwarded through CMS components', function (s
     [':href', "'javascript:alert(1)'"],
     ['href', 'javascript:alert(1)'],
 ]);
+
+it('allows offered siblings beside executable elements while refusing inserts inside them', function (string $type, string $markup, string $tag) {
+    ($this->as)(Access::EDIT);
+    $before = str_replace('<h1>', $markup.'<h1>', $this->original);
+    File::put($this->hero, $before);
+    $response = ($this->send)(['type' => $type, 'node' => ($this->node)('<'.$tag), 'blade' => '<p>Text</p>'])->assertOk();
+    $written = File::get($this->hero);
+    $inserted = Template::open($written)->find($response->json('focus'));
+    expect($inserted?->parent?->name)->toBe('section');
+    ($this->send)(['type' => 'append', 'node' => ($this->node)('<'.$tag), 'blade' => '<p>Text</p>'])->assertStatus(422);
+    expect(File::get($this->hero))->toBe($written);
+    if ($tag === 'svg') {
+        ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<path'), 'blade' => '<p>Text</p>'])->assertStatus(422);
+        expect(File::get($this->hero))->toBe($written);
+    }
+})->with(['insertBefore', 'insertAfter'])->with([
+    ['<svg><path d="M0 0"></path></svg>', 'svg'],
+    ['<script>/* existing code */</script>', 'script'],
+    ['<style>.existing { color: red; }</style>', 'style'],
+    ['<iframe src="/about"></iframe>', 'iframe'],
+]);
