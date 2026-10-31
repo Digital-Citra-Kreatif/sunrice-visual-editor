@@ -165,23 +165,28 @@ final class CodeGuard
     {
         $name = strtolower($operation->text('name'));
         $browserName = ltrim($name, ':');
-        if (str_starts_with($browserName, 'on') || $browserName === 'srcdoc' || str_starts_with($name, 'x-') || str_starts_with($name, '@')) {
+        if (str_starts_with($browserName, 'on') || $browserName === 'srcdoc' || str_starts_with($browserName, 'x-') || str_starts_with($browserName, '@')) {
             return false;
+        }
+        if (in_array($browserName, ['href', 'src', 'action', 'formaction', 'poster', 'xlink:href'], true)) {
+            // Bound component attributes are PHP literals, not HTML URL text:
+            // require code rather than guessing what their evaluated value is.
+            if (str_starts_with($name, ':')) {
+                return false;
+            }
+            $value = html_entity_decode($operation->text('value'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $value = preg_replace('/[\x00-\x20\x7f]+/', '', $value) ?? '';
+            if (preg_match('/^[a-z][a-z0-9+.-]*:/i', $value) === 1 && preg_match('/^(https?|mailto|tel):/i', $value) !== 1) {
+                return false;
+            }
         }
         if (Rules::isComponentTag($node)) {
             return str_starts_with($node->open, '<x-sunrice-cms::');
         }
         $safe = in_array($name, ['id', 'class', 'title', 'alt', 'role', 'width', 'height', 'controls', 'rows', 'cols', 'colspan', 'rowspan', 'for', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'method', 'action', 'disabled', 'checked', 'selected', 'tabindex', 'href', 'src'], true)
             || str_starts_with($name, 'aria-');
-        if (! $safe || ! in_array($name, ['href', 'src', 'action'], true)) {
-            return $safe;
-        }
-        // Browser URL schemes are case-insensitive and ignore ASCII whitespace.
-        // Decode entities before checking; typed ampersands are escaped on output.
-        $value = html_entity_decode($operation->text('value'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $value = preg_replace('/[\x00-\x20\x7f]+/', '', $value) ?? '';
 
-        return preg_match('/^[a-z][a-z0-9+.-]*:/i', $value) !== 1 || preg_match('/^(https?|mailto|tel):/i', $value) === 1;
+        return $safe;
     }
 
     /**

@@ -611,3 +611,18 @@ it('keeps duplicate, move and delete available with only edit permission', funct
     ($this->send)(['type' => 'remove', 'node' => ($this->node)('<h1>')])->assertOk();
     expect(($this->runsNew)())->toBe([]);
 });
+
+it('refuses executable attributes forwarded through CMS components', function (string $name, string $value) {
+    ($this->as)(Access::EDIT);
+    $entry = collect(getJson('/admin/visual-editor/api/inserts')->json('inserts'))->first(fn (array $insert) => str_contains($insert['blade'], '<x-sunrice-cms::entries'));
+    ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<h1>'), 'blade' => $entry['blade']])->assertOk();
+    $before = File::get($this->hero);
+    ($this->send)(['type' => 'setAttribute', 'node' => ($this->node)('<x-sunrice-cms::entries'), 'name' => $name, 'value' => $value, 'blade' => true])->assertStatus(422);
+    expect(File::get($this->hero))->toBe($before);
+})->with([
+    [':x-init', "'alert(1)'"],
+    [':x-data', "'{init(){alert(1)}}'"],
+    [':onclick', "'alert(1)'"],
+    [':href', "'javascript:alert(1)'"],
+    ['href', 'javascript:alert(1)'],
+]);
