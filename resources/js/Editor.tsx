@@ -768,6 +768,12 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 if (stale) {
                     return;
                 }
+                const previous = lastRead.current;
+                if (previous !== null && sameTemplate(previous, data) && !sameVersion(previous.version, data.version)) {
+                    // Offsets selected in the previous tree no longer name the same nodes,
+                    // even when the refreshed preview already matches the new disk version.
+                    setSelected(null);
+                }
                 setTemplate({ state: 'ready', data });
                 if (openFile !== null && !sameVersion(openFile.version, data.version)) {
                     setSelected(null);

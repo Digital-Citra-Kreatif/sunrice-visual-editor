@@ -153,3 +153,24 @@ test('a matching preview version still selects and edits the named node', async 
     env.send(state, { type: 'key', key: 'delete' });
     assert.deepEqual(env.requests[0].body, { version: 'a1', operations: [{ type: 'remove', node: '0' }] });
 });
+
+test('a refreshed preview clears a selection from an older source version', async () => {
+    const env = environment();
+    const node = (id, label) => ({ id, type: 'element', name: 'p', label, start: Number(id), end: Number(id) + 8, can: { delete: true, attributes: true }, children: [] });
+    env.files['a.blade.php'].tree = { id: 'root', type: 'root', start: 0, end: 16, children: [node('0', 'A'), node('8', 'B')] };
+    const state = await editor();
+    const ready = () => env.send(state, { type: 'ready', url: '/', title: 'Page', manifest: { files: [{ ...env.files['a.blade.php'], key: 'file-a' }] } });
+    ready(); await flush(state);
+    env.send(state, { type: 'select', target: { mark: { file: 'file-a', id: '8' }, version: 'a1' } });
+    assert.equal(find(state.output, LayersPanel).props.selected, '8');
+
+    env.files['a.blade.php'] = { ...template('a.blade.php', '<p>X</p><p>A</p><p>B</p>', 'a2'), tree: { id: 'root', type: 'root', start: 0, end: 24, children: [node('0', 'X'), node('8', 'A'), node('16', 'B')] } };
+    ready(); await flush(state);
+    assert.equal(find(state.output, LayersPanel).props.selected, null);
+    env.send(state, { type: 'key', key: 'delete' });
+    assert.equal(env.requests.length, 0);
+
+    env.send(state, { type: 'select', target: { mark: { file: 'file-a', id: '16' }, version: 'a2' } });
+    env.send(state, { type: 'key', key: 'delete' });
+    assert.deepEqual(env.requests[0].body, { version: 'a2', operations: [{ type: 'remove', node: '16' }] });
+});
