@@ -129,6 +129,7 @@ nothing is offered from inside it.
 ### Loading the completion catalog
 
 Opening a template does not request its fields catalog. Press Ctrl+Space in
-the code editor to load fields for the cursor position. After that first
+the code editor, or start typing a variable/field expression, to load fields
+for the cursor position. After that first
 request, suggestions follow typing and cursor movement for that template.
 This keeps large schema catalogs out of the initial editor transfer.

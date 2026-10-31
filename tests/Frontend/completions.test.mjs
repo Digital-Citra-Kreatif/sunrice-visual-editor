@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { indented, offersFor } from '../../resources/js/lib/completions.ts';
+import { indented, needsFieldCatalog, offersFor } from '../../resources/js/lib/completions.ts';
 
 const field = (handle, label, expression, more = {}) => ({ handle, label, code: expression ?? handle, what: 'text', kind: 'text', of: [], inserts: [], print: expression === null ? null : `{{ ${expression} }}`, expression, asked: '', compared: '', looped: null, groups: [], note: null, ...more });
 const variable = (code, fields, more = {}) => ({ code, title: `The ${code}`, from: 'page', sure: true, what: 'entry', kind: 'entry', of: [], inserts: [], print: null, expression: null, asked: '', compared: '', looped: null, groups: [{ title: 'Fields', fields }], ...more });
+
+test('the catalog waits for typed field syntax or an explicit completion gesture', () => {
+    for (const text of ['', '    ', '<h1>Title</h1>', 'plain words']) assert.equal(needsFieldCatalog(text), false);
+    for (const text of ['{{ $block->', '$entry?->tit', "$values['pic", '{{ $ent', '$block']) assert.equal(needsFieldCatalog(text), true, text);
+    assert.equal(needsFieldCatalog('    ', true), true);
+});
 
 const cover = field('cover', 'Cover', null, { what: 'file', groups: [{ title: 'Every file', fields: [field('alt', 'Alt text', "$entry->get('cover')?->alt")] }] });
 const entry = variable('$entry', [field('title', 'Title', '$entry->title'), field('summary', 'Summary', "$entry->get('summary')"), field('body', 'Body', "$entry->get('body')", { print: "{!! $entry->get('body') !!}", what: 'rich text' }), cover]);

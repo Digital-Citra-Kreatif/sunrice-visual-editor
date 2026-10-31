@@ -14,7 +14,7 @@ minor version may change behaviour; what changes is said here.
 - F-084/F-089: document Git-based no-API installs and use path repositories in CI.
 - F-085: show configured CSS/JS disk paths instead of a hard-coded theme folder.
 - F-087: clear refused-save notices when reverting or loading saved code.
-- F-090: defer the first completion catalog request until Ctrl+Space.
+- F-090: defer the first completion catalog request until typing a field expression or pressing Ctrl+Space.
 
 ### Save and preview safety
 

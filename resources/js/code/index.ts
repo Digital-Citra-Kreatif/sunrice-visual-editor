@@ -26,7 +26,7 @@ import {
     rectangularSelection,
 } from '@codemirror/view';
 import type { PickVariable } from '../lib/api.ts';
-import { indented, offersFor } from '../lib/completions.ts';
+import { indented, needsFieldCatalog, offersFor } from '../lib/completions.ts';
 import { coloured, difference, indentOf, lineBreaksOf } from './text.ts';
 
 export type CodeEditorOptions = {
@@ -42,7 +42,7 @@ export type CodeEditorOptions = {
      * characters.
      */
     onCursor?(saved: number, now: number): void;
-    /** Load the field catalog only when completion is explicitly requested. */
+    /** Load the catalog when completion is requested or a variable is typed. */
     onFieldsNeeded?(): void;
 };
 
@@ -195,12 +195,12 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
     let fields: PickVariable[] = [];
     let awaitingFields = false;
     const offer = (context: CompletionContext): CompletionResult | null => {
-        if (context.explicit && fields.length === 0) {
+        const line = context.state.doc.lineAt(context.pos);
+        const before = line.text.slice(0, context.pos - line.from);
+        if (fields.length === 0 && needsFieldCatalog(before, context.explicit)) {
             awaitingFields = true;
             options.onFieldsNeeded?.();
         }
-        const line = context.state.doc.lineAt(context.pos);
-        const before = line.text.slice(0, context.pos - line.from);
         // Asked for with Ctrl+Space: everything at the cursor, as Blade of its own.
         const found = offersFor(before, fields, context.explicit);
 
