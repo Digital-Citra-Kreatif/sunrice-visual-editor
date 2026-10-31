@@ -13,6 +13,7 @@ use Sunrice\VisualEditor\Css\Changes;
 use Sunrice\VisualEditor\Css\Styles;
 use Sunrice\VisualEditor\Css\ThemeRepository;
 use Sunrice\VisualEditor\Rendering\CustomCss;
+use Sunrice\VisualEditor\Support\AssetSyntax;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
 
@@ -61,6 +62,7 @@ class StyleController extends Controller
                 'source' => mb_check_encoding($source, 'UTF-8') ? $source : null,
                 'injected' => CustomCss::injected(),
                 'stack' => CustomCss::stack(),
+                'checked' => AssetSyntax::configured('css'),
             ]];
         });
     }

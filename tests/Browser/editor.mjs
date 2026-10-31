@@ -1109,7 +1109,7 @@ const jsApi = `${base}/admin/visual-editor/api/scripts/custom`;
 const jsNow = async () => (await (await page.request.get(jsApi)).json()).custom;
 let jsBefore = '';
 
-await step('write custom JS beside the page, save it, and see it run on the page', async () => {
+await step('save custom JS, keep it out of editor previews and run it on public pages', async () => {
     jsBefore = (await jsNow()).source;
     await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Custom JS' }).click();
     await customJs.locator('.cm-editor').waitFor();
@@ -1121,7 +1121,13 @@ await step('write custom JS beside the page, save it, and see it run on the page
     await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Custom JS' }).locator('.sve-tab__dot').waitFor();
     await page.keyboard.press('Control+s');
     await page.locator('.sve-notice--done', { hasText: 'Saved custom.js.' }).waitFor();
-    await onPage('.hero h1[data-custom-js="ran"]');
+    await onPage('.hero h1');
+    if (await frame.locator('script[data-sunrice-custom-js], .hero h1[data-custom-js="ran"]').count()) throw new Error('Custom JS ran inside the editor preview');
+    const visitorContext = await browser.newContext();
+    const visitor = await visitorContext.newPage();
+    await visitor.goto(`${base}/`);
+    await visitor.locator('.hero h1[data-custom-js="ran"]').waitFor();
+    await visitorContext.close(); await page.bringToFront();
     if (!(await (await page.request.get(`${base}/`)).text()).includes('data-sunrice-custom-js')) {
         throw new Error('The site does not load the custom script');
     }

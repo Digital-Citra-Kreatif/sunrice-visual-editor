@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Sunrice\VisualEditor\Blade\EditRejected;
 use Sunrice\VisualEditor\Css\CssRejected;
 use Sunrice\VisualEditor\Css\StylesheetNotFound;
+use Sunrice\VisualEditor\Support\AssetCheckFailed;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\CopyRefused;
 use Sunrice\VisualEditor\Templates\DoesNotCompile;
@@ -47,7 +48,7 @@ trait AnswersAsJson
             return $this->refuse('rejected', $e->getMessage(), 422, ['change' => $e->change]);
         } catch (CopyRefused $e) {
             return $this->refuse('rejected', $e->getMessage(), 422);
-        } catch (DoesNotCompile $e) {
+        } catch (DoesNotCompile|AssetCheckFailed $e) {
             return $this->refuse('syntax', $e->getMessage(), 422);
         } catch (InvalidRequest $e) {
             return $this->refuse('invalid', $e->getMessage(), 422);

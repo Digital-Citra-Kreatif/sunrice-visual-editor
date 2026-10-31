@@ -74,14 +74,15 @@ return [
     |--------------------------------------------------------------------------
     |
     | A script of the site's own, in public/cms/, written in the editor's
-    | Custom JS tab by people who may edit code. Every page of the site
+    | Custom JS tab by people who may edit code. Public pages of the site
     | loads it (deferred, so it runs once the page is read) from a <script>
     | pushed onto the layout's `@stack('head')` (the CMS's starter layout
     | has one): no template is changed for it. For a script one template
     | needs, write `@push('head')` in that template instead.
     |
     | As for the custom CSS, it is added whether or not the editor is on.
-    | Set `inject` to false to load the file from the layout yourself.
+    | Authorized editor previews skip automatic loading. Set `inject` to
+    | false to load the file from the layout yourself.
     |
     */
 
@@ -89,6 +90,15 @@ return [
         'file' => 'custom.js',
         'inject' => env('SUNRICE_VISUAL_EDITOR_CUSTOM_JS', true),
         'stack' => 'head',
+    ],
+
+    // Optional parse-only tools, as argument lists. Each reads the candidate
+    // source on stdin; exit 0 accepts it. No source is executed by the editor.
+    // For JS, for example: ['node', '--check']. CSS: a site's own checker.
+    'syntax_checks' => [
+        'css' => null,
+        'js' => null,
+        'timeout' => 10,
     ],
 
     /*

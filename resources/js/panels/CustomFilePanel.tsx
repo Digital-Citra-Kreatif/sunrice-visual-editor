@@ -21,7 +21,7 @@ const KINDS = {
         save: (file: CustomFile, text: string) => saveCustomJs(file.version, text).then((written) => written.version),
         note: (file: CustomFile) =>
             file.injected
-                ? `Every page of the site loads this script, deferred, through its layout’s @stack('${file.stack}'). For a script one template needs, write @push('${file.stack}') … @endpush in that template instead.`
+                ? `Public pages load this script, deferred, through the layout’s @stack('${file.stack}'). Automatic loading is skipped in editor previews. Test it with View page. For a script one template needs, write @push('${file.stack}') … @endpush in that template instead.`
                 : `Pages don’t load this script by themselves here (custom_js.inject is off): load ${file.url} from your layout.`,
         locked: 'The custom script runs in every visitor’s browser: changing it takes the permission to edit code.',
     },
@@ -133,6 +133,8 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
             </header>
 
             <p className="sve-custom-css__note">{how.note(css)}</p>
+            {kind === 'css' && <p className="sve-custom-css__note">CSS changes public pages immediately and can hide content or load external images and fonts. Give edit permission only to trusted designers.</p>}
+            <p className="sve-custom-css__note">{css.checked ? 'Saves must pass the site’s configured syntax check.' : 'Syntax checks are off. An administrator can enable syntax_checks in the editor configuration.'}</p>
             {readOnly && <p className="sve-code__banner">{how.locked}</p>}
 
             {trouble !== null && (
