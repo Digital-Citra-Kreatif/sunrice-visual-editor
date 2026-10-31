@@ -38,6 +38,7 @@ test('the Fields tab loads on demand, caches the context and preserves locale fo
     assert.equal(env.calls.length, 0);
     state.props.active = true; state.render(); await flush(state);
     assert.equal(env.calls.length, 2);
+    assert.ok(env.calls.some((url) => url.includes('reference=1')));
     assert.ok(env.calls.some((url) => url.endsWith('/field-editors?entry=1&locale=id')));
     state.props.active = false; state.render(); state.props.active = true; state.render(); await flush(state);
     assert.equal(env.calls.length, 2);

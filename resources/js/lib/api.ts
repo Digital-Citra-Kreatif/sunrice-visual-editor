@@ -72,7 +72,11 @@ export type FieldSource = { subject: string; handle: string };
 export type FieldGroup = { title: string; fields: PickField[]; source?: FieldSource };
 export type CmsFieldEditor = { title: string; values: string | null; definitions: { label: string; url: string }[] };
 export type CmsFieldEditors = { sources: Record<string, CmsFieldEditor>; entry: CmsFieldEditor | null; manage: { label: string; url: string }[] };
-export type FieldCatalog = { version: string; variables: PickVariable[] };
+export type ReferenceGroup = Omit<FieldGroup, 'fields'> & { fields: ReferenceField[] };
+type ReferenceValue = Pick<Pickable, 'code' | 'what' | 'of' | 'inserts' | 'print'> & { groups: ReferenceGroup[] };
+export type ReferenceVariable = ReferenceValue & Pick<PickVariable, 'title' | 'from' | 'sure'>;
+export type ReferenceField = ReferenceValue & Pick<PickField, 'label' | 'note'>;
+export type FieldCatalog = { version: string; variables: ReferenceVariable[] };
 
 /** What the picker says of any value (Picker on the server). */
 type Pickable = {
@@ -232,7 +236,7 @@ export function listFields(path: string, version: string, node: string | null, i
 
 /** A saved template's reference catalog, loaded only when the Fields tab opens. */
 export function readFieldCatalog(template: TemplateData, node: string | null): Promise<FieldCatalog> {
-    const query = new URLSearchParams({ version: template.version, origin: template.origin, ...(node === null ? {} : { node }) });
+    const query = new URLSearchParams({ version: template.version, origin: template.origin, reference: '1', ...(node === null ? {} : { node }) });
 
     return request<FieldCatalog>('GET', `templates/${pathInAddress(template.path)}/fields?${query}`);
 }

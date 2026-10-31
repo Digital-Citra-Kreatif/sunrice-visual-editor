@@ -176,3 +176,14 @@ still returns 409 after an external template edit.
 in `sources`, `entry` and `manage`. It returns no content values and accepts no
 writes. Source keys are `collection:handle`, `listing:handle`, `taxonomy:handle`,
 `index:handle`, `fieldset:handle`, `global:handle` and `menu:handle`.
+
+### Compact reference transfer
+
+The Fields tab adds `reference=1` to its catalog request. This keeps all fields,
+source identifiers and exact Blade recipes, while omitting completion/operation
+metadata and redundant print examples. The default catalog response is unchanged.
+When PHP zlib is available and the client accepts gzip, this response is compressed;
+browsers decode it automatically. Responses are private and not stored by HTTP
+caches; the tab retains its bounded in-memory context cache. Hosts without zlib
+can enable JSON compression in their web server. Large sites still have larger
+catalogs, but the all-field-types test fixture transfers under 100 KB with gzip.
