@@ -141,7 +141,8 @@ final class Picker
                 ];
             }
             if ($fields !== []) {
-                $groups[] = ['title' => $members->title, 'fields' => $fields];
+                $groups[] = ['title' => $members->title, 'fields' => $fields] + ($members->subject !== null && $members->handle !== null
+                    ? ['source' => ['subject' => $members->subject, 'handle' => $members->handle]] : []);
             }
         }
 

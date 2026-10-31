@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunrice\VisualEditor\Support;
 
+use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
@@ -12,6 +13,7 @@ use Sunrice\Cms\Fields\CustomField;
 use Sunrice\Cms\Fields\Field as CmsField;
 use Sunrice\Cms\Fields\FieldTypes;
 use Sunrice\Cms\Fields\Schema;
+use Sunrice\Cms\Models\Blueprint;
 use Sunrice\Cms\Models\Collection;
 use Sunrice\Cms\Models\Entry;
 use Sunrice\Cms\Models\EntryTranslation;
@@ -21,6 +23,7 @@ use Sunrice\Cms\Models\GlobalSet;
 use Sunrice\Cms\Models\Menu;
 use Sunrice\Cms\Models\Taxonomy;
 use Sunrice\Cms\Site\SiteCsp;
+use Sunrice\Cms\Support\Access as CmsAccess;
 use Sunrice\Cms\Support\SiteCache;
 use Sunrice\Cms\Support\Templates;
 
@@ -281,6 +284,91 @@ final class SunriceBridge
         };
 
         return $schema instanceof Schema ? self::clean($schema->fields()) : [];
+    }
+
+    /**
+     * Native CMS editors for content values and field definitions. No values
+     * are read here, and visual-editor permissions grant no CMS permissions.
+     *
+     * @return array{sources: array<string, array<string, mixed>>, entry: array<string, mixed>|null, manage: list<array{label: string, url: string}>}
+     */
+    public static function fieldEditors(mixed $user, int $entryId = 0, ?string $locale = null): array
+    {
+        $sources = [];
+        $current = null;
+        if (! $user instanceof Authorizable) {
+            return ['sources' => $sources, 'entry' => $current, 'manage' => []];
+        }
+        $link = fn (string $name, array $parameters): ?string => Route::has($name) ? route($name, $parameters, false) : null;
+        $blueprints = $user->can('cms.blueprints.update') ? Blueprint::query()->get(['handle', 'title'])->keyBy('handle') : collect();
+        $definitions = function (array $handles) use ($blueprints, $link): array {
+            $links = [];
+            foreach (array_unique(array_filter($handles, is_string(...))) as $handle) {
+                $blueprint = $blueprints->get($handle);
+                $url = $blueprint === null ? null : $link('sunrice.admin.cms.blueprints.edit', ['blueprint' => $handle]);
+                if ($url !== null) {
+                    $links[] = ['label' => 'Edit fields: '.$blueprint->title, 'url' => $url];
+                }
+            }
+
+            return $links;
+        };
+        $language = $locale === null ? [] : ['locale' => $locale];
+        foreach (Collection::query()->orderBy('title')->get() as $collection) {
+            $canView = CmsAccess::entries($user, 'view', $collection);
+            $sources['collection:'.$collection->handle] = ['title' => $collection->title,
+                'values' => $canView ? $link('sunrice.admin.cms.collections.entries.index', ['collection' => $collection->handle, ...$language]) : null,
+                'definitions' => $definitions($collection->allowedBlueprints())];
+            $sources['listing:'.$collection->handle] = ['title' => 'Listing: '.$collection->title,
+                'values' => $canView ? $link('sunrice.admin.cms.collections.listing.edit', ['collection' => $collection->handle, ...$language]) : null,
+                'definitions' => $definitions([$collection->listing_blueprint])];
+        }
+        foreach (Taxonomy::query()->orderBy('title')->get() as $taxonomy) {
+            $canView = CmsAccess::terms($user, 'view', $taxonomy);
+            $sources['taxonomy:'.$taxonomy->handle] = ['title' => $taxonomy->title,
+                'values' => $canView ? $link('sunrice.admin.cms.taxonomies.terms.index', ['taxonomy' => $taxonomy->handle, ...$language]) : null,
+                'definitions' => $definitions([$taxonomy->blueprint])];
+            $sources['index:'.$taxonomy->handle] = ['title' => 'Index: '.$taxonomy->title,
+                'values' => $canView ? $link('sunrice.admin.cms.taxonomies.index-page.edit', ['taxonomy' => $taxonomy->handle, ...$language]) : null,
+                'definitions' => $definitions([$taxonomy->index_blueprint])];
+        }
+        foreach (GlobalSet::query()->orderBy('title')->get() as $set) {
+            $sources['global:'.$set->handle] = ['title' => $set->title,
+                'values' => $user->can('cms.globals.view') ? $link('sunrice.admin.cms.globals.values.edit', ['set' => $set->handle, ...$language]) : null,
+                'definitions' => $definitions([$set->blueprint])];
+        }
+        if ($user->can('cms.fieldsets.update')) {
+            foreach (Fieldset::query()->orderBy('title')->get() as $set) {
+                $url = $link('sunrice.admin.cms.fieldsets.edit', ['fieldset' => $set->handle]);
+                $sources['fieldset:'.$set->handle] = ['title' => $set->title, 'values' => null,
+                    'definitions' => $url === null ? [] : [['label' => 'Edit fields: '.$set->title, 'url' => $url]]];
+            }
+        }
+        if ($user->can('cms.menus.view')) {
+            foreach (Menu::query()->orderBy('title')->get() as $menu) {
+                $sources['menu:'.$menu->handle] = ['title' => $menu->title,
+                    'values' => $link('sunrice.admin.cms.menus.links.edit', ['menu' => $menu->handle, ...$language]), 'definitions' => []];
+            }
+        }
+        $entry = $entryId > 0 ? Entry::query()->with('collection')->find($entryId) : null;
+        if ($entry !== null && ! $entry->collection->trashed() && CmsAccess::entries($user, 'view', $entry->collection, $entry, $locale)) {
+            $translation = $locale === null ? $entry->mainTranslation() : $entry->translations()->where('locale', $locale)->first();
+            if ($translation !== null) {
+                $current = ['title' => $translation->title,
+                    'values' => $link('sunrice.admin.cms.entries.edit', ['entry' => $entry->getKey(), 'locale' => $translation->locale]),
+                    'definitions' => $definitions([$entry->blueprintHandle()])];
+            }
+        }
+
+        $manage = [];
+        foreach (['blueprints' => 'Blueprints', 'fieldsets' => 'Fieldsets'] as $area => $label) {
+            $url = $user->can('cms.'.$area.'.view') ? $link('sunrice.admin.cms.'.$area.'.index', []) : null;
+            if ($url !== null) {
+                $manage[] = ['label' => $label.' ↗', 'url' => $url];
+            }
+        }
+
+        return ['sources' => array_filter($sources, fn (array $source): bool => $source['values'] !== null || $source['definitions'] !== []), 'entry' => $current, 'manage' => $manage];
     }
 
     /**

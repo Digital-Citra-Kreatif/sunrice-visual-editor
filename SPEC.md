@@ -69,7 +69,7 @@ The editor is three parts side by side: the tree on the left, the page in the mi
 - **Left, the tree, in two tabs** (decided October 2026, in place of the two stacked): **Templates**, the templates of the page and the site's others, and **Layers**, the open template as a tree. Picking a template, in the list or on the page, shows its Layers. Clicking a row selects it, outlines it on the page, scrolls the page to it (to the middle of the frame where the page can scroll that far) and puts the code's cursor on it. Selecting works from either side: a click on the page selects the row and the code.
 - Rows are moved by dragging, and by keys on a row: Alt+Up and Alt+Down move, Ctrl+D duplicates, Delete deletes. Comments are nodes like any other. Arms of a block (`@else`, `@empty`, `@case`) are not moved or deleted on their own; what is added to a `@case` goes before the `@break` that ends it. Where an edit would put a directive directly against a letter or digit (`@else@endif`), the editor adds one space so Blade still reads it.
 - **Middle, the page**, at the width of the room or at one of the configured devices (Desktop, Tablet, Mobile by default), or at all of them side by side, drawn at one scale. Side by side, one frame takes the clicks and the others show the same page; every frame is drawn again after a change.
-- **Right, in tabs:** the open template's code (**Template**), and the site's **Custom CSS** and **Custom JS**. What the template can read at the cursor is in the code's completions (decided October 2026, in place of a Fields tab).
+- **Right, in tabs:** the open template's code (**Template**), **Fields** (a searchable reference of CMS variables, types and Blade examples, with links to native CMS value and definition editors), and the site's **Custom CSS** and **Custom JS**. Code completions also offer what can be read at the cursor.
 - **Top bar:** the page's address, Select and Browse, undo and redo, the build, the devices, the sides, **Edit content ↗** (the entry the page shows, in the admin) and **View page ↗**.
 
 ### Room for the page
@@ -163,12 +163,19 @@ Tailwind writes CSS only for the classes it finds in the site's files, so a clas
 - Three permissions, registered with Sunrice and given to roles in its role editor: `visual-editor.open` (look), `visual-editor.edit` (change templates and stylesheets without writing code), `visual-editor.code` (write code). Each includes the ones before it. Super Admins have all three. None holds while the package is off.
 - A fourth, apart from those three: `visual-editor.build` (run the site's build command from the editor). It is not included in any of the others, since it runs a program on the server, and it does nothing unless a command is set.
 - Code editing is the highest, since it writes PHP. Someone who may edit and not edit code can never make a template run PHP that it did not run before, except code the editor itself writes for a field or a choice. This holds for every way of changing a template, and is checked on what Laravel's Blade compiler makes of the result, not on what was asked for.
-- Such a person may move, copy and take out code that is there, and may add any HTML.
+- Such a person may move, copy and take out code that is there and insert exact offered fragments. Arbitrary markup, executable browser attributes and new whole-source writes require code permission; exact historical bytes remain available for undo/redo.
 - Their undo and redo write the template as it was within the last twelve hours; no older version.
 
 ### AI agents
 
 - Later: MCP tools that read a template's tree and apply the same edit operations as the editor, so an agent makes small checked changes instead of rewriting a whole file.
+
+### CMS field reference and editing links
+
+- The Fields tab reads the saved template at the selected layer, including CMS fallback views. It shows types, source groups, optional-field notes, and copyable Blade examples from the existing catalog/emitters.
+- The reference is loaded on demand and cached per origin, file, version and layer. Late responses never replace a new context. Refresh and returning from a linked CMS editor invalidate the cache.
+- Current-page, collection/listing, taxonomy/index, fieldset, global and menu sources link to the CMS's native editors. A current entry uses its actual blueprint and requested content language. Empty blueprint sources remain reachable.
+- Visual-editor access grants no CMS editing permissions. Native links are permission filtered and CMS routes enforce their own permissions; the reference adds no content/schema writes or copied form implementation.
 
 ## Out of scope for the first release
 

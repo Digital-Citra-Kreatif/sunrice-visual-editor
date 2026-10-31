@@ -941,9 +941,9 @@ await step('say there is no single entry to edit on a listing', async () => {
 });
 
 /** The entry's page in the admin, opened from the top bar in a tab of its own: its title published as given, then back to the editor. */
-const publishTitle = async (from, to) => {
-    const link = bar.locator('a.sve-bar__link', { hasText: 'Edit content' });
-    await until('The link is not to the entry', async () => (await link.getAttribute('title'))?.startsWith(`Edit ${from} in the admin`) || (await link.getAttribute('title')));
+const publishTitle = async (from, to, contentLink = null) => {
+    const link = contentLink ?? bar.locator('a.sve-bar__link', { hasText: 'Edit content' });
+    if (contentLink === null) await until('The link is not to the entry', async () => (await link.getAttribute('title'))?.startsWith(`Edit ${from} in the admin`) || (await link.getAttribute('title')));
     const [admin] = await Promise.all([page.context().waitForEvent('page'), link.click()]);
     const title = admin.getByLabel('Title', { exact: true }).first();
     await title.waitFor();
@@ -967,6 +967,48 @@ await step('open the entry the page shows in the admin, in a tab of its own, and
     await frame.getByText('Fifth post, edited in the admin').first().waitFor();
     await publishTitle('Fifth post, edited in the admin', 'Fifth post');
     await frame.getByText('Fifth post, edited in the admin').first().waitFor({ state: 'detached' });
+});
+
+await step('browse CMS fields, copy Blade, edit definitions and publish content from the Fields tab', async () => {
+    let catalogRequests = 0;
+    const observed = (request) => { if (request.url().includes('/field-editors') || /\/templates\/.+\/fields(?:\?|$)/.test(request.url())) catalogRequests++; };
+    page.on('request', observed);
+    await page.goto(`${base}/admin/visual-editor?url=/articles/fifth-post`);
+    await frame.getByRole('heading', { name: 'Fifth post', exact: true }).waitFor();
+    await code.locator('.cm-editor').waitFor();
+    await page.waitForTimeout(350);
+    if (catalogRequests !== 0) throw new Error(`The Fields tab fetched ${catalogRequests} catalogs before opening`);
+    await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Fields' }).click();
+    const fields = page.getByRole('region', { name: 'CMS fields and variables' });
+    await fields.getByLabel('Find a variable or field').fill('$title');
+    const example = fields.locator('.sve-fields__example').filter({ has: page.locator('code', { hasText: '$title' }) }).first();
+    await example.waitFor();
+    const before = await codeText();
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await example.getByRole('button', { name: /Copy/ }).click();
+    await fields.getByRole('status').filter({ hasText: 'Copied' }).waitFor();
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    if (!copied.includes('$title') || (await codeText()) !== before) throw new Error('Copying a recipe changed the template or copied the wrong Blade');
+    const pageSource = fields.locator('.sve-fields__source').filter({ hasText: 'This page:' });
+    const definition = pageSource.locator('a[href*="/cms/blueprints/"]').first();
+    const [cms] = await Promise.all([page.context().waitForEvent('page'), definition.click()]);
+    await cms.waitForURL(/\/cms\/blueprints\/[^/]+\/edit/);
+    await cms.locator('h1').first().waitFor();
+    const refreshed = page.waitForResponse((response) => /\/templates\/.+\/fields(?:\?|$)/.test(response.url()));
+    await cms.close(); await page.bringToFront();
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await refreshed; await example.waitFor();
+    const content = pageSource.getByRole('link', { name: 'Open CMS content ↗', exact: true });
+    await publishTitle('Fifth post', 'Fifth post, edited through Fields', content);
+    await frame.getByRole('heading', { name: 'Fifth post, edited through Fields', exact: true }).waitFor();
+    await content.waitFor();
+    await publishTitle('Fifth post, edited through Fields', 'Fifth post', content);
+    await frame.getByRole('heading', { name: 'Fifth post', exact: true }).waitFor();
+    await fields.waitFor(); await example.waitFor();
+    await mkdir('docs/screenshots', { recursive: true });
+    await page.screenshot({ path: 'docs/screenshots/fields.png' });
+    page.off('request', observed);
+    await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Template' }).click();
 });
 
 // --- Custom CSS ----------------------------------------------------------------------
