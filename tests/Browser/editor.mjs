@@ -1123,10 +1123,11 @@ await step('save custom JS, keep it out of editor previews and run it on public 
     await page.locator('.sve-notice--done', { hasText: 'Saved custom.js.' }).waitFor();
     await onPage('.hero h1');
     if (await frame.locator('script[data-sunrice-custom-js], .hero h1[data-custom-js="ran"]').count()) throw new Error('Custom JS ran inside the editor preview');
-    const visitor = await page.context().newPage();
+    const visitorContext = await browser.newContext();
+    const visitor = await visitorContext.newPage();
     await visitor.goto(`${base}/`);
     await visitor.locator('.hero h1[data-custom-js="ran"]').waitFor();
-    await visitor.close(); await page.bringToFront();
+    await visitorContext.close(); await page.bringToFront();
     if (!(await (await page.request.get(`${base}/`)).text()).includes('data-sunrice-custom-js')) {
         throw new Error('The site does not load the custom script');
     }
