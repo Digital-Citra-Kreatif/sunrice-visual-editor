@@ -7,6 +7,7 @@ namespace Sunrice\VisualEditor\Actions;
 use Sunrice\Admin\Activity\ActivityLog;
 use Sunrice\VisualEditor\Css\StylesheetNotFound;
 use Sunrice\VisualEditor\Css\ThemeRepository;
+use Sunrice\VisualEditor\Support\AssetSyntax;
 use Sunrice\VisualEditor\Support\Files;
 use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\Conflict;
@@ -44,6 +45,14 @@ final class SaveStylesheet
             }
             if ($newSource === $current && $existed) {
                 return $expectedVersion;
+            }
+
+            AssetSyntax::check('css', $newSource);
+            // An external editor may not use our lock while a checker runs.
+            clearstatcache(true, $file->file);
+            $latest = ThemeRepository::version($file->source());
+            if ($latest !== $expectedVersion) {
+                throw new Conflict($file->path, $latest);
             }
 
             if ($existed && config('sunrice-visual-editor.backups', true)) {

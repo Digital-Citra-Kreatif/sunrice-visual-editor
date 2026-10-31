@@ -7,11 +7,12 @@ namespace Sunrice\VisualEditor\Rendering;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\View as Views;
 use Sunrice\VisualEditor\Css\ThemeFile;
+use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Support\SunriceBridge;
 
 /**
  * Loads the site's custom script (config `custom_js.file`, written in the
- * editor's Custom JS tab) on every page of the site.
+ * editor's Custom JS tab) on public pages, excluding authorized editor previews.
  *
  * As CustomCss does for the stylesheet: a deferred <script> is pushed
  * onto the layout's stack (`@stack('head')` in the starter layout)
@@ -88,7 +89,7 @@ final class CustomJs
 
     private static function push(): void
     {
-        if (! self::injected()) {
+        if (! self::injected() || request()->attributes->get(EditorRender::ACTIVE) === true) {
             return;
         }
         $views = Views::getFacadeRoot();

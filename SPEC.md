@@ -144,7 +144,7 @@ The editor is three parts side by side: the tree on the left, the page in the mi
 - **Custom CSS**: a stylesheet of the site's own, `public/cms/custom.css` (setting `custom_css.file`), written as one text in the editor and saved with Ctrl+S. Every page of the site links it: the package pushes a `<link>` to it onto the layout's `@stack('head')` while a site template renders, once a page, only while the file has something in it, with the file's version in its address. No template is changed for it. With `custom_css.inject` off the site links the file itself.
 - The link is added whether or not the editor is on: the CSS is the site's, written on a local copy and deployed with it. It is the one thing the package adds to pages when the editor is off; removing the package drops the link, and the file stays.
 - Saving the custom CSS takes `visual-editor.edit`: CSS runs no PHP.
-- **Custom JS**: the same for a script, `public/cms/custom.js` (setting `custom_js.file`), loaded deferred on every page from a `<script>` (with the site's CSP nonce) pushed onto the layout's `@stack('head')`, in the same way and on the same terms as the custom CSS. It is global; a script one template needs is written in that template with `@push('head')`. It runs in every visitor's browser, so writing it takes `visual-editor.code`.
+- **Custom JS**: the same for a script, `public/cms/custom.js` (setting `custom_js.file`), loaded deferred on public pages from a `<script>` (with the site's CSP nonce) pushed onto the layout's `@stack('head')`, in the same way and on the same terms as the custom CSS. It is global; a script one template needs is written in that template with `@push('head')`. It runs in every visitor's browser, so writing it takes `visual-editor.code`.
 - The server API that changes the rules of the theme's stylesheets in place, and links a stylesheet from the layout, is kept for tools that use it.
 
 ### Sites that build their CSS (Vite, Tailwind)
@@ -202,3 +202,9 @@ Tailwind writes CSS only for the classes it finds in the site's files, so a clas
 
 - CodeMirror's scroll area is named and reachable with Tab in editable and read-only modes. PageDown scrolls it; the content remains reachable, and Escape then Tab leaves the code.
 - Fields requests a compact reference view of the catalog. It preserves all fields, source metadata, optionality and Blade recipes, omits completion-only properties and duplicate print strings, and negotiates gzip when PHP zlib is present. Refusals and the default catalog format stay unchanged. Encoded responses cannot be reused by HTTP caches.
+
+### Custom asset behavior (REVIEW-4)
+
+- Automatic Custom JS injection is suppressed only while an authorized editor preview is rendering; public requests, including unauthorized `?sve=1`, retain it. The request marker is restored after rendering. Template-owned scripts remain unchanged.
+- Custom CSS stays on `edit`: this is trusted design access, which may hide content and request external resources. The panel and docs state this explicitly.
+- Optional `syntax_checks.css`/`.js` commands receive candidate source on stdin, run without shell interpolation, and must be parse-only. A failed/unavailable/timed-out checker refuses with 422 before backups, writes or activity logging. Conflict checks occur first. Default is disabled; custom tabs report whether configured.

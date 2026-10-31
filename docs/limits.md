@@ -74,7 +74,7 @@ other page that uses the template.
   declarations, no rules found for a class, and no styles written for one
   device. The theme's other CSS files are changed in the code editor of
   your choice, or through the editor's API.
-- The custom CSS and JS are added through the layout's `@stack('head')`.
+- The custom CSS and public-page JS are added through the layout's `@stack('head')`.
   A layout without that stack, or another named in `custom_css.stack` or
   `custom_js.stack`, gets neither.
 - **Plain CSS files only**, in `public/cms/`, up to 2 MB each. A
@@ -158,3 +158,9 @@ other page that uses the template.
 - It has been run on the starter site and on a demo site in this
   repository. **It has not yet been installed on a real client project.**
   Expect that to turn things up.
+
+- Automatic custom JS is omitted from authorized editor previews. Other scripts
+  explicitly loaded by a template may still run there. Test custom JS on the public page.
+- CSS/JS syntax parsing is opt-in through `syntax_checks`; without a configured
+  checker, whole-file saves can publish invalid syntax. CSS edit permission can
+  also hide content and load remote resources; grant it to trusted designers.

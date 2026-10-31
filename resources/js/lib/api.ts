@@ -357,6 +357,7 @@ export function linkStylesheet(template: string, version: string, stylesheet: st
 export type CustomFile = CustomCss;
 
 export type CustomCss = {
+    checked?: boolean;
     path: string;
     displayPath: string;
     url: string;

@@ -10,6 +10,7 @@ use Illuminate\Routing\Controller;
 use Sunrice\VisualEditor\Actions\SaveCustomScript;
 use Sunrice\VisualEditor\Css\ThemeFile;
 use Sunrice\VisualEditor\Rendering\CustomJs;
+use Sunrice\VisualEditor\Support\AssetSyntax;
 
 /**
  * The editor's API for the site's custom script: read by anyone who may
@@ -70,6 +71,7 @@ class ScriptController extends Controller
             'source' => mb_check_encoding($source, 'UTF-8') ? $source : null,
             'injected' => CustomJs::injected(),
             'stack' => CustomJs::stack(),
+            'checked' => AssetSyntax::configured('js'),
         ];
     }
 }

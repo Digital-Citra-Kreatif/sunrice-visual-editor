@@ -36,6 +36,9 @@ final class EditorRender
     /** The element holding the manifest, as JSON, at the end of the page. */
     public const MANIFEST_ID = 'sve-manifest';
 
+    /** Set only after editor authorization; a visitor's query string is insufficient. */
+    public const ACTIVE = 'sunrice.visual-editor.rendering';
+
     public function __construct(private readonly TemplateRepository $templates) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -56,11 +59,14 @@ final class EditorRender
         $editor = new EditorEngine($blade, app('files'), $manifest, self::directory());
 
         $engines->register('blade', fn () => $editor);
+        $previous = $request->attributes->get(self::ACTIVE);
+        $request->attributes->set(self::ACTIVE, true);
         try {
             $response = $next($request);
         } finally {
             // Whatever comes next in this process renders as always.
             $engines->register('blade', fn () => $laravel);
+            $previous === null ? $request->attributes->remove(self::ACTIVE) : $request->attributes->set(self::ACTIVE, $previous);
         }
 
         return $this->finish($request, $response, $manifest);

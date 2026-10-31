@@ -48,7 +48,11 @@ On the editor's screen:
 - Move, duplicate and delete in the tree, by dragging a row or by key.
   That includes code that is already in the template.
 - Undo and redo.
-- Write and save the [custom CSS](styles.md#custom-css). CSS runs no PHP.
+- Write and save the [custom CSS](styles.md#custom-css). CSS runs no PHP,
+  but it changes public pages immediately: it can hide or replace visible
+  content and request external images/fonts (including URLs in `@import`
+  and `background-image`). Grant `edit` only to trusted designers. This
+  permission is not a CSS sandbox or a restriction to cosmetic changes.
 - **Copy to site**: get a copy of one of the CMS's page views that the
   site uses.
 - Read the code of every template.
