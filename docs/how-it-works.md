@@ -94,6 +94,12 @@ In order:
 
 If any of these fails, nothing is written and the editor shows the reason.
 
+A draft keeps its original source and version when its tab is left and
+opened again. If the file changed meanwhile, the draft stays and the code
+shows a conflict; **Load the file as it is now** explicitly discards it.
+Typing during a save stays unsaved when that request completes. Only the
+text submitted by that request is acknowledged.
+
 Then the previous version is copied to
 `storage/app/sunrice-cms/template-backups/` (where the CMS keeps its own),
 the new file is written beside the old one and renamed over it (so a page
@@ -123,7 +129,10 @@ engine:
   node of it. The copies live in the compiled-view cache; your template
   files are never touched.
 - A list of the templates that took part (the manifest) is added to the
-  page.
+  page. Each entry includes `version`, the SHA-1 of the exact source bytes
+  used for that render. The bridge includes this version with a selection.
+  An offset from an older render cannot select or change a node in a newer
+  tree: the editor refreshes the preview first.
 - A small script (the bridge) is added, with the nonce of the site's
   content security policy. It tells the editor what the
   pointer is over and what was clicked, and measures the elements the

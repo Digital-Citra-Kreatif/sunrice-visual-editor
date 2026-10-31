@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ApiError, readCustomCss, readCustomJs, saveCustomJs, saveStylesheet, type CustomFile, type Loaded } from '../lib/api';
 import { PlainCode, RichCode, useCodeScript } from './CodePanel';
+import { savedDraft } from '../lib/drafts';
 
 /** What each kind of custom file is: how it is read and saved, and what is said about it. */
 const KINDS = {
@@ -91,10 +92,15 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
         }
         setSaving(true);
         setTrouble(null);
+        const sent = { text, base: { source: saved, version: css.version } };
         how.save(css, text)
             .then((version) => {
                 setFile({ state: 'ready', data: { ...css, source: text, version, exists: true } });
-                setDraft(null);
+                setDraft((current) => savedDraft(
+                    current === null ? undefined : { text: current, base: sent.base },
+                    sent,
+                    { source: text, version },
+                )?.text ?? null);
                 onSaved(css.path);
             })
             .catch((error: unknown) => setTrouble({ conflict: error instanceof ApiError && error.reason === 'conflict', message: message(error) }))

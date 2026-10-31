@@ -6,6 +6,7 @@ namespace Sunrice\VisualEditor\Actions;
 
 use Sunrice\Admin\Activity\ActivityLog;
 use Sunrice\VisualEditor\Support\Files;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 use Throwable;
@@ -79,6 +80,10 @@ final class Build
             }
             $seconds = round(microtime(true) - $started, 1);
             $ok = $code === 0;
+
+            if ($ok) {
+                SunriceBridge::changed('site build');
+            }
 
             app(ActivityLog::class)->record('updated', 'build', null, 'Site build', ['note' => 'Visual editor: ran "'.$command.'" ('.($ok ? 'done' : 'failed').", {$seconds} s)"]);
 

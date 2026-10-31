@@ -34,6 +34,9 @@ final class EditorEngine extends CompilerEngine
     /** @var array<string, string|null> the marked copy of each template rendered so far in this page; null for none */
     private array $copies = [];
 
+    /** @var array<string, string> Versions of the exact bytes used for each marked copy. */
+    private array $versions = [];
+
     public function __construct(
         private readonly BladeCompiler $blade,
         Filesystem $files,
@@ -62,7 +65,7 @@ final class EditorEngine extends CompilerEngine
             $this->copies[$path] = $this->marked($path, $file);
         }
         $marked = $this->copies[$path];
-        $this->manifest->record($file, $marked !== null);
+        $this->manifest->record($file, $marked !== null, $this->versions[$path]);
         if ($file->role === 'entry') {
             // The entry the page is of: its content can be edited beside the page.
             $this->manifest->showing($data['entry'] ?? null);
@@ -89,6 +92,7 @@ final class EditorEngine extends CompilerEngine
     private function marked(string $path, TemplateFile $file): ?string
     {
         $source = $this->files->get($path);
+        $this->versions[$path] = sha1($source);
         $key = Manifest::key($file);
         $stem = $this->directory.'/'.hash('xxh128', $path);
         $name = $stem.'-'.hash('xxh128', self::VERSION.$key.$source);

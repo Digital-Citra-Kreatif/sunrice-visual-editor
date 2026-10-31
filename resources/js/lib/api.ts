@@ -5,7 +5,7 @@
 import type { ManifestFile } from '../bridge/protocol';
 
 /** A template as the list has it. */
-export type TemplateInfo = Omit<ManifestFile, 'key'> & {
+export type TemplateInfo = Omit<ManifestFile, 'key' | 'version'> & {
     reason: string | null;
     strays: number;
 };

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Sunrice\Admin\Activity\Activity;
+use Sunrice\Cms\Support\SiteCache;
 use Sunrice\VisualEditor\Actions\Build;
 use Sunrice\VisualEditor\Support\Access;
 
@@ -193,4 +194,20 @@ it('says whether the site\'s dev server is running, which leaves nothing to buil
     } finally {
         unlink(public_path('hot'));
     }
+});
+
+it('invalidates a cached page after a successful build but retains it after a failed build', function () {
+    actingAsSuperAdmin();
+    config(['sunrice-cms.cache.enabled' => true, 'sunrice-cms.cache.store' => 'array']);
+    $cache = app(SiteCache::class);
+    $key = 'visual-editor-build-page';
+    expect($cache->remember($key, fn () => 'old asset URL'))->toBe('old asset URL');
+
+    config(['sunrice-visual-editor.build.command' => phpDoes('exit(1);')]);
+    postJson(SVE_BUILD)->assertOk()->assertJsonPath('ok', false);
+    expect($cache->remember($key, fn () => 'new asset URL'))->toBe('old asset URL');
+
+    config(['sunrice-visual-editor.build.command' => phpDoes('echo "built";')]);
+    postJson(SVE_BUILD)->assertOk()->assertJsonPath('ok', true);
+    expect($cache->remember($key, fn () => 'new asset URL'))->toBe('new asset URL');
 });

@@ -36,29 +36,29 @@ step "npm install, and a first build"
 npm install --no-audit --no-fund
 npm run build
 echo "tailwindcss $(node -p "require('tailwindcss/package.json').version"), vite $(node -p "require('vite/package.json').version")"
-! built | grep -q 'bg-fuchsia-500' || fail "The built CSS has a rule for bg-fuchsia-500 before any template uses it."
+! built | grep 'bg-fuchsia-500' > /dev/null || fail "The built CSS has a rule for bg-fuchsia-500 before any template uses it."
 
 step "Built: the layout opens, a page is marked, and a class is added in the editor"
 phpunit --filter 'test_the_layout_opens|test_built_'
 SVE_CLASS=bg-fuchsia-500 phpunit --filter test_a_class_is_added
-! built | grep -q 'bg-fuchsia-500' || fail "The built CSS changed without a build."
+! built | grep 'bg-fuchsia-500' > /dev/null || fail "The built CSS changed without a build."
 
 step "Built again: Tailwind found the class in the template the editor wrote"
 npm run build
-built | grep -q '\.bg-fuchsia-500' || fail "After a build the CSS still has no rule for bg-fuchsia-500."
+built | grep '\.bg-fuchsia-500' > /dev/null || fail "After a build the CSS still has no rule for bg-fuchsia-500."
 
 step "Built from the editor: whoever may build runs the site's own command, and the class is in the CSS"
 echo 'SUNRICE_VISUAL_EDITOR_BUILD="npm run build"' >> .env
 SVE_CLASS=bg-teal-600 phpunit --filter test_a_class_is_added
-! built | grep -q 'bg-teal-600' || fail "The built CSS changed without a build."
+! built | grep 'bg-teal-600' > /dev/null || fail "The built CSS changed without a build."
 SUNRICE_VISUAL_EDITOR_BUILD="npm run build" phpunit --filter test_build_
-built | grep -q '\.bg-teal-600' || fail "After a build from the editor the CSS still has no rule for bg-teal-600."
+built | grep '\.bg-teal-600' > /dev/null || fail "After a build from the editor the CSS still has no rule for bg-teal-600."
 SUNRICE_VISUAL_EDITOR_BUILD="no-such-build-command --production" phpunit --filter test_no_build_
 
 step "Neither built nor served: the preview shows a class in the editor, and not to a visitor, until the Build button is used"
 echo 'SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW=true' >> .env
 SVE_CLASS=pt-9 phpunit --filter test_a_class_is_added
-! built | grep -q '\.pt-9' || fail "The built CSS has a rule for pt-9 without a build."
+! built | grep '\.pt-9' > /dev/null || fail "The built CSS has a rule for pt-9 without a build."
 SUNRICE_VISUAL_EDITOR_TAILWIND_PREVIEW=true phpunit --filter test_preview_
 # The panel's and the plugins' script addresses are made from APP_URL.
 sed -i 's|^APP_URL=.*|APP_URL=http://127.0.0.1:8091|' .env
@@ -83,11 +83,11 @@ phpunit --filter test_dev_
 SVE_CLASS=bg-lime-300 phpunit --filter test_a_class_is_added
 found=""
 for attempt in $(seq 1 40); do
-    if curl -gsS -H 'Accept: text/css' "$dev/resources/css/app.css" | grep -q 'bg-lime-300'; then found=yes; break; fi
+    if curl -gsS -H 'Accept: text/css' "$dev/resources/css/app.css" | grep 'bg-lime-300' > /dev/null; then found=yes; break; fi
     sleep 0.5
 done
 [ -n "$found" ] || { tail -n 30 storage/logs/vite.log; fail "The dev server's CSS has no rule for bg-lime-300."; }
-! built | grep -q 'bg-lime-300' || fail "The built CSS changed without a build."
+! built | grep 'bg-lime-300' > /dev/null || fail "The built CSS changed without a build."
 
 step "The editor itself, in a browser, with the dev server running"
 BASE_URL=http://127.0.0.1:8091 node "$package/.github/vite/browser.mjs" | tee storage/logs/browser.log

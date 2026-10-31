@@ -278,7 +278,7 @@ it('says what a value is asked for and compared as in a condition, and gone over
 
     expect(($this->field)($values, 'summary'))->toMatchArray(['asked' => "! empty(\$values['summary'])", 'compared' => "(\$values['summary'] ?? null)", 'looped' => null])
         ->and(($this->field)($values, 'photos'))->toMatchArray(['asked' => "collect(\$values['photos'] ?? [])->isNotEmpty()", 'looped' => "\$values['photos'] ?? []"])
-        ->and(($this->field)($entry, 'terms'))->toMatchArray(['asked' => '$entry->terms->isNotEmpty()', 'looped' => '$entry->terms'])
+        ->and(($this->field)($entry, 'terms'))->toMatchArray(['asked' => 'collect($entry->terms)->isNotEmpty()', 'looped' => '$entry->terms'])
         ->and(($this->field)(($this->field)($values, 'details'), 'material'))->toMatchArray(['asked' => "! empty(\$values['details']['material'])", 'compared' => "(\$values['details']['material'] ?? null)"]);
 });
 

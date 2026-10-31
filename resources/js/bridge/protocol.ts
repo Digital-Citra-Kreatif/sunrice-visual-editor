@@ -35,6 +35,8 @@ export type ManifestFile = {
     editable: boolean;
     copyTo: string | null;
     opens: boolean;
+    /** Version of the bytes used for this render, never a later disk read. */
+    version: string | null;
 };
 
 /** `status`: what the server answered the page with. A page that failed to draw is still a page: 404, 500. */
@@ -53,6 +55,7 @@ export type Manifest = {
 /** A marked element under the pointer or clicked. */
 export type Target = {
     mark: Mark;
+    version: string | null;
     tag: string;
     rect: Rect;
     /** The marked elements around it, innermost first, itself included. */

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Blade;
 use Sunrice\VisualEditor\Blade\Fragment;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Fields\Catalog;
@@ -195,4 +196,23 @@ it('draws a page that is not a thing with a thing\'s fields in its template', fu
         ->and($about['more#Link'])->toBe('')
         ->and($about['details.material#Text'])->toBe('')
         ->and($about['body#Rich text'])->toBe('<p>A page with a rich text body and no blocks.</p>');   // a field both have
+});
+
+it('renders every menu insert for populated and empty menus and native arrays', function () {
+    $emit = new Emit(new Catalog);
+    foreach (['main', 'not-there'] as $handle) {
+        $reading = Reading::of(new Variable("cms_menu('{$handle}')", Shape::listOf(Shape::of(Shape::MENU_ITEM)), Variable::SITE, 'Menu'));
+        foreach ($emit->inserts($reading, 'Menu') as $insert) {
+            $blade = str_replace("\n@endif", "\n[shown]\n@endif", $insert->blade);
+            $html = Blade::render($blade);
+            if ($insert->title === 'Only when there are any') {
+                expect(trim($html))->toBe($handle === 'main' ? '[shown]' : '');
+            }
+        }
+    }
+    $reading = Reading::of(new Variable('$items', Shape::listOf(Shape::of(Shape::TEXT)), Variable::PAGE, 'Items'));
+    $blade = '@if ('.$reading->asked().")\nyes\n@endif";
+    foreach ([[], ['one'], collect(), collect(['one'])] as $items) {
+        expect(trim(Blade::render($blade, ['items' => $items])))->toBe(count($items) > 0 ? 'yes' : '');
+    }
 });

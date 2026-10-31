@@ -5,6 +5,15 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+### Save and preview safety
+
+- Typing that continues during a template, CSS or JS save stays unsaved when that request completes, including typing back to the original text.
+- Template drafts retain their original source version across tab switches. External edits show a conflict instead of silently becoming the draft's save version.
+- Preview manifests and selections identify the exact source version rendered. Stale byte offsets cannot select or change nodes in a newer tree; the preview refreshes first.
+- Menu and other native-array presence conditions now render correctly, as Collection conditions do.
+- A successful site build invalidates the CMS's cached pages, so visitor HTML can pick up new asset URLs.
+- Vite's CSS checks drain the response before deciding whether a class exists, avoiding false failures from a closed pipe.
+
 ### Edit with Visual Editor, on entry pages again
 
 - **Edit with Visual Editor** is back in the ⋮ menu of an entry's page in

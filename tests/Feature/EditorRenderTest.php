@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -16,7 +17,10 @@ use Sunrice\VisualEditor\Actions\SaveTemplate;
 use Sunrice\VisualEditor\Blade\Rules;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Http\Middleware\EditorRender;
+use Sunrice\VisualEditor\Rendering\EditorEngine;
+use Sunrice\VisualEditor\Rendering\Manifest;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Templates\TemplateFile;
 use Sunrice\VisualEditor\Tests\Support\StarterTemplates;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 use Workbench\App\Seeders\DemoSeeder;
@@ -351,4 +355,30 @@ it('says in the manifest which entry the page is of, with its page in the admin,
         ->and($entryOf('/articles'))->toBeNull()
         // Visitors get no manifest at all.
         ->and((string) get('/about')->getContent())->not->toContain('sve-manifest');
+});
+
+it('records the version of the rendered bytes even if the file changes during the read', function () {
+    $path = $this->templates.'/review-version.blade.php';
+    $before = '<p>Before</p>';
+    $after = '<p>After</p>';
+    File::put($path, $before);
+    $file = new TemplateFile('review-version.blade.php', 'site', 'cms.review-version', 'other', [], $path);
+    $manifest = new Manifest([$file]);
+    $files = Mockery::mock(Filesystem::class)->makePartial();
+    $files->shouldReceive('get')->once()->with($path)->andReturnUsing(function () use ($path, $before, $after): string {
+        File::put($path, $after);
+
+        return $before;
+    });
+    $engine = new EditorEngine(app('blade.compiler'), $files, $manifest, EditorRender::directory());
+    expect($engine->get($path))->toContain('Before')->not->toContain('After')
+        ->and($manifest->toArray()['files'][0]['version'])->toBe(sha1($before))
+        ->and(sha1_file($path))->toBe(sha1($after));
+
+    // An existing marked copy must report its source version too.
+    File::put($path, $before);
+    $cached = new Manifest([$file]);
+    $again = new EditorEngine(app('blade.compiler'), new Filesystem, $cached, EditorRender::directory());
+    expect($again->get($path))->toContain('Before')
+        ->and($cached->toArray()['files'][0]['version'])->toBe(sha1($before));
 });

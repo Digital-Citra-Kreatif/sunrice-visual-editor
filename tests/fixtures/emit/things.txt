@@ -171,7 +171,7 @@
     <a href="{{ $item->url() }}">{{ $item->title() }}</a>
 @endforeach
 --- Only when there are any
-@if ($entry->terms->isNotEmpty())
+@if (collect($entry->terms)->isNotEmpty())
 @endif
 
 ### slug: text
