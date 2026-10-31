@@ -9,6 +9,7 @@ use Sunrice\Cms\Actions\Entries\TrashEntry;
 use Sunrice\Cms\Actions\Entries\UnpublishEntry;
 use Sunrice\Cms\Models\EntryTranslation;
 use Sunrice\VisualEditor\Support\Access;
+use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 use Workbench\App\Models\User;
 
@@ -60,6 +61,23 @@ it('links it for whoever may open the editor, and for nobody else', function () 
 
     actingAs(entryEditor(), Access::guard());
     get(entryPage($this->about))->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('links', []));
+});
+
+it('links a home translation whose URL has no trailing slash', function () {
+    actingAsSuperAdmin();
+    $home = EntryTranslation::query()->where('title', 'Home')->with('entry.collection')->firstOrFail();
+    expect(parse_url($home->url(), PHP_URL_PATH))->toBeNull();
+    get(entryPage($home))->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('links', [['label' => 'Edit with Visual Editor', 'href' => '/admin/visual-editor?url=%2F']]));
+    get('/admin/visual-editor?url=%2F')->assertInertia(fn (AssertableInertia $page) => $page->where('startPath', '/'));
+});
+
+it('keeps the query of a root URL without a path', function () {
+    $translation = Mockery::mock(EntryTranslation::class)->makePartial();
+    $translation->shouldReceive('isLive')->andReturn(true);
+    $translation->setRelation('entry', $this->about->entry);
+    $translation->shouldReceive('url')->andReturn('http://localhost?preview=1&locale=id');
+    expect(SunriceBridge::pagePath($translation))->toBe('/?preview=1&locale=id');
 });
 
 it('does not link an entry with no page on the site to open', function () {

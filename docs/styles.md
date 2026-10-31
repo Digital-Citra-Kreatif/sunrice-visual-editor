@@ -14,6 +14,8 @@ template's code, in the **Template** tab.
 `public/cms/custom.css`. It is written as one text, in a code
 editor, and saved with Ctrl+S. The page is drawn again with it.
 
+![Custom CSS with its configured on-disk path](screenshots/css.png)
+
 Every page of the site links it, and no template is changed for that.
 While a site template is drawn, the package pushes
 
@@ -242,3 +244,18 @@ Two things to know:
   edit a built file that the next build writes over.
 
 See [Limits](limits.md#styles) for what the editor does not cover.
+
+
+### Content security policy
+
+Keep a strict CSP when publishing sites. The package's custom script uses the
+CMS's site nonce. Scripts written directly into Blade by someone with `code`
+need the site's current nonce or a matching CSP hash; a nonce must be generated
+per response, never hard-coded. Inline event handlers are not authorized by a
+script nonce. Prefer external scripts with event listeners instead of weakening
+`script-src` with `unsafe-inline`. CSP supplements the editor's permission checks.
+
+The custom CSS/JS panel header displays the configured on-disk path, relative
+to the application where possible (`public/cms/custom.css` by default), while
+the tooltip shows its public URL. `paths.theme` and `custom_css.file`/
+`custom_js.file` determine that label.

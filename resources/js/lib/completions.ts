@@ -94,6 +94,11 @@ function meant(typed: string, { trail, field }: Reached): boolean {
  * - Asked for (`explicit`, Ctrl+Space) anywhere else: everything at the
  *   place, written as Blade of its own each way it can be.
  */
+/** A catalog is needed only for a completion gesture, never just to open a file. */
+export function needsFieldCatalog(before: string, explicit = false): boolean {
+    return explicit || /\??->[\w'"]*$|\[['"]?[\w'"]*$|(?<![\w$>])\$\w*$|(?:\{\{|\{!!)\s*\$?\w*$/.test(before);
+}
+
 export function offersFor(before: string, variables: PickVariable[], explicit = false): Offers | null {
     // The longest way of writing a value first: "sunrice_global('site')" before anything it starts with.
     for (const variable of [...variables].sort((a, b) => b.code.length - a.code.length)) {

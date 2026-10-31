@@ -5,8 +5,7 @@
 #   .github/install-check.sh [directory for the site]
 #
 # The package is required from this checkout, at the commit checked out, in
-# place of `dev-main` from GitHub: that is the one step that differs from
-# the page. INSTALL_SKIP_CREATE=1 takes a site that has Laravel and Sunrice
+# through the path repository documented for monorepos and CI. INSTALL_SKIP_CREATE=1 takes a site that has Laravel and Sunrice
 # already, to try the rest again.
 set -euo pipefail
 
@@ -31,9 +30,9 @@ fi
 cd "$site"
 
 step "docs/installation.md: Install"
-git -C "$package" branch -f install-check HEAD
-composer config repositories.sunrice-visual-editor vcs "$package"
-composer require sunrice/visual-editor:dev-install-check --no-interaction --no-ansi
+repository=$(php -r 'echo json_encode(["type" => "path", "url" => $argv[1], "options" => ["symlink" => false, "versions" => ["sunrice/visual-editor" => "dev-main"]]], JSON_THROW_ON_ERROR);' "$package")
+composer config repositories.sunrice-visual-editor "$repository"
+COMPOSER_AUTH='{}' composer require sunrice/visual-editor:dev-main --no-interaction --no-ansi
 php artisan sunrice:install --plugins --no-user --no-interaction --no-ansi
 grep -q 'VisualEditorPlugin::make()' app/Providers/AdminPanelProvider.php
 php artisan vendor:publish --tag=sunrice-visual-editor-assets --force --no-ansi

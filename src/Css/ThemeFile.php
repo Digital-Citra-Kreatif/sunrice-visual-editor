@@ -20,6 +20,14 @@ final class ThemeFile
         public readonly bool $exists = true,
     ) {}
 
+    /** The configured on-disk location, relative to the application when possible. */
+    public function displayPath(): string
+    {
+        $base = rtrim(base_path(), '/').'/';
+
+        return str_starts_with($this->file, $base) ? substr($this->file, strlen($base)) : $this->file;
+    }
+
     /** What it holds; nothing, for one that is not there yet. */
     public function source(): string
     {

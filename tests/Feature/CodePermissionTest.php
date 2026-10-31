@@ -296,11 +296,15 @@ it('refuses a whole text that runs anything new, and takes one that does not', f
     expect(File::get($this->hero))->toBe($this->original);
 })->with(SVE_CODE);
 
-it('lets someone who may not edit code rewrite what runs no code, and rearrange code that is there', function () {
+it('requires code permission for a hand-written source, even when it adds no PHP', function () {
     ($this->as)(Access::EDIT);
     // A paragraph added, the heading's echo moved into it, the subheading's condition gone: nothing new.
     $changed = str_replace(['<h1>{{ $block->heading }}</h1>', "    @if (\$block->subheading)\n", "    @endif\n    {{--"], ['<h1>Hello</h1><p class="lead">{{ $block->heading }}</p>', '', '    {{--'], $this->original);
 
+    putJson(SVE_HERO_API.'/source', ['version' => sha1($this->original), 'source' => $changed])->assertStatus(422);
+    expect(File::get($this->hero))->toBe($this->original);
+
+    ($this->as)(Access::CODE);
     putJson(SVE_HERO_API.'/source', ['version' => sha1($this->original), 'source' => $changed])->assertOk();
 
     expect(File::get($this->hero))->toBe($changed)->not->toBe($this->original);
@@ -551,3 +555,95 @@ it('lets an editor insert the offered array-backed menu condition without adding
     ($this->send)(['type' => 'append', 'node' => $node, 'blade' => $menu['inserts'][1]['blade']])->assertOk();
     get('/')->assertOk();
 });
+
+it('refuses executable browser markup without code permission through inserts and source writes', function (string $payload) {
+    ($this->as)(Access::EDIT);
+    ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<h1>'), 'blade' => $payload])
+        ->assertStatus(422)->assertJsonPath('reason', 'rejected');
+    putJson(SVE_HERO_API.'/source', ['version' => sha1($this->original), 'source' => $this->original.$payload])
+        ->assertStatus(422)->assertJsonPath('reason', 'rejected');
+    expect(File::get($this->hero))->toBe($this->original);
+    get('/')->assertOk()->assertDontSee('window.__sveXss', false);
+})->with([
+    '<script>window.__sveXss=1</script>',
+    '<img src=x onerror="window.__sveXss=1">',
+    '<div onclick="window.__sveXss=1">Click</div>',
+    '<a href="javascript:window.__sveXss=1">Click</a>',
+    '<a href="java&#x09;script:window.__sveXss=1">Click</a>',
+    '<iframe srcdoc="&lt;script>window.__sveXss=1&lt;/script>"></iframe>',
+    '<svg onload="window.__sveXss=1"></svg>',
+    "@{{ '<script>window.__sveXss=1</script>' }}",
+    '<!--><img src=x onerror="window.__sveXss=1">',
+    '@verbatim<script>window.__sveXss=1</script>@endverbatim',
+]);
+
+it('refuses browser code through attribute, tag, wrapper and raw echo operations', function (array $operation) {
+    ($this->as)(Access::EDIT);
+    ($this->send)($operation + ['node' => ($this->node)('<h1>')])->assertStatus(422);
+    expect(File::get($this->hero))->toBe($this->original);
+})->with([
+    [['type' => 'setAttribute', 'name' => 'onerror', 'value' => 'alert(1)']],
+    [['type' => 'setAttribute', 'name' => 'onclick', 'value' => 'alert(1)']],
+    [['type' => 'setAttribute', 'name' => 'href', 'value' => 'JaVaScRiPt:alert(1)']],
+    [['type' => 'setAttribute', 'name' => 'srcdoc', 'value' => '<script>alert(1)</script>']],
+    [['type' => 'setTag', 'tag' => 'script']],
+    [['type' => 'wrap', 'wrapper' => '<div onclick="alert(1)"></div>']],
+    [['type' => 'setCode', 'code' => '<p>Raw markup</p>']],
+]);
+
+it('does not let an escaped literal become executable through a combined raw echo edit', function () {
+    ($this->as)(Access::EDIT);
+    $echo = ($this->node)('{{ $block->heading }}');
+    ($this->send)(['type' => 'setExpression', 'node' => $echo, 'expression' => "'<img src=x onerror=alert(1)>'"], ['type' => 'setEchoRaw', 'node' => $echo, 'raw' => true])->assertStatus(422);
+    expect(File::get($this->hero))->toBe($this->original);
+});
+
+it('keeps raw markup available to people with code permission', function () {
+    ($this->as)(Access::CODE);
+    ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<h1>'), 'blade' => '<button onclick="alert(1)">Code</button>'])->assertOk();
+    expect(File::get($this->hero))->toContain('onclick="alert(1)"');
+});
+
+it('keeps duplicate, move and delete available with only edit permission', function () {
+    ($this->as)(Access::EDIT);
+    ($this->send)(['type' => 'duplicate', 'node' => ($this->node)('<h1>')])->assertOk();
+    ($this->send)(['type' => 'move', 'node' => ($this->node)('<h1>'), 'target' => ($this->node)('<section'), 'position' => 'inside'])->assertOk();
+    ($this->send)(['type' => 'remove', 'node' => ($this->node)('<h1>')])->assertOk();
+    expect(($this->runsNew)())->toBe([]);
+});
+
+it('refuses executable attributes forwarded through CMS components', function (string $name, string $value) {
+    ($this->as)(Access::EDIT);
+    $entry = collect(getJson('/admin/visual-editor/api/inserts')->json('inserts'))->first(fn (array $insert) => str_contains($insert['blade'], '<x-sunrice-cms::entries'));
+    ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<h1>'), 'blade' => $entry['blade']])->assertOk();
+    $before = File::get($this->hero);
+    ($this->send)(['type' => 'setAttribute', 'node' => ($this->node)('<x-sunrice-cms::entries'), 'name' => $name, 'value' => $value, 'blade' => true])->assertStatus(422);
+    expect(File::get($this->hero))->toBe($before);
+})->with([
+    [':x-init', "'alert(1)'"],
+    [':x-data', "'{init(){alert(1)}}'"],
+    [':onclick', "'alert(1)'"],
+    [':href', "'javascript:alert(1)'"],
+    ['href', 'javascript:alert(1)'],
+]);
+
+it('allows offered siblings beside executable elements while refusing inserts inside them', function (string $type, string $markup, string $tag) {
+    ($this->as)(Access::EDIT);
+    $before = str_replace('<h1>', $markup.'<h1>', $this->original);
+    File::put($this->hero, $before);
+    $response = ($this->send)(['type' => $type, 'node' => ($this->node)('<'.$tag), 'blade' => '<p>Text</p>'])->assertOk();
+    $written = File::get($this->hero);
+    $inserted = Template::open($written)->find($response->json('focus'));
+    expect($inserted?->parent?->name)->toBe('section');
+    ($this->send)(['type' => 'append', 'node' => ($this->node)('<'.$tag), 'blade' => '<p>Text</p>'])->assertStatus(422);
+    expect(File::get($this->hero))->toBe($written);
+    if ($tag === 'svg') {
+        ($this->send)(['type' => 'insertAfter', 'node' => ($this->node)('<path'), 'blade' => '<p>Text</p>'])->assertStatus(422);
+        expect(File::get($this->hero))->toBe($written);
+    }
+})->with(['insertBefore', 'insertAfter'])->with([
+    ['<svg><path d="M0 0"></path></svg>', 'svg'],
+    ['<script>/* existing code */</script>', 'script'],
+    ['<style>.existing { color: red; }</style>', 'style'],
+    ['<iframe src="/about"></iframe>', 'iframe'],
+]);

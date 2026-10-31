@@ -103,11 +103,12 @@ final class SunriceBridge
     private static function sitePath(EntryTranslation $translation): ?string
     {
         $url = $translation->url();
-        $path = $url === null ? null : parse_url($url, PHP_URL_PATH);
-        if (! is_string($path)) {
+        if ($url === null || ($parts = parse_url($url)) === false) {
             return null;
         }
-        $query = parse_url($url, PHP_URL_QUERY);
+        $path = $parts['path'] ?? '/';
+        $path = $path === '' ? '/' : $path;
+        $query = $parts['query'] ?? null;
 
         return $path.(is_string($query) ? '?'.$query : '');
     }

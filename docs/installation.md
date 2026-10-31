@@ -26,9 +26,32 @@ The package is not on Packagist yet. Tell Composer where it is, then require
 it:
 
 ```bash
-composer config repositories.sunrice-visual-editor vcs https://github.com/Digital-Citra-Kreatif/sunrice-visual-editor
+composer config repositories.sunrice-visual-editor '{"type":"vcs","url":"https://github.com/Digital-Citra-Kreatif/sunrice-visual-editor","no-api":true}'
 composer require sunrice/visual-editor:dev-main
 ```
+
+The public VCS install uses Git with `no-api: true`, avoiding GitHub API
+metadata requests and anonymous API rate limits. Git must be installed;
+a public checkout needs no GitHub token. Private repositories still need
+their own Git credentials.
+
+If the application's `composer.json` already declares other GitHub VCS
+repositories (for example the Sunrice panel and CMS), add `"no-api": true`
+to those entries too. Composer uses the application's repository settings;
+settings inside a dependency are not inherited. Keep existing path repositories
+as path repositories. The fresh-site CI setup applies this to the Sunrice splits.
+
+For a monorepo or CI, use a local checkout as a path repository instead.
+This also avoids enumerating remote branches. From the Laravel application:
+
+```bash
+composer config repositories.sunrice-visual-editor '{"type":"path","url":"../sunrice-visual-editor","options":{"symlink":false,"versions":{"sunrice/visual-editor":"dev-main"}}}'
+composer require sunrice/visual-editor:dev-main
+```
+
+Replace `../sunrice-visual-editor` with the checkout's path. The install CI
+uses this path-repository workflow. Until a release is published on
+Packagist, use `dev-main`; a `^0.x` package requirement is not yet advertised.
 
 Add its plugin to the panel, after the CMS's. The install command offers
 to, and `--plugins` does it without asking:

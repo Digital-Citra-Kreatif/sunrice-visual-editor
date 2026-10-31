@@ -63,6 +63,7 @@ class ScriptController extends Controller
 
         return [
             'path' => $file->path,
+            'displayPath' => $file->displayPath(),
             'url' => $file->url,
             'version' => CustomJs::version($source),
             'exists' => is_file($file->file),

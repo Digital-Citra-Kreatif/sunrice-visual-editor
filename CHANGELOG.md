@@ -5,6 +5,17 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+### Reported findings follow-up
+
+- F-083: link root homepage translations to the visual editor, preserving queries.
+- F-082: require code for arbitrary inserts and executable markup; retain offered
+  fragments, structural edits and exact undo/redo, and document CSP integration.
+- F-086: use grouped pressed panel switches and full-contrast nested layer labels.
+- F-084/F-089: document Git-based no-API installs and use path repositories in CI.
+- F-085: show configured CSS/JS disk paths instead of a hard-coded theme folder.
+- F-087: clear refused-save notices when reverting or loading saved code.
+- F-090: defer the first completion catalog request until typing a field expression or pressing Ctrl+Space.
+
 ### Save and preview safety
 
 - Typing that continues during a template, CSS or JS save stays unsaved when that request completes, including typing back to the original text.

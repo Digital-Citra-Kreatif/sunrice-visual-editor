@@ -221,8 +221,8 @@ it('lets an agent write code only for a user who may edit code', function () {
 
     expect(($this->edit)($editor, $code)['error'])->toContain('Not saved', 'you may not edit code')
         ->and(File::get($this->footer))->toBe($this->original)
-        // What is no code is theirs to add.
-        ->and(($this->edit)($editor, [['type' => 'append', 'node' => ($this->node)('<footer'), 'blade' => '<p>Plain</p>']])['saved'])->toBeTrue()
+        // Exact offered markup stays available; arbitrary markup requires code.
+        ->and(($this->edit)($editor, [['type' => 'append', 'node' => ($this->node)('<footer'), 'blade' => '<p>Text</p>']])['saved'])->toBeTrue()
         ->and(($this->edit)($coder, [['type' => 'append', 'node' => ($this->node)('<footer'), 'blade' => '<p>{{ now()->year }}</p>']])['saved'])->toBeTrue();
 });
 
