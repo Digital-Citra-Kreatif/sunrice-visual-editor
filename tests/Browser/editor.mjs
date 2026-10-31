@@ -140,6 +140,36 @@ await step('show the tree on the left, the page in the middle and the code on th
     }
 });
 
+await step('reach the code scroll area by Tab, scroll it and leave it in both permission modes', async () => {
+    await page.evaluate(async () => {
+        const url = performance.getEntriesByType('resource').find((entry) => entry.name.includes('/code-editor.js')).name;
+        const { mount } = await import(url);
+        const box = document.createElement('div');
+        box.id = 'scroll-keyboard-test';
+        box.style.cssText = 'position:fixed;inset:100px auto auto 100px;width:400px;background:white;z-index:9999';
+        box.innerHTML = '<button>Before scroller</button><div style="height:150px"></div><button>After scroller</button>';
+        document.body.append(box);
+        const editor = mount(box.children[1], { label: 'Keyboard test', onChange() {}, onSave() {} });
+        const text = Array.from({ length: 100 }, (_, index) => `line ${index}`).join('\n');
+        editor.show('keyboard', { text, saved: text, readOnly: false });
+        window.scrollKeyboardTest = { editor, box };
+    });
+    const box = page.locator('#scroll-keyboard-test');
+    for (const readOnly of [false, true]) {
+        await page.evaluate((locked) => { window.scrollKeyboardTest.editor.setReadOnly(locked); window.scrollKeyboardTest.box.querySelector('.cm-scroller').scrollTop = 0; }, readOnly);
+        await box.getByRole('button', { name: 'Before scroller' }).focus();
+        await page.keyboard.press('Tab');
+        if (!(await box.locator('.cm-scroller').evaluate((element) => element === document.activeElement))) throw new Error('Tab did not reach the scroller');
+        await page.keyboard.press('PageDown');
+        await until('PageDown did not scroll the code', () => box.locator('.cm-scroller').evaluate((element) => element.scrollTop > 0));
+        await page.keyboard.press('Tab');
+        if (!(await box.locator('.cm-content').evaluate((element) => element === document.activeElement))) throw new Error('Cannot enter the code from its scroller');
+        await page.keyboard.press('Escape'); await page.keyboard.press('Tab');
+        if (!(await box.getByRole('button', { name: 'After scroller' }).evaluate((element) => element === document.activeElement))) throw new Error('Cannot leave the code with Escape then Tab');
+    }
+    await page.evaluate(() => { window.scrollKeyboardTest.editor.destroy(); window.scrollKeyboardTest.box.remove(); delete window.scrollKeyboardTest; });
+});
+
 await step('list the templates that drew the homepage, the layout first', async () => {
     const names = await listed();
     for (const name of ['layout', 'collections/show', 'partials/blocks', 'partials/menu', 'blocks/hero', 'blocks/text']) {
@@ -978,7 +1008,11 @@ await step('browse CMS fields, copy Blade, edit definitions and publish content 
     await code.locator('.cm-editor').waitFor();
     await page.waitForTimeout(350);
     if (catalogRequests !== 0) throw new Error(`The Fields tab fetched ${catalogRequests} catalogs before opening`);
+    const referenceResponse = page.waitForResponse((response) => response.url().includes('reference=1'));
     await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Fields' }).click();
+    const reference = await referenceResponse;
+    await reference.finished();
+    if ((await reference.headerValue('content-encoding')) !== 'gzip' || (await reference.request().sizes()).responseBodySize >= 100000) throw new Error('Fields reference was not transferred compactly');
     const fields = page.getByRole('region', { name: 'CMS fields and variables' });
     await fields.getByLabel('Find a variable or field').fill('$title');
     const example = fields.locator('.sve-fields__example').filter({ has: page.locator('code', { hasText: '$title' }) }).first();

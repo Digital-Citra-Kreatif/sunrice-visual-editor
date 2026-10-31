@@ -5,6 +5,9 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- Make code editor scroll areas reachable by keyboard, with a visible focus indicator.
+- Reduce Fields reference payloads and gzip their transfer when supported, preserving all recipes and source links.
+
 ### CMS Fields tab
 
 - Browse and search scoped CMS variables, types and Blade recipes in a dedicated

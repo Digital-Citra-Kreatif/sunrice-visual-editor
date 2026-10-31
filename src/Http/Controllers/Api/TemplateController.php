@@ -14,6 +14,7 @@ use Sunrice\VisualEditor\Blade\Operations;
 use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
 use Sunrice\VisualEditor\Fields\Picker;
+use Sunrice\VisualEditor\Fields\Reference;
 use Sunrice\VisualEditor\Guard\CodeGuard;
 use Sunrice\VisualEditor\Guard\CodeRefused;
 use Sunrice\VisualEditor\Support\Access;
@@ -21,6 +22,7 @@ use Sunrice\VisualEditor\Templates\Backups;
 use Sunrice\VisualEditor\Templates\Conflict;
 use Sunrice\VisualEditor\Templates\TemplateFile;
 use Sunrice\VisualEditor\Templates\TemplateRepository;
+use Symfony\Component\HttpFoundation\AcceptHeader;
 
 /**
  * The editor's API for templates: list, read, change, copy.
@@ -153,7 +155,7 @@ class TemplateController extends Controller
      */
     public function fields(Request $request, Picker $picker, string $path): JsonResponse
     {
-        return $this->answer(function () use ($request, $picker, $path) {
+        $response = $this->answer(function () use ($request, $picker, $path) {
             $file = $this->templates->find($path, $this->origin($request));
             $source = (string) file_get_contents($file->file);
             $version = $request->query('version');
@@ -174,8 +176,27 @@ class TemplateController extends Controller
                 throw new InvalidRequest('The template has no node "'.$id.'".');
             }
 
-            return ['version' => $version, 'variables' => $picker->at($file, $template, $node, $request->boolean('inside'))];
+            $variables = $picker->at($file, $template, $node, $request->boolean('inside'));
+
+            return ['version' => $version, 'variables' => $request->boolean('reference') ? Reference::variables($variables) : $variables];
         });
+        if ($request->boolean('reference')) {
+            // Parent panel middleware may replace Vary. Never let a cache reuse
+            // an encoded response for a client that asked for identity.
+            $response->headers->set('Cache-Control', 'private, no-store');
+            $response->setVary('Accept-Encoding', false);
+            $encodings = AcceptHeader::fromString($request->header('Accept-Encoding', ''));
+            $gzip = $encodings->get('gzip') ?? $encodings->get('*');
+            if ($response->isOk() && $gzip !== null && $gzip->getQuality() > 0 && function_exists('gzencode')) {
+                $compressed = gzencode($response->getContent(), 6);
+                if ($compressed !== false) {
+                    $response->setContent($compressed);
+                    $response->headers->set('Content-Encoding', 'gzip');
+                }
+            }
+        }
+
+        return $response;
     }
 
     /**

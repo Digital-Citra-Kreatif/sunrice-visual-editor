@@ -839,3 +839,11 @@ A hidden side already took no room (V8.7). What was missing was a way to use it 
   endpoint, and source identifiers on catalog groups. Support package references.
 - Cover lazy loads, stale responses, refresh, safe links, CMS permission separation,
   locales, empty sources and browser editing/copy flows. Update docs and assets.
+
+## REVIEW-3 — Code scroll keyboard access and compact Fields transfer
+
+**Depends on:** FIELDS-1 (PR #62, merged).
+
+- Make the shared CodeMirror scroller keyboard focusable and visibly focused.
+- Add opt-in compact reference responses and negotiated gzip without new dependencies.
+- Verify recipe/source preservation, encoding negotiation, stale versions, transfer size, and keyboard scrolling/escape in both permission modes.

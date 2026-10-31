@@ -197,3 +197,8 @@ Tailwind writes CSS only for the classes it finds in the site's files, so a clas
 | 4 | Licence of this package. | Same as Sunrice (MIT); not stated in the repository yet. |
 | 5 | Is the code panel's own small editor enough, or is CodeMirror wanted (search and replace, several cursors, folding)? | CodeMirror, always beside the page (decided October 2026). |
 | 6 | Should a draft's banner on the site carry an **Edit visually** link? Sunrice would need a hook for it. | No link on the site; the editor is opened from the admin (its sidebar entry, an entry page's **Edit with Visual Editor**, or the command palette's **Edit … in the visual editor**) or by `?url=`. |
+
+### Reference transfer and keyboard scrolling (REVIEW-3)
+
+- CodeMirror's scroll area is named and reachable with Tab in editable and read-only modes. PageDown scrolls it; the content remains reachable, and Escape then Tab leaves the code.
+- Fields requests a compact reference view of the catalog. It preserves all fields, source metadata, optionality and Blade recipes, omits completion-only properties and duplicate print strings, and negotiates gzip when PHP zlib is present. Refusals and the default catalog format stay unchanged. Encoded responses cannot be reused by HTTP caches.

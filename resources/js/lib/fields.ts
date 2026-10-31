@@ -1,14 +1,14 @@
-import type { FieldGroup, FieldInsert, PickField, PickVariable, TemplateData } from './api';
+import type { ReferenceGroup, FieldInsert, ReferenceField, ReferenceVariable, TemplateData } from './api';
 
-export type FieldReference = PickField | PickVariable;
+export type FieldReference = ReferenceField | ReferenceVariable;
 export const fieldLabel = (value: FieldReference) => 'title' in value ? value.title : value.label;
 const matches = (value: FieldReference, query: string) => [fieldLabel(value), value.code, value.what, ...value.of, ...('note' in value && value.note ? [value.note] : [])].join(' ').toLowerCase().includes(query);
 
 /** Keep the parent context of matching fields, including nested groups and rows. */
-export function filterFields(variables: PickVariable[], search: string): PickVariable[] {
+export function filterFields(variables: ReferenceVariable[], search: string): ReferenceVariable[] {
     const query = search.trim().toLowerCase();
     if (query === '') return variables;
-    const groups = (all: FieldGroup[]): FieldGroup[] => all.flatMap((group) => {
+    const groups = (all: ReferenceGroup[]): ReferenceGroup[] => all.flatMap((group) => {
         if ([group.title, group.source?.subject, group.source?.handle].filter(Boolean).join(' ').toLowerCase().includes(query)) return [group];
         const fields = group.fields.flatMap((field) => {
             if (matches(field, query)) return [field];

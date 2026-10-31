@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { readFieldCatalog, readFieldEditors, type CmsFieldEditor, type CmsFieldEditors, type FieldCatalog, type FieldGroup, type Loaded, type PickVariable, type TemplateData } from '../lib/api';
+import { readFieldCatalog, readFieldEditors, type CmsFieldEditor, type CmsFieldEditors, type FieldCatalog, type ReferenceGroup, type Loaded, type ReferenceVariable, type TemplateData } from '../lib/api';
 import { cmsEditorHref, fieldExamples, fieldLabel, filterFields, templateFieldSources, type FieldReference } from '../lib/fields';
 import type { ShownEntry } from '../bridge/protocol';
 
@@ -114,7 +114,7 @@ function EditorLinks({ editor, onOpen }: { editor: CmsFieldEditor; onOpen(): voi
     })}</div>;
 }
 type RowProps = { value: FieldReference; editors: CmsFieldEditors['sources']; searching: boolean; onCopy(blade: string, label: string): void; onOpen(): void };
-function Variable(props: RowProps & { value: PickVariable }) {
+function Variable(props: RowProps & { value: ReferenceVariable }) {
     const match = /^cms_(menu|global)\('([\w-]+)'\)$/.exec(props.value.code);
     const menu = match ? props.editors[match[1] + ':' + match[2]] : undefined;
     return <div className="sve-fields__variable"><small>{({ page: 'This template', included: 'Passed to this template', loop: 'Inside this loop', set: 'Set above', component: 'Inside this component', site: 'Site-wide' })[props.value.from]}</small>
@@ -135,7 +135,7 @@ function FieldRow({ value, editors, searching, onCopy, onOpen }: RowProps) {
         </div>}
     </div>;
 }
-function Group({ group, editors, searching, onCopy, onOpen }: Omit<RowProps, 'value'> & { group: FieldGroup }) {
+function Group({ group, editors, searching, onCopy, onOpen }: Omit<RowProps, 'value'> & { group: ReferenceGroup }) {
     const editor = group.source ? editors[group.source.subject + ':' + group.source.handle] : undefined;
     return <div className="sve-fields__group"><h3>{group.title}</h3>{editor && <EditorLinks editor={editor} onOpen={onOpen} />}{group.fields.map((field) => <FieldRow key={field.code} value={field} editors={editors} searching={searching} onCopy={onCopy} onOpen={onOpen} />)}</div>;
 }

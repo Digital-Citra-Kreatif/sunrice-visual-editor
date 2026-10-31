@@ -149,6 +149,7 @@ const look = EditorView.theme({
     '&': { height: '100%', color: 'var(--foreground)', backgroundColor: 'transparent', fontSize: '0.75rem' },
     '&.cm-focused': { outline: 'none' },
     '.cm-scroller': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', lineHeight: 'var(--sve-code-line, 1.25rem)' },
+    '.cm-scroller:focus-visible': { outline: '2px solid var(--ring)', outlineOffset: '-2px' },
     '.cm-content': { padding: '0.5rem 0', caretColor: 'var(--foreground)' },
     '.cm-line': { padding: '0 0.75rem' },
     '.cm-gutters': { backgroundColor: 'var(--card)', color: 'var(--muted-foreground)', border: '0', borderInlineEnd: '1px solid var(--border)' },
@@ -276,6 +277,8 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
     };
 
     const view = new EditorView({ parent, state: make({ text: '', saved: '', readOnly: true }) });
+    view.scrollDOM.tabIndex = 0;
+    view.scrollDOM.setAttribute('aria-label', `${options.label} scroll area`);
     /** The texts put aside, each as it was left, and where it was scrolled to. */
     const kept = new Map<string, { state: EditorState; scroll: StateEffect<unknown> }>();
     let showing: string | null = null;
