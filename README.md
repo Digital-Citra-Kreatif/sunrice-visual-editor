@@ -105,6 +105,16 @@ content in the admin.
   condition. All of it draws without an error when the field is empty, or
   is not there at all; a field only some collections have says so.
 
+**CMS fields and variables, visible beside the page.**
+
+- **Fields** lists what the selected template/layer can read, with field types,
+  source groups and searchable, copyable Blade examples.
+- Open the page's CMS content editor or its blueprint/fieldset from the tab.
+  Globals and menus link to their own editors. Returning refreshes the reference
+  and preview; CMS permissions and publishing still apply.
+- The catalog loads on demand. [Fields and variables](docs/fields.md) explains
+  both this reference and the code's Ctrl+Space completions.
+
 **The page's content, a click away.**
 
 - **Edit content ↗** in the top bar opens the CMS's own admin page for the

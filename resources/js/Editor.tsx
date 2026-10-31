@@ -19,6 +19,7 @@ import { layout, readWidths, type View } from './lib/widths';
 import { CodePanel, type CodePlace } from './panels/CodePanel';
 import { ContentLink } from './panels/ContentLink';
 import { CustomFilePanel } from './panels/CustomFilePanel';
+import { FieldsPanel } from './panels/FieldsPanel';
 import { LayersPanel, nodeTitle } from './panels/LayersPanel';
 import { Pane, Side } from './panels/Panel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
@@ -81,7 +82,7 @@ function Rail({ side, label, onOpen }: { side: 'left' | 'right'; label: string; 
 type Page = { url: string; title: string; files: ManifestFile[]; status: number; /** Its CSS is Tailwind's browser build: a preview of what a build would make. */ preview: boolean; /** The entry it is of, when it is one. */ entry: ShownEntry | null };
 
 /** What the side right of the page shows: the open template's code, what it can read, the page's content, or the site's custom CSS. */
-type CodeTab = 'template' | 'css' | 'js';
+type CodeTab = 'template' | 'fields' | 'css' | 'js';
 
 /** How long a page gets to say it is ready after it has loaded. */
 const READY_WITHIN = 1500;
@@ -329,7 +330,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 return;
             }
             // What was clicked is shown in its code, and in the layers.
-            setCodeTab('template');
+            setCodeTab((was) => was === 'fields' ? 'fields' : 'template');
             setTreeTab('layers');
             if (sameTemplate(file, open)) {
                 // An element of the open template: select it.
@@ -562,7 +563,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
     /** Opens a template; one that isn't on this page brings the page it was last seen on. */
     const openTemplate = (name: TemplateName) => {
-        setCodeTab('template');
+        setCodeTab((was) => was === 'fields' ? 'fields' : 'template');
         setTreeTab('layers');
         if (sameTemplate(open, name)) {
             return;
@@ -729,7 +730,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             return;
         }
         setSelected(id);
-        setCodeTab('template');
+        setCodeTab((was) => was === 'fields' ? 'fields' : 'template');
         if (open !== null) {
             pointCode(open, findNode(tree, id), false);
         }
@@ -1420,6 +1421,9 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                             Template
                             {Object.keys(drafts).length > 0 && <span className="sve-tab__dot" aria-label="not saved" />}
                         </button>
+                        <button type="button" className="sve-code-tabs__tab" aria-pressed={codeTab === 'fields'} onClick={() => setCodeTab('fields')} title="Available CMS variables, Blade examples, and CMS field editors">
+                            Fields
+                        </button>
                         <button type="button" className="sve-code-tabs__tab" aria-pressed={codeTab === 'css'} onClick={() => setCodeTab('css')} title="CSS of your own, added to every page of the site">
                             Custom CSS
                             {cssUnsaved && <span className="sve-tab__dot" aria-label="not saved" />}
@@ -1481,6 +1485,10 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                                 {!isPackage && !mayCode && <p className="sve-code__banner">You may read the code here, not change it.</p>}
                             </CodePanel>
                         )}
+                    </div>
+                    <div className="sve-code-pane" hidden={codeTab !== 'fields'}>
+                        <FieldsPanel active={codeTab === 'fields'} template={template.state === 'ready' ? template.data : null} node={selected} entry={page?.entry ?? null} unsaved={unsaved}
+                            onBack={() => { redraw(); redrawPreviews(); }} onReload={() => setReadings((count) => count + 1)} />
                     </div>
                     <div className="sve-code-pane" hidden={codeTab !== 'css'}>
                         <CustomFilePanel

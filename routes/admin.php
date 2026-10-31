@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Sunrice\VisualEditor\Http\Controllers\Api\BuildController;
+use Sunrice\VisualEditor\Http\Controllers\Api\FieldEditorsController;
 use Sunrice\VisualEditor\Http\Controllers\Api\InsertController;
 use Sunrice\VisualEditor\Http\Controllers\Api\PageSearchController;
 use Sunrice\VisualEditor\Http\Controllers\Api\ScriptController;
@@ -32,6 +33,7 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
     // The site's build command, as configured: a permission of its own, apart from editing.
     Route::post('build', BuildController::class)->middleware(EditorAccess::class.':build')->name('build');
     Route::get('site', SiteController::class)->name('site');
+    Route::get('field-editors', FieldEditorsController::class)->name('field-editors');
 
     // A stylesheet is named by its path inside the theme directory: …/api/styles/files/css/print.css
     Route::get('styles', [StyleController::class, 'index'])->name('styles.index');

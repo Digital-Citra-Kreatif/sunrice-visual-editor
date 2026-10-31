@@ -5,6 +5,15 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+### CMS Fields tab
+
+- Browse and search scoped CMS variables, types and Blade recipes in a dedicated
+  Fields tab, with copy actions and context caches loaded on demand.
+- Open native CMS value and definition editors from permission-filtered source
+  links, preserving locales and refreshing the catalog/preview on return.
+- Support read-only package template catalogs and keep source/version conflicts.
+
+
 ### Reported findings follow-up
 
 - F-083: link root homepage translations to the visual editor, preserving queries.

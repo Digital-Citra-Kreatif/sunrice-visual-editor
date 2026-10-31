@@ -6,7 +6,38 @@ site's global sets and menus everywhere. The editor knows which of them a templa
 what fields each one holds, and how each is written in Blade. The code's
 completions offer them; choosing one writes the code at the cursor.
 
-## Where the list is
+## Fields tab
+
+Open **Fields** beside **Template** on the right. It lists the variables in the
+selected template, at the selected layer: page values, `$entry`, block fields,
+loop items, globals and menus. Search by name, field type, expression or source.
+The tab stays open while you select other layers or templates.
+Expand a variable or field to see its type and the Blade recipes for using it;
+**Copy Blade** copies the complete recipe, including empty-value guards and loops.
+The reference is available to everyone who may open the editor. Writing Blade in
+the Template tab still requires `visual-editor.code`.
+
+The list follows the saved template. Code completions also understand local
+variables introduced in unsaved code. Both use the same catalog and emitters.
+The Fields catalog loads only when this tab opens and is cached by template,
+version and layer. **Refresh fields** reloads definitions changed elsewhere.
+
+### Edit values and definitions in the CMS
+
+**This page** links to the page's CMS editor in its current content language.
+Template field sources and field groups link to their blueprints or fieldsets;
+globals and menus link to their native value/link editors. **Blueprints** and
+**Fieldsets** open the CMS's definition lists, where fields can be added and
+configured. Empty blueprints remain reachable through the source links.
+
+These links open the CMS's own editor in another browser tab. Its full field
+inputs, validation, translation handling, revisions and publishing remain in use.
+On return, the visual editor refreshes its reference catalog and page preview.
+Entry changes follow the CMS's draft/publish flow; global values and menus save
+directly. CMS permissions determine which actions are shown, independently of
+visual-editor permissions. This tab adds no content or schema write endpoint.
+
+## Code completions
 
 In the code of the **Template** tab:
 
@@ -133,3 +164,15 @@ the code editor, or start typing a variable/field expression, to load fields
 for the cursor position. After that first
 request, suggestions follow typing and cursor movement for that template.
 This keeps large schema catalogs out of the initial editor transfer.
+
+### Reference API
+
+`GET …/api/templates/{path}/fields?version=…&node=…&origin=site` returns the
+saved template's catalog. `origin=package` also supports CMS fallback views.
+Blueprint-derived groups include `source: {subject, handle}`. The version check
+still returns 409 after an external template edit.
+
+`GET …/api/field-editors?entry=…&locale=…` returns authorized native CMS links
+in `sources`, `entry` and `manage`. It returns no content values and accepts no
+writes. Source keys are `collection:handle`, `listing:handle`, `taxonomy:handle`,
+`index:handle`, `fieldset:handle`, `global:handle` and `menu:handle`.

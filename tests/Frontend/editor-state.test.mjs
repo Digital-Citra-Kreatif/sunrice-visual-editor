@@ -15,11 +15,12 @@ await build({
         export { CodePanel, PlainCode } from './resources/js/panels/CodePanel.tsx';
         export { CustomFilePanel } from './resources/js/panels/CustomFilePanel.tsx';
         export { TemplatesPanel } from './resources/js/panels/TemplatesPanel.tsx';
-        export { LayersPanel } from './resources/js/panels/LayersPanel.tsx';`, resolveDir: root },
+        export { LayersPanel } from './resources/js/panels/LayersPanel.tsx';
+        export { FieldsPanel } from './resources/js/panels/FieldsPanel.tsx';`, resolveDir: root },
     outfile: join(directory, 'components.mjs'), bundle: true, format: 'esm', platform: 'node', jsx: 'automatic',
     alias: { react: join(root, 'tests/Frontend/support/hooks.mjs'), 'react/jsx-runtime': join(root, 'tests/Frontend/support/hooks.mjs'), '@inertiajs/react': join(root, 'tests/Frontend/support/inertia.mjs') },
 });
-const { harness, Editor, CodePanel, PlainCode, CustomFilePanel, TemplatesPanel, LayersPanel } = await import(pathToFileURL(join(directory, 'components.mjs')).href);
+const { harness, Editor, CodePanel, PlainCode, CustomFilePanel, TemplatesPanel, LayersPanel, FieldsPanel } = await import(pathToFileURL(join(directory, 'components.mjs')).href);
 
 function find(node, type) {
     if (!node || typeof node !== 'object') return null;
@@ -240,4 +241,22 @@ test('panel switches expose grouped pressed buttons without incomplete tab roles
     assert.equal(templates.props['aria-pressed'], false);
     templates.props.onClick(); state.render();
     assert.equal(button(state.output, 'Templates').props['aria-pressed'], true);
+});
+
+
+test('the Fields reference stays open as canvas selections, layer selections and templates change', async () => {
+    const env = environment();
+    env.files['a.blade.php'].tree = { id: 'root', type: 'root', start: 0, end: 8, children: [{ id: '0', type: 'element', name: 'p', label: 'p', start: 0, end: 8, can: { delete: true, attributes: true }, children: [] }] };
+    const state = await editor();
+    env.send(state, { type: 'ready', url: '/', title: 'Page', manifest: { files: [{ ...env.files['a.blade.php'], key: 'file-a' }] } });
+    await flush(state);
+    button(state.output, 'Fields').props.onClick(); state.render();
+    env.send(state, { type: 'select', target: { mark: { file: 'file-a', id: '0' }, version: 'a1' } });
+    assert.equal(find(state.output, FieldsPanel).props.active, true);
+    assert.equal(find(state.output, FieldsPanel).props.node, '0');
+    find(state.output, LayersPanel).props.onSelect('0'); state.render();
+    assert.equal(find(state.output, FieldsPanel).props.active, true);
+    await state.open('b.blade.php');
+    assert.equal(find(state.output, FieldsPanel).props.active, true);
+    assert.equal(find(state.output, FieldsPanel).props.template.path, 'b.blade.php');
 });

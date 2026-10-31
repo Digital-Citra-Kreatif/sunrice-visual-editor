@@ -825,3 +825,17 @@ A hidden side already took no room (V8.7). What was missing was a way to use it 
 - Tailwind's class names offered in the class field of the Settings panel, from the site's theme.
 - Search across the site's templates.
 - The stylesheet files of the theme opened in Code mode, as templates are.
+
+
+## FIELDS-1 — Discoverable CMS fields and linked editing
+
+**Depends on:** merged editor/completion work and REVIEW-2 (PR #61).
+
+- Add a lazy Fields tab using the existing scoped catalog, with search, type/source
+  metadata, copyable emitter recipes and bounded context caches.
+- Link value editing and field-definition editing to native CMS forms; preserve
+  translations, permissions, draft/publish behavior and refresh on return.
+- Keep CMS model/permission reads in SunriceBridge. Add a read-only editor-link
+  endpoint, and source identifiers on catalog groups. Support package references.
+- Cover lazy loads, stale responses, refresh, safe links, CMS permission separation,
+  locales, empty sources and browser editing/copy flows. Update docs and assets.

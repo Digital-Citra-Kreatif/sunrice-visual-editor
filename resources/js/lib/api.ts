@@ -6,6 +6,7 @@ import type { ManifestFile } from '../bridge/protocol';
 
 /** A template as the list has it. */
 export type TemplateInfo = Omit<ManifestFile, 'key' | 'version'> & {
+    usedBy?: { role: string; subject: string; handle: string }[];
     reason: string | null;
     strays: number;
 };
@@ -67,7 +68,11 @@ export type Insertable = {
 export type FieldInsert = { title: string; kind: 'print' | 'element' | 'structure'; blade: string };
 
 /** Some of what can be read from a value, under one heading: "Every entry", "Articles". */
-export type FieldGroup = { title: string; fields: PickField[] };
+export type FieldSource = { subject: string; handle: string };
+export type FieldGroup = { title: string; fields: PickField[]; source?: FieldSource };
+export type CmsFieldEditor = { title: string; values: string | null; definitions: { label: string; url: string }[] };
+export type CmsFieldEditors = { sources: Record<string, CmsFieldEditor>; entry: CmsFieldEditor | null; manage: { label: string; url: string }[] };
+export type FieldCatalog = { version: string; variables: PickVariable[] };
 
 /** What the picker says of any value (Picker on the server). */
 type Pickable = {
@@ -223,6 +228,19 @@ export function listFields(path: string, version: string, node: string | null, i
     const query = new URLSearchParams({ version, ...(node === null ? {} : { node }), ...(inside ? { inside: '1' } : {}) });
 
     return request<{ variables: PickVariable[] }>('GET', `templates/${pathInAddress(path)}/fields?${query.toString()}`).then((answer) => answer.variables);
+}
+
+/** A saved template's reference catalog, loaded only when the Fields tab opens. */
+export function readFieldCatalog(template: TemplateData, node: string | null): Promise<FieldCatalog> {
+    const query = new URLSearchParams({ version: template.version, origin: template.origin, ...(node === null ? {} : { node }) });
+
+    return request<FieldCatalog>('GET', `templates/${pathInAddress(template.path)}/fields?${query}`);
+}
+
+export function readFieldEditors(entry: number | null, locale: string | null): Promise<CmsFieldEditors> {
+    const query = new URLSearchParams({ ...(entry === null ? {} : { entry: String(entry) }), ...(locale === null ? {} : { locale }) });
+
+    return request<CmsFieldEditors>('GET', `field-editors?${query}`);
 }
 
 /** How a run of the site's build command went (Build on the server). */

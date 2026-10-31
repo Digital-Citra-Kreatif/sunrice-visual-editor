@@ -154,7 +154,7 @@ class TemplateController extends Controller
     public function fields(Request $request, Picker $picker, string $path): JsonResponse
     {
         return $this->answer(function () use ($request, $picker, $path) {
-            $file = $this->templates->find($path);
+            $file = $this->templates->find($path, $this->origin($request));
             $source = (string) file_get_contents($file->file);
             $version = $request->query('version');
             if (! is_string($version) || $version === '') {
