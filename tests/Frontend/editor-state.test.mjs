@@ -51,17 +51,19 @@ function environment() {
     globalThis.Sunrice = { adminUrl: (path) => '/admin/' + (path ?? '') };
     const files = { 'a.blade.php': template('a.blade.php', 'original', 'a1'), 'b.blade.php': template('b.blade.php', 'other', 'b1') };
     const requests = [];
+    const fieldRequests = [];
     let pending;
     globalThis.fetch = async (url, options) => {
         if (options.method === 'PUT' || url.endsWith('/operations')) {
             requests.push({ url, body: JSON.parse(options.body) });
-            return new Promise((resolve) => { pending = (body) => resolve({ ok: true, json: async () => body }); });
+            return new Promise((resolve) => { pending = (body, status = 200) => resolve({ ok: status < 400, status, json: async () => body }); });
         }
+        if (url.endsWith('/fields')) { fieldRequests.push(url); return { ok: true, json: async () => ({ variables: [], exact: true }) }; }
         if (url.endsWith('/templates')) return { ok: true, json: async () => ({ templates: Object.values(files) }) };
-        if (url.endsWith('/custom')) return { ok: true, json: async () => ({ custom: { path: 'custom.css', source: 'original', version: 'c1', exists: true } }) };
+        if (url.endsWith('/custom')) return { ok: true, json: async () => ({ custom: { path: 'custom.css', displayPath: 'public/cms/custom.css', source: 'original', version: 'c1', exists: true } }) };
         return { ok: true, json: async () => ({ template: files[url.split('/templates/')[1]] }) };
     };
-    return { files, requests, resolve: (body) => pending(body), send(state, message) {
+    return { files, requests, fieldRequests, resolve: (...args) => pending(...args), send(state, message) {
         const frame = find(state.output, 'iframe').props.ref.current;
         for (const listener of listeners.message ?? []) listener({ origin: window.location.origin, source: frame.contentWindow, data: { sve: 1, message } });
         state.render();
@@ -173,4 +175,69 @@ test('a refreshed preview clears a selection from an older source version', asyn
     env.send(state, { type: 'select', target: { mark: { file: 'file-a', id: '16' }, version: 'a2' } });
     env.send(state, { type: 'key', key: 'delete' });
     assert.deepEqual(env.requests[0].body, { version: 'a2', operations: [{ type: 'remove', node: '16' }] });
+});
+
+
+function matching(node, predicate) {
+    if (!node || typeof node !== 'object') return null;
+    if (predicate(node)) return node;
+    for (const child of [node.props?.children].flat(Infinity)) {
+        const found = matching(child, predicate);
+        if (found) return found;
+    }
+    return null;
+}
+const button = (output, label) => matching(output, (node) => node.type === 'button' && node.props.children === label);
+const alert = (output) => matching(output, (node) => node.props?.role === 'alert');
+
+test('Revert clears a refused template save message and restores the saved text', async () => {
+    const env = environment();
+    const state = await editor();
+    state.panel().onDraft('broken'); state.render();
+    const code = harness(CodePanel, state.panel()); code.render();
+    find(code.output, PlainCode).props.onSave();
+    env.resolve({ reason: 'syntax', message: 'Broken Blade' }, 422);
+    await flush(code);
+    assert.ok(alert(code.output));
+    button(code.output, 'Revert').props.onClick();
+    state.render(); code.props = state.panel(); code.render();
+    assert.equal(alert(code.output), null);
+    assert.equal(find(code.output, PlainCode).props.text, 'original');
+});
+
+test('the custom file uses its configured disk path and clears a refused save on Revert', async () => {
+    const env = environment();
+    const state = harness(CustomFilePanel, { kind: 'css', mayEdit: true, editorScript: null, onUnsaved() {}, onSaved() {} });
+    state.render(); await flush(state);
+    assert.ok(matching(state.output, (node) => node.props?.children === 'public/cms/custom.css'));
+    find(state.output, PlainCode).props.onText('broken'); state.render();
+    find(state.output, PlainCode).props.onSave();
+    env.resolve({ reason: 'syntax', message: 'Broken CSS' }, 422);
+    await flush(state);
+    assert.ok(alert(state.output));
+    button(state.output, 'Revert').props.onClick(); state.render();
+    assert.equal(alert(state.output), null);
+    assert.equal(find(state.output, PlainCode).props.text, 'original');
+});
+
+test('opening a template fetches no field catalog until completion is requested', async () => {
+    const env = environment();
+    const state = await editor();
+    assert.equal(env.fieldRequests.length, 0);
+    let load;
+    window.setTimeout = (callback) => { load = callback; return 0; };
+    state.panel().onFieldsNeeded(); state.render();
+    assert.equal(typeof load, 'function');
+    load(); await flush(state);
+    assert.equal(env.fieldRequests.length, 1);
+});
+
+test('panel switches expose grouped pressed buttons without incomplete tab roles', async () => {
+    environment();
+    const state = await editor();
+    assert.equal(matching(state.output, (node) => node.props?.role === 'tablist'), null);
+    const templates = button(state.output, 'Templates');
+    assert.equal(templates.props['aria-pressed'], false);
+    templates.props.onClick(); state.render();
+    assert.equal(button(state.output, 'Templates').props['aria-pressed'], true);
 });

@@ -336,6 +336,7 @@ export type CustomFile = CustomCss;
 
 export type CustomCss = {
     path: string;
+    displayPath: string;
     url: string;
     version: string;
     exists: boolean;

@@ -121,9 +121,13 @@ which nothing else in the editor does:
 
 This is a real line and it is tested, but be clear about what it is.
 
-- **`edit` can add any HTML, and that includes `<script>`.** It is for
-  people you would let change the site's markup. It protects the server,
-  not the site's visitors, from that person.
+- **Raw inserts and executable markup require `code`.** With only `edit`,
+  insert operations accept exact fragments from the editor's library and field
+  picker; wrapping accepts its offered wrappers. Arbitrary HTML, scripts,
+  event-handler attributes, executable URL schemes, and edits inside script,
+  style, SVG or embedded-document contexts are refused with 422. Hand-written whole-source saves also require `code`; the source endpoint
+  accepts exact historical versions for undo and redo without that permission.
+  Literal attributes use an allowlist and URL schemes are checked.
 - **`edit` can rearrange code that is there.** Moving a `@php` block above
   the condition that guarded it, or copying a loop, runs nothing new but
   can change what a page does.
@@ -132,7 +136,7 @@ This is a real line and it is tested, but be clear about what it is.
   be one the editor's backups hold from the last twelve hours, so an "undo"
   can't be used to write a file of their own. Leave `backups` on.
 - **The check has had one reviewer.** It is built to fail closed, and
-  `tests/Feature/CodePermissionTest.php` holds 226 cases, including the
+  `tests/Feature/CodePermissionTest.php` includes regression cases for the
   ways found to get around earlier versions of it. It has not had an
   independent security review. Until it has, treat `edit` as something for
   people you trust not to attack the site, on a copy of the site that is

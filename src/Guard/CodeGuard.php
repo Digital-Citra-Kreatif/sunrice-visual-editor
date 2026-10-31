@@ -43,6 +43,8 @@ final class CodeGuard
     /** What an element can be wrapped in from the Settings panel (WRAPPERS in lib/move.ts). */
     public const WRAPPERS = ['<div></div>', '<section></section>', '<a href="#"></a>', "@if (true)\n@endif"];
 
+    private const HTML_TAGS = 'a abbr address article aside b blockquote br button caption code col colgroup dd del details div dl dt em figcaption figure footer form h1 h2 h3 h4 h5 h6 header hr i img input label li main nav ol option p picture pre section select small source span strong sub summary sup table tbody td textarea th thead time tr ul video';
+
     /** A name for a loop's item: a variable, and none that Blade or PHP keep for themselves. */
     private const ITEM = '/^\$(?!this\b|__)[A-Za-z_]\w*$/';
 
@@ -55,6 +57,11 @@ final class CodeGuard
      */
     public function operations(TemplateFile $file, string $before, array $operations, string $after): void
     {
+        $template = Template::open($before);
+        $operations = array_map(Operation::from(...), array_values($operations));
+        $offered = $this->offered($file, $template, $before, $operations);
+        $this->markup($template, $operations, array_column($offered, 0));
+        $this->rawLiterals($before, $after);
         $new = $this->added($before, $after);
         if ($new === []) {
             return;
@@ -62,8 +69,7 @@ final class CodeGuard
 
         $counted = [];
         try {
-            $template = Template::open($before);
-            foreach ($this->offered($file, $template, $before, array_map(Operation::from(...), array_values($operations))) as [$blade, $most]) {
+            foreach ($offered as [$blade, $most]) {
                 // Nothing the editor writes has a PHP tag in it. Blade would run one wherever it stood, in a quoted text too.
                 if (str_contains($blade, '<?')) {
                     continue;
@@ -87,13 +93,95 @@ final class CodeGuard
 
     /**
      * A template's whole text written by someone who may not edit code:
-     * as long as it runs nothing new, it is theirs to write.
+     * raw source needs code permission; exact historical versions are authorized by the caller.
      *
      * @throws CodeRefused
      */
     public function source(string $before, string $after): void
     {
         $this->refuse($this->added($before, $after));
+        if ($before !== $after) {
+            throw new CodeRefused('Writing template source requires visual-editor.code. Use the offered operations, or restore an exact saved version.');
+        }
+    }
+
+    /** A scalar typed into an echo must not bypass the markup restriction by becoming raw. */
+    private function rawLiterals(string $before, string $after): void
+    {
+        $known = [];
+        foreach (Template::open($before)->root->walk() as $node) {
+            if ($node->kind === 'raw_echo') {
+                $known[$node->source()] = true;
+            }
+        }
+        foreach (Template::open($after)->root->walk() as $node) {
+            if ($node->kind !== 'raw_echo' || $node->args === null || isset($known[$node->source()])) {
+                continue;
+            }
+            $expression = trim($node->args);
+            $literal = preg_match('/^__\((.+)\)$/s', $expression, $match) === 1 ? $match[1] : $expression;
+            if (Literal::isScalar($literal)) {
+                throw new CodeRefused('Raw literal output requires visual-editor.code. Use escaped text instead.');
+            }
+        }
+    }
+
+    /**
+     * Raw markup is code too: inserts must come from the editor's lists.
+     * Literal HTML attributes have a deliberately small, non-executable surface.
+     *
+     * @param  list<Operation>  $operations
+     * @param  list<string>  $offered
+     */
+    private function markup(Template $template, array $operations, array $offered): void
+    {
+        $tags = explode(' ', self::HTML_TAGS);
+        foreach ($operations as $operation) {
+            $node = $template->find($operation->node);
+            $allowed = match ($operation->type) {
+                'insertBefore', 'insertAfter', 'append', 'prepend' => in_array(trim($operation->text('blade')), array_map(trim(...), $offered), true),
+                'wrap' => in_array($operation->text('wrapper'), self::WRAPPERS, true),
+                'setCode' => false,
+                'setTag' => in_array(strtolower($operation->text('tag')), $tags, true),
+                'setAttribute' => $node !== null && $this->plainAttribute($node, $operation),
+                default => true,
+            };
+            // Text and literal expressions inside executable elements are code, even
+            // if no PHP is added. Work against the original tree for every operation.
+            if (in_array($operation->type, ['setText', 'setExpression', 'setTag', 'setAttribute', 'append', 'prepend', 'insertBefore', 'insertAfter'], true)) {
+                for ($at = $node; $at !== null; $at = $at->parent) {
+                    if (in_array(strtolower($at->name), ['script', 'style', 'iframe', 'object', 'embed', 'svg', 'math'], true)) {
+                        $allowed = false;
+                    }
+                }
+            }
+            if (! $allowed) {
+                throw new CodeRefused('Raw markup adds code, and you may not edit code without visual-editor.code. Choose an offered insert or wrapper instead.');
+            }
+        }
+    }
+
+    private function plainAttribute(Node $node, Operation $operation): bool
+    {
+        $name = strtolower($operation->text('name'));
+        $browserName = ltrim($name, ':');
+        if (str_starts_with($browserName, 'on') || $browserName === 'srcdoc' || str_starts_with($name, 'x-') || str_starts_with($name, '@')) {
+            return false;
+        }
+        if (Rules::isComponentTag($node)) {
+            return str_starts_with($node->open, '<x-sunrice-cms::');
+        }
+        $safe = in_array($name, ['id', 'class', 'title', 'alt', 'role', 'width', 'height', 'controls', 'rows', 'cols', 'colspan', 'rowspan', 'for', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'method', 'action', 'disabled', 'checked', 'selected', 'tabindex', 'href', 'src'], true)
+            || str_starts_with($name, 'aria-');
+        if (! $safe || ! in_array($name, ['href', 'src', 'action'], true)) {
+            return $safe;
+        }
+        // Browser URL schemes are case-insensitive and ignore ASCII whitespace.
+        // Decode entities before checking; typed ampersands are escaped on output.
+        $value = html_entity_decode($operation->text('value'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $value = preg_replace('/[\x00-\x20\x7f]+/', '', $value) ?? '';
+
+        return preg_match('/^[a-z][a-z0-9+.-]*:/i', $value) !== 1 || preg_match('/^(https?|mailto|tel):/i', $value) === 1;
     }
 
     /**

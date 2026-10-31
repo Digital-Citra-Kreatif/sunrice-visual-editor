@@ -7,6 +7,21 @@ and no second file beside it. A developer can keep editing the same file in a
 code editor. The editor reads a Blade file into a tree, changes one thing, and
 writes the file back with nothing else disturbed.
 
+## Install
+
+On a Laravel application that already runs Sunrice 0.2:
+
+```bash
+composer config repositories.sunrice-visual-editor '{"type":"vcs","url":"https://github.com/Digital-Citra-Kreatif/sunrice-visual-editor","no-api":true}'
+composer require sunrice/visual-editor:dev-main
+php artisan sunrice:install --plugins
+php artisan vendor:publish --tag=sunrice-visual-editor-assets --force
+php artisan sunrice:sync-permissions
+```
+
+Public Git access needs no GitHub API token. See [Installation](docs/installation.md)
+for the supported path repository setup for monorepos and CI.
+
 ## Documentation
 
 | | |

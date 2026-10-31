@@ -110,8 +110,9 @@ that user may do in the editor ([Permissions](permissions.md)):
 | `visual_editor_edit_template` writing Blade or PHP of the agent's own | `visual-editor.code` |
 
 An agent whose user has `edit` and not `code` can restructure markup, set
-texts and classes, and insert what the editor's own lists offer. It can't
-make the template run new PHP, by the same check as for a person.
+texts and classes, and insert what the editor's own lists offer. Arbitrary markup, script/event-handler attributes and executable URL schemes
+require `code`, as do new PHP expressions. Exact offered inserts and structural
+operations remain available to `edit`, by the same checks as for a person.
 
 Two switches decide whether agents may use them: the editor being
 [off](installation.md#where-it-is-on) (the tools exist only where it is

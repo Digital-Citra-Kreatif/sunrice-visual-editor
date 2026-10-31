@@ -12,8 +12,8 @@ cd "$site"
 touch database/database.sqlite
 
 # The panel and the CMS, each from its read-only split of Digital-Citra-Kreatif/sunrice.
-composer config repositories.sunrice-admin vcs https://github.com/Digital-Citra-Kreatif/sunrice-admin
-composer config repositories.sunrice-cms vcs https://github.com/Digital-Citra-Kreatif/sunrice-cms
+composer config repositories.sunrice-admin '{"type":"vcs","url":"https://github.com/Digital-Citra-Kreatif/sunrice-admin","no-api":true}'
+composer config repositories.sunrice-cms '{"type":"vcs","url":"https://github.com/Digital-Citra-Kreatif/sunrice-cms","no-api":true}'
 # SUNRICE_REF tries a branch of Sunrice in place of main: "dev-some-branch as dev-main".
 composer require "sunrice/admin:${SUNRICE_REF:-dev-main}" "sunrice/cms:${SUNRICE_REF:-dev-main}" --no-interaction --no-ansi
 # The user model needs Spatie's roles; the install command asks to add them, and without interaction stops.

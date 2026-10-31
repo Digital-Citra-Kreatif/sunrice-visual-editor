@@ -15,6 +15,7 @@ use Sunrice\VisualEditor\Blade\Template;
 use Sunrice\VisualEditor\Blade\Unsupported;
 use Sunrice\VisualEditor\Fields\Picker;
 use Sunrice\VisualEditor\Guard\CodeGuard;
+use Sunrice\VisualEditor\Guard\CodeRefused;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Templates\Backups;
 use Sunrice\VisualEditor\Templates\Conflict;
@@ -115,8 +116,8 @@ class TemplateController extends Controller
             }
 
             if (! $this->mayCode($request)) {
-                // Without the permission to edit code, a whole text is theirs to write when it is one the template
-                // has been before (an undo, a redo) or runs nothing the template does not run now.
+                // Without code permission, source writes may only replay an exact saved
+                // version for undo/redo. Arbitrary source cannot bypass the operation guard.
                 $file = $this->templates->find($path);
                 if (! Backups::had($file, $source)) {
                     // What the guard says holds for the text it compared with: that has to be the
@@ -125,7 +126,15 @@ class TemplateController extends Controller
                     if (TemplateRepository::version($before) !== $this->version($body)) {
                         throw new Conflict($path, TemplateRepository::version($before));
                     }
-                    $guard->source($before, $source);
+                    try {
+                        $guard->source($before, $source);
+                    } catch (CodeRefused $e) {
+                        $current = (string) file_get_contents($file->file);
+                        if (TemplateRepository::version($current) !== $this->version($body)) {
+                            throw new Conflict($path, TemplateRepository::version($current));
+                        }
+                        throw $e;
+                    }
                 }
             }
             $save->handle($path, $this->version($body), $source);

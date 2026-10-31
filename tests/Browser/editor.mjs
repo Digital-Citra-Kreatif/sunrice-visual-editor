@@ -120,7 +120,7 @@ const listed = () => page.locator('.sve-side--left .sve-templates').first().loca
 const treeTab = (name) => page.locator('.sve-side--left .sve-code-tabs__tab', { hasText: name });
 /** The left side's Templates tab, where the templates are listed: picking one brings its Layers. */
 const showTemplates = () => treeTab('Templates').click();
-const treeShows = (name) => page.waitForFunction((wanted) => document.querySelector('.sve-side--left .sve-code-tabs__tab[aria-selected="true"]')?.textContent?.trim() === wanted, name);
+const treeShows = (name) => page.waitForFunction((wanted) => document.querySelector('.sve-side--left .sve-code-tabs__tab[aria-pressed="true"]')?.textContent?.trim() === wanted, name);
 
 await step('show the tree on the left, the page in the middle and the code on the right', async () => {
     await page.goto(`${base}/admin/visual-editor`);
@@ -279,6 +279,44 @@ const heroNow = async () => {
     return (await (await page.request.get(heroApi)).json()).template.source;
 };
 let heroCode = '';
+
+await step('the parent editor has valid panel switches and readable nested layer labels', async () => {
+    let catalogs = 0;
+    const observed = (request) => { if (/\/templates\/.+\/fields(?:\?|$)/.test(request.url())) catalogs++; };
+    page.on('request', observed);
+    await page.goto(`${base}/admin/visual-editor`);
+    await page.waitForSelector('.sve-layer__label');
+    await code.locator('.cm-editor').waitFor();
+    await page.waitForTimeout(400);
+    page.off('request', observed);
+    if (catalogs !== 0) throw new Error(`Opening the editor fetched ${catalogs} field catalogs`);
+    const problems = await page.evaluate(() => {
+        const errors = [];
+        if (document.querySelector('.sve-shell [role="tablist"]')) errors.push('Incomplete tablist remains');
+        for (const group of document.querySelectorAll('.sve-code-tabs[role="group"]')) {
+            if (group.querySelectorAll('button[aria-pressed="true"]').length !== 1) errors.push('Panel switch has no unique pressed button');
+        }
+        const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        const rgb = (color) => { context.clearRect(0, 0, 1, 1); context.fillStyle = color; context.fillRect(0, 0, 1, 1); return [...context.getImageData(0, 0, 1, 1).data]; };
+        const luminance = (color) => color.slice(0, 3).map((channel) => channel / 255).map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+        for (const label of document.querySelectorAll('.sve-layer__label')) {
+            if (!label.getClientRects().length) continue;
+            let background = [255, 255, 255, 255];
+            for (let at = label; at; at = at.parentElement) {
+                const color = rgb(getComputedStyle(at).backgroundColor);
+                if (color[3] === 255) { background = color; break; }
+            }
+            const foreground = rgb(getComputedStyle(label).color);
+            const light = luminance(foreground), dark = luminance(background);
+            const ratio = (Math.max(light, dark) + 0.05) / (Math.min(light, dark) + 0.05);
+            if (ratio < 4.5) errors.push(`${label.textContent}: contrast ${ratio.toFixed(2)}`);
+        }
+        return errors;
+    });
+    if (problems.length) throw new Error(problems.join('; '));
+});
+
 
 await step('select an element by clicking it on the page: its template opens, its row is selected, the code is on it', async () => {
     await page.goto(`${base}/admin/visual-editor`);
@@ -475,6 +513,7 @@ await step('refuse code that doesn\'t compile, say why, and leave the site as it
     }
     await codeBar.getByRole('button', { name: 'Revert' }).click();
     await codeIs(good);
+    if (await page.locator('.sve-code__trouble').count()) throw new Error('Revert kept the refused-save message');
 });
 
 await step('undo a save from the bar, back to the footer as it was', async () => {
@@ -946,6 +985,9 @@ await step('write custom CSS beside the page, save it, and see it on the page wi
     await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Custom CSS' }).click();
     await custom.locator('.cm-editor').waitFor();
     await page.locator('.sve-custom-css .sve-custom-css__note').getByText("@stack('head')").waitFor();
+    await page.locator('.sve-custom-css .sve-code__name').getByText('public/cms/custom.css', { exact: true }).waitFor();
+    await mkdir('docs/screenshots', { recursive: true });
+    await page.screenshot({ path: 'docs/screenshots/css.png' });
     await custom.evaluate((holder, text) => {
         holder.sveCodeEditor.setText(text);
         holder.sveCodeEditor.focus();
@@ -969,7 +1011,7 @@ await step('keep the code of a template and the custom CSS apart, each with its 
     // A click on the page shows the template's code again.
     await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Custom CSS' }).click();
     await frame.locator('.hero h1').click();
-    await page.waitForFunction(() => document.querySelector('.sve-side--code .sve-code-tabs__tab[aria-selected="true"]')?.textContent?.startsWith('Template'));
+    await page.waitForFunction(() => document.querySelector('.sve-side--code .sve-code-tabs__tab[aria-pressed="true"]')?.textContent?.startsWith('Template'));
     await cursorLineHas('<h1>{{ $block->heading }}</h1>');
 });
 

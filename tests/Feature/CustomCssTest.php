@@ -38,12 +38,19 @@ it('says what the custom CSS is before there is any', function () {
 
     expect(getJson(SVE_CUSTOM)->assertOk()->json('custom'))->toMatchArray([
         'path' => 'custom.css',
+        'displayPath' => $this->custom,
         'version' => sha1(''),
         'exists' => false,
         'source' => '',
         'injected' => true,
         'stack' => 'head',
     ])->and(getJson(SVE_CUSTOM)->json('custom.url'))->toEndWith('/cms/custom.css');
+});
+
+it('describes the configured custom CSS path relative to the application', function () {
+    actingAsSuperAdmin();
+    config(['sunrice-visual-editor.paths.theme' => public_path('brand'), 'sunrice-visual-editor.custom_css.file' => 'css/overrides.css']);
+    getJson(SVE_CUSTOM)->assertOk()->assertJsonPath('custom.displayPath', 'public/brand/css/overrides.css');
 });
 
 it('writes the custom CSS, and every page of the site links it from the layout without a template being changed', function () {

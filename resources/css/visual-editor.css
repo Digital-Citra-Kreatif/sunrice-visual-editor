@@ -531,6 +531,7 @@
 }
 
 .sve-layer__label {
+    color: var(--foreground);
     min-width: 0;
     overflow: hidden;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -545,9 +546,10 @@
     font-size: inherit;
 }
 
-.sve-layer--comment .sve-layer__label,
-.sve-layer--arm .sve-layer__label {
-    opacity: 0.75;
+.sve-layer:hover .sve-layer__label,
+.sve-layer--lit .sve-layer__label,
+.sve-layer[aria-selected='true'] .sve-layer__label {
+    color: inherit;
 }
 
 .sve-layer__pick:focus-visible,
@@ -1375,7 +1377,7 @@
     color: var(--foreground);
 }
 
-.sve-code-tabs__tab[aria-selected='true'] {
+.sve-code-tabs__tab[aria-pressed='true'] {
     border-color: var(--border);
     border-block-end-color: var(--card);
     background: var(--card);

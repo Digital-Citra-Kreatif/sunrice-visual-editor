@@ -42,6 +42,8 @@ export type CodeEditorOptions = {
      * characters.
      */
     onCursor?(saved: number, now: number): void;
+    /** Load the field catalog only when completion is explicitly requested. */
+    onFieldsNeeded?(): void;
 };
 
 /** A text to show: what is typed, and the file it is a change to. */
@@ -191,7 +193,12 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
 
     /** What can be read where the cursor is, as the panel beside the editor last heard. */
     let fields: PickVariable[] = [];
+    let awaitingFields = false;
     const offer = (context: CompletionContext): CompletionResult | null => {
+        if (context.explicit && fields.length === 0) {
+            awaitingFields = true;
+            options.onFieldsNeeded?.();
+        }
         const line = context.state.doc.lineAt(context.pos);
         const before = line.text.slice(0, context.pos - line.from);
         // Asked for with Ctrl+Space: everything at the cursor, as Blade of its own.
@@ -278,6 +285,10 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
     const editor: CodeEditor = {
         text: () => written(view.state),
         show: (name, shown) => {
+            if (showing !== name) {
+                fields = [];
+                awaitingFields = false;
+            }
             if (showing !== null && showing !== name) {
                 kept.set(showing, { state: view.state, scroll: view.scrollSnapshot() });
             }
@@ -313,10 +324,12 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
         setReadOnly: (now) => view.dispatch({ effects: readOnly.reconfigure(EditorState.readOnly.of(now)) }),
         setFields: (variables) => {
             fields = variables;
+            const requested = awaitingFields;
+            awaitingFields = false;
             // What was typed a moment ago may be waiting for exactly these: offer them now.
             const { head } = view.state.selection.main;
             const line = view.state.doc.lineAt(head);
-            if (view.hasFocus && completionStatus(view.state) === null && offersFor(line.text.slice(0, head - line.from), fields) !== null) {
+            if (view.hasFocus && completionStatus(view.state) === null && (requested || offersFor(line.text.slice(0, head - line.from), fields) !== null)) {
                 startCompletion(view);
             }
         },

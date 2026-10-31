@@ -45,7 +45,7 @@ const message = (error: unknown) => (error instanceof Error ? error.message : 'S
 
 /**
  * The site's custom CSS, or its custom script, as one text beside the
- * page. Each is a file of the theme (public/sunrice-theme/custom.css and
+ * page. Each is a file of the configured theme (public/cms/custom.css and
  * custom.js) that every page of the site loads by itself, through a stack
  * of its layout: no template is changed for it. Saving writes the file
  * and draws the page again.
@@ -63,7 +63,12 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
         let stale = false;
         setFile((was) => (was.state === 'ready' ? was : { state: 'loading' }));
         how.read()
-            .then((data) => !stale && setFile({ state: 'ready', data }))
+            .then((data) => {
+                if (!stale) {
+                    setFile({ state: 'ready', data });
+                    setTrouble(null);
+                }
+            })
             .catch((error: unknown) => !stale && setFile({ state: 'failed', error: message(error) }));
 
         return () => {
@@ -111,13 +116,13 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
         <section className={`sve-code sve-code--beside sve-custom sve-custom-${kind}`} aria-label={how.label}>
             <header className="sve-code__bar">
                 <span className="sve-code__name" title={css.url}>
-                    sunrice-theme/{css.path}
+                    {css.displayPath}
                 </span>
                 {readOnly ? <span className="sve-tag">Read-only</span> : changed && <span className="sve-tag sve-tag--changed">Not saved</span>}
                 <span className="sve-code__space" />
                 {!readOnly && (
                     <>
-                        <button type="button" className="sve-button sve-button--quiet" disabled={!changed || saving} onClick={() => setDraft(null)}>
+                        <button type="button" className="sve-button sve-button--quiet" disabled={!changed || saving} onClick={() => { setTrouble(null); setDraft(null); }}>
                             Revert
                         </button>
                         <button type="button" className="sve-button" disabled={!changed || saving} onClick={save} title="Ctrl+S or ⌘S">

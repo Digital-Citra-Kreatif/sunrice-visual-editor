@@ -640,6 +640,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const [codeCursor, setCodeCursor] = useState<{ of: string; byte: number } | null>(null);
     /** What can be read at the cursor, as last answered; while the next is asked it stays, most of it being the same. */
     const [codeFields, setCodeFields] = useState<FieldsAt | null>(null);
+    const [fieldsRequested, setFieldsRequested] = useState<string | null>(null);
 
     /**
      * The code's cursor is somewhere else. A moment after it stops, the
@@ -673,7 +674,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const fieldsOf = codeOf !== null && codeOf.origin === 'site' && codeOf.editable && codeOf.source !== null ? codeOf : null;
     const fieldsText = fieldsOf === null ? null : (drafts[historyKey(fieldsOf)]?.text ?? fieldsOf.source);
     const fieldsByte = fieldsOf !== null && codeCursor !== null && codeCursor.of === historyKey(fieldsOf) ? codeCursor.byte : 0;
-    const fieldsWanted = mayCode && template.state === 'ready' && fieldsOf !== null;
+    const fieldsWanted = mayCode && template.state === 'ready' && fieldsOf !== null && fieldsRequested === historyKey(fieldsOf);
     useEffect(() => {
         if (!fieldsWanted || fieldsOf === null || fieldsText === null) {
             return;
@@ -1273,15 +1274,15 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
                 {!arranged.left && <Rail side="left" label="Tree" onOpen={() => setArranged((now) => siding(now, 'left', true))} />}
                 <Side side="left" shown={arranged.left}>
-                    <div className="sve-code-tabs" role="tablist" aria-label="What the tree shows">
-                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={treeTab === 'templates'} onClick={() => setTreeTab('templates')} title="The templates that drew this page, and the others">
+                    <div className="sve-code-tabs" role="group" aria-label="What the tree shows">
+                        <button type="button" className="sve-code-tabs__tab" aria-pressed={treeTab === 'templates'} onClick={() => setTreeTab('templates')} title="The templates that drew this page, and the others">
                             Templates
                         </button>
                         <button
                             type="button"
-                            role="tab"
+
                             className="sve-code-tabs__tab"
-                            aria-selected={treeTab === 'layers'}
+                            aria-pressed={treeTab === 'layers'}
                             onClick={() => setTreeTab('layers')}
                             title={open === null ? 'The layers of the open template' : `The layers of ${shortName(open.path)}`}
                         >
@@ -1414,16 +1415,16 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                             }
                         }}
                     />
-                    <div className="sve-code-tabs" role="tablist" aria-label="What the side shows">
-                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'template'} onClick={() => setCodeTab('template')} title="The code of the open template. Ctrl+Space lists the fields and variables it can use at the cursor.">
+                    <div className="sve-code-tabs" role="group" aria-label="What the side shows">
+                        <button type="button" className="sve-code-tabs__tab" aria-pressed={codeTab === 'template'} onClick={() => setCodeTab('template')} title="The code of the open template. Ctrl+Space lists the fields and variables it can use at the cursor.">
                             Template
                             {Object.keys(drafts).length > 0 && <span className="sve-tab__dot" aria-label="not saved" />}
                         </button>
-                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'css'} onClick={() => setCodeTab('css')} title="CSS of your own, added to every page of the site">
+                        <button type="button" className="sve-code-tabs__tab" aria-pressed={codeTab === 'css'} onClick={() => setCodeTab('css')} title="CSS of your own, added to every page of the site">
                             Custom CSS
                             {cssUnsaved && <span className="sve-tab__dot" aria-label="not saved" />}
                         </button>
-                        <button type="button" role="tab" className="sve-code-tabs__tab" aria-selected={codeTab === 'js'} onClick={() => setCodeTab('js')} title="JavaScript of your own, loaded on every page of the site">
+                        <button type="button" className="sve-code-tabs__tab" aria-pressed={codeTab === 'js'} onClick={() => setCodeTab('js')} title="JavaScript of your own, loaded on every page of the site">
                             Custom JS
                             {jsUnsaved && <span className="sve-tab__dot" aria-label="not saved" />}
                         </button>
@@ -1450,7 +1451,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                                 onCloseTab={closeTab}
                                 goTo={codePlace}
                                 onCursor={cursorAt}
-                                fields={codeFields?.variables ?? null}
+                                fields={fieldsWanted ? codeFields?.variables ?? null : null}
+                                onFieldsNeeded={() => setFieldsRequested(historyKey(codeOf))}
                                 onSaved={saved}
                                 onReload={() => {
                                     setDraft(null, codeOf);

@@ -35,6 +35,7 @@ type Props = {
     onCursor(saved: number, now: number): void;
     /** What can be read where the cursor is: offered while a variable is typed. */
     fields: PickVariable[] | null;
+    onFieldsNeeded?(): void;
     /** Said above the code: why it can't be changed, and what to do about it. */
     children?: ReactNode;
 };
@@ -87,7 +88,7 @@ export function useCodeScript(editorScript: string | null): CodeEditorScript | '
  * changed since it was read or when the text doesn't compile, and nothing
  * is written.
  */
-export function CodePanel({ template, current: opened, draft, onDraft, onSaved, conflict = false, mayCode, onReload, editorScript, tabs, onOpenTab, onCloseTab, goTo, onCursor, fields, children }: Props) {
+export function CodePanel({ template, current: opened, draft, onDraft, onSaved, conflict = false, mayCode, onReload, editorScript, tabs, onOpenTab, onCloseTab, goTo, onCursor, fields, onFieldsNeeded, children }: Props) {
     const script = useCodeScript(editorScript);
     const [saving, setSaving] = useState(false);
     const [trouble, setTrouble] = useState<Trouble | null>(null);
@@ -125,13 +126,13 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
     return (
         <section className="sve-code sve-code--beside" aria-label={`Code of ${template.path}`}>
             <header className="sve-code__bar">
-                <div className="sve-tabs" role="tablist" aria-label="Open templates">
+                <div className="sve-tabs" role="group" aria-label="Open templates">
                     {tabs.map((tab) => {
                         const current = sameTemplate(tab, opened ?? template);
 
                         return (
                             <span key={`${tab.origin}:${tab.path}`} className={`sve-tab${current ? ' sve-tab--open' : ''}`} ref={current ? openTab : undefined}>
-                                <button type="button" role="tab" className="sve-tab__name" aria-selected={current} onClick={() => onOpenTab(tab)} title={tab.unsaved ? `${tab.path}: not saved` : tab.path}>
+                                <button type="button" className="sve-tab__name" aria-pressed={current} onClick={() => onOpenTab(tab)} title={tab.unsaved ? `${tab.path}: not saved` : tab.path}>
                                     {tabName(tab.path)}
                                     {tab.unsaved && <span className="sve-tab__dot" aria-label="not saved" />}
                                 </button>
@@ -148,7 +149,7 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
                 <span className="sve-code__space" />
                 {!readOnly && (
                     <>
-                        <button type="button" className="sve-button sve-button--quiet" disabled={!changed || saving} onClick={() => onDraft(null)}>
+                        <button type="button" className="sve-button sve-button--quiet" disabled={!changed || saving} onClick={() => { setTrouble(null); onDraft(null); }}>
                             Revert
                         </button>
                         <button type="button" className="sve-button" disabled={!changed || saving} onClick={save} title="Ctrl+S or ⌘S">
@@ -168,7 +169,7 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
                         {trouble?.message ?? 'The file changed on disk while this draft was open. Your draft is kept; reload only when you are ready to discard it.'}
                     </p>
                     {(trouble?.kind === 'conflict' || conflict) && (
-                        <button type="button" className="sve-button sve-button--quiet" onClick={onReload}>
+                        <button type="button" className="sve-button sve-button--quiet" onClick={() => { setTrouble(null); onReload(); }}>
                             Load the file as it is now
                         </button>
                     )}
@@ -195,6 +196,7 @@ export function CodePanel({ template, current: opened, draft, onDraft, onSaved, 
                     goTo={goTo !== null && sameTemplate(goTo, template) ? goTo : null}
                     onCursor={onCursor}
                     fields={fields}
+                    onFieldsNeeded={onFieldsNeeded}
                 />
             )}
         </section>
@@ -210,6 +212,7 @@ export type CodeProps = {
 };
 
 export type RichProps = CodeProps & {
+    onFieldsNeeded?(): void;
     script: CodeEditorScript;
     /** What the text is kept under while another is shown: the template it is of. */
     name: string;
@@ -227,12 +230,12 @@ export type RichProps = CodeProps & {
  * its own, several cursors. One editor for as long as the panel is there;
  * it keeps each template's text as it was left while another is shown.
  */
-export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, fields }: RichProps) {
+export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, fields, onFieldsNeeded }: RichProps) {
     const holder = useRef<HTMLDivElement>(null);
     const editor = useRef<CodeEditor | null>(null);
     // The editor is made once and calls whatever the panel's functions are by then.
-    const calls = useRef({ onText, onSave, onCursor, saved });
-    calls.current = { onText, onSave, onCursor, saved };
+    const calls = useRef({ onText, onSave, onCursor, saved, onFieldsNeeded });
+    calls.current = { onText, onSave, onCursor, saved, onFieldsNeeded };
     /** What the editor shows: under which name, and the text as the editor last said it was. */
     const shown = useRef<{ name: string | null; text: string; saved: string; readOnly: boolean }>({ name: null, text: '', saved: '', readOnly: true });
     const went = useRef(0);
@@ -249,6 +252,7 @@ export function RichCode({ script, name, text, saved, readOnly, label, onText, o
                 calls.current.onText(now);
             },
             onSave: () => calls.current.onSave(),
+            onFieldsNeeded: () => calls.current.onFieldsNeeded?.(),
             onCursor: (place, now) => calls.current.onCursor(byteOfIndex(calls.current.saved, place), byteOfIndex(shown.current.text, now)),
         });
         editor.current = made;

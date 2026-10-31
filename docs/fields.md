@@ -124,3 +124,11 @@ the same [code permission](permissions.md).
 A variable the editor can't follow (set by a view composer, or computed by
 PHP it does not read) is listed as a plain value: it can be printed, and
 nothing is offered from inside it.
+
+
+### Loading the completion catalog
+
+Opening a template does not request its fields catalog. Press Ctrl+Space in
+the code editor to load fields for the cursor position. After that first
+request, suggestions follow typing and cursor movement for that template.
+This keeps large schema catalogs out of the initial editor transfer.

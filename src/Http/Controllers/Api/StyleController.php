@@ -54,6 +54,7 @@ class StyleController extends Controller
 
             return ['custom' => [
                 'path' => $file->path,
+                'displayPath' => $file->displayPath(),
                 'url' => $file->url,
                 'version' => ThemeRepository::version($source),
                 'exists' => $file->exists,
