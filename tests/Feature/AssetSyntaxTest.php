@@ -96,6 +96,32 @@ it('saves valid CSS out of the box', function () {
     expect(File::get($this->theme.'/custom.css'))->toBe($source);
 });
 
+it('takes what CSS allows in strings and unquoted addresses', function (string $source) {
+    $this->putJson(($this->assetUrl)('css'), ['version' => sha1(''), 'source' => $source])->assertOk();
+    expect(File::get($this->theme.'/custom.css'))->toBe($source);
+})->with([
+    'a string going on to the next line, with a Windows line break' => [".a::before {\r\n  content: \"one \\\r\ntwo\";\r\n}\r\n"],
+    'an escaped ) in an unquoted address' => [".a { background: url(foo\\)bar.png); }\n"],
+]);
+
+it('finds a checker named by a path relative to the application, wherever PHP was started', function () {
+    $tool = base_path('sunrice-ve-checker-'.uniqid());
+    File::put($tool, "#!/bin/sh\ncat > /dev/null\nexit 0\n");
+    chmod($tool, 0755);
+    $was = getcwd();
+    chdir(sys_get_temp_dir());
+    try {
+        config(['sunrice-visual-editor.syntax_checks.css' => ['./'.basename($tool)]]);
+        $this->putJson(($this->assetUrl)('css'), ['version' => sha1(''), 'source' => '.a {}'])->assertOk();
+        // One that isn't there is still the checker's fault, not the code's.
+        config(['sunrice-visual-editor.syntax_checks.css' => ['./sunrice-ve-no-such-checker']]);
+        $this->putJson(($this->assetUrl)('css'), ['version' => sha1('.a {}'), 'source' => '.b {}'])->assertStatus(422)->assertJsonPath('reason', 'checker');
+    } finally {
+        chdir((string) $was);
+        File::delete($tool);
+    }
+});
+
 it('does not hold a stylesheet to the built-in check it already failed', function () {
     File::put($this->theme.'/custom.css', ".a { color: red; }\n}\n");
     $source = ".a { color: blue; }\n}\n";

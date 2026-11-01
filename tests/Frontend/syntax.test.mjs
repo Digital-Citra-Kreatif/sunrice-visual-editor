@@ -12,6 +12,9 @@ test('finds nothing in valid CSS, escapes, strings, comments and unquoted url() 
         '.a { background: url(data:image/svg+xml;utf8,<svg xmlns=\'x\'></svg>) }',
         '[data-x="a]"] { color: blue }',
         '.a { content: "a\\\nb" }',
+        // The same, with a Windows line break.
+        '.a {\r\n  content: "a\\\r\nb";\r\n}',
+        '.a { background: url(foo\\)bar.png) }',
     ]) {
         assert.equal(cssProblem(css), null, css);
     }

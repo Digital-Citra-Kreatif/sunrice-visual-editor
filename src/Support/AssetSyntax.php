@@ -126,11 +126,16 @@ final class AssetSyntax
         return (new ExecutableFinder)->find('node');
     }
 
-    /** The command a checker starts, found: a path that runs, or a name on the PATH. */
+    /**
+     * The command a checker starts, found: a path that runs, or a name on the
+     * PATH. A relative path is the application's, where the check is run.
+     */
     private static function executable(string $command): ?string
     {
         if (str_contains($command, '/') || str_contains($command, '\\')) {
-            return is_file($command) && is_executable($command) ? $command : null;
+            $path = preg_match('#^(?:/|\\\\|[A-Za-z]:[\\\\/])#', $command) === 1 ? $command : base_path($command);
+
+            return is_file($path) && is_executable($path) ? $command : null;
         }
 
         return (new ExecutableFinder)->find($command);

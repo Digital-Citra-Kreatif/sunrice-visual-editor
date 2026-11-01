@@ -63,6 +63,10 @@ final class CssSyntax
                         return ['line' => $start, 'message' => "A string {$char}…{$char} is not closed on its line."];
                     }
                     if ($css[$at] === '\\' && $at + 1 < $length) {
+                        // An escaped line break goes on to the next line: "\r\n" is one.
+                        if ($css[$at + 1] === "\r" && ($css[$at + 2] ?? '') === "\n") {
+                            $at++;
+                        }
                         if ($css[$at + 1] === "\n") {
                             $line++;
                         }
@@ -76,9 +80,9 @@ final class CssSyntax
                 continue;
             }
             if ($char === '(' && self::unquotedUrl($css, $at)) {
-                // url(images/a.png): what is inside is the address, quotes and all.
-                $end = strpos($css, ')', $at);
-                if ($end === false) {
+                // url(images/a.png): what is inside is the address, quotes and all; "\)" is part of it.
+                $end = self::urlEnd($css, $at);
+                if ($end === null) {
                     return ['line' => $line, 'message' => '“url(” is never closed with “)”.'];
                 }
                 $line += substr_count($css, "\n", $at, $end - $at);
@@ -105,6 +109,20 @@ final class CssSyntax
         $last = array_pop($open);
 
         return $last === null ? null : ['line' => $last[1], 'message' => "“{$last[0]}” is never closed with “".self::PAIRS[$last[0]].'”.'];
+    }
+
+    /** Where the unquoted url( opened at $at ends: its first ")" that no "\\" escapes. */
+    private static function urlEnd(string $css, int $at): ?int
+    {
+        for ($at++, $length = strlen($css); $at < $length; $at++) {
+            if ($css[$at] === '\\') {
+                $at++;
+            } elseif ($css[$at] === ')') {
+                return $at;
+            }
+        }
+
+        return null;
     }
 
     /** The "(" at $at opens url( with an address not in quotes. */

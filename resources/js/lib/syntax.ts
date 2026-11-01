@@ -74,6 +74,10 @@ class Reader {
             }
             if (this.text[this.at] === '\\') {
                 this.step();
+                // An escaped line break goes on to the next line: "\r\n" is one.
+                if (this.text[this.at] === '\r' && this.text[this.at + 1] === '\n') {
+                    this.step();
+                }
             }
             this.step();
         }
@@ -119,9 +123,12 @@ export function cssProblem(css: string): Problem | null {
             continue;
         }
         if (char === '(' && /(?:^|[^A-Za-z0-9_-])url$/i.test(css.slice(Math.max(0, reader.at - 4), reader.at)) && /^\(\s*[^\s"')]/.test(css.slice(reader.at, reader.at + 200))) {
-            // url(images/a.png): the address, quotes and all.
-            const end = css.indexOf(')', reader.at);
-            if (end === -1) {
+            // url(images/a.png): the address, quotes and all; "\)" is part of it.
+            let end = reader.at + 1;
+            while (end < css.length && css[end] !== ')') {
+                end += css[end] === '\\' ? 2 : 1;
+            }
+            if (end >= css.length) {
                 return { line: reader.line, message: '“url(” is never closed with “)”.' };
             }
             while (reader.at <= end) {
