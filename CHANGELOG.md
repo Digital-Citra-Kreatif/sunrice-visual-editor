@@ -5,6 +5,9 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- Keep automatically injected Custom JS out of authorized editor previews; public pages still load it.
+- Clarify CSS edit permissions and add optional save-time CSS/JS syntax check commands.
+
 - Make code editor scroll areas reachable by keyboard, with a visible focus indicator.
 - Reduce Fields reference payloads and gzip their transfer when supported, preserving all recipes and source links.
 

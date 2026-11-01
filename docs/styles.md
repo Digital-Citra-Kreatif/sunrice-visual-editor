@@ -40,7 +40,9 @@ and link the file from the layout yourself. `custom_css.file` names
 another file in `public/cms/`. See the
 [settings](installation.md#settings).
 
-Saving it takes `visual-editor.edit`: CSS runs no PHP. As for any
+Saving it takes `visual-editor.edit`. CSS can hide content, alter what visitors
+see and load remote images/fonts; this permission belongs to trusted designers.
+It is not a CSS sandbox. As for any
 stylesheet the editor writes, the save is refused when the file has
 changed on disk since it was opened, the previous version is kept with the
 template backups, and the save is in the activity log.
@@ -62,10 +64,17 @@ the package pushes (with the nonce of the site's content security policy)
 
 onto the layout's `@stack('head')`, like the CSS: `defer` runs it once
 the page is read. As for the CSS, it is there whether or not the editor is
-on, only while the file has something in it, once a page, and with the
+enabled, only while the file has something in it, once a page, and with the
 file's version as `?v=`. `custom_js.file`, `custom_js.inject`
 (`SUNRICE_VISUAL_EDITOR_CUSTOM_JS`) and `custom_js.stack` are its
 [settings](installation.md#settings).
+
+Automatic Custom JS injection is skipped for authorized editor previews, so
+redirects, popups and DOM changes in that file cannot disrupt the editor.
+Use **View page** to test it on a public page. A visitor adding `?sve=1`
+still receives the normal script. Scripts explicitly loaded by the site's
+layout or templates remain the site's responsibility; this is not a sandbox
+for arbitrary template scripts.
 
 It is global: one script for every page. A script that one template needs
 goes in that template instead, in the **Template** tab:
@@ -259,3 +268,33 @@ The custom CSS/JS panel header displays the configured on-disk path, relative
 to the application where possible (`public/cms/custom.css` by default), while
 the tooltip shows its public URL. `paths.theme` and `custom_css.file`/
 `custom_js.file` determine that label.
+
+## Optional save-time syntax checks
+
+By default, whole-file CSS and JS saves validate UTF-8, size and file version,
+but do not parse language syntax. Configure parse-only tools to reject invalid
+candidates before they replace a public file:
+
+```php
+'syntax_checks' => [
+    'js' => ['node', '--check'],
+    'css' => ['node', base_path('tools/check-css.mjs')],
+    'timeout' => 10,
+],
+```
+
+Each command is an argument list run in the application directory. It receives
+the exact candidate source on stdin; exit 0 accepts it. Configure only tools
+that parse/lint without evaluating the source. `node --check` is an example
+JavaScript parser; the CSS command above is a site's own checker and must exist.
+Use the site's installed CSS parser/linter and choose syntax versions appropriate
+to its browsers. No Node or linter is required unless configured. Setting either
+command to `null` disables that check.
+
+Checks apply to custom JS and all stylesheet saves through the editor's actions,
+including rule operations. A failure, missing tool, invalid configuration or
+timeout (1–60 seconds) returns 422 with a diagnostic, preserving the file, its
+version, backups and activity log. A stale version still returns 409 first. The
+buffer stays unsaved and can be corrected or reverted. The tabs indicate whether
+a check is configured. Validation catches only what the selected tool reports;
+it does not prove correct runtime behavior or make untrusted CSS/JS safe.

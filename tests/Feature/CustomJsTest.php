@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 use Sunrice\Admin\Activity\Activity;
+use Sunrice\VisualEditor\Http\Middleware\EditorRender;
 use Sunrice\VisualEditor\Rendering\CustomJs;
+use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Tests\Support\WithStarterSite;
 
 use function Pest\Laravel\get;
@@ -81,6 +83,19 @@ it('loads nothing while the custom script is empty, or when the site loads it it
     expect(CustomJs::injected())->toBeFalse()
         ->and(CustomJs::tag())->not->toBeNull()
         ->and(customScripts())->toBe([]);
+});
+
+it('skips automatic JS only in authorized editor previews and restores normal rendering afterwards', function () {
+    File::put($this->custom, "window.location.assign('/about'); window.open('/about');");
+    actingAsSuperAdmin();
+    get('/?sve=1')->assertOk()->assertSee('sve-manifest', false)->assertDontSee('data-sunrice-custom-js', false);
+    expect(request()->attributes->get(EditorRender::ACTIVE))->toBeNull()
+        ->and(customScripts())->toHaveCount(1);
+    config(['sunrice-visual-editor.enabled' => false]);
+    expect(customScripts('/?sve=1'))->toHaveCount(1);
+    config(['sunrice-visual-editor.enabled' => true]);
+    auth(Access::guard())->logout();
+    get('/?sve=1')->assertOk()->assertSee('data-sunrice-custom-js', false)->assertDontSee('sve-manifest', false);
 });
 
 it('refuses a save made against another version of the custom script, and one that is not text', function () {

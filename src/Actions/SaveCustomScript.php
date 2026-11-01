@@ -6,6 +6,7 @@ namespace Sunrice\VisualEditor\Actions;
 
 use Sunrice\Admin\Activity\ActivityLog;
 use Sunrice\VisualEditor\Rendering\CustomJs;
+use Sunrice\VisualEditor\Support\AssetSyntax;
 use Sunrice\VisualEditor\Support\Files;
 use Sunrice\VisualEditor\Support\SunriceBridge;
 use Sunrice\VisualEditor\Templates\Conflict;
@@ -42,6 +43,14 @@ final class SaveCustomScript
             }
             if ($newSource === $current && $existed) {
                 return $expectedVersion;
+            }
+
+            AssetSyntax::check('js', $newSource);
+            // An external editor may not use our lock while a checker runs.
+            clearstatcache(true, $file->file);
+            $latest = CustomJs::version($file->source());
+            if ($latest !== $expectedVersion) {
+                throw new Conflict($file->path, $latest);
             }
 
             if ($existed && config('sunrice-visual-editor.backups', true)) {

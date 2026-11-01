@@ -847,3 +847,12 @@ A hidden side already took no room (V8.7). What was missing was a way to use it 
 - Make the shared CodeMirror scroller keyboard focusable and visibly focused.
 - Add opt-in compact reference responses and negotiated gzip without new dependencies.
 - Verify recipe/source preservation, encoding negotiation, stale versions, transfer size, and keyboard scrolling/escape in both permission modes.
+
+## REVIEW-4 — Custom asset preview behavior and optional validation
+
+**Depends on:** REVIEW-3 (PR #63, merged).
+
+- Suppress automatic Custom JS injection in authorized previews; keep public behavior and authorization boundaries.
+- Document CSS edit permissions as trusted visual/resource access in the panel and docs.
+- Add configurable stdin-only syntax validators to existing CSS/JS save actions before writes. No new dependencies.
+- Cover public/preview JS behavior, parse-without-execution, rejection/no-write behavior, timeout/configuration failures, stale versions and browser flows.

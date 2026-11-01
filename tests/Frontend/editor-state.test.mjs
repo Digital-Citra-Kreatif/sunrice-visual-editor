@@ -260,3 +260,15 @@ test('the Fields reference stays open as canvas selections, layer selections and
     assert.equal(find(state.output, FieldsPanel).props.active, true);
     assert.equal(find(state.output, FieldsPanel).props.template.path, 'b.blade.php');
 });
+
+test('custom asset tabs explain CSS impact, preview behavior and optional checks', async () => {
+    for (const kind of ['css', 'js']) {
+        environment();
+        if (kind === 'js') globalThis.fetch = async () => ({ ok: true, json: async () => ({ custom: { path: 'custom.js', source: '', version: 'j1', injected: true, stack: 'head', checked: true } }) });
+        const state = harness(CustomFilePanel, { kind, mayEdit: true, editorScript: null, onUnsaved() {}, onSaved() {} });
+        state.render(); await flush(state);
+        assert.ok(matching(state.output, (node) => typeof node.props?.children === 'string' && node.props.children.includes(kind === 'css' ? 'Syntax checks are off' : 'configured syntax check')));
+        if (kind === 'css') assert.ok(matching(state.output, (node) => typeof node.props?.children === 'string' && node.props.children.includes('trusted designers')));
+        else assert.ok(matching(state.output, (node) => typeof node.props?.children === 'string' && node.props.children.includes('skipped in editor previews')));
+    }
+});
