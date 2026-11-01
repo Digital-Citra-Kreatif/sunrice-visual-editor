@@ -227,6 +227,12 @@ export type RichProps = CodeProps & {
     problems?: { line: number; message: string }[];
     /** A line of the text the cursor is asked to go to, each time `asked` changes. */
     goToLine?: { line: number; asked: number } | null;
+    /** A stylesheet or a script, coloured and read as one; a template when not given. Read when the editor is made. */
+    language?: 'css' | 'js';
+    /** The language is fetched once this is true: when the text is first in view, not before. */
+    languageWanted?: boolean;
+    /** For a script: the lines the editor's parser could not read. */
+    onParsed?(problems: { line: number; message: string }[]): void;
 };
 
 /**
@@ -234,12 +240,12 @@ export type RichProps = CodeProps & {
  * its own, several cursors. One editor for as long as the panel is there;
  * it keeps each template's text as it was left while another is shown.
  */
-export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, fields, onFieldsNeeded, problems, goToLine }: RichProps) {
+export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, fields, onFieldsNeeded, problems, goToLine, language, languageWanted = true, onParsed }: RichProps) {
     const holder = useRef<HTMLDivElement>(null);
     const editor = useRef<CodeEditor | null>(null);
     // The editor is made once and calls whatever the panel's functions are by then.
-    const calls = useRef({ onText, onSave, onCursor, saved, onFieldsNeeded });
-    calls.current = { onText, onSave, onCursor, saved, onFieldsNeeded };
+    const calls = useRef({ onText, onSave, onCursor, saved, onFieldsNeeded, onParsed });
+    calls.current = { onText, onSave, onCursor, saved, onFieldsNeeded, onParsed };
     /** What the editor shows: under which name, and the text as the editor last said it was. */
     const shown = useRef<{ name: string | null; text: string; saved: string; readOnly: boolean }>({ name: null, text: '', saved: '', readOnly: true });
     const went = useRef(0);
@@ -257,6 +263,8 @@ export function RichCode({ script, name, text, saved, readOnly, label, onText, o
             },
             onSave: () => calls.current.onSave(),
             onFieldsNeeded: () => calls.current.onFieldsNeeded?.(),
+            language,
+            onParsed: (found) => calls.current.onParsed?.(found),
             onCursor: (place, now) => calls.current.onCursor(byteOfIndex(calls.current.saved, place), byteOfIndex(shown.current.text, now)),
         });
         editor.current = made;
@@ -316,6 +324,12 @@ export function RichCode({ script, name, text, saved, readOnly, label, onText, o
     }, [script, name, saved, goTo?.asked]);
 
     useEffect(() => editor.current?.setFields(fields ?? []), [script, fields]);
+
+    useEffect(() => {
+        if (languageWanted) {
+            editor.current?.loadLanguage();
+        }
+    }, [script, languageWanted]);
 
     // What a syntax check found, marked in the gutter: the same list is not marked twice.
     const marks = JSON.stringify(problems ?? []);

@@ -1556,6 +1556,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                     <div className="sve-code-pane" hidden={codeTab !== 'css'}>
                         <CustomFilePanel
                             kind="css"
+                            shown={codeTab === 'css'}
                             mayEdit={mayEdit}
                             editorScript={editorScript}
                             onUnsaved={setCssUnsaved}
@@ -1570,6 +1571,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         {/* It runs in every visitor's browser: writing it is code. */}
                         <CustomFilePanel
                             kind="js"
+                            shown={codeTab === 'js'}
                             mayEdit={mayCode}
                             editorScript={editorScript}
                             onUnsaved={setJsUnsaved}

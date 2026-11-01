@@ -42,6 +42,10 @@ class InstalledTest extends TestCase
         foreach (['visual-editor.js', 'visual-editor.css', 'bridge.js', 'code-editor.js'] as $file) {
             $this->assertFileExists(public_path('vendor/sunrice-visual-editor/'.$file));
         }
+        // The code editor's chunks, which it imports by their hashed names: what CodeMirror both use, and the CSS and JS languages.
+        foreach (['code-chunk-', 'code-languages-'] as $chunk) {
+            $this->assertCount(1, glob(public_path('vendor/sunrice-visual-editor/'.$chunk.'*.js')) ?: [], "No published {$chunk}*.js");
+        }
 
         $this->assertSame(
             ['visual-editor.build', 'visual-editor.code', 'visual-editor.edit', 'visual-editor.open'],

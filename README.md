@@ -423,7 +423,7 @@ resources/js, css/   the editor UI (the panel's React and Inertia, window.Sunric
                        Editor.tsx the screen, panels/ the tree and the tabs beside the page,
                        canvas/ what is drawn over it, lib/ the API and the frame
 resources/js/bridge/ the script in a page shown in the editor's frame, built into dist/bridge.js
-resources/js/code/   the code editor (CodeMirror), built into dist/code-editor.js and fetched when code is first shown
+resources/js/code/   the code editor (CodeMirror), built into dist/code-editor.js (+ its hashed chunks) and fetched when code is first shown
 spike/               the round-trip reports (templates, stylesheets) and their results
 tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fixtures/ holds
                      site/ (the demo site's block templates), sunrice-starter and sunrice-package

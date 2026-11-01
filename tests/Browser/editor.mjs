@@ -320,6 +320,10 @@ await step('the parent editor has valid panel switches and readable nested layer
     await page.waitForTimeout(400);
     page.off('request', observed);
     if (catalogs !== 0) throw new Error(`Opening the editor fetched ${catalogs} field catalogs`);
+    // A template's code needs neither CSS nor JavaScript: their languages are fetched with the tabs that do.
+    if (await page.evaluate(() => performance.getEntriesByType('resource').some((entry) => entry.name.includes('/code-languages-')))) {
+        throw new Error('Showing a template fetched the CSS and JavaScript languages');
+    }
     const problems = await page.evaluate(() => {
         const errors = [];
         if (document.querySelector('.sve-shell [role="tablist"]')) errors.push('Incomplete tablist remains');
@@ -1111,7 +1115,9 @@ await step('mark broken custom CSS before saving, refuse it with its line, and g
     await custom.evaluate((holder, text) => holder.sveCodeEditor.setText(text), `${before}\n.broken {\n  color: red;\n`);
     const line = before.split('\n').length + 1;
     await page.locator('.sve-custom-css .sve-code__lint', { hasText: `Line ${line}:` }).waitFor();
-    await custom.locator('.sve-code__problem-mark').first().waitFor();
+    await custom.locator('.cm-lint-marker-error').first().waitFor();
+    // Coloured as CSS, with the languages fetched for this tab.
+    await custom.locator('.sve-code--attribute', { hasText: 'color' }).first().waitFor();
     // Asked first; said yes to, the server refuses it and names the line.
     page.once('dialog', (dialog) => dialog.accept());
     await page.locator('.sve-custom-css .sve-code__bar').getByRole('button', { name: 'Save', exact: true }).click();
@@ -1141,6 +1147,27 @@ await step('mark broken custom CSS before saving, refuse it with its line, and g
     await until(`The cursor did not go to line ${line}`, async () => (await custom.evaluate((holder) => { const view = holder.querySelector('.cm-content'); return view === null ? 0 : [...view.querySelectorAll('.cm-line')].findIndex((each) => each.classList.contains('cm-activeLine')) + 1; })) > 0 || 'not yet');
     await page.locator('.sve-custom-css .sve-code__bar').getByRole('button', { name: 'Revert', exact: true }).click();
     await page.locator('.sve-custom-css .sve-code__lint').waitFor({ state: 'detached' });
+    await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Template' }).click();
+});
+
+await step('read custom JS as JavaScript: coloured, and a line the parser cannot read marked before saving', async () => {
+    await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Custom JS' }).click();
+    const script = page.locator('.sve-custom-js .sve-code__editor');
+    await script.locator('.cm-editor').waitFor();
+    const before = (await (await page.request.get(`${base}/admin/visual-editor/api/scripts/custom`)).json()).custom.source;
+    // Balanced, so only the parser finds it.
+    await script.evaluate((holder, text) => holder.sveCodeEditor.setText(text), `${before}\nconst broken = ;\n`);
+    const line = before.split('\n').length + 1;
+    await page.locator('.sve-custom-js .sve-code__lint', { hasText: `Line ${line}: The editor can’t read the script here` }).waitFor();
+    await script.locator('.cm-lint-marker-warning').first().waitFor();
+    await script.locator('.sve-code--directive', { hasText: 'const' }).first().waitFor();
+    let asked = '';
+    page.once('dialog', (dialog) => { asked = dialog.message(); dialog.dismiss(); });
+    await page.locator('.sve-custom-js .sve-code__bar').getByRole('button', { name: 'Save', exact: true }).click();
+    await until('Save did not ask first', async () => asked.includes('Save anyway?') || 'not yet');
+    if ((await (await page.request.get(`${base}/admin/visual-editor/api/scripts/custom`)).json()).custom.source !== before) throw new Error('The script was saved without asking');
+    await page.locator('.sve-custom-js .sve-code__bar').getByRole('button', { name: 'Revert', exact: true }).click();
+    await page.locator('.sve-custom-js .sve-code__lint').waitFor({ state: 'detached' });
     await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Template' }).click();
 });
 

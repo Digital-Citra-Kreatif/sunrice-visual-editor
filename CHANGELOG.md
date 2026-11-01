@@ -21,6 +21,7 @@ minor version may change behaviour; what changes is said here.
 - F-101: show a checker's own words only (no stack frames or Node version, at most 20 lines / 1000 bytes), laid out as printed, with the line it names and **Go to line N**.
 - F-102: a checker that is missing, not executable or exits 126/127 answers `reason: checker` with the administrator message; details are logged.
 - F-103: "Not saved." in the error box meets 4.5:1 in light and dark themes.
+- Custom CSS and JS tabs are coloured by CodeMirror's CSS and JavaScript, fetched with the first of those tabs; in JS, lines the parser cannot read are marked (as warnings: the server's check decides). Gutter marks use `@codemirror/lint`.
 
 ### CMS Fields tab
 

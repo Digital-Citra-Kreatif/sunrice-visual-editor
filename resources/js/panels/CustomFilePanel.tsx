@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiError, readCustomCss, readCustomJs, saveCustomJs, saveStylesheet, type CustomFile, type Loaded } from '../lib/api';
 import { PlainCode, RichCode, useCodeScript } from './CodePanel';
 import { savedDraft } from '../lib/drafts';
-import { checkNote, cssProblem, jsProblem, troubleParts } from '../lib/syntax';
+import { checkNote, cssProblem, jsProblem, troubleParts, type Problem } from '../lib/syntax';
 
 /** What each kind of custom file is: how it is read and saved, and what is said about it. */
 const KINDS = {
@@ -32,6 +32,8 @@ const KINDS = {
 
 type Props = {
     kind: keyof typeof KINDS;
+    /** The tab is in view: its language is fetched the first time it is. The panel is there, hidden, from the start. */
+    shown?: boolean;
     /** Whether whoever is editing may change this file: without it the text is shown, not changed. */
     mayEdit: boolean;
     /** Where the code editor's script is fetched from; null for the plain text field alone. */
@@ -53,7 +55,7 @@ const message = (error: unknown) => (error instanceof Error ? error.message : 'S
  * of its layout: no template is changed for it. Saving writes the file
  * and draws the page again.
  */
-export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSaved }: Props) {
+export function CustomFilePanel({ kind, shown = true, mayEdit, editorScript, onUnsaved, onSaved }: Props) {
     const how = KINDS[kind];
     const script = useCodeScript(editorScript);
     const [file, setFile] = useState<Loaded<CustomFile>>({ state: 'idle' });
@@ -85,8 +87,11 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
     const changed = draft !== null;
     useEffect(() => onUnsaved(changed), [changed]);
     const typedText = file.state === 'ready' && file.data.source !== null ? (draft ?? file.data.source) : '';
-    /** What the check as it is typed finds: marked before Save is pressed. */
-    const problem = useMemo(() => (mayEdit ? how.problem(typedText) : null), [typedText, mayEdit, kind]);
+    /** What the editor's JavaScript parser could not read, as it last read the text: a hint, Node.js decides. */
+    const [parsed, setParsed] = useState<Problem[]>([]);
+    /** What the check as it is typed finds: marked before Save is pressed. Brackets, strings and comments first, then the parser. */
+    const checked = useMemo(() => (mayEdit ? how.problem(typedText) : null), [typedText, mayEdit, kind]);
+    const problem = checked ?? (mayEdit && kind === 'js' ? (parsed[0] ?? null) : null);
 
     if (file.state !== 'ready') {
         return <p className="sve-empty sve-code__none">{file.state === 'failed' ? file.error : 'Loading…'}</p>;
@@ -210,8 +215,11 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
                     goTo={null}
                     onCursor={() => {}}
                     fields={null}
-                    problems={problem === null ? [] : [problem]}
+                    problems={checked === null ? [] : [checked]}
                     goToLine={lineAsked}
+                    language={kind}
+                    languageWanted={shown}
+                    onParsed={(found) => setParsed((was) => (JSON.stringify(was) === JSON.stringify(found) ? was : found))}
                 />
             )}
         </section>

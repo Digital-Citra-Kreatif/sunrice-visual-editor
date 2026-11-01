@@ -18,6 +18,9 @@ shipped=$(git archive --format=tar HEAD | tar -t)
 for needed in composer.json src/VisualEditorServiceProvider.php config/sunrice-visual-editor.php routes/admin.php dist/visual-editor.js dist/visual-editor.css dist/bridge.js dist/code-editor.js docs/installation.md; do
     echo "$shipped" | grep -qx "$needed" || { echo "Not in the archive: $needed"; exit 1; }
 done
+for chunk in code-chunk- code-languages-; do
+    echo "$shipped" | grep -qE "^dist/${chunk}[A-Z0-9]+\.js$" || { echo "Not in the archive: dist/${chunk}*.js"; exit 1; }
+done
 for kept_out in tests/ workbench/ spike/ node_modules/ resources/js/; do
     ! echo "$shipped" | grep -q "^$kept_out" || { echo "In the archive, and should not be: $kept_out"; exit 1; }
 done

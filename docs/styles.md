@@ -309,8 +309,15 @@ version, backups and activity log; a stale version still returns 409 first:
 | `checker` | The check could not be made: the command is misconfigured, not found or not executable (exit 126 or 127 included), or timed out | `message`: "…could not run. Nothing was saved. Ask an administrator…". The details are logged, not returned |
 
 The buffer stays unsaved and can be corrected or reverted; for a `line`, the
-tab offers **Go to line N**. The code editor marks unclosed brackets, strings
-and comments in the gutter as they are typed, and asks before saving a file
-it marks. The tabs indicate which check applies. Validation catches only what
+tab offers **Go to line N**. The tabs indicate which check applies.
+
+As the text is typed, the code editor marks in its gutter (with the reason on
+hover, and a note above the code) unclosed brackets, strings and comments, and
+in custom JS, also a line CodeMirror's JavaScript parser cannot read
+(`const x = ;`, `{ a: 1 b: 2 }`). It asks before saving a file it marks. The
+parser's marks are a hint: on minified code it can be wrong, and the server's
+check decides. The CSS and JS tabs are coloured by CodeMirror's CSS and
+JavaScript, fetched with the first of those tabs (`dist/code-languages-*.js`);
+a template's code never fetches them. Validation catches only what
 the selected tool reports; it does not prove correct runtime behavior or make
 untrusted CSS/JS safe.
