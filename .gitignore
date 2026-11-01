@@ -8,3 +8,5 @@ composer.lock
 workbench/database/*.sqlite
 workbench/storage/
 /spike/css-plan.json
+# Precompressed copies the panel writes when it publishes assets (a demo site linked to dist/)
+/dist/*.gz
