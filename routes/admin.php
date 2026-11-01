@@ -11,6 +11,7 @@ use Sunrice\VisualEditor\Http\Controllers\Api\ScriptController;
 use Sunrice\VisualEditor\Http\Controllers\Api\SiteController;
 use Sunrice\VisualEditor\Http\Controllers\Api\StyleController;
 use Sunrice\VisualEditor\Http\Controllers\Api\TemplateController;
+use Sunrice\VisualEditor\Http\Controllers\Api\TemplateSearchController;
 use Sunrice\VisualEditor\Http\Controllers\EditorController;
 use Sunrice\VisualEditor\Http\Middleware\EditorAccess;
 
@@ -30,6 +31,8 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
     Route::get('inserts', InsertController::class)->name('inserts');
     // The panel's command palette: pages of the site to open in the editor.
     Route::get('pages', PageSearchController::class)->name('pages');
+    // And templates to open in it.
+    Route::get('template-search', TemplateSearchController::class)->name('template-search');
     // The site's build command, as configured: a permission of its own, apart from editing.
     Route::post('build', BuildController::class)->middleware(EditorAccess::class.':build')->name('build');
     Route::get('site', SiteController::class)->name('site');

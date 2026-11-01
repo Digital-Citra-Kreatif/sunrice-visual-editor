@@ -11,6 +11,17 @@ minor version may change behaviour; what changes is said here.
 - Make code editor scroll areas reachable by keyboard, with a visible focus indicator.
 - Reduce Fields reference payloads and gzip their transfer when supported, preserving all recipes and source links.
 
+### Review 4 follow-up
+
+- F-097: list only templates the editor can open; names it can't address (`café-card`, `_hidden`) are left out instead of answering 404.
+- F-098: search the Templates tab by path, name or role (case-insensitive, NFC), with an empty state, Clear and Esc.
+- F-099: list the templates again when the tab is shown, the window is come back to, and after a save, copy or build (at most every 2 s).
+- F-100: find templates in the command palette ("Open template … in the visual editor"); `?template=` opens one, found only among those listed, and says "Template not found" otherwise.
+- F-095: check CSS by default with a built-in checker (balanced brackets, strings, comments), and JS with `node --check -` where Node.js is found; `false` turns a check off. The code editor marks problems as they are typed and asks before saving them.
+- F-101: show a checker's own words only (no stack frames or Node version, at most 20 lines / 1000 bytes), laid out as printed, with the line it names and **Go to line N**.
+- F-102: a checker that is missing, not executable or exits 126/127 answers `reason: checker` with the administrator message; details are logged.
+- F-103: "Not saved." in the error box meets 4.5:1 in light and dark themes.
+
 ### CMS Fields tab
 
 - Browse and search scoped CMS variables, types and Blade recipes in a dedicated

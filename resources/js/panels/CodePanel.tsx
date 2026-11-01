@@ -223,6 +223,10 @@ export type RichProps = CodeProps & {
     goTo: CodePlace | null;
     onCursor(saved: number, now: number): void;
     fields: PickVariable[] | null;
+    /** What a syntax check found in the text, marked in the gutter. */
+    problems?: { line: number; message: string }[];
+    /** A line of the text the cursor is asked to go to, each time `asked` changes. */
+    goToLine?: { line: number; asked: number } | null;
 };
 
 /**
@@ -230,7 +234,7 @@ export type RichProps = CodeProps & {
  * its own, several cursors. One editor for as long as the panel is there;
  * it keeps each template's text as it was left while another is shown.
  */
-export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, fields, onFieldsNeeded }: RichProps) {
+export function RichCode({ script, name, text, saved, readOnly, label, onText, onSave, kept, goTo, onCursor, fields, onFieldsNeeded, problems, goToLine }: RichProps) {
     const holder = useRef<HTMLDivElement>(null);
     const editor = useRef<CodeEditor | null>(null);
     // The editor is made once and calls whatever the panel's functions are by then.
@@ -312,6 +316,19 @@ export function RichCode({ script, name, text, saved, readOnly, label, onText, o
     }, [script, name, saved, goTo?.asked]);
 
     useEffect(() => editor.current?.setFields(fields ?? []), [script, fields]);
+
+    // What a syntax check found, marked in the gutter: the same list is not marked twice.
+    const marks = JSON.stringify(problems ?? []);
+    useEffect(() => editor.current?.setProblems(problems ?? []), [script, name, marks]);
+
+    // A line asked for (Go to line N), once each time it is asked.
+    const wentToLine = useRef(0);
+    useEffect(() => {
+        if (goToLine != null && goToLine.asked !== wentToLine.current && editor.current !== null) {
+            wentToLine.current = goToLine.asked;
+            editor.current.goToLine(goToLine.line);
+        }
+    }, [script, goToLine?.asked]);
 
     return <div ref={holder} className="sve-code__editor" />;
 }

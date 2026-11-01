@@ -24,7 +24,8 @@ use Sunrice\VisualEditor\Templates\TemplateNotFound;
  *   not_found  404  no such template or stylesheet
  *   conflict   409  the file changed since it was read; `version` is what it is now
  *   rejected   422  a change can't be made; `operation` or `change` says which of a list
- *   syntax     422  the source doesn't compile
+ *   syntax     422  the source doesn't compile; for custom CSS or JS, `line` when the check names one
+ *   checker    422  the syntax check of custom CSS or JS could not be made: nothing is wrong with the code
  *   invalid    422  the request itself is wrong
  */
 trait AnswersAsJson
@@ -48,7 +49,9 @@ trait AnswersAsJson
             return $this->refuse('rejected', $e->getMessage(), 422, ['change' => $e->change]);
         } catch (CopyRefused $e) {
             return $this->refuse('rejected', $e->getMessage(), 422);
-        } catch (DoesNotCompile|AssetCheckFailed $e) {
+        } catch (AssetCheckFailed $e) {
+            return $this->refuse($e->reason, $e->getMessage(), 422, $e->sourceLine === null ? [] : ['line' => $e->sourceLine]);
+        } catch (DoesNotCompile $e) {
             return $this->refuse('syntax', $e->getMessage(), 422);
         } catch (InvalidRequest $e) {
             return $this->refuse('invalid', $e->getMessage(), 422);

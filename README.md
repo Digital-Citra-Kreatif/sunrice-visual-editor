@@ -127,7 +127,8 @@ content in the admin.
   live (Sunrice 0.2.0 or later).
 - The panel's command palette (Cmd/Ctrl+K), on every page of the admin,
   finds the site's pages by title: **Edit About in the visual editor**
-  opens the editor on that page.
+  opens the editor on that page; and its templates by path: **Open
+  template blocks/hero in the visual editor** opens it in the code.
 
 **A stylesheet and a script of the site's own.**
 
@@ -209,6 +210,7 @@ the visual editor** in the command palette (Cmd/Ctrl+K), or directly:
 | --- | --- |
 | `/admin/visual-editor` | the homepage |
 | `/admin/visual-editor?url=/about` | that page of the site |
+| `/admin/visual-editor?template=blocks/hero.blade.php&origin=site` | with that template open (`origin=package` for one of the CMS's views); one the editor does not list opens nothing and says *Template not found* |
 
 `/admin` stands for the panel's path. The `url` has to be a path on the
 site; anything else opens the homepage. A link like the second one can be put

@@ -12,12 +12,14 @@ import { autocompletion, completionKeymap, completionStatus, startCompletion, ty
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { bracketMatching, indentUnit } from '@codemirror/language';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
-import { ChangeSet, Compartment, EditorState, StateEffect, StateField, type Range, type Text } from '@codemirror/state';
+import { ChangeSet, Compartment, EditorState, RangeSet, StateEffect, StateField, type Range, type Text } from '@codemirror/state';
 import {
     Decoration,
     type DecorationSet,
     drawSelection,
     EditorView,
+    gutter,
+    GutterMarker,
     highlightActiveLine,
     highlightActiveLineGutter,
     highlightSpecialChars,
@@ -74,6 +76,10 @@ export type CodeEditor = {
     setFields(variables: PickVariable[]): void;
     /** Puts the cursor at a place of the file as saved, counted in characters, wherever that now is in the text; and the keyboard there too, when asked. */
     goTo(place: number, focus: boolean): void;
+    /** Puts the cursor at the start of a line of the text as it is now, counted from 1, and the keyboard there. */
+    goToLine(line: number): void;
+    /** Marks lines of the text as it is now, in the gutter and along the line: what a syntax check found there. */
+    setProblems(problems: { line: number; message: string }[]): void;
     focus(): void;
     destroy(): void;
 };
@@ -95,6 +101,64 @@ function decorate(text: string): DecorationSet {
 
     return Decoration.set(ranges);
 }
+
+/** The lines a syntax check found something wrong on, each with what it found. */
+type Marked = { line: number; message: string }[];
+
+const problemsAre = StateEffect.define<Marked>();
+
+/** A mark in the gutter: what is wrong on the line, to the pointer and to a screen reader. */
+class ProblemMarker extends GutterMarker {
+    readonly message: string;
+
+    constructor(message: string) {
+        super();
+        this.message = message;
+    }
+
+    eq(other: GutterMarker): boolean {
+        return other instanceof ProblemMarker && other.message === this.message;
+    }
+
+    toDOM(): Node {
+        const mark = document.createElement('span');
+        mark.className = 'sve-code__problem-mark';
+        mark.textContent = '●';
+        mark.title = this.message;
+        mark.setAttribute('role', 'img');
+        mark.setAttribute('aria-label', `Syntax problem: ${this.message}`);
+
+        return mark;
+    }
+}
+
+const problemLine = Decoration.line({ class: 'sve-code__problem-line' });
+
+/** The problems, as gutter marks and line marks, kept in place as the text changes until they are found again. */
+const problems = StateField.define<{ marks: RangeSet<GutterMarker>; lines: DecorationSet }>({
+    create: () => ({ marks: RangeSet.empty, lines: Decoration.none }),
+    update(value, transaction) {
+        let now = transaction.docChanged ? { marks: value.marks.map(transaction.changes), lines: value.lines.map(transaction.changes) } : value;
+        for (const effect of transaction.effects) {
+            if (effect.is(problemsAre)) {
+                const doc = transaction.state.doc;
+                const found = effect.value.filter((problem) => problem.line >= 1 && problem.line <= doc.lines).sort((a, b) => a.line - b.line);
+                now = {
+                    marks: RangeSet.of(found.map((problem) => new ProblemMarker(problem.message).range(doc.line(problem.line).from))),
+                    lines: Decoration.set(found.map((problem) => problemLine.range(doc.line(problem.line).from))),
+                };
+            }
+        }
+
+        return now;
+    },
+    provide: (field) => EditorView.decorations.from(field, (value) => value.lines),
+});
+
+const problemGutter = gutter({
+    class: 'sve-code__problems',
+    markers: (view) => view.state.field(problems).marks,
+});
 
 /** The file as saved, and everything typed since: what a place in the one is in the other. */
 type Since = { saved: Text; changes: ChangeSet };
@@ -156,6 +220,8 @@ const look = EditorView.theme({
     '.cm-lineNumbers .cm-gutterElement': { minWidth: '2.75rem', padding: '0 0.625rem 0 0.5rem' },
     '.cm-activeLine': { backgroundColor: 'color-mix(in oklab, var(--accent) 45%, transparent)' },
     '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--foreground)' },
+    '.sve-code__problems .cm-gutterElement': { padding: '0 0 0 0.375rem', color: 'var(--destructive)', cursor: 'default' },
+    '.sve-code__problem-line': { backgroundColor: 'color-mix(in oklab, var(--destructive) 12%, transparent)' },
     '.cm-cursor, .cm-dropCursor': { borderInlineStartColor: 'var(--foreground)' },
     '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
         backgroundColor: 'color-mix(in oklab, var(--ring) 35%, transparent)',
@@ -225,6 +291,8 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
             extensions: [
                 // A file is given back with the line breaks it came with (see lineBreaksOf).
                 ...(lineBreaks === 'unix' ? [] : [EditorState.lineSeparator.of(lineBreaks === 'windows' ? '\r\n' : '\n')]),
+                problems,
+                problemGutter,
                 lineNumbers(),
                 highlightActiveLineGutter(),
                 highlightSpecialChars(),
@@ -284,6 +352,8 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
     let showing: string | null = null;
     /** The cursor is being put somewhere by goTo, not moved by whoever is typing. */
     let sent = false;
+    /** What the syntax check last found in the text shown: marked again on a text shown anew. */
+    let marked: Marked = [];
 
     const editor: CodeEditor = {
         text: () => written(view.state),
@@ -299,6 +369,7 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
             showing = name;
             if (had === null || written(had.state) !== shown.text) {
                 view.setState(make(shown));
+                view.dispatch({ effects: problemsAre.of(marked) });
 
                 return;
             }
@@ -307,6 +378,7 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
             }
             view.dispatch({
                 effects: [
+                    problemsAre.of(marked),
                     readOnly.reconfigure(EditorState.readOnly.of(shown.readOnly)),
                     ...(view.state.field(since).saved.eq(view.state.toText(shown.saved)) ? [] : [savedAs.of(sinceSaved(view.state, shown.saved))]),
                     ...(had.scroll === null ? [] : [had.scroll]),
@@ -346,6 +418,18 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
             if (focus) {
                 view.focus();
             }
+        },
+        goToLine: (line) => {
+            const doc = view.state.doc;
+            const position = doc.line(Math.max(1, Math.min(line, doc.lines))).from;
+            sent = true;
+            view.dispatch({ selection: { anchor: position }, effects: EditorView.scrollIntoView(position, { y: 'center' }) });
+            sent = false;
+            view.focus();
+        },
+        setProblems: (found) => {
+            marked = found;
+            view.dispatch({ effects: problemsAre.of(found) });
         },
         focus: () => view.focus(),
         destroy: () => view.destroy(),

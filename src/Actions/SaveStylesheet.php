@@ -47,7 +47,7 @@ final class SaveStylesheet
                 return $expectedVersion;
             }
 
-            AssetSyntax::check('css', $newSource);
+            AssetSyntax::check('css', $newSource, $existed ? $current : null);
             // An external editor may not use our lock while a checker runs.
             clearstatcache(true, $file->file);
             $latest = ThemeRepository::version($file->source());

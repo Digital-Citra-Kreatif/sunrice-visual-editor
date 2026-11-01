@@ -65,3 +65,36 @@ test('says in a word why a template can\'t be edited visually', () => {
     assert.equal(limit({ origin: 'package', opens: true }), 'Read-only');
     assert.equal(limit({ origin: 'package', opens: false }), 'Read-only');
 });
+
+test('a search finds templates by path, short name or role, whatever the case or the way a letter is written', async () => {
+    const { matchesSearch } = await import('../../resources/js/lib/templates.ts');
+    const hero = { path: 'blocks/hero.blade.php', role: 'block' };
+    assert.equal(matchesSearch(hero, ''), true);
+    assert.equal(matchesSearch(hero, '  '), true);
+    assert.equal(matchesSearch(hero, 'HERO'), true);
+    assert.equal(matchesSearch(hero, 'blocks/hero'), true);
+    assert.equal(matchesSearch(hero, 'block'), true);
+    assert.equal(matchesSearch({ path: 'partials/card.blade.php', role: 'partial' }, 'PARTIAL'), true);
+    assert.equal(matchesSearch({ path: 'show.blade.php', role: 'entry' }, 'page template'), true);
+    assert.equal(matchesSearch({ path: 'partials/café.blade.php', role: 'partial' }, 'café'), true);
+    assert.equal(matchesSearch(hero, 'zzz'), false);
+});
+
+test('lists the templates again no more than once every two seconds', async () => {
+    const { relistDelay, RELIST_GAP } = await import('../../resources/js/lib/templates.ts');
+    assert.equal(RELIST_GAP, 2000);
+    assert.equal(relistDelay(0, 10_000), 0);
+    assert.equal(relistDelay(10_000, 10_500), 1500);
+    assert.equal(relistDelay(10_000, 12_000), 0);
+    // A clock that went back never waits longer than the gap.
+    assert.equal(relistDelay(20_000, 10_000), 2000);
+});
+
+test('takes the template the server says to open, and nothing else', async () => {
+    const { readStartTemplate } = await import('../../resources/js/lib/templates.ts');
+    assert.deepEqual(readStartTemplate({ path: 'blocks/hero.blade.php', origin: 'site' }), { path: 'blocks/hero.blade.php', origin: 'site' });
+    assert.deepEqual(readStartTemplate({ path: 'entry.blade.php', origin: 'package' }), { path: 'entry.blade.php', origin: 'package' });
+    for (const sent of [undefined, null, 'blocks/hero.blade.php', { path: '' , origin: 'site' }, { path: 'x.blade.php', origin: 'elsewhere' }, { origin: 'site' }]) {
+        assert.equal(readStartTemplate(sent), null);
+    }
+});

@@ -78,7 +78,7 @@ final class TemplateRepository
     /** @throws TemplateNotFound */
     public function find(string $path, string $origin = TemplateFile::SITE): TemplateFile
     {
-        if (preg_match(self::PATH, $path) === 1 && ! str_contains($path, '..')) {
+        if (self::named($path)) {
             foreach ($this->files() as $file) {
                 if ($file->path === $path && $file->origin === $origin) {
                     return $file;
@@ -147,7 +147,10 @@ final class TemplateRepository
     }
 
     /**
-     * The Blade files under a directory, as paths inside it, in order.
+     * The Blade files under a directory, as paths inside it, in order: only
+     * those named the way find() takes them, so every one listed opens. A
+     * file named otherwise ("café-card", "_hidden") is left out: the editor
+     * can't name it in an address, so it doesn't offer it.
      *
      * @return list<string>
      */
@@ -158,13 +161,20 @@ final class TemplateRepository
         }
         $paths = [];
         foreach (File::allFiles($directory) as $file) {
-            if (str_ends_with($file->getFilename(), '.blade.php')) {
-                $paths[] = str_replace('\\', '/', $file->getRelativePathname());
+            $path = str_replace('\\', '/', $file->getRelativePathname());
+            if (str_ends_with($path, '.blade.php') && self::named($path)) {
+                $paths[] = $path;
             }
         }
         sort($paths);
 
         return $paths;
+    }
+
+    /** A path find() takes: ASCII letters, digits, "-", "_" and ".", each part starting with a letter or digit, and no "..". */
+    private static function named(string $path): bool
+    {
+        return preg_match(self::PATH, $path) === 1 && ! str_contains($path, '..');
     }
 
     /** "partials/header.blade.php" → "partials.header". */

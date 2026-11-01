@@ -1104,6 +1104,92 @@ await step('put the custom CSS back', async () => {
     await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Template' }).click();
 });
 
+await step('mark broken custom CSS before saving, refuse it with its line, and go to that line', async () => {
+    await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Custom CSS' }).click();
+    await custom.locator('.cm-editor').waitFor();
+    const before = (await customNow()).source;
+    await custom.evaluate((holder, text) => holder.sveCodeEditor.setText(text), `${before}\n.broken {\n  color: red;\n`);
+    const line = before.split('\n').length + 1;
+    await page.locator('.sve-custom-css .sve-code__lint', { hasText: `Line ${line}:` }).waitFor();
+    await custom.locator('.sve-code__problem-mark').first().waitFor();
+    // Asked first; said yes to, the server refuses it and names the line.
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.locator('.sve-custom-css .sve-code__bar').getByRole('button', { name: 'Save', exact: true }).click();
+    const trouble = page.locator('.sve-custom-css .sve-code__trouble');
+    await trouble.getByText(`CSS check failed on line ${line}.`).waitFor();
+    if ((await customNow()).source !== before) throw new Error('Broken CSS was saved');
+    // "Not saved." can be read on its tint, in light and in dark.
+    for (const dark of [false, true]) {
+        await page.evaluate((on) => document.documentElement.classList.toggle('dark', on), dark);
+        const ratio = await trouble.locator('strong').evaluate((label) => {
+            const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
+            const context = canvas.getContext('2d', { willReadFrequently: true });
+            const rgb = (color) => { context.clearRect(0, 0, 1, 1); context.fillStyle = color; context.fillRect(0, 0, 1, 1); return [...context.getImageData(0, 0, 1, 1).data]; };
+            const mix = (top, under) => top.slice(0, 3).map((channel, index) => (channel * top[3] + under[index] * (255 - top[3])) / 255);
+            const layers = [];
+            for (let at = label; at; at = at.parentElement) layers.push(rgb(getComputedStyle(at).backgroundColor));
+            let background = [255, 255, 255];
+            for (const layer of layers.reverse()) background = mix(layer, background);
+            const luminance = (color) => color.slice(0, 3).map((channel) => channel / 255).map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+            const light = luminance(rgb(getComputedStyle(label).color)), shade = luminance(background);
+            return (Math.max(light, shade) + 0.05) / (Math.min(light, shade) + 0.05);
+        });
+        if (ratio < 4.5) throw new Error(`"Not saved." has a contrast of ${ratio.toFixed(2)} in ${dark ? 'dark' : 'light'}`);
+    }
+    await page.evaluate(() => document.documentElement.classList.remove('dark'));
+    await trouble.getByRole('button', { name: `Go to line ${line}` }).click();
+    await until(`The cursor did not go to line ${line}`, async () => (await custom.evaluate((holder) => { const view = holder.querySelector('.cm-content'); return view === null ? 0 : [...view.querySelectorAll('.cm-line')].findIndex((each) => each.classList.contains('cm-activeLine')) + 1; })) > 0 || 'not yet');
+    await page.locator('.sve-custom-css .sve-code__bar').getByRole('button', { name: 'Revert', exact: true }).click();
+    await page.locator('.sve-custom-css .sve-code__lint').waitFor({ state: 'detached' });
+    await page.locator('.sve-side--code .sve-code-tabs__tab', { hasText: 'Template' }).click();
+});
+
+await step('find a template by typing in the Templates tab, and say when none match', async () => {
+    await showTemplates();
+    const search = page.getByRole('searchbox', { name: 'Find a template' });
+    await search.waitFor();
+    const all = await page.locator('.sve-side--left .sve-template').count();
+    await search.fill('hero');
+    await until('Searching "hero" does not list blocks/hero alone', async () => {
+        const names = await page.locator('.sve-side--left .sve-template__name').allTextContents();
+        return (names.length > 0 && names.every((name) => name.includes('hero')) && names.includes('blocks/hero')) || names.join(', ');
+    });
+    await search.fill('PARTIAL');
+    await until('Searching "PARTIAL" does not list the partials', async () => {
+        const roles = await page.locator('.sve-side--left .sve-template__role').allTextContents();
+        return (roles.length > 0 && roles.every((role) => role === 'Partial') || (await page.locator('.sve-side--left .sve-template__name').allTextContents()).every((name) => /partial/i.test(name))) || roles.join(', ');
+    });
+    await search.fill('zzz');
+    await page.getByText('No templates match your search.').waitFor();
+    await page.locator('.sve-templates__none').getByRole('button', { name: 'Clear' }).click();
+    await until('Clearing the search does not list every template again', async () => (await page.locator('.sve-side--left .sve-template').count()) === all || 'not yet');
+    await search.fill('hero');
+    await search.press('Escape');
+    if ((await search.inputValue()) !== '') throw new Error('Escape did not clear the search');
+    // From the field, Tab reaches the first template found, and Enter opens it.
+    await search.fill('hero');
+    await search.press('Tab');
+    const focused = await page.evaluate(() => document.activeElement?.querySelector('.sve-template__name')?.textContent);
+    if (focused !== 'blocks/hero') throw new Error(`Tab from the search reached ${focused}`);
+    await page.keyboard.press('Enter');
+    await openIs('blocks/hero');
+    await showTemplates();
+    await search.fill('');
+});
+
+await step('open with the template named in the link, and say so of one that is not there', async () => {
+    await page.goto(`${base}/admin/visual-editor?template=blocks/hero.blade.php&origin=site`);
+    await page.waitForSelector('.sve-tab--open');
+    await openIs('blocks/hero');
+    const reads = [];
+    const observed = (request) => { if (request.url().includes('/api/templates/')) reads.push(request.url()); };
+    page.on('request', observed);
+    await page.goto(`${base}/admin/visual-editor?template=../../.env`);
+    await page.locator('.sve-notice', { hasText: 'Template not found' }).waitFor();
+    page.off('request', observed);
+    if (reads.some((url) => url.includes('.env'))) throw new Error('The editor asked for the file the link named');
+});
+
 const customJs = page.locator('.sve-custom-js .sve-code__editor');
 const jsApi = `${base}/admin/visual-editor/api/scripts/custom`;
 const jsNow = async () => (await (await page.request.get(jsApi)).json()).custom;

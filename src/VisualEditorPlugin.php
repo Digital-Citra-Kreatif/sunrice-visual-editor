@@ -72,6 +72,8 @@ final class VisualEditorPlugin extends BasePlugin
                 ->publishedFrom($dist, public_path(VisualEditorServiceProvider::ASSETS)))
             // Cmd/Ctrl+K on every page of the admin: "Edit … in the visual editor", for the site's pages.
             ->commandSearch('visual-editor.pages', fn (): string => route('sunrice.admin.visual-editor.api.pages'))
+            // And "Open template … in the visual editor", for the templates.
+            ->commandSearch('visual-editor.templates', fn (): string => route('sunrice.admin.visual-editor.api.template-search'))
             // A template read as a tree, and changed by operations on it.
             ->tools(GetTemplateTree::class, EditTemplate::class)
             ->aiInstructions(<<<'MD'
