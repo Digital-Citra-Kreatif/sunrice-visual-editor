@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ManifestFile } from '../bridge/protocol';
 import type { TemplateInfo } from '../lib/api';
 import { inPanelOrder, limit, matchesSearch, roleLabel, sameTemplate, shortName, type TemplateName } from '../lib/templates';
@@ -19,6 +19,12 @@ type Props = {
 /** The Templates tab on the left: the templates that drew the page, then the rest. */
 export function TemplatesPanel({ files, waiting, all, open, onOpen, onPoint }: Props) {
     const [query, setQuery] = useState('');
+    /** The search field: where Clear leaves the keyboard, since Clear itself goes away with the empty state. */
+    const field = useRef<HTMLInputElement>(null);
+    const clear = () => {
+        setQuery('');
+        field.current?.focus();
+    };
     /** Whether the other templates were opened by a click: a search opens them only while it lasts. */
     const [othersOpen, setOthersOpen] = useState(false);
     const searching = query.trim() !== '';
@@ -30,6 +36,7 @@ export function TemplatesPanel({ files, waiting, all, open, onOpen, onPoint }: P
     return (
         <>
             <input
+                ref={field}
                 type="search"
                 className="sve-templates__search"
                 aria-label="Find a template"
@@ -45,12 +52,13 @@ export function TemplatesPanel({ files, waiting, all, open, onOpen, onPoint }: P
                 }}
             />
             {nothing && (
-                <p className="sve-empty sve-templates__none" role="status">
-                    No templates match your search.
-                    <button type="button" className="sve-button sve-button--quiet" onClick={() => setQuery('')}>
+                // The live region says what happened and holds no control of its own.
+                <div className="sve-empty sve-templates__none">
+                    <span role="status">No templates match your search.</span>
+                    <button type="button" className="sve-button sve-button--quiet" onClick={clear}>
                         Clear
                     </button>
-                </p>
+                </div>
             )}
             {!nothing && (!searching || (shownFiles ?? []).length > 0) && (
                 <>

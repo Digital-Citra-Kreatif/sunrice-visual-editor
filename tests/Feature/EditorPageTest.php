@@ -75,7 +75,8 @@ it('offers the site\'s pages in the panel\'s command palette, each opening the e
     $user = createUser();
     $user->givePermissionTo(Permission::findOrCreate('sunrice.access', Access::guard()));
     actingAs($user, Access::guard());
-    getJson(route('sunrice.admin.visual-editor.api.pages', ['q' => 'about']))->assertForbidden();
+    // Found nothing, not refused: the palette asks for every signed-in user, and logs a refusal as an error.
+    getJson(route('sunrice.admin.visual-editor.api.pages', ['q' => 'about']))->assertOk()->assertExactJson(['items' => []]);
 });
 
 it('offers the templates in the panel\'s command palette, each opening the editor with it', function () {
@@ -104,7 +105,32 @@ it('offers the templates in the panel\'s command palette, each opening the edito
     $user = createUser();
     $user->givePermissionTo(Permission::findOrCreate('sunrice.access', Access::guard()));
     actingAs($user, Access::guard());
-    getJson(route('sunrice.admin.visual-editor.api.template-search', ['q' => 'hero']))->assertForbidden();
+    getJson(route('sunrice.admin.visual-editor.api.template-search', ['q' => 'hero']))->assertOk()->assertExactJson(['items' => []]);
+});
+
+it('answers the palette\'s searches with nothing for someone who may not open the editor, and refuses the rest of its API', function () {
+    $this->setUpStarterSite();
+    File::put($this->templates.'/partials/hero-banner.blade.php', '<div>Banner</div>');
+    $translator = createUser();
+    $translator->givePermissionTo(Permission::findOrCreate('sunrice.access', Access::guard()));
+    actingAs($translator, Access::guard());
+
+    foreach (['pages' => 'about', 'template-search' => 'hero'] as $search => $q) {
+        getJson(route('sunrice.admin.visual-editor.api.'.$search, ['q' => $q]))->assertOk()->assertExactJson(['items' => []]);
+        // Only reading is answered so: anything else is refused, as it always was.
+        expect($this->postJson(route('sunrice.admin.visual-editor.api.'.$search, ['q' => $q]))->status())->toBeIn([404, 405]);
+    }
+    getJson('/admin/visual-editor/api/templates')->assertForbidden();
+    getJson('/admin/visual-editor/api/templates/partials/hero-banner.blade.php')->assertForbidden();
+
+    // Someone who may open it finds what there is.
+    actingAsSuperAdmin();
+    expect(collect(getJson(route('sunrice.admin.visual-editor.api.template-search', ['q' => 'hero']))->json('items'))->pluck('label'))
+        ->toContain('Open template blocks/hero in the visual editor', 'Open template partials/hero-banner in the visual editor');
+});
+
+it('sends a guest asking the palette\'s searches to the sign-in page', function () {
+    get(route('sunrice.admin.visual-editor.api.template-search', ['q' => 'hero']))->assertRedirect('/admin/login');
 });
 
 it('opens with the template named in the link, found among those it lists', function () {

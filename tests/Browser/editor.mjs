@@ -1188,8 +1188,21 @@ await step('find a template by typing in the Templates tab, and say when none ma
     });
     await search.fill('zzz');
     await page.getByText('No templates match your search.').waitFor();
+    const searchFocused = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Find a template');
+    // Clear goes away as it clears: by keyboard and by mouse, the keyboard is back in the field, not on the page.
+    await search.press('Tab');
+    if ((await page.evaluate(() => document.activeElement?.textContent)) !== 'Clear') throw new Error('Tab from the search does not reach Clear');
+    await page.keyboard.press('Enter');
+    await until('Clearing the search does not list every template again', async () => (await page.locator('.sve-side--left .sve-template').count()) === all || 'not yet');
+    if (!(await searchFocused()) || (await search.inputValue()) !== '') throw new Error('Clear by keyboard left the keyboard elsewhere');
+    await search.fill('zzz');
     await page.locator('.sve-templates__none').getByRole('button', { name: 'Clear' }).click();
     await until('Clearing the search does not list every template again', async () => (await page.locator('.sve-side--left .sve-template').count()) === all || 'not yet');
+    if (!(await searchFocused())) throw new Error('Clear by mouse left the keyboard elsewhere');
+    // The live region holds the words, not the button.
+    await search.fill('zzz');
+    if ((await page.locator('.sve-templates__none [role="status"] button').count()) !== 0) throw new Error('A control is inside the live region');
+    await search.fill('');
     await search.fill('hero');
     await search.press('Escape');
     if ((await search.inputValue()) !== '') throw new Error('Escape did not clear the search');
@@ -1416,6 +1429,29 @@ await step('let them move what is there in the tree, and undo it', async () => {
     if ((await heroNow()) !== heroCode) {
         throw new Error('The hero is not what it was');
     }
+});
+
+await step('find nothing, quietly, in the command palette for someone who may not open the editor', async () => {
+    await signIn('translator@example.com');
+    await page.goto(`${base}/admin`);
+    // The editor's own searches only: other plugins' are theirs to answer.
+    const asked = [];
+    const answered = (response) => {
+        if (response.url().includes('/admin/visual-editor/api/')) asked.push(`${response.status()} ${response.url()}`);
+    };
+    page.on('response', answered);
+    // The palette listens once the page is up: asked again until it opens.
+    const palette = page.getByRole('dialog').getByPlaceholder('Go to…');
+    await until('The command palette does not open', async () => {
+        if (!(await palette.isVisible())) await page.keyboard.press('Control+k');
+        return (await palette.isVisible().catch(() => false)) || 'not yet';
+    });
+    await palette.fill('hero');
+    await page.waitForTimeout(1200);
+    page.off('response', answered);
+    await page.keyboard.press('Escape');
+    if (asked.length !== 2 || asked.some((each) => !each.startsWith('200 '))) throw new Error(`The editor's searches answered: ${asked.join(', ') || 'nothing'}`);
+    if (await page.getByText('in the visual editor').count()) throw new Error('The palette offered the visual editor to someone who may not open it');
 });
 
 await browser.close();

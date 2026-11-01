@@ -128,7 +128,8 @@ content in the admin.
 - The panel's command palette (Cmd/Ctrl+K), on every page of the admin,
   finds the site's pages by title: **Edit About in the visual editor**
   opens the editor on that page; and its templates by path: **Open
-  template blocks/hero in the visual editor** opens it in the code.
+  template blocks/hero in the visual editor** opens it in the code. For
+  someone who may not open the editor, both find nothing.
 
 **A stylesheet and a script of the site's own.**
 

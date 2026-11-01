@@ -21,6 +21,14 @@ use Sunrice\VisualEditor\Http\Middleware\EditorAccess;
 
 Route::get('visual-editor', [EditorController::class, 'show'])->name('visual-editor.show')->middleware(EditorAccess::class.':page');
 
+// The panel's command palette asks these for every signed-in user, on every page of the admin: for
+// someone who may not open the editor they find nothing (200, no items) rather than refusing (403),
+// which the palette would log as an error at each search. Nothing is looked up for them.
+Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(EditorAccess::class.':search')->group(function () {
+    Route::get('pages', PageSearchController::class)->name('pages');
+    Route::get('template-search', TemplateSearchController::class)->name('template-search');
+});
+
 // The editor's API. A template is named by its path inside its directory,
 // slashes and all: …/api/templates/partials/header.blade.php
 Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(EditorAccess::class)->group(function () {
@@ -29,10 +37,6 @@ Route::prefix('visual-editor/api')->name('visual-editor.api.')->middleware(Edito
     $edit = EditorAccess::class.':edit';
 
     Route::get('inserts', InsertController::class)->name('inserts');
-    // The panel's command palette: pages of the site to open in the editor.
-    Route::get('pages', PageSearchController::class)->name('pages');
-    // And templates to open in it.
-    Route::get('template-search', TemplateSearchController::class)->name('template-search');
     // The site's build command, as configured: a permission of its own, apart from editing.
     Route::post('build', BuildController::class)->middleware(EditorAccess::class.':build')->name('build');
     Route::get('site', SiteController::class)->name('site');

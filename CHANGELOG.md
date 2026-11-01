@@ -21,6 +21,8 @@ minor version may change behaviour; what changes is said here.
 - F-101: show a checker's own words only (no stack frames or Node version, at most 20 lines / 1000 bytes), laid out as printed, with the line it names and **Go to line N**.
 - F-102: a checker that is missing, not executable or exits 126/127 answers `reason: checker` with the administrator message; details are logged.
 - F-103: "Not saved." in the error box meets 4.5:1 in light and dark themes.
+- F-104: Clear in the Templates empty state puts the keyboard back in the search field; its live region holds the words alone.
+- F-105: the command palette's visual editor searches answer someone who may not open the editor with no results (200) instead of 403, so the palette logs no errors; the rest of the API still refuses them.
 - Custom CSS and JS tabs are coloured by CodeMirror's CSS and JavaScript, fetched with the first of those tabs; in JS, lines the parser cannot read are marked (as warnings: the server's check decides). Gutter marks use `@codemirror/lint`.
 
 ### CMS Fields tab

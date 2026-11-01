@@ -315,8 +315,16 @@ test('the Templates tab finds templates by path, name and role, Unicode included
     type('zzz');
     assert.deepEqual(rows(state.output), []);
     assert.match(textOf(state.output), /No templates match your search\./);
+    // The live region is the text alone: the button is beside it, not in it.
+    const status = matching(state.output, (node) => node.props?.role === 'status');
+    assert.equal(textOf(status), 'No templates match your search.');
+    assert.equal(matching(status, (node) => node.type === 'button'), null);
+    // Clear goes away with the empty state: the keyboard goes back to the field, not to the page.
+    let focused = 0;
+    input().props.ref.current = { focus() { focused++; } };
     button(state.output, 'Clear').props.onClick();
     state.render();
+    assert.equal(focused, 1);
     assert.equal(input().props.value, '');
     assert.equal(rows(state.output).length, 5);
 
