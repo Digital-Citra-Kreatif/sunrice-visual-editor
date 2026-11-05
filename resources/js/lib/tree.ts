@@ -194,3 +194,47 @@ export function kindOf(node: TreeNode): 'element' | 'text' | 'field' | 'label' |
             return node.name.toLowerCase().startsWith('include') || node.name === 'each' ? 'include' : 'directive';
     }
 }
+
+/** The nodes of a tree that don't pair up as written (a tag or a Blade construct whose other half is not where it should be), in the file's order. */
+export function strays(tree: TreeNode | null): TreeNode[] {
+    const found: TreeNode[] = [];
+    const walk = (node: TreeNode) => {
+        if (typeof node.stray === 'string') {
+            found.push(node);
+        }
+        node.children?.forEach(walk);
+    };
+    if (tree !== null) {
+        walk(tree);
+    }
+
+    return found;
+}
+
+/**
+ * What a save of the code left that doesn't pair up and didn't before, as a sentence for the
+ * person who saved it, or null. The code is saved as typed; this only says where to look.
+ */
+export function strayLeft(path: string, before: TreeNode | null, after: TreeNode | null, source: string): string | null {
+    if (before !== null && after === null) {
+        return `Saved ${path}, but Blade can't read it as a tree any more: it opens as code only. Check what was just typed.`;
+    }
+    const had = strays(before).map((node) => `${node.label}\u0000${String(node.stray)}`);
+    const added = strays(after).find((node) => {
+        const at = had.indexOf(`${node.label}\u0000${String(node.stray)}`);
+        if (at === -1) {
+            return true;
+        }
+        had.splice(at, 1);
+
+        return false;
+    });
+    if (added === undefined) {
+        return null;
+    }
+    // Nodes count bytes; a line is what comes before the node's first one.
+    const line = new TextDecoder().decode(new TextEncoder().encode(source).slice(0, added.start)).split('\n').length;
+    const why = String(added.stray).replace(/\.$/, '');
+
+    return `Saved ${path}, but line ${line} doesn't pair up: ${why}. The page may show Blade as text.`;
+}

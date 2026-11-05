@@ -954,6 +954,26 @@ await step('open no list of fields for an HTML comment typed in the code', async
     await codeIs(heroCode);
 });
 
+await step('save code that leaves an @if open as typed, say on which line, and undo it from there', async () => {
+    await frame.locator('.hero h1').click();
+    await cursorLineHas('<h1>{{ $block->heading }}</h1>');
+    await code.locator('.cm-line', { hasText: '<h1>{{ $block->heading }}</h1>' }).first().click();
+    await page.keyboard.press('End');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('@if ($broken');
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Control+s');
+    const unpaired = page.locator('.sve-notice--problem', { hasText: "line 7 doesn't pair up" });
+    await unpaired.waitFor({ timeout: 15000 });
+    if ((await onDisk('blocks/hero.blade.php')) === heroCode) {
+        throw new Error('The code was not saved as typed');
+    }
+    await unpaired.getByRole('button', { name: 'Undo' }).click();
+    await unpaired.waitFor({ state: 'detached' });
+    await until('The undo did not bring the hero back', async () => (await onDisk('blocks/hero.blade.php')) === heroCode);
+    await codeIs(heroCode);
+});
+
 await step('offer what the template can read where the cursor is on Ctrl+Space, and write it as Blade of its own', async () => {
     await frame.locator('.hero h1').click();
     await cursorLineHas('<h1>{{ $block->heading }}</h1>');

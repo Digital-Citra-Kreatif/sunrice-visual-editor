@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { boxesOf, findNode, kindOf, pathTo, rowFor, rows, shownChildren } from '../../resources/js/lib/tree.ts';
+import { boxesOf, findNode, kindOf, pathTo, rowFor, rows, shownChildren, strayLeft, strays } from '../../resources/js/lib/tree.ts';
 
 /** A node as the server describes one, with only what these helpers read. */
 const node = (id, type, more = {}, children = undefined) => ({
@@ -137,4 +137,20 @@ test('says in a word what a node is', () => {
     assert.equal(kindOf(node('1', 'atom', { atom: 'comment' })), 'comment');
     assert.equal(kindOf(node('1', 'comment')), 'comment');
     assert.equal(kindOf(node('1', 'atom', { kind: 'code', name: 'div', atom: 'tag', stray: '<div> is not closed here' })), 'stray');
+});
+
+test('says where a save of the code left something that does not pair up, and only then', () => {
+    const source = '<section>\n    <h1>Ü</h1>\n    @if ($broken\n</section>\n';
+    const at = new TextEncoder().encode(source.slice(0, source.indexOf('@if'))).length;
+    const before = node('root', 'root', {}, [node('0', 'element', { label: 'section' })]);
+    const after = node('root', 'root', {}, [node('0', 'element', { label: 'section' }, [node(String(at), 'atom', { label: '@if', start: at, stray: 'This @if has no @endif.' })])]);
+
+    assert.deepEqual(strays(after).map((each) => each.label), ['@if']);
+    assert.equal(strayLeft('blocks/hero.blade.php', before, after, source), "Saved blocks/hero.blade.php, but line 3 doesn't pair up: This @if has no @endif. The page may show Blade as text.");
+    // One that was there already is no news.
+    assert.equal(strayLeft('blocks/hero.blade.php', after, after, source), null);
+    assert.equal(strayLeft('blocks/hero.blade.php', before, before, source), null);
+    // Not read as a tree any more.
+    assert.match(strayLeft('layout.blade.php', before, null, source), /opens as code only/);
+    assert.equal(strayLeft('layout.blade.php', null, null, source), null);
 });

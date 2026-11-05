@@ -5,6 +5,9 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- Saving code that leaves something unpaired (an `@if` without `@endif`, a tag without
+  its other half) still saves it as typed, and now says on which line and why, with an
+  Undo: before, the page simply showed the Blade as text.
 - The Layers tab says what its rows do (drag; Alt+↑/↓, Ctrl+D, Delete), which
   nothing on the screen said. With the page holding the keyboard (the code side
   folded), Ctrl+D and Alt+↑/↓ now duplicate and move the element selected there, as
