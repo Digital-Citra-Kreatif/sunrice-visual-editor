@@ -5,6 +5,9 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- Typing an HTML comment (`<!-- … -->`) in the code no longer opens the whole list of
+  fields: its `-->` was taken for PHP's `->`, and the list that came with the fields
+  was shown as if Ctrl+Space had been pressed.
 - **Licence:** MIT, as Sunrice (`LICENSE`).
 - **Security:** someone with `visual-editor.edit` but not `visual-editor.code` could
   run script in visitors' browsers: an attribute value sent as Blade was written

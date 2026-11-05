@@ -935,6 +935,25 @@ await step('preview every device side by side, and select in another', async () 
 
 const offered = page.locator('.cm-tooltip-autocomplete li');
 
+await step('open no list of fields for an HTML comment typed in the code', async () => {
+    // Another template, then the hero again: its fields are not there yet, as on first opening it.
+    await frame.locator('.site-header .site-name').click();
+    await openIs('layout');
+    await frame.locator('.hero h1').click();
+    await openIs('blocks/hero');
+    await cursorLineHas('<h1>{{ $block->heading }}</h1>');
+    await code.locator('.cm-line', { hasText: '<h1>{{ $block->heading }}</h1>' }).first().click();
+    await page.keyboard.press('End');
+    // "-->" ends in "->", which PHP code would follow with a field.
+    await page.keyboard.type(' <!-- a note -->');
+    await page.waitForTimeout(1500);
+    if ((await offered.count()) !== 0) {
+        throw new Error(`Fields were offered: ${(await offered.allTextContents()).slice(0, 3).join(', ')}`);
+    }
+    await codeBar.getByRole('button', { name: 'Revert' }).click();
+    await codeIs(heroCode);
+});
+
 await step('offer what the template can read where the cursor is on Ctrl+Space, and write it as Blade of its own', async () => {
     await frame.locator('.hero h1').click();
     await cursorLineHas('<h1>{{ $block->heading }}</h1>');

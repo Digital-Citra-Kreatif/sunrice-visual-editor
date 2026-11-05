@@ -195,11 +195,14 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
     /** What can be read where the cursor is, as the panel beside the editor last heard. */
     let fields: PickVariable[] = [];
     let awaitingFields = false;
+    /** The fields awaited were asked for with Ctrl+Space: when they come, show all of them. */
+    let awaitingExplicit = false;
     const offer = (context: CompletionContext): CompletionResult | null => {
         const line = context.state.doc.lineAt(context.pos);
         const before = line.text.slice(0, context.pos - line.from);
         if (fields.length === 0 && needsFieldCatalog(before, context.explicit)) {
             awaitingFields = true;
+            awaitingExplicit = context.explicit;
             options.onFieldsNeeded?.();
         }
         // Asked for with Ctrl+Space: everything at the cursor, as Blade of its own.
@@ -291,6 +294,7 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
             if (showing !== name) {
                 fields = [];
                 awaitingFields = false;
+                awaitingExplicit = false;
             }
             if (showing !== null && showing !== name) {
                 kept.set(showing, { state: view.state, scroll: view.scrollSnapshot() });
@@ -327,12 +331,15 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
         setReadOnly: (now) => view.dispatch({ effects: readOnly.reconfigure(EditorState.readOnly.of(now)) }),
         setFields: (variables) => {
             fields = variables;
-            const requested = awaitingFields;
+            const asked = awaitingFields && awaitingExplicit;
             awaitingFields = false;
-            // What was typed a moment ago may be waiting for exactly these: offer them now.
+            awaitingExplicit = false;
+            // What was typed a moment ago may be waiting for exactly these: offer them now. startCompletion
+            // asks as Ctrl+Space does, for everything, so only when that was asked for, or when what was
+            // typed has offers of its own.
             const { head } = view.state.selection.main;
             const line = view.state.doc.lineAt(head);
-            if (view.hasFocus && completionStatus(view.state) === null && (requested || offersFor(line.text.slice(0, head - line.from), fields) !== null)) {
+            if (view.hasFocus && completionStatus(view.state) === null && (asked || offersFor(line.text.slice(0, head - line.from), fields) !== null)) {
                 startCompletion(view);
             }
         },
