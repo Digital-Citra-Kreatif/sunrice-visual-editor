@@ -6,6 +6,8 @@
 set -euo pipefail
 
 site=$1
+# This package, found before anything changes the working directory: a relative $0 means nothing after.
+here=$(cd "$(dirname "$0")/.." && pwd)
 rm -rf "$site"
 composer create-project laravel/laravel "$site" --no-interaction --prefer-dist --no-ansi
 cd "$site"
@@ -16,7 +18,6 @@ composer config repositories.sunrice-admin '{"type":"vcs","url":"https://github.
 composer config repositories.sunrice-cms '{"type":"vcs","url":"https://github.com/Digital-Citra-Kreatif/sunrice-cms","no-api":true}'
 # The released Sunrice this package asks for (the "^0.x" of its composer.json), as a site
 # running Sunrice has it. SUNRICE_REF tries another: "dev-main", or a branch, "dev-some-branch as dev-main".
-here=$(cd "$(dirname "$0")/.." && pwd)
 released=$(php -r '$c = json_decode(file_get_contents($argv[1]), true); echo explode(" ", $c["require"]["sunrice/cms"])[0];' "$here/composer.json")
 composer require "sunrice/admin:${SUNRICE_REF:-$released}" "sunrice/cms:${SUNRICE_REF:-$released}" --no-interaction --no-ansi
 # The user model needs Spatie's roles; the install command asks to add them, and without interaction stops.
