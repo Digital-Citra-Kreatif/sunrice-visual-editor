@@ -35,12 +35,10 @@ jobs:
           extensions: mbstring, dom, sqlite3, pdo_sqlite, gd, intl
           coverage: none
 
-      - name: Use Sunrice's main branch
-        if: ${{ matrix.sunrice == 'main' }}
-        run: composer require sunrice/admin:dev-main sunrice/cms:dev-main --no-update --no-interaction --no-ansi
-
+      # Sunrice's main branch is taken as a constraint for this install only (--with), inside the
+      # "^0.x || dev-main" composer.json has: composer.json stays as it is, and the tests read it.
       - name: Install dependencies
-        run: .github/run.sh install composer install --no-interaction --prefer-dist --no-ansi
+        run: .github/run.sh install composer ${{ matrix.sunrice == 'main' && 'update --with sunrice/admin:dev-main --with sunrice/cms:dev-main' || 'install' }} --no-interaction --prefer-dist --no-ansi
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
 
