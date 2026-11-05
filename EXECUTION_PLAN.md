@@ -672,7 +672,7 @@ The README's "Using it" now points to these pages in place of saying the same mo
 
 1. Install it on a staging copy of one real client project (`docs/installation.md`), use it there for a day, and fix what that turns up. This is the step the plan asks for and nothing here could stand in for it: the package has only seen Sunrice's starter templates, and a real project has templates nobody wrote with an editor in mind.
 2. Decide the licence (open decision 4 in `SPEC.md`; Sunrice says MIT in its `composer.json`). Add a `LICENSE` file and `"license"` to `composer.json`. Until then the repository is public without one, which lets nobody else use it.
-3. ~~Merge sunrice-cms#39 and #40.~~ Merged on 11 October 2026. What they made unnecessary stays until Sunrice tags a release this package can require, since a site may still have a Sunrice from before: `src/Support/RegisteredPermissions.php`, and the check for `registerMcpTool()` in `SunriceBridge`. With a tag, both go and `composer.json` asks for that version.
+3. ~~Merge sunrice-cms#39 and #40.~~ Merged on 11 October 2026. ~~What they made unnecessary goes once Sunrice is tagged.~~ Done: `src/Support/RegisteredPermissions.php` and the check for `registerMcpTool()` are gone, and `composer.json` asks for the tagged Sunrice 0.5 (`^0.5 || dev-main`).
 4. Put the date on 0.1.0 in `CHANGELOG.md`, tag `v0.1.0`, and submit the repository to Packagist. The installation page's `composer config repositories…` line and `:dev-main` then come out.
 
 ### After V7.4: five findings from a scan
