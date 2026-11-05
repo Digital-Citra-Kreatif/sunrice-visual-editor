@@ -26,7 +26,7 @@ minor version may change behaviour; what changes is said here.
   run script in visitors' browsers: an attribute value sent as Blade was written
   unescaped, and inside an element made a `<textarea>` (allowed without code),
   `title="</textarea><img onerror=…>"` ended the textarea. Without code, a Blade
-  attribute value may now hold only `{{ }}` echoes and text with no `<`, `>` or
+  attribute value may now hold only `{{ }}` echoes and text with no `<`, `>`, `@` or
   `{!!`; through the editor and the MCP tools alike.
 - **Requires** Sunrice 0.5 (`sunrice/admin` and `sunrice/cms` `^0.5 || dev-main`,
   was `^0.2 || dev-main`). Sunrice is tagged on Packagist now (0.5.0), and `^0.2`

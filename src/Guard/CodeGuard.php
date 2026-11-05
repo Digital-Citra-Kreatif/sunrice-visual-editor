@@ -199,17 +199,19 @@ final class CodeGuard
 
     /**
      * An attribute value given as Blade that prints no markup of its own: what is left once its
-     * escaped echoes ({{ }}, not {{-- --}} or {!! !!}) are taken out has no "<" or ">". An echo
-     * whose expression holds "}}" leaves its tail behind, so it is refused rather than let through.
+     * escaped echoes are taken out has no "<", ">" or "@". Only "{{ }}" is escaped: "@{{ }}" and
+     * whatever "@verbatim" holds are printed as written, "{{-- --}}" and "{!! !!}" are not echoes
+     * Blade escapes, and any other "@" is a directive. An echo whose expression holds "}}" leaves
+     * its tail behind, so it is refused rather than let through.
      */
     private static function inertBladeValue(string $value): bool
     {
         if (str_contains($value, '{!!')) {
             return false;
         }
-        $outside = (string) preg_replace('/\{\{(?!--).*?\}\}/s', '', $value);
+        $outside = (string) preg_replace('/(?<!@)\{\{(?!--).*?\}\}/s', '', $value);
 
-        return ! str_contains($outside, '<') && ! str_contains($outside, '>');
+        return ! str_contains($outside, '<') && ! str_contains($outside, '>') && ! str_contains($outside, '@');
     }
 
     /**

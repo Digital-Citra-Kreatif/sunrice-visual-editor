@@ -257,6 +257,9 @@ it('refuses markup in an attribute given as Blade, which ends a textarea around 
     'markup in a Blade comment' => '{{-- </textarea><img src=x onerror=alert(1)> --}}',
     'an echo that ends early' => "{{ '}}' }}</textarea><img src=x onerror=alert(1)>",
     'a raw echo' => '{!! $block->heading !!}',
+    // Printed as written, not escaped: what looks like an echo inside them is text.
+    'a verbatim block' => '@verbatim{{ </textarea><img src=x onerror=alert(1)> }}@endverbatim',
+    'an echo Blade leaves alone' => '@{{ </textarea><img src=x onerror=alert(1)> }}',
 ]);
 
 it('takes a field in an attribute given as Blade, inside a textarea too', function () {
