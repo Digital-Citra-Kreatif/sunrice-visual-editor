@@ -5,6 +5,7 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- **Licence:** MIT, as Sunrice (`LICENSE`).
 - **Security:** someone with `visual-editor.edit` but not `visual-editor.code` could
   run script in visitors' browsers: an attribute value sent as Blade was written
   unescaped, and inside an element made a `<textarea>` (allowed without code),

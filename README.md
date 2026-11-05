@@ -428,3 +428,7 @@ tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fi
                      (Blade of Sunrice before 0.1, kept for the round-trip tests) and edge
 workbench/           the Testbench app: user model, panel provider, migrations, demo content
 ```
+
+## Licence
+
+MIT, as Sunrice: see [LICENSE](LICENSE).
