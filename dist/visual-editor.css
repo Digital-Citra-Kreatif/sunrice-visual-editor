@@ -1452,24 +1452,42 @@
 /* CMS reference and links to the native content/schema editors. */
 .sve-fields { flex: 1; min-height: 0; overflow: auto; padding: 1rem; color: var(--foreground); background: var(--card); }
 .sve-fields__head, .sve-fields__example > div { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.sve-fields__head { align-items: flex-start; }
 .sve-fields__head h2 { margin: 0; font-size: 0.875rem; }
+.sve-fields__head > .sve-button { flex: none; }
+.sve-fields__lead { margin: 0.25rem 0 0; color: var(--muted-foreground); font-size: 0.75rem; line-height: 1.5; overflow-wrap: anywhere; }
+.sve-fields__lead kbd { padding: 0 0.25rem; border: 1px solid var(--border); border-radius: 0.25rem; font: inherit; font-size: 0.6875rem; }
 .sve-fields__note { font-size: 0.75rem; line-height: 1.6; overflow-wrap: anywhere; }
-.sve-fields__search { display: grid; gap: 0.375rem; margin: 1rem 0 0.5rem; font-size: 0.75rem; font-weight: 600; }
-.sve-fields__search input { min-width: 0; width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; color: var(--foreground); background: var(--background); font: inherit; }
+.sve-fields__note--warn { margin: 0.75rem 0 0; padding: 0.5rem 0.625rem; border-radius: 0.375rem; background: var(--muted); }
+.sve-fields__cms { margin-block-start: 1rem; border: 1px solid var(--border); border-radius: 0.375rem; font-size: 0.75rem; }
+.sve-fields__cms > h3 { margin: 0; padding: 0.5rem 0.75rem; border-block-end: 1px solid var(--border); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); }
+.sve-fields__source { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1rem; padding: 0.5rem 0.75rem; }
+.sve-fields__source + .sve-fields__source { border-block-start: 1px solid var(--border); }
+.sve-fields__source > .sve-fields__links { margin: 0; }
+.sve-fields__hint { margin: 0; padding: 0.5rem 0.75rem; border-block-start: 1px solid var(--border); color: var(--muted-foreground); font-size: 0.6875rem; line-height: 1.5; }
+/* The search stays in view while the list scrolls under it. */
+.sve-fields__find { position: sticky; top: -1rem; z-index: 1; margin: 0.75rem -1rem 0; padding: 0.75rem 1rem 0.5rem; background: var(--card); }
+.sve-fields__search { display: grid; gap: 0.375rem; font-size: 0.75rem; font-weight: 600; }
+.sve-fields__search input { min-width: 0; width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; color: var(--foreground); background: var(--background); font: inherit; font-weight: 400; }
 .sve-fields__search input:focus-visible, .sve-fields__toggle:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-.sve-fields__status { display: block; min-height: 1.25rem; font-size: 0.75rem; }
-.sve-fields__source { display: grid; gap: 0.375rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; font-size: 0.75rem; }
-.sve-fields__links { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0.375rem 0; font-size: 0.75rem; }
+/* Said to screen readers; the button that was pressed says "Copied" on the screen. */
+.sve-fields__status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.sve-fields__links { display: flex; flex-wrap: wrap; gap: 0.25rem 0.875rem; margin: 0.375rem 0; font-size: 0.75rem; }
 .sve-fields__links a { color: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
-.sve-fields__variable { margin-block: 0.75rem; }
-.sve-fields__variable > small { display: block; margin-block-end: 0.25rem; color: var(--muted-foreground); font-size: 0.6875rem; }
+.sve-fields__set { margin-block-start: 0.75rem; }
+.sve-fields__set > h3 { margin: 0 0 0.375rem; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); }
+.sve-fields__variable + .sve-fields__variable { margin-block-start: 0.375rem; }
 .sve-fields__row { margin-block: 0.25rem; border: 1px solid var(--border); border-radius: 0.375rem; }
-.sve-fields__toggle { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem 0.75rem; width: 100%; padding: 0.625rem; border: 0; border-radius: inherit; text-align: start; color: inherit; background: transparent; font: inherit; font-size: 0.8125rem; cursor: pointer; }
+.sve-fields__toggle { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.125rem 0.75rem; width: 100%; padding: 0.5rem 0.625rem; border: 0; border-radius: inherit; text-align: start; color: inherit; background: transparent; font: inherit; font-size: 0.8125rem; cursor: pointer; }
 .sve-fields__toggle:hover { background: var(--accent); color: var(--accent-foreground); }
-.sve-fields__toggle > small { font-size: 0.6875rem; }
-.sve-fields__toggle > code { grid-column: 1 / -1; overflow-wrap: anywhere; font-size: 0.6875rem; }
-.sve-fields__body { padding: 0 0.625rem 0.625rem; }
+.sve-fields__what { align-self: center; padding: 0 0.375rem; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 0.625rem; white-space: nowrap; }
+.sve-fields__toggle > code { grid-column: 1 / -1; overflow-wrap: anywhere; color: var(--muted-foreground); font-size: 0.6875rem; }
+.sve-fields__foot { padding: 0 0.625rem 0.375rem; }
+.sve-fields__foot .sve-fields__links { margin: 0; }
+.sve-fields__body { padding: 0 0.625rem 0.625rem; border-block-start: 1px solid var(--border); }
 .sve-fields__group { margin-block-start: 0.75rem; }
-.sve-fields__group h3 { margin-block: 0.5rem; font-size: 0.75rem; }
+.sve-fields__group-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1rem; }
+.sve-fields__group-head h4 { margin-block: 0.5rem; font-size: 0.75rem; }
+.sve-fields__group-head .sve-fields__links { margin: 0; }
 .sve-fields__example { margin-block: 0.75rem; font-size: 0.75rem; }
 .sve-fields__example pre { overflow: auto; max-height: 18rem; padding: 0.625rem; border-radius: 0.375rem; color: var(--foreground); background: var(--muted); font-size: 0.6875rem; line-height: 1.6; }

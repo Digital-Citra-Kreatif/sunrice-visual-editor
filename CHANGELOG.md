@@ -5,6 +5,12 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- **Fields** tab laid out again: one heading for each place values come from (This
+  template, Site-wide…) where every card repeated it; a global's or a menu's CMS links
+  in its own card, not between it and the one above; the CMS links together in one
+  compact **Edit in the CMS** block; one short line of help where there were two
+  paragraphs; the search kept in view while the list scrolls; no empty gap under it;
+  the field's type as a small tag; and **Copied** on the button that was pressed.
 - Saving code that leaves something unpaired (an `@if` without `@endif`, a tag without
   its other half) still saves it as typed, and now says on which line and why, with an
   Undo: before, the page simply showed the Blade as text.
