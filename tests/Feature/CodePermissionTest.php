@@ -237,6 +237,37 @@ it('writes an attribute given as text as text, and refuses one given as Blade un
     expect(($this->runsNew)())->toBe([]);
 })->with(SVE_CODE);
 
+it('refuses markup in an attribute given as Blade, which ends a textarea around it and runs', function (string $value) {
+    ($this->as)(Access::EDIT);
+    // An element anyone may make a textarea: inside one, the browser ends it at "</textarea>", quoted or not.
+    ($this->send)(['type' => 'setTag', 'node' => ($this->node)('<section'), 'tag' => 'textarea'])->assertOk();
+    $tagged = File::get($this->hero);
+
+    ($this->send)(['type' => 'setAttribute', 'node' => ($this->node)('<h1'), 'name' => 'title', 'value' => $value, 'blade' => true])
+        ->assertStatus(422)->assertJsonPath('reason', 'rejected');
+    expect(File::get($this->hero))->toBe($tagged)
+        ->and(get('/')->getContent())->not->toContain('onerror');
+
+    // As text it is written escaped, and stays inside the attribute.
+    ($this->send)(['type' => 'setAttribute', 'node' => ($this->node)('<h1'), 'name' => 'title', 'value' => $value])->assertOk();
+    expect(get('/')->getContent())->not->toContain('<img');
+})->with([
+    'markup alone' => '</textarea><img src=x onerror=alert(1)>',
+    'markup beside a field' => '{{ $block->heading }}</textarea><img src=x onerror=alert(1)>',
+    'markup in a Blade comment' => '{{-- </textarea><img src=x onerror=alert(1)> --}}',
+    'an echo that ends early' => "{{ '}}' }}</textarea><img src=x onerror=alert(1)>",
+    'a raw echo' => '{!! $block->heading !!}',
+]);
+
+it('takes a field in an attribute given as Blade, inside a textarea too', function () {
+    ($this->as)(Access::EDIT);
+    ($this->send)(['type' => 'setTag', 'node' => ($this->node)('<section'), 'tag' => 'textarea'])->assertOk();
+
+    ($this->send)(['type' => 'setAttribute', 'node' => ($this->node)('<h1'), 'name' => 'title', 'value' => 'About {{ $block->heading }}', 'blade' => true])->assertOk();
+    expect(File::get($this->hero))->toContain('title="About {{ $block->heading }}"')
+        ->and(($this->runsNew)())->toBe([]);
+});
+
 it('lets no code in through a name: of an attribute, a class, an id or a tag', function (array $operation, string $code) {
     ($this->as)(Access::EDIT);
 
