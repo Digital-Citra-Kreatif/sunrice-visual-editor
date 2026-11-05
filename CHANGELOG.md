@@ -5,6 +5,10 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- The Layers tab says what its rows do (drag; Alt+↑/↓, Ctrl+D, Delete), which
+  nothing on the screen said. With the page holding the keyboard (the code side
+  folded), Ctrl+D and Alt+↑/↓ now duplicate and move the element selected there, as
+  Delete already did, where Ctrl+D did nothing (or bookmarked the page).
 - Typing an HTML comment (`<!-- … -->`) in the code no longer opens the whole list of
   fields: its `-->` was taken for PHP's `->`, and the list that came with the fields
   was shown as if Ctrl+Space had been pressed.

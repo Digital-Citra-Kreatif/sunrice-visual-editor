@@ -1105,12 +1105,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const redoable = template.state === 'ready' && fixed === null && !applying && canRedo(history, template.data.version);
 
     shortcuts.current = (shortcut) => {
-        if (shortcut === 'delete') {
-            if (selected !== null) {
-                act(selected, 'delete');
-            }
-        } else {
+        if (shortcut === 'undo' || shortcut === 'redo') {
             travel(shortcut);
+        } else if (selected !== null) {
+            // What a row of the tree does with the same keys, to the element selected on the page.
+            act(selected, shortcut);
         }
     };
 
