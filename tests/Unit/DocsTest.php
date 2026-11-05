@@ -96,3 +96,18 @@ it('names the permissions as the package does', function () {
         expect($permissions)->toContain("`{$permission}`")->toContain($label);
     }
 });
+
+it('names the Sunrice version composer.json requires', function () {
+    $root = dirname(__DIR__, 2);
+    $require = json_decode((string) file_get_contents($root.'/composer.json'), true, flags: JSON_THROW_ON_ERROR)['require'];
+
+    // One minor of the panel and the CMS, the one the docs name, and their main branch for CI.
+    expect($require['sunrice/admin'])->toMatch('/^\^0\.\d+ \|\| dev-main$/')
+        ->and($require['sunrice/cms'])->toBe($require['sunrice/admin']);
+    $minor = substr(explode(' ', $require['sunrice/admin'])[0], 1);
+
+    expect(file_get_contents($root.'/README.md'))->toContain("already runs Sunrice {$minor}:")
+        ->and(file_get_contents($root.'/docs/installation.md'))->toContain("already runs Sunrice {$minor}:")
+        ->and(file_get_contents($root.'/docs/limits.md'))->toContain("For Sunrice\n{$minor} (")
+        ->and(file_get_contents($root.'/docs/limits.md'))->toContain("Built against Sunrice {$minor} (");
+});

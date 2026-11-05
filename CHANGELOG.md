@@ -5,6 +5,11 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- **Requires** Sunrice 0.5 (`sunrice/admin` and `sunrice/cms` `^0.5 || dev-main`,
+  was `^0.2 || dev-main`). Sunrice is tagged on Packagist now (0.5.0), and `^0.2`
+  matched none of 0.3, 0.4 or 0.5: on a site running a tagged Sunrice, installing
+  the editor failed or took Sunrice back to 0.2.0. Tested against 0.5.0.
+
 - Keep automatically injected Custom JS out of authorized editor previews; public pages still load it.
 - Clarify CSS edit permissions and add optional save-time CSS/JS syntax check commands.
 
