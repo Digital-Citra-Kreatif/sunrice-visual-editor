@@ -25,9 +25,10 @@ jobs:
           php-version: '8.3'
           extensions: mbstring, dom, sqlite3, pdo_sqlite, gd, intl
           coverage: none
+      # Sunrice asks for PHP 8.4; resolve.php holds Symfony at 7 so that what it
+      # locks runs on 8.3.
       - name: Resolve
-        working-directory: main
-        run: composer update --no-install --no-interaction --no-ansi
+        run: php resolve.php main
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
       - name: Commit

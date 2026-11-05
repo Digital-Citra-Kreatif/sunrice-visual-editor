@@ -12,7 +12,7 @@ packages=${PACKAGES_DIR:-$(dirname "$repo")/packages}
 
 # --- Composer: every locked package from GitHub, shallow; then an ordinary install from those copies.
 python3 "$here/vendor_from_lock.py" "$here/composer.lock" "$packages" "$repo/composer.lock"
-(cd "$repo" && COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_MIRROR_PATH_REPOS=1 COMPOSER_DISABLE_NETWORK=1 composer install --no-interaction --no-progress --no-ansi | tail -n 3)
+(cd "$repo" && COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_MIRROR_PATH_REPOS=1 COMPOSER_DISABLE_NETWORK=1 composer install --no-interaction --no-progress --no-ansi --ignore-platform-req=php | tail -n 3)
 
 # --- npm: the build tools, from wherever this machine has them (NPM_TOOLS), and React's types from GitHub.
 tools=${NPM_TOOLS:-/opt/npm-tools/node_modules}

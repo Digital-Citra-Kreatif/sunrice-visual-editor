@@ -5,7 +5,8 @@ be run on a machine that can reach GitHub but not Packagist or the npm
 registry, which is where much of this package is written.
 
 - `composer.lock` is resolved by CI from `main`'s `composer.json` (on PHP 8.3)
-  and committed here by `.github/workflows/lock.yml`. To have it made again
+  and committed here by `.github/workflows/lock.yml`. Sunrice asks for PHP 8.4
+  but runs on 8.3; Symfony 8 does not, so `resolve.php` holds it at 7. To have it made again
   after `composer.json` changes, or to take newer versions, push any commit to
   this branch: `git commit --allow-empty -m "Lock again" && git push`.
 - `vendor_from_lock.py` fetches every package in that lock from GitHub (one
@@ -16,8 +17,8 @@ registry, which is where much of this package is written.
   from GitHub.
 
 ```bash
-git clone --depth 1 --branch ci/lock https://github.com/littleboy130491/sunrice-visual-editor lock
-git clone https://github.com/littleboy130491/sunrice-visual-editor
+git clone --depth 1 --branch ci/lock https://github.com/Digital-Citra-Kreatif/sunrice-visual-editor lock
+git clone https://github.com/Digital-Citra-Kreatif/sunrice-visual-editor
 lock/setup.sh sunrice-visual-editor
 cd sunrice-visual-editor
 composer test
@@ -35,7 +36,7 @@ repo=$PWD                                             # the clone, set up as abo
 mkdir ../serve && cd ../serve
 for each in src config routes resources dist workbench testbench.yaml composer.json; do ln -s "$repo/$each" "$each"; done
 cp "$repo/composer.lock" composer.lock
-COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_MIRROR_PATH_REPOS=1 COMPOSER_DISABLE_NETWORK=1 composer install --no-interaction
+COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_MIRROR_PATH_REPOS=1 COMPOSER_DISABLE_NETWORK=1 composer install --no-interaction --ignore-platform-req=php
 mkdir -p .ci
 composer workbench                                    # templates, database, content
 
