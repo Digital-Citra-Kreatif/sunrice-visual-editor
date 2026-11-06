@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "db2ec675349e5f947d33f42f05087f07",
+    "content-hash": "d8917b7486745da5aecf45818ac72ff0",
     "packages": [
         {
             "name": "brick/math",
@@ -3755,16 +3755,16 @@
         },
         {
             "name": "sunrice/admin",
-            "version": "v0.2.0",
+            "version": "v0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Digital-Citra-Kreatif/sunrice-admin",
-                "reference": "a459bbda82662eca6c2dee7fe9aab0acf87575d4"
+                "reference": "7123e81cb6a30afe676b6cd31891355c3f7a9795"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Digital-Citra-Kreatif/sunrice-admin/zipball/a459bbda82662eca6c2dee7fe9aab0acf87575d4",
-                "reference": "a459bbda82662eca6c2dee7fe9aab0acf87575d4",
+                "url": "https://api.github.com/repos/Digital-Citra-Kreatif/sunrice-admin/zipball/7123e81cb6a30afe676b6cd31891355c3f7a9795",
+                "reference": "7123e81cb6a30afe676b6cd31891355c3f7a9795",
                 "shasum": ""
             },
             "require": {
@@ -3803,25 +3803,26 @@
                 "laravel",
                 "react"
             ],
-            "time": "2026-10-27T12:32:45+00:00"
+            "time": "2026-11-04T04:49:10+00:00"
         },
         {
             "name": "sunrice/cms",
-            "version": "v0.2.0",
+            "version": "v0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Digital-Citra-Kreatif/sunrice-cms",
-                "reference": "018184a8add5f48f284e42450299db8de6dd7b98"
+                "reference": "e5516beb56dbe1eb22c9b304973b4fda5ce7d527"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Digital-Citra-Kreatif/sunrice-cms/zipball/018184a8add5f48f284e42450299db8de6dd7b98",
-                "reference": "018184a8add5f48f284e42450299db8de6dd7b98",
+                "url": "https://api.github.com/repos/Digital-Citra-Kreatif/sunrice-cms/zipball/e5516beb56dbe1eb22c9b304973b4fda5ce7d527",
+                "reference": "e5516beb56dbe1eb22c9b304973b4fda5ce7d527",
                 "shasum": ""
             },
             "require": {
                 "illuminate/contracts": "^13.0",
                 "illuminate/support": "^13.0",
+                "intervention/image": "^3.0",
                 "php": "^8.4",
                 "spatie/laravel-honeypot": "^4.5",
                 "sunrice/admin": "self.version",
@@ -3858,7 +3859,7 @@
                 "content-management",
                 "laravel"
             ],
-            "time": "2026-10-27T12:32:45+00:00"
+            "time": "2026-11-04T04:49:10+00:00"
         },
         {
             "name": "symfony/clock",
