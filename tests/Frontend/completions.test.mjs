@@ -11,6 +11,11 @@ test('the catalog waits for typed field syntax or an explicit completion gesture
     assert.equal(needsFieldCatalog('    ', true), true);
 });
 
+test('an HTML comment closing is not a "->" asking for fields', () => {
+    for (const text of ['<!-- x -->', '</section> <!-- note -->', '<p>a --> b</p>', '-->']) assert.equal(needsFieldCatalog(text), false, text);
+    for (const text of ['{{ $entry->', '{{ $entry->title()->', "{{ $values['photo']->", '{{ cms_page()?->']) assert.equal(needsFieldCatalog(text), true, text);
+});
+
 const cover = field('cover', 'Cover', null, { what: 'file', groups: [{ title: 'Every file', fields: [field('alt', 'Alt text', "$entry->get('cover')?->alt")] }] });
 const entry = variable('$entry', [field('title', 'Title', '$entry->title'), field('summary', 'Summary', "$entry->get('summary')"), field('body', 'Body', "$entry->get('body')", { print: "{!! $entry->get('body') !!}", what: 'rich text' }), cover]);
 const site = variable("cms_global('site')", [field('name', 'Name', "cms_global('site')->name")], { from: 'site' });

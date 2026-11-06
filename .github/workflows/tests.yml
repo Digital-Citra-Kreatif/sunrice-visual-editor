@@ -11,12 +11,19 @@ defaults:
 
 jobs:
   tests:
+    name: tests (${{ matrix.php }}, Sunrice ${{ matrix.sunrice }})
     runs-on: ubuntu-latest
+    # Sunrice's main branch is an early warning of what its next release breaks, not a
+    # reason to hold up a pull request here: it is reported, and does not fail the run.
+    continue-on-error: ${{ matrix.sunrice == 'main' }}
 
     strategy:
       fail-fast: false
       matrix:
         php: ['8.4']
+        # release: the newest release composer.json allows (prefer-stable picks it).
+        # main: Sunrice's main branch, not yet released.
+        sunrice: [release, main]
 
     # Each check runs even when an earlier one failed, so one run reports everything.
     steps:
@@ -28,10 +35,15 @@ jobs:
           extensions: mbstring, dom, sqlite3, pdo_sqlite, gd, intl
           coverage: none
 
+      # Sunrice's main branch is taken as a constraint for this install only (--with), inside the
+      # "^0.x || dev-main" composer.json has: composer.json stays as it is, and the tests read it.
       - name: Install dependencies
-        run: .github/run.sh install composer install --no-interaction --prefer-dist --no-ansi
+        run: .github/run.sh install composer ${{ matrix.sunrice == 'main' && 'update --with sunrice/admin:dev-main --with sunrice/cms:dev-main' || 'install' }} --no-interaction --prefer-dist --no-ansi
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+
+      - name: Which Sunrice
+        run: composer show 'sunrice/*' --no-ansi
 
       - name: Lint
         if: ${{ !cancelled() }}

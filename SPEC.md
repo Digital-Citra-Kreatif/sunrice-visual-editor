@@ -194,7 +194,7 @@ Tailwind writes CSS only for the classes it finds in the site's files, so a clas
 | 1 | Is staging allowed by default, or local only? | Local only; staging by `SUNRICE_VISUAL_EDITOR=true`. |
 | 2 | Plain CSS or a Tailwind build as the main styling path? | Both are served: plain CSS in `public/cms/` with the Style and CSS tabs, as the starter templates use; Tailwind through Vite with classes, a preview and a build button (decided October 2026). |
 | 3 | May Sunrice core gain the three small public APIs in `EXECUTION_PLAN.md` Phase 0? | Yes; until they merge the package wraps the internals in one adapter class. |
-| 4 | Licence of this package. | Same as Sunrice (MIT); not stated in the repository yet. |
+| 4 | Licence of this package. | MIT, as Sunrice: `LICENSE`, and `"license"` in `composer.json`. |
 | 5 | Is the code panel's own small editor enough, or is CodeMirror wanted (search and replace, several cursors, folding)? | CodeMirror, always beside the page (decided October 2026). |
 | 6 | Should a draft's banner on the site carry an **Edit visually** link? Sunrice would need a hook for it. | No link on the site; the editor is opened from the admin (its sidebar entry, an entry page's **Edit with Visual Editor**, or the command palette's **Edit … in the visual editor**) or by `?url=`. |
 

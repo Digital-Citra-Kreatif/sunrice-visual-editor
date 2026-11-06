@@ -130,59 +130,67 @@ export function LayersPanel({ tree, note, selected, lit, collapsed, fixed, onSel
             {tree === null || all.length === 0 ? (
                 <p className="sve-empty">{note ?? 'This template has nothing in it yet.'}</p>
             ) : (
-                <ul className="sve-layers" role="tree" aria-label="Layers" ref={list} onMouseLeave={() => onPoint(null)}>
-                    {all.map(({ node, depth, parent }) => {
-                        const kind = kindOf(node);
+                <>
+                    {!fixed && (
+                        // What the rows do, which nothing else on the screen says. (A click on the page puts the keyboard in the code, where these keys are the code's.)
+                        <p className="sve-layers__hint" id="sve-layers-hint">
+                            Drag a row to move it. On a row: <kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> moves it, <kbd>Ctrl</kbd>+<kbd>D</kbd> duplicates it, <kbd>Delete</kbd> deletes it.
+                        </p>
+                    )}
+                    <ul className="sve-layers" role="tree" aria-label="Layers" aria-describedby={fixed ? undefined : 'sve-layers-hint'} ref={list} onMouseLeave={() => onPoint(null)}>
+                        {all.map(({ node, depth, parent }) => {
+                            const kind = kindOf(node);
 
-                        return (
-                            <li
-                                key={node.id}
-                                role="treeitem"
-                                aria-level={depth + 1}
-                                aria-selected={node.id === selected}
-                                aria-expanded={parent ? !collapsed.has(node.id) : undefined}
-                                className={`sve-layer sve-layer--${kind}${node.id === lit ? ' sve-layer--lit' : ''}${node.id === dragged ? ' sve-layer--dragged' : ''}${dropClass(node.id)}`}
-                                style={{ paddingInlineStart: indent(depth), ['--sve-drop-indent' as string]: indent(afterAt?.row === node.id ? afterAt.depth : depth) }}
-                                onMouseEnter={() => onPoint(node.id)}
-                                draggable={node.can.move && !fixed}
-                                onDragStart={(event) => {
-                                    event.dataTransfer.setData(DRAGGED, node.id);
-                                    event.dataTransfer.effectAllowed = 'move';
-                                    setDragged(node.id);
-                                }}
-                                onDragOver={(event) => over(event, node.id)}
-                                onDragLeave={(event) => {
-                                    // Leaving the row, not going from one part of it to another.
-                                    if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
-                                        setDrop((before) => (before !== null && before.over === node.id ? null : before));
-                                    }
-                                }}
-                                onDrop={(event) => {
-                                    event.preventDefault();
-                                    if (dragged !== null && drop !== null && drop.over === node.id) {
-                                        onMove(dragged, { target: drop.target, position: drop.position });
-                                    }
-                                    letGo();
-                                }}
-                                onDragEnd={letGo}
-                            >
-                                {parent ? (
-                                    <button type="button" className="sve-layer__toggle" onClick={() => onToggle(node.id)} aria-label={collapsed.has(node.id) ? 'Show what is inside' : 'Hide what is inside'} tabIndex={-1}>
-                                        <span aria-hidden="true">{collapsed.has(node.id) ? '▸' : '▾'}</span>
+                            return (
+                                <li
+                                    key={node.id}
+                                    role="treeitem"
+                                    aria-level={depth + 1}
+                                    aria-selected={node.id === selected}
+                                    aria-expanded={parent ? !collapsed.has(node.id) : undefined}
+                                    className={`sve-layer sve-layer--${kind}${node.id === lit ? ' sve-layer--lit' : ''}${node.id === dragged ? ' sve-layer--dragged' : ''}${dropClass(node.id)}`}
+                                    style={{ paddingInlineStart: indent(depth), ['--sve-drop-indent' as string]: indent(afterAt?.row === node.id ? afterAt.depth : depth) }}
+                                    onMouseEnter={() => onPoint(node.id)}
+                                    draggable={node.can.move && !fixed}
+                                    onDragStart={(event) => {
+                                        event.dataTransfer.setData(DRAGGED, node.id);
+                                        event.dataTransfer.effectAllowed = 'move';
+                                        setDragged(node.id);
+                                    }}
+                                    onDragOver={(event) => over(event, node.id)}
+                                    onDragLeave={(event) => {
+                                        // Leaving the row, not going from one part of it to another.
+                                        if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
+                                            setDrop((before) => (before !== null && before.over === node.id ? null : before));
+                                        }
+                                    }}
+                                    onDrop={(event) => {
+                                        event.preventDefault();
+                                        if (dragged !== null && drop !== null && drop.over === node.id) {
+                                            onMove(dragged, { target: drop.target, position: drop.position });
+                                        }
+                                        letGo();
+                                    }}
+                                    onDragEnd={letGo}
+                                >
+                                    {parent ? (
+                                        <button type="button" className="sve-layer__toggle" onClick={() => onToggle(node.id)} aria-label={collapsed.has(node.id) ? 'Show what is inside' : 'Hide what is inside'} tabIndex={-1}>
+                                            <span aria-hidden="true">{collapsed.has(node.id) ? '▸' : '▾'}</span>
+                                        </button>
+                                    ) : (
+                                        <span className="sve-layer__toggle" aria-hidden="true" />
+                                    )}
+                                    <button type="button" className="sve-layer__pick" onClick={() => onSelect(node.id)} onFocus={() => onPoint(node.id)} onKeyDown={(event) => key(event, node.id)} title={typeof node.stray === 'string' ? node.stray : undefined}>
+                                        <span className="sve-layer__badge" aria-hidden="true">
+                                            {BADGES[kind]}
+                                        </span>
+                                        <span className="sve-layer__label">{nodeTitle(node)}</span>
                                     </button>
-                                ) : (
-                                    <span className="sve-layer__toggle" aria-hidden="true" />
-                                )}
-                                <button type="button" className="sve-layer__pick" onClick={() => onSelect(node.id)} onFocus={() => onPoint(node.id)} onKeyDown={(event) => key(event, node.id)} title={typeof node.stray === 'string' ? node.stray : undefined}>
-                                    <span className="sve-layer__badge" aria-hidden="true">
-                                        {BADGES[kind]}
-                                    </span>
-                                    <span className="sve-layer__label">{nodeTitle(node)}</span>
-                                </button>
-                            </li>
-                        );
-                    })}
-                </ul>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </>
             )}
         </>
     );

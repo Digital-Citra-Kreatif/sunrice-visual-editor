@@ -81,10 +81,22 @@ test('reads the editor\'s shortcuts from a key press, and nothing typed into a f
     assert.equal(shortcutOf(press('c', { ctrlKey: true })), null);
     assert.equal(shortcutOf(press('Delete', { shiftKey: true })), null);
     assert.equal(shortcutOf(press('z', { ctrlKey: true, altKey: true })), null);
-    assert.equal(shortcutOf(press('ArrowUp', { altKey: true })), null);
+    // Moved and duplicated as on a row of the tree.
+    assert.equal(shortcutOf(press('ArrowUp', { altKey: true })), 'up');
+    assert.equal(shortcutOf(press('ArrowDown', { altKey: true })), 'down');
+    assert.equal(shortcutOf(press('d', { ctrlKey: true })), 'duplicate');
+    assert.equal(shortcutOf(press('D', { metaKey: true })), 'duplicate');
+    // Not the browser's own: back and forward, and the keys around them.
+    assert.equal(shortcutOf(press('ArrowLeft', { altKey: true })), null);
+    assert.equal(shortcutOf(press('ArrowUp', { altKey: true, shiftKey: true })), null);
+    assert.equal(shortcutOf(press('ArrowUp', { altKey: true, ctrlKey: true })), null);
+    assert.equal(shortcutOf(press('d', { ctrlKey: true, shiftKey: true })), null);
+    assert.equal(shortcutOf(press('d')), null);
     for (const tagName of ['INPUT', 'TEXTAREA', 'SELECT']) {
         assert.equal(shortcutOf(press('z', { ctrlKey: true, target: { tagName } })), null, tagName);
         assert.equal(shortcutOf(press('Backspace', { target: { tagName } })), null, tagName);
+        assert.equal(shortcutOf(press('d', { ctrlKey: true, target: { tagName } })), null, tagName);
+        assert.equal(shortcutOf(press('ArrowUp', { altKey: true, target: { tagName } })), null, tagName);
     }
     assert.equal(shortcutOf(press('Backspace', { target: { tagName: 'DIV', isContentEditable: true } })), null);
     assert.equal(shortcutOf(press('z', { ctrlKey: true, target: null })), 'undo');

@@ -184,10 +184,34 @@ final class CodeGuard
         if (Rules::isComponentTag($node)) {
             return str_starts_with($node->open, '<x-sunrice-cms::');
         }
+        // A value given as Blade is written into the tag as it is, unescaped. Without code, that
+        // may be {{ }} echoes (which Blade escapes) and plain text around them, but no markup:
+        // inside a <textarea> or <noscript>, "</textarea><img onerror=…>" in a quoted attribute
+        // still ends the element, and what follows runs in every visitor's browser.
+        if ($operation->flag('blade') && ! self::inertBladeValue($operation->text('value'))) {
+            return false;
+        }
         $safe = in_array($name, ['id', 'class', 'title', 'alt', 'role', 'width', 'height', 'controls', 'rows', 'cols', 'colspan', 'rowspan', 'for', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'method', 'action', 'disabled', 'checked', 'selected', 'tabindex', 'href', 'src'], true)
             || str_starts_with($name, 'aria-');
 
         return $safe;
+    }
+
+    /**
+     * An attribute value given as Blade that prints no markup of its own: what is left once its
+     * escaped echoes are taken out has no "<", ">" or "@". Only "{{ }}" is escaped: "@{{ }}" and
+     * whatever "@verbatim" holds are printed as written, "{{-- --}}" and "{!! !!}" are not echoes
+     * Blade escapes, and any other "@" is a directive. An echo whose expression holds "}}" leaves
+     * its tail behind, so it is refused rather than let through.
+     */
+    private static function inertBladeValue(string $value): bool
+    {
+        if (str_contains($value, '{!!')) {
+            return false;
+        }
+        $outside = (string) preg_replace('/(?<!@)\{\{(?!--).*?\}\}/s', '', $value);
+
+        return ! str_contains($outside, '<') && ! str_contains($outside, '>') && ! str_contains($outside, '@');
     }
 
     /**

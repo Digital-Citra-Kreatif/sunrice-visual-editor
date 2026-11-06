@@ -14,7 +14,7 @@ import { isAdminPath, sitePath } from './lib/path';
 import { startRedraw, type Redraw } from './lib/redraw';
 import { pageTemplate, readStartTemplate, relistDelay, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { useSize } from './lib/size';
-import { boxesOf, findNode, nodeAt, rowFor } from './lib/tree';
+import { boxesOf, findNode, nodeAt, rowFor, strayLeft } from './lib/tree';
 import { layout, readWidths, type View } from './lib/widths';
 import { CodePanel, type CodePlace } from './panels/CodePanel';
 import { ContentLink } from './panels/ContentLink';
@@ -267,6 +267,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const [histories, setHistories] = useState<Record<string, History>>({});
     /** A change was made and the page is being drawn again: what the page answered with before it. */
     const statusBefore = useRef<number | null>(null);
+    /** A save of the code left something that doesn't pair up: said once the page is drawn again, when it can be undone. */
+    const unpairedSaved = useRef<string | null>(null);
     /** What a shortcut does, as things are now: the keys are listened for once, and things change. */
     const shortcuts = useRef<(shortcut: Shortcut) => void>(() => {});
     /** The page in the frame is being drawn again, not left: what is known about it holds until it is back. */
@@ -314,8 +316,12 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             // isn't there, a collection that doesn't exist. No check before saving can know that.
             const before = statusBefore.current;
             statusBefore.current = null;
+            const unpaired = unpairedSaved.current;
+            unpairedSaved.current = null;
             if (before !== null && before < 400 && status >= 400) {
                 say('problem', `The page could not be drawn after that change: the server answered ${status}.`, { label: 'Undo', run: () => shortcuts.current('undo') });
+            } else if (unpaired !== null) {
+                say('problem', unpaired, { label: 'Undo', run: () => shortcuts.current('undo') });
             }
             setAddress(said.url);
             setProblem(null);
@@ -889,8 +895,12 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
     /** The code was saved: show the template as it is now, in the tree and on the page. */
     const saved = (data: TemplateData, sent: Draft) => {
+        const was = template.state === 'ready' && sameTemplate(template.data, data) ? template.data.tree : null;
         remember(data);
+        // Saved as typed; but an @if left open or a tag without its other half is worth saying, and where.
         say('done', `Saved ${data.path}.`);
+        // Said with its Undo once the page is back (as a page that fails to draw is): until then the tree waits for the page's version.
+        unpairedSaved.current = was === null ? null : strayLeft(data.path, was, data.tree, data.source ?? sent.text);
         setDrafts((all) => {
             const key = historyKey(data);
             const { [key]: current, ...others } = all;
@@ -1168,12 +1178,11 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const redoable = template.state === 'ready' && fixed === null && !applying && canRedo(history, template.data.version);
 
     shortcuts.current = (shortcut) => {
-        if (shortcut === 'delete') {
-            if (selected !== null) {
-                act(selected, 'delete');
-            }
-        } else {
+        if (shortcut === 'undo' || shortcut === 'redo') {
             travel(shortcut);
+        } else if (selected !== null) {
+            // What a row of the tree does with the same keys, to the element selected on the page.
+            act(selected, shortcut);
         }
     };
 

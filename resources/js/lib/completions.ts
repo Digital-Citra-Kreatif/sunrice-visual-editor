@@ -96,7 +96,8 @@ function meant(typed: string, { trail, field }: Reached): boolean {
  */
 /** A catalog is needed only for a completion gesture, never just to open a file. */
 export function needsFieldCatalog(before: string, explicit = false): boolean {
-    return explicit || /\??->[\w'"]*$|\[['"]?[\w'"]*$|(?<![\w$>])\$\w*$|(?:\{\{|\{!!)\s*\$?\w*$/.test(before);
+    // "->" after a name, a call or an index, as PHP reads it: not the "-->" that closes an HTML comment.
+    return explicit || /(?<=[\w)\]}])\??->[\w'"]*$|\[['"]?[\w'"]*$|(?<![\w$>])\$\w*$|(?:\{\{|\{!!)\s*\$?\w*$/.test(before);
 }
 
 export function offersFor(before: string, variables: PickVariable[], explicit = false): Offers | null {

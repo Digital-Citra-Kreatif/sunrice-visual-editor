@@ -83,7 +83,7 @@ export type Measured = {
 export type Mode = 'select' | 'browse';
 
 /** What the editor does from the keyboard, wherever the keyboard is. */
-export type Shortcut = 'undo' | 'redo' | 'delete';
+export type Shortcut = 'undo' | 'redo' | 'delete' | 'duplicate' | 'up' | 'down';
 
 /**
  * The shortcut a key press means, if any: Ctrl/⌘+Z, Ctrl/⌘+Shift+Z or
@@ -92,12 +92,17 @@ export type Shortcut = 'undo' | 'redo' | 'delete';
 export function shortcutOf(event: { key: string; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean; altKey: boolean; target: unknown }): Shortcut | null {
     const target = event.target as { tagName?: unknown; isContentEditable?: unknown } | null;
     const tag = typeof target?.tagName === 'string' ? target.tagName.toLowerCase() : '';
-    if (tag === 'input' || tag === 'textarea' || tag === 'select' || target?.isContentEditable === true || event.altKey) {
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || target?.isContentEditable === true) {
         return null;
     }
     const key = event.key.toLowerCase();
+    // As on a row of the tree: Alt+Up and Alt+Down move the selected element (Alt+Left and Right stay the browser's).
+    if (event.altKey) {
+        return event.ctrlKey || event.metaKey || event.shiftKey ? null : key === 'arrowup' ? 'up' : key === 'arrowdown' ? 'down' : null;
+    }
     if (event.ctrlKey || event.metaKey) {
-        return key === 'z' ? (event.shiftKey ? 'redo' : 'undo') : key === 'y' && !event.shiftKey ? 'redo' : null;
+        // Ctrl+D duplicates, as on a row; on the page it would otherwise bookmark it.
+        return key === 'z' ? (event.shiftKey ? 'redo' : 'undo') : key === 'y' && !event.shiftKey ? 'redo' : key === 'd' && !event.shiftKey ? 'duplicate' : null;
     }
 
     return !event.shiftKey && (key === 'delete' || key === 'backspace') ? 'delete' : null;

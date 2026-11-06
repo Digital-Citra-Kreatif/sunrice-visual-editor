@@ -5,6 +5,34 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- **Fields** tab laid out again: one heading for each place values come from (This
+  template, Site-wide…) where every card repeated it; a global's or a menu's CMS links
+  in its own card, not between it and the one above; the CMS links together in one
+  compact **Edit in the CMS** block; one short line of help where there were two
+  paragraphs; the search kept in view while the list scrolls; no empty gap under it;
+  the field's type as a small tag; and **Copied** on the button that was pressed.
+- Saving code that leaves something unpaired (an `@if` without `@endif`, a tag without
+  its other half) still saves it as typed, and now says on which line and why, with an
+  Undo: before, the page simply showed the Blade as text.
+- The Layers tab says what its rows do (drag; Alt+↑/↓, Ctrl+D, Delete), which
+  nothing on the screen said. With the page holding the keyboard (the code side
+  folded), Ctrl+D and Alt+↑/↓ now duplicate and move the element selected there, as
+  Delete already did, where Ctrl+D did nothing (or bookmarked the page).
+- Typing an HTML comment (`<!-- … -->`) in the code no longer opens the whole list of
+  fields: its `-->` was taken for PHP's `->`, and the list that came with the fields
+  was shown as if Ctrl+Space had been pressed.
+- **Licence:** MIT, as Sunrice (`LICENSE`).
+- **Security:** someone with `visual-editor.edit` but not `visual-editor.code` could
+  run script in visitors' browsers: an attribute value sent as Blade was written
+  unescaped, and inside an element made a `<textarea>` (allowed without code),
+  `title="</textarea><img onerror=…>"` ended the textarea. Without code, a Blade
+  attribute value may now hold only `{{ }}` echoes and text with no `<`, `>`, `@` or
+  `{!!`; through the editor and the MCP tools alike.
+- **Requires** Sunrice 0.5 (`sunrice/admin` and `sunrice/cms` `^0.5 || dev-main`,
+  was `^0.2 || dev-main`). Sunrice is tagged on Packagist now (0.5.0), and `^0.2`
+  matched none of 0.3, 0.4 or 0.5: on a site running a tagged Sunrice, installing
+  the editor failed or took Sunrice back to 0.2.0. Tested against 0.5.0.
+
 - Keep automatically injected Custom JS out of authorized editor previews; public pages still load it.
 - Clarify CSS edit permissions and add optional save-time CSS/JS syntax check commands.
 

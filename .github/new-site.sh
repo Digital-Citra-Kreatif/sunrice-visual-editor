@@ -6,6 +6,8 @@
 set -euo pipefail
 
 site=$1
+# This package, found before anything changes the working directory: a relative $0 means nothing after.
+here=$(cd "$(dirname "$0")/.." && pwd)
 rm -rf "$site"
 composer create-project laravel/laravel "$site" --no-interaction --prefer-dist --no-ansi
 cd "$site"
@@ -14,8 +16,10 @@ touch database/database.sqlite
 # The panel and the CMS, each from its read-only split of Digital-Citra-Kreatif/sunrice.
 composer config repositories.sunrice-admin '{"type":"vcs","url":"https://github.com/Digital-Citra-Kreatif/sunrice-admin","no-api":true}'
 composer config repositories.sunrice-cms '{"type":"vcs","url":"https://github.com/Digital-Citra-Kreatif/sunrice-cms","no-api":true}'
-# SUNRICE_REF tries a branch of Sunrice in place of main: "dev-some-branch as dev-main".
-composer require "sunrice/admin:${SUNRICE_REF:-dev-main}" "sunrice/cms:${SUNRICE_REF:-dev-main}" --no-interaction --no-ansi
+# The released Sunrice this package asks for (the "^0.x" of its composer.json), as a site
+# running Sunrice has it. SUNRICE_REF tries another: "dev-main", or a branch, "dev-some-branch as dev-main".
+released=$(php -r '$c = json_decode(file_get_contents($argv[1]), true); echo explode(" ", $c["require"]["sunrice/cms"])[0];' "$here/composer.json")
+composer require "sunrice/admin:${SUNRICE_REF:-$released}" "sunrice/cms:${SUNRICE_REF:-$released}" --no-interaction --no-ansi
 # The user model needs Spatie's roles; the install command asks to add them, and without interaction stops.
 sed -i 's/use HasFactory, Notifiable;/use HasFactory, Notifiable, \\Spatie\\Permission\\Traits\\HasRoles;/' app/Models/User.php
 grep -q HasRoles app/Models/User.php
