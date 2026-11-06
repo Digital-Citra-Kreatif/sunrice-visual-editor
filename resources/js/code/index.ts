@@ -12,7 +12,8 @@ import { autocompletion, completionKeymap, completionStatus, startCompletion, ty
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { bracketMatching, indentUnit } from '@codemirror/language';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
-import { ChangeSet, Compartment, EditorState, StateEffect, StateField, type Range, type Text } from '@codemirror/state';
+import { forceLinting, lintGutter, linter, type Diagnostic } from '@codemirror/lint';
+import { ChangeSet, Compartment, EditorState, StateEffect, StateField, type Extension, type Range, type Text } from '@codemirror/state';
 import {
     Decoration,
     type DecorationSet,
@@ -44,6 +45,14 @@ export type CodeEditorOptions = {
     onCursor?(saved: number, now: number): void;
     /** Load the catalog when completion is requested or a variable is typed. */
     onFieldsNeeded?(): void;
+    /**
+     * The text is a stylesheet or a script, not a template: coloured and
+     * read as one, with CodeMirror's CSS or JavaScript (fetched the first
+     * time it is needed), and what is wrong in it marked in the gutter.
+     */
+    language?: 'css' | 'js';
+    /** For a script: the lines the editor's parser could not read, each time it reads the text again. */
+    onParsed?(problems: { line: number; message: string }[]): void;
 };
 
 /** A text to show: what is typed, and the file it is a change to. */
@@ -74,6 +83,12 @@ export type CodeEditor = {
     setFields(variables: PickVariable[]): void;
     /** Puts the cursor at a place of the file as saved, counted in characters, wherever that now is in the text; and the keyboard there too, when asked. */
     goTo(place: number, focus: boolean): void;
+    /** Puts the cursor at the start of a line of the text as it is now, counted from 1, and the keyboard there. */
+    goToLine(line: number): void;
+    /** Fetches the language the editor was made for (`language`), once, and reads the text with it: called when the text is first in view. */
+    loadLanguage(): void;
+    /** Marks lines of the text as it is now, in the gutter and along the line: what a syntax check found there. */
+    setProblems(problems: { line: number; message: string }[]): void;
     focus(): void;
     destroy(): void;
 };
@@ -95,6 +110,20 @@ function decorate(text: string): DecorationSet {
 
     return Decoration.set(ranges);
 }
+
+/** The lines a syntax check found something wrong on, each with what it found. */
+type Marked = { line: number; message: string }[];
+
+/** What is said of a place the JavaScript parser could not read: a hint, the server's check decides. */
+export const PARSED = 'The editor can’t read the script here: most likely a syntax error.';
+
+/**
+ * CodeMirror's CSS and JavaScript, imported the first time an editor needs
+ * them: esbuild makes a chunk of its own of them (see build.mjs), so a
+ * template's code, which needs neither, never fetches them.
+ */
+let languages: Promise<typeof import('./languages.ts')> | null = null;
+const loadLanguages = () => (languages ??= import('./languages.ts'));
 
 /** The file as saved, and everything typed since: what a place in the one is in the other. */
 type Since = { saved: Text; changes: ChangeSet };
@@ -156,6 +185,15 @@ const look = EditorView.theme({
     '.cm-lineNumbers .cm-gutterElement': { minWidth: '2.75rem', padding: '0 0.625rem 0 0.5rem' },
     '.cm-activeLine': { backgroundColor: 'color-mix(in oklab, var(--accent) 45%, transparent)' },
     '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--foreground)' },
+    // What a syntax check found: in the gutter, under the text, and said on hover.
+    '.cm-gutter-lint': { width: '1rem' },
+    '.cm-gutter-lint .cm-gutterElement': { padding: '0 0 0 0.25rem' },
+    '.cm-lintRange-error': { backgroundImage: 'none', textDecoration: 'underline wavy var(--destructive)', textUnderlineOffset: '3px' },
+    '.cm-lintRange-warning': { backgroundImage: 'none', textDecoration: 'underline wavy color-mix(in oklab, var(--destructive) 60%, var(--foreground))', textUnderlineOffset: '3px' },
+    '.cm-tooltip-lint': { padding: '0' },
+    '.cm-diagnostic': { padding: '0.375rem 0.5rem', fontFamily: 'inherit' },
+    '.cm-diagnostic-error': { borderInlineStart: '3px solid var(--destructive)' },
+    '.cm-diagnostic-warning': { borderInlineStart: '3px solid color-mix(in oklab, var(--destructive) 60%, var(--foreground))' },
     '.cm-cursor, .cm-dropCursor': { borderInlineStartColor: 'var(--foreground)' },
     '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
         backgroundColor: 'color-mix(in oklab, var(--ring) 35%, transparent)',
@@ -182,6 +220,39 @@ const look = EditorView.theme({
 
 export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEditor {
     const readOnly = new Compartment();
+    /** How the text is coloured and read: as Blade, or, once it is fetched, as the stylesheet or script it is. */
+    const languageSlot = new Compartment();
+    let loaded: import('./languages.ts').Language | null = null;
+    const languageNow = (): Extension => (loaded !== null ? loaded.extension : options.language === undefined ? colours : []);
+    /** What the syntax check of the panel last found in the text shown. */
+    let marked: Marked = [];
+    /** The marks of the gutter: what the panel's check found, and where the parser could not read a script. */
+    const diagnose = (view: EditorView): Diagnostic[] => {
+        const doc = view.state.doc;
+        const found: Diagnostic[] = [];
+        const lines = new Set<number>();
+        for (const problem of marked) {
+            if (problem.line >= 1 && problem.line <= doc.lines && !lines.has(problem.line)) {
+                const line = doc.line(problem.line);
+                lines.add(problem.line);
+                found.push({ from: line.from, to: line.to, severity: 'error', message: problem.message });
+            }
+        }
+        const parsed: Marked = [];
+        for (const place of loaded?.problems(view.state) ?? []) {
+            const line = doc.lineAt(place.from).number;
+            if (!parsed.some((each) => each.line === line)) {
+                parsed.push({ line, message: PARSED });
+            }
+            if (!lines.has(line)) {
+                lines.add(line);
+                found.push({ from: place.from, to: place.to, severity: 'warning', message: PARSED });
+            }
+        }
+        options.onParsed?.(parsed);
+
+        return found;
+    };
     /** The text as the file writes it: the editor counts a line break as one character whatever it is. */
     const written = (state: EditorState) => state.sliceDoc();
     const windows = (state: EditorState) => state.lineBreak === '\r\n';
@@ -228,6 +299,7 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
             extensions: [
                 // A file is given back with the line breaks it came with (see lineBreaksOf).
                 ...(lineBreaks === 'unix' ? [] : [EditorState.lineSeparator.of(lineBreaks === 'windows' ? '\r\n' : '\n')]),
+                ...(options.language === undefined ? [] : [linter(diagnose, { delay: 250 }), lintGutter()]),
                 lineNumbers(),
                 highlightActiveLineGutter(),
                 highlightSpecialChars(),
@@ -243,7 +315,7 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
                 autocompletion({ override: [offer], icons: false }),
                 indentUnit.of(indentOf(text)),
                 EditorState.tabSize.of(4),
-                colours,
+                languageSlot.of(languageNow()),
                 since.init((state) => sinceSaved(state, saved)),
                 look,
                 readOnly.of(EditorState.readOnly.of(locked)),
@@ -354,8 +426,46 @@ export function mount(parent: HTMLElement, options: CodeEditorOptions): CodeEdit
                 view.focus();
             }
         },
+        goToLine: (line) => {
+            const doc = view.state.doc;
+            const position = doc.line(Math.max(1, Math.min(line, doc.lines))).from;
+            sent = true;
+            view.dispatch({ selection: { anchor: position }, effects: EditorView.scrollIntoView(position, { y: 'center' }) });
+            sent = false;
+            view.focus();
+        },
+        loadLanguage: () => {},
+        setProblems: (found) => {
+            marked = found;
+            if (options.language !== undefined) {
+                forceLinting(view);
+            }
+        },
         focus: () => view.focus(),
-        destroy: () => view.destroy(),
+        destroy: () => {
+            destroyed = true;
+            view.destroy();
+        },
+    };
+    let destroyed = false;
+    let asked = false;
+    editor.loadLanguage = () => {
+        if (asked || options.language === undefined) {
+            return;
+        }
+        asked = true;
+        const kind = options.language;
+        loadLanguages()
+            .then((module) => {
+                if (destroyed) {
+                    return;
+                }
+                loaded = module.language(kind);
+                view.dispatch({ effects: languageSlot.reconfigure(loaded.extension) });
+                forceLinting(view);
+            })
+            // Not fetched: the text stays plain, and the panel's own check still marks it.
+            .catch(() => {});
     };
     // The editor can be asked from the element it is in: the browser check reads and sets the text this way.
     (parent as HTMLElement & { sveCodeEditor?: CodeEditor }).sveCodeEditor = editor;

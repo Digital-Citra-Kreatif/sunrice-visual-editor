@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ApiError, readCustomCss, readCustomJs, saveCustomJs, saveStylesheet, type CustomFile, type Loaded } from '../lib/api';
 import { PlainCode, RichCode, useCodeScript } from './CodePanel';
 import { savedDraft } from '../lib/drafts';
+import { checkNote, cssProblem, jsProblem, troubleParts, type Problem } from '../lib/syntax';
 
 /** What each kind of custom file is: how it is read and saved, and what is said about it. */
 const KINDS = {
@@ -14,6 +15,7 @@ const KINDS = {
                 ? `Every page of the site links this file through its layout’s @stack('${file.stack}'). Save to see it on the page.`
                 : `Pages don’t link this file by themselves here (custom_css.inject is off): link ${file.url} from your layout.`,
         locked: 'You may read the custom CSS here, not change it.',
+        problem: cssProblem,
     },
     js: {
         label: 'Custom JS',
@@ -24,11 +26,14 @@ const KINDS = {
                 ? `Public pages load this script, deferred, through the layout’s @stack('${file.stack}'). Automatic loading is skipped in editor previews. Test it with View page. For a script one template needs, write @push('${file.stack}') … @endpush in that template instead.`
                 : `Pages don’t load this script by themselves here (custom_js.inject is off): load ${file.url} from your layout.`,
         locked: 'The custom script runs in every visitor’s browser: changing it takes the permission to edit code.',
+        problem: jsProblem,
     },
 } as const;
 
 type Props = {
     kind: keyof typeof KINDS;
+    /** The tab is in view: its language is fetched the first time it is. The panel is there, hidden, from the start. */
+    shown?: boolean;
     /** Whether whoever is editing may change this file: without it the text is shown, not changed. */
     mayEdit: boolean;
     /** Where the code editor's script is fetched from; null for the plain text field alone. */
@@ -39,7 +44,7 @@ type Props = {
     onSaved(path: string): void;
 };
 
-type Trouble = { conflict: boolean; message: string };
+type Trouble = { conflict: boolean; message: string; line: number | null };
 
 const message = (error: unknown) => (error instanceof Error ? error.message : 'Something went wrong.');
 
@@ -50,7 +55,7 @@ const message = (error: unknown) => (error instanceof Error ? error.message : 'S
  * of its layout: no template is changed for it. Saving writes the file
  * and draws the page again.
  */
-export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSaved }: Props) {
+export function CustomFilePanel({ kind, shown = true, mayEdit, editorScript, onUnsaved, onSaved }: Props) {
     const how = KINDS[kind];
     const script = useCodeScript(editorScript);
     const [file, setFile] = useState<Loaded<CustomFile>>({ state: 'idle' });
@@ -58,6 +63,9 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
     const [draft, setDraft] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [trouble, setTrouble] = useState<Trouble | null>(null);
+    /** A line the cursor is asked to go to: Go to line N. */
+    const [lineAsked, setLineAsked] = useState<{ line: number; asked: number } | null>(null);
+    const goToLine = (line: number) => setLineAsked((was) => ({ line, asked: (was?.asked ?? 0) + 1 }));
 
     useEffect(() => {
         let stale = false;
@@ -78,6 +86,12 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
 
     const changed = draft !== null;
     useEffect(() => onUnsaved(changed), [changed]);
+    const typedText = file.state === 'ready' && file.data.source !== null ? (draft ?? file.data.source) : '';
+    /** What the editor's JavaScript parser could not read, as it last read the text: a hint, Node.js decides. */
+    const [parsed, setParsed] = useState<Problem[]>([]);
+    /** What the check as it is typed finds: marked before Save is pressed. Brackets, strings and comments first, then the parser. */
+    const checked = useMemo(() => (mayEdit ? how.problem(typedText) : null), [typedText, mayEdit, kind]);
+    const problem = checked ?? (mayEdit && kind === 'js' ? (parsed[0] ?? null) : null);
 
     if (file.state !== 'ready') {
         return <p className="sve-empty sve-code__none">{file.state === 'failed' ? file.error : 'Loading…'}</p>;
@@ -95,6 +109,9 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
         if (!changed || saving || readOnly) {
             return;
         }
+        if (problem !== null && !window.confirm(`Line ${problem.line}: ${problem.message}\n\nSave anyway?`)) {
+            return;
+        }
         setSaving(true);
         setTrouble(null);
         const sent = { text, base: { source: saved, version: css.version } };
@@ -108,7 +125,7 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
                 )?.text ?? null);
                 onSaved(css.path);
             })
-            .catch((error: unknown) => setTrouble({ conflict: error instanceof ApiError && error.reason === 'conflict', message: message(error) }))
+            .catch((error: unknown) => setTrouble({ conflict: error instanceof ApiError && error.reason === 'conflict', message: message(error), line: error instanceof ApiError ? error.line : null }))
             .finally(() => setSaving(false));
     };
 
@@ -134,15 +151,36 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
 
             <p className="sve-custom-css__note">{how.note(css)}</p>
             {kind === 'css' && <p className="sve-custom-css__note">CSS changes public pages immediately and can hide content or load external images and fonts. Give edit permission only to trusted designers.</p>}
-            <p className="sve-custom-css__note">{css.checked ? 'Saves must pass the site’s configured syntax check.' : 'Syntax checks are off. An administrator can enable syntax_checks in the editor configuration.'}</p>
+            <p className="sve-custom-css__note">{checkNote(kind, css.checker, css.checked)}</p>
             {readOnly && <p className="sve-code__banner">{how.locked}</p>}
+
+            {problem !== null && trouble === null && (
+                <p className="sve-code__lint" role="status">
+                    <span>
+                        Line {problem.line}: {problem.message}
+                    </span>
+                    {script !== 'none' && script !== 'waiting' && (
+                        <button type="button" className="sve-button sve-button--quiet" onClick={() => goToLine(problem.line)}>
+                            Go to line {problem.line}
+                        </button>
+                    )}
+                </p>
+            )}
 
             {trouble !== null && (
                 <div className="sve-code__trouble" role="alert">
-                    <p>
-                        <strong>Not saved. </strong>
-                        {trouble.message}
-                    </p>
+                    <div className="sve-code__trouble-text">
+                        <p>
+                            <strong>Not saved. </strong>
+                            {troubleParts(trouble.message).said}
+                        </p>
+                        {troubleParts(trouble.message).output !== null && <pre className="sve-code__trouble-output">{troubleParts(trouble.message).output}</pre>}
+                    </div>
+                    {trouble.line !== null && script !== 'none' && script !== 'waiting' && (
+                        <button type="button" className="sve-button sve-button--quiet" onClick={() => goToLine(trouble.line as number)}>
+                            Go to line {trouble.line}
+                        </button>
+                    )}
                     {trouble.conflict && (
                         <button
                             type="button"
@@ -177,6 +215,11 @@ export function CustomFilePanel({ kind, mayEdit, editorScript, onUnsaved, onSave
                     goTo={null}
                     onCursor={() => {}}
                     fields={null}
+                    problems={checked === null ? [] : [checked]}
+                    goToLine={lineAsked}
+                    language={kind}
+                    languageWanted={shown}
+                    onParsed={(found) => setParsed((was) => (JSON.stringify(was) === JSON.stringify(found) ? was : found))}
                 />
             )}
         </section>

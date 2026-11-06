@@ -46,6 +46,23 @@ it('lists the templates', function () {
         ->and($templates->first())->not->toHaveKeys(['source', 'tree']);
 });
 
+it('lists only templates it can open: none of them answers 404', function () {
+    actingAsSuperAdmin();
+    File::put($this->templates.'/partials/café-card.blade.php', '<div>café</div>');
+    File::put($this->templates.'/partials/_hidden.blade.php', '<div>hidden</div>');
+
+    $paths = collect(getJson(SVE_API)->assertOk()->json('templates'))->where('origin', 'site')->pluck('path');
+
+    expect($paths)->not->toContain('partials/café-card.blade.php')
+        ->and($paths)->not->toContain('partials/_hidden.blade.php')
+        ->and($paths)->toContain('partials/card.blade.php');
+    foreach ($paths as $path) {
+        getJson(SVE_API.'/'.$path)->assertOk();
+    }
+    getJson(SVE_API.'/partials/'.rawurlencode('café-card').'.blade.php')->assertNotFound();
+    getJson(SVE_API.'/partials/_hidden.blade.php')->assertNotFound();
+});
+
 it('reads a template of the site', function () {
     actingAsSuperAdmin();
 

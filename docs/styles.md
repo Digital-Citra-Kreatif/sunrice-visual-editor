@@ -269,15 +269,26 @@ to the application where possible (`public/cms/custom.css` by default), while
 the tooltip shows its public URL. `paths.theme` and `custom_css.file`/
 `custom_js.file` determine that label.
 
-## Optional save-time syntax checks
+## Save-time syntax checks
 
-By default, whole-file CSS and JS saves validate UTF-8, size and file version,
-but do not parse language syntax. Configure parse-only tools to reject invalid
-candidates before they replace a public file:
+Whole-file CSS and JS saves validate UTF-8, size and file version, and then the
+syntax. Out of the box (`syntax_checks.css` and `.js` left `null`):
+
+- **CSS** is checked by the editor's own checker (`Support\CssSyntax`): every
+  `{` `(` `[` closed by its own pair, every string and `/* */` comment closed.
+  Comments, strings, escapes (`.sm\:flex`, `.w-\[10px\]`) and unquoted
+  `url(…)` are read past. It does not know properties or values. A stylesheet
+  that already failed it before the save is not held to it: an older file can
+  still be changed, by rule operations or by hand.
+- **JS** is checked by `node --check -` when `node` is on the PHP process's
+  `PATH`. Without Node.js, JS is not checked, and the Custom JS tab says so.
+
+A site can name its own parse-only tools instead, or turn a check off with
+`false`:
 
 ```php
 'syntax_checks' => [
-    'js' => ['node', '--check'],
+    'js' => ['node', '--check', '-'],
     'css' => ['node', base_path('tools/check-css.mjs')],
     'timeout' => 10,
 ],
@@ -285,16 +296,28 @@ candidates before they replace a public file:
 
 Each command is an argument list run in the application directory. It receives
 the exact candidate source on stdin; exit 0 accepts it. Configure only tools
-that parse/lint without evaluating the source. `node --check` is an example
-JavaScript parser; the CSS command above is a site's own checker and must exist.
-Use the site's installed CSS parser/linter and choose syntax versions appropriate
-to its browsers. No Node or linter is required unless configured. Setting either
-command to `null` disables that check.
+that parse/lint without evaluating the source. Use the site's installed CSS
+parser/linter and choose syntax versions appropriate to its browsers.
 
 Checks apply to custom JS and all stylesheet saves through the editor's actions,
-including rule operations. A failure, missing tool, invalid configuration or
-timeout (1–60 seconds) returns 422 with a diagnostic, preserving the file, its
-version, backups and activity log. A stale version still returns 409 first. The
-buffer stays unsaved and can be corrected or reverted. The tabs indicate whether
-a check is configured. Validation catches only what the selected tool reports;
-it does not prove correct runtime behavior or make untrusted CSS/JS safe.
+including rule operations. Every refusal is a 422 that preserves the file, its
+version, backups and activity log; a stale version still returns 409 first:
+
+| `reason` | When | Body |
+| --- | --- | --- |
+| `syntax` | The check refused the code | `message`: the checker's own words about the code, at most 20 lines and 1000 bytes, without Node's stack frames or version; `line`, when the output names one (`[stdin]:2`, `line 2`) |
+| `checker` | The check could not be made: the command is misconfigured, not found or not executable (exit 126 or 127 included), or timed out | `message`: "…could not run. Nothing was saved. Ask an administrator…". The details are logged, not returned |
+
+The buffer stays unsaved and can be corrected or reverted; for a `line`, the
+tab offers **Go to line N**. The tabs indicate which check applies.
+
+As the text is typed, the code editor marks in its gutter (with the reason on
+hover, and a note above the code) unclosed brackets, strings and comments, and
+in custom JS, also a line CodeMirror's JavaScript parser cannot read
+(`const x = ;`, `{ a: 1 b: 2 }`). It asks before saving a file it marks. The
+parser's marks are a hint: on minified code it can be wrong, and the server's
+check decides. The CSS and JS tabs are coloured by CodeMirror's CSS and
+JavaScript, fetched with the first of those tabs (`dist/code-languages-*.js`);
+a template's code never fetches them. Validation catches only what
+the selected tool reports; it does not prove correct runtime behavior or make
+untrusted CSS/JS safe.

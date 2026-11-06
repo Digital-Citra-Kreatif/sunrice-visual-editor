@@ -13,20 +13,28 @@ use Sunrice\VisualEditor\Actions\Build;
 use Sunrice\VisualEditor\Rendering\TailwindPreview;
 use Sunrice\VisualEditor\Support\Access;
 use Sunrice\VisualEditor\Support\Widths;
+use Sunrice\VisualEditor\Templates\TemplateFile;
+use Sunrice\VisualEditor\Templates\TemplateNotFound;
+use Sunrice\VisualEditor\Templates\TemplateRepository;
 use Sunrice\VisualEditor\VisualEditorServiceProvider;
 
 class EditorController extends Controller
 {
     /**
-     * The editor's screen. `?url=/about` opens it on that page of the site.
+     * The editor's screen. `?url=/about` opens it on that page of the site;
+     * `?template=blocks/hero.blade.php&origin=site` with that template open.
      */
-    public function show(Request $request): Response
+    public function show(Request $request, TemplateRepository $templates): Response
     {
         $user = $request->user(Access::guard());
         abort_unless(Access::allowed($user), 403);
+        $template = static::startTemplate($templates, $request->query('template'), $request->query('origin'));
 
         return Inertia::render('VisualEditor/Editor', [
             'startPath' => static::sitePath($request->query('url')),
+            // The template asked for, when it is one the editor lists; and whether one was asked for that is not.
+            'startTemplate' => $template === false ? null : $template,
+            'templateMissing' => $template === false,
             // The devices the page is previewed at.
             'widths' => Widths::configured(),
             // The code editor is a script of its own, fetched when code is first shown.
@@ -41,6 +49,31 @@ class EditorController extends Controller
             // The site's own Vite dev server is running: it keeps the CSS up with the templates, and nothing needs building.
             'devServer' => TailwindPreview::devServer(),
         ]);
+    }
+
+    /**
+     * The template a link asked for, found the way the API finds one: by
+     * listing the templates, never by reading the path it carried. Null
+     * when none was asked for, false when the one asked for isn't there.
+     *
+     * @return array{path: string, origin: string}|false|null
+     */
+    public static function startTemplate(TemplateRepository $templates, mixed $path, mixed $origin): array|false|null
+    {
+        if ($path === null) {
+            return null;
+        }
+        $origin ??= TemplateFile::SITE;
+        if (! is_string($path) || ! in_array($origin, [TemplateFile::SITE, TemplateFile::PACKAGE], true)) {
+            return false;
+        }
+        try {
+            $file = $templates->find($path, $origin);
+        } catch (TemplateNotFound) {
+            return false;
+        }
+
+        return ['path' => $file->path, 'origin' => $file->origin];
     }
 
     /**

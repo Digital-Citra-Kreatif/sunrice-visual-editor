@@ -14,7 +14,9 @@ use Symfony\Component\HttpFoundation\Response;
  * permission it takes: `EditorAccess::class.':edit'` for what changes a
  * file, nothing more than opening the editor for what reads. The API
  * answers a refusal as JSON; the editor's page (`:page`) with the panel's
- * own error page. Comes after the panel's sign-in middleware.
+ * own error page. The command palette's searches (`:search`) answer
+ * someone who may not open the editor with nothing found, not a refusal.
+ * Comes after the panel's sign-in middleware.
  */
 final class EditorAccess
 {
@@ -28,6 +30,9 @@ final class EditorAccess
         };
         if (! Access::may($request->user(Access::guard()), $permission)) {
             abort_if($needs === 'page', 403);
+            if ($needs === 'search' && $request->isMethod('GET')) {
+                return response()->json(['items' => []]);
+            }
 
             return response()->json([
                 'reason' => 'forbidden',

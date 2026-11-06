@@ -117,7 +117,7 @@ export type PickVariable = Pickable & {
     sure: boolean;
 };
 
-export type Refusal = 'forbidden' | 'not_found' | 'conflict' | 'rejected' | 'syntax' | 'invalid' | 'failed';
+export type Refusal = 'forbidden' | 'not_found' | 'conflict' | 'rejected' | 'syntax' | 'checker' | 'invalid' | 'failed';
 
 export class ApiError extends Error {
     /** Why, in a word the screen can act on. "failed" when the server didn't say. */
@@ -131,13 +131,17 @@ export class ApiError extends Error {
     /** With "rejected": which operation of the list, counted from 0. */
     readonly operation: number | null;
 
-    constructor(message: string, reason: Refusal, status: number, version: string | null = null, operation: number | null = null) {
+    /** With "syntax" from a check of custom CSS or JS: the line it named, counted from 1. */
+    readonly line: number | null;
+
+    constructor(message: string, reason: Refusal, status: number, version: string | null = null, operation: number | null = null, line: number | null = null) {
         super(message);
         this.name = 'ApiError';
         this.reason = reason;
         this.status = status;
         this.version = version;
         this.operation = operation;
+        this.line = line;
     }
 }
 
@@ -156,8 +160,8 @@ function xsrfToken(): string {
 
 /** Turns an answer that isn't a success into the error the caller catches. */
 export async function refusal(response: { status: number; json(): Promise<unknown> }): Promise<ApiError> {
-    const body = (await response.json().catch(() => null)) as { reason?: unknown; message?: unknown; version?: unknown; operation?: unknown } | null;
-    const known: Refusal[] = ['forbidden', 'not_found', 'conflict', 'rejected', 'syntax', 'invalid'];
+    const body = (await response.json().catch(() => null)) as { reason?: unknown; message?: unknown; version?: unknown; operation?: unknown; line?: unknown } | null;
+    const known: Refusal[] = ['forbidden', 'not_found', 'conflict', 'rejected', 'syntax', 'checker', 'invalid'];
     const reason = known.find((candidate) => candidate === body?.reason) ?? 'failed';
     const message =
         typeof body?.message === 'string' && body.message !== ''
@@ -166,7 +170,9 @@ export async function refusal(response: { status: number; json(): Promise<unknow
               ? 'Your session has ended. Reload the page and sign in again.'
               : `The server answered ${response.status}.`;
 
-    return new ApiError(message, reason, response.status, typeof body?.version === 'string' ? body.version : null, typeof body?.operation === 'number' ? body.operation : null);
+    const line = typeof body?.line === 'number' && Number.isInteger(body.line) && body.line > 0 ? body.line : null;
+
+    return new ApiError(message, reason, response.status, typeof body?.version === 'string' ? body.version : null, typeof body?.operation === 'number' ? body.operation : null, line);
 }
 
 async function request<T>(method: string, address: string, body?: unknown): Promise<T> {
@@ -358,6 +364,8 @@ export type CustomFile = CustomCss;
 
 export type CustomCss = {
     checked?: boolean;
+    /** How saves are checked: the site's command, the editor's own CSS check, Node.js; null when they are not. */
+    checker?: 'command' | 'builtin' | 'node' | null;
     path: string;
     displayPath: string;
     url: string;

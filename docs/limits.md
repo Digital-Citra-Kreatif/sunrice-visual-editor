@@ -161,6 +161,7 @@ other page that uses the template.
 
 - Automatic custom JS is omitted from authorized editor previews. Other scripts
   explicitly loaded by a template may still run there. Test custom JS on the public page.
-- CSS/JS syntax parsing is opt-in through `syntax_checks`; without a configured
-  checker, whole-file saves can publish invalid syntax. CSS edit permission can
+- The built-in CSS check finds unclosed brackets, strings and comments, not
+  unknown properties or values; JS is checked only where Node.js is on the
+  server (or `syntax_checks.js` names a tool). CSS edit permission can
   also hide content and load remote resources; grant it to trusted designers.

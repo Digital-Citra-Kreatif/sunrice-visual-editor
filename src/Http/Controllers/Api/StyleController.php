@@ -63,6 +63,8 @@ class StyleController extends Controller
                 'injected' => CustomCss::injected(),
                 'stack' => CustomCss::stack(),
                 'checked' => AssetSyntax::configured('css'),
+                // How: 'command' (the site's), 'builtin' (CSS), 'node' (JS); null when off.
+                'checker' => AssetSyntax::checker('css'),
             ]];
         });
     }

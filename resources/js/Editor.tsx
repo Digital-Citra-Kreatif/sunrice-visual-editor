@@ -12,7 +12,7 @@ import { pageOf, rememberPage } from './lib/memory';
 import { actionOn, moveTo, type Action } from './lib/move';
 import { isAdminPath, sitePath } from './lib/path';
 import { startRedraw, type Redraw } from './lib/redraw';
-import { pageTemplate, sameTemplate, shortName, type TemplateName } from './lib/templates';
+import { pageTemplate, readStartTemplate, relistDelay, sameTemplate, shortName, type TemplateName } from './lib/templates';
 import { useSize } from './lib/size';
 import { boxesOf, findNode, nodeAt, rowFor, strayLeft } from './lib/tree';
 import { layout, readWidths, type View } from './lib/widths';
@@ -35,6 +35,10 @@ type Props = {
     devServer?: boolean;
     /** Where the code editor's script is fetched from. */
     codeEditor?: string;
+    /** The template the editor was asked to open (`?template=`), found by the server among those it lists. */
+    startTemplate?: TemplateName | null;
+    /** A template was asked for that the server does not list. */
+    templateMissing?: boolean;
 };
 
 /** A small picture of the editor with one side of it filled in: which side a button of the top bar shows and hides. */
@@ -117,7 +121,7 @@ const message = (error: unknown) => (error instanceof ApiError || error instance
  * Everything drawn over the page is drawn here, above the frame; the
  * page's bridge script says what the pointer is over and where things are.
  */
-export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServer }: Props) {
+export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServer, startTemplate, templateMissing }: Props) {
     const mayEdit = can?.edit !== false;
     const mayCode = mayEdit && can?.code !== false;
     /** The site has a build command, and whoever is here may run it. */
@@ -159,9 +163,10 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     /** The address of the last page that was in the frame, to know the same page drawn again from another. */
     const lastPage = useRef<string | null>(null);
     /** A template to open once the page that is on its way has arrived. */
-    const wanted = useRef<TemplateName | null>(null);
+    const [firstTemplate] = useState<TemplateName | null>(() => readStartTemplate(startTemplate));
+    const wanted = useRef<TemplateName | null>(firstTemplate);
 
-    const [open, setOpen] = useState<TemplateName | null>(null);
+    const [open, setOpen] = useState<TemplateName | null>(firstTemplate);
     /**
      * The template that is open as an answer arrives. A save, an undo or a change is answered a
      * moment later, and another template may have been opened meanwhile: the answer is then about
@@ -229,6 +234,28 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const previews = useRef<(HTMLIFrameElement | null)[]>([]);
     /** Every template there is, for the list of those not on this page. */
     const [all, setAll] = useState<TemplateInfo[] | null>(null);
+    /** Bumped to list the templates again: the list shown stays until the new one is in. */
+    const [listings, setListings] = useState(0);
+    const listedAt = useRef(0);
+    const relistWait = useRef<number | null>(null);
+    /**
+     * Lists the templates again, at most once every RELIST_GAP: after a save, a copy or a build, and
+     * when the list is shown again, since files can be added or deleted on disk at any time.
+     */
+    const relist = () => {
+        if (relistWait.current !== null) {
+            return;
+        }
+        relistWait.current = window.setTimeout(() => {
+            relistWait.current = null;
+            setListings((count) => count + 1);
+        }, relistDelay(listedAt.current, Date.now()));
+    };
+    useEffect(() => () => {
+        if (relistWait.current !== null) {
+            window.clearTimeout(relistWait.current);
+        }
+    }, []);
     const [copying, setCopying] = useState(false);
     /** A change from the tree (a move, a delete) or an undo is on its way to the server. */
     const [applying, setApplying] = useState(false);
@@ -707,7 +734,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 say('done', `Copied to ${made.path}.`);
                 // The site uses the copy from now on: draw the page again and open it.
                 wanted.current = { path: made.path, origin: 'site' };
-                setAll(null);
+                relist();
                 if (page !== null) {
                     show(page.url);
                 } else {
@@ -746,20 +773,54 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
         }
     };
 
-    // Every template there is, for the list of those not on this page.
+    // Every template there is, for the list of those not on this page: again each time it is asked for.
     useEffect(() => {
-        if (all !== null) {
-            return;
-        }
         let stale = false;
+        listedAt.current = Date.now();
         listTemplates()
             .then((templates) => !stale && setAll(templates))
-            .catch(() => !stale && setAll([]));
+            .catch(() => !stale && setAll((had) => had ?? []));
 
         return () => {
             stale = true;
         };
-    }, [all]);
+    }, [listings]);
+
+    // The Templates tab shown, or the editor come back to (another window, another tab of the
+    // browser): what is on disk may have changed meanwhile.
+    const listShown = useRef(treeTab === 'templates');
+    listShown.current = treeTab === 'templates';
+    const relistNow = useRef(relist);
+    relistNow.current = relist;
+    const tabSeen = useRef(false);
+    useEffect(() => {
+        // Not as the editor opens: the templates are being listed already.
+        if (treeTab === 'templates' && tabSeen.current) {
+            relist();
+        }
+        tabSeen.current = true;
+    }, [treeTab]);
+    useEffect(() => {
+        const back = () => {
+            if (document.visibilityState === 'visible' && listShown.current) {
+                relistNow.current();
+            }
+        };
+        window.addEventListener('focus', back);
+        document.addEventListener('visibilitychange', back);
+
+        return () => {
+            window.removeEventListener('focus', back);
+            document.removeEventListener('visibilitychange', back);
+        };
+    }, []);
+
+    // A template asked for by the address that the server does not list: said once, and nothing is read.
+    useEffect(() => {
+        if (templateMissing === true) {
+            say('problem', 'Template not found. The address asked for a template the site does not have, so nothing was opened.');
+        }
+    }, []);
 
     // The open template, read in full.
     useEffect(() => {
@@ -857,7 +918,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             setCollapsed(new Set());
         }
         // Whether it opens as a tree may have changed with it.
-        setAll(null);
+        relist();
         changedRedraw();
     };
 
@@ -912,6 +973,8 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 setBehind(false);
                 say('done', `Built in ${built.seconds} seconds.`);
                 redraw();
+                // A build can write templates too.
+                relist();
             })
             .catch((error: unknown) => say('problem', message(error)))
             .finally(() => setBuilding(false));
@@ -945,7 +1008,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                     revealing.current = true;
                 }
                 // Whether it opens as a tree may have changed with it.
-                setAll(null);
+                relist();
                 changedRedraw();
             })
             .catch((error: unknown) => {
@@ -1502,6 +1565,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                     <div className="sve-code-pane" hidden={codeTab !== 'css'}>
                         <CustomFilePanel
                             kind="css"
+                            shown={codeTab === 'css'}
                             mayEdit={mayEdit}
                             editorScript={editorScript}
                             onUnsaved={setCssUnsaved}
@@ -1516,6 +1580,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                         {/* It runs in every visitor's browser: writing it is code. */}
                         <CustomFilePanel
                             kind="js"
+                            shown={codeTab === 'js'}
                             mayEdit={mayCode}
                             editorScript={editorScript}
                             onUnsaved={setJsUnsaved}

@@ -92,9 +92,12 @@ return [
         'stack' => 'head',
     ],
 
-    // Optional parse-only tools, as argument lists. Each reads the candidate
-    // source on stdin; exit 0 accepts it. No source is executed by the editor.
-    // For JS, for example: ['node', '--check']. CSS: a site's own checker.
+    // What a save of custom CSS or JS must pass. A parse-only command, as an
+    // argument list: it reads the candidate source on stdin, and exit 0
+    // accepts it. No source is executed by the editor. false checks nothing.
+    // Left null, CSS gets the editor's own check (closed braces, brackets,
+    // strings and comments), and JS ['node', '--check', '-'] when Node.js
+    // is on the server's PATH (none when it isn't: the panel says so).
     'syntax_checks' => [
         'css' => null,
         'js' => null,
