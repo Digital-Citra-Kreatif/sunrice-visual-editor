@@ -34,6 +34,15 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Designer', 'password' => bcrypt('Sunrice-Demo-2026!')],
         )->assignRole($designer);
 
+        // Someone in the admin who may not open the visual editor (translator@example.com / Sunrice-Demo-2026!):
+        // the panel's command palette still asks the editor's searches for them, and must find nothing quietly.
+        $translator = Role::findOrCreate('translator', $guard);
+        $translator->syncPermissions([Permission::findOrCreate(Panel::ACCESS, $guard)]);
+        User::query()->firstOrCreate(
+            ['email' => 'translator@example.com'],
+            ['name' => 'Translator', 'password' => bcrypt('Sunrice-Demo-2026!')],
+        )->assignRole($translator);
+
         $this->call(DemoSeeder::class);
     }
 }

@@ -72,6 +72,8 @@ class ScriptController extends Controller
             'injected' => CustomJs::injected(),
             'stack' => CustomJs::stack(),
             'checked' => AssetSyntax::configured('js'),
+            // How: 'command' (the site's), 'builtin' (CSS), 'node' (JS); null when off.
+            'checker' => AssetSyntax::checker('js'),
         ];
     }
 }

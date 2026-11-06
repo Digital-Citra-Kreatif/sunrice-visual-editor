@@ -67,3 +67,33 @@ export function limit(file: { origin: string; opens: boolean }): string | null {
 
     return file.opens ? null : 'Code only';
 }
+
+/** Text as it is compared in a search: one way of writing each letter ("é" typed or composed), and no case. */
+export function folded(text: string): string {
+    return text.normalize('NFC').toLocaleLowerCase();
+}
+
+/** Whether a template is one a search of the Templates tab finds: by its path, its short name or what its role is called. */
+export function matchesSearch(template: { path: string; role: string }, query: string): boolean {
+    const wanted = folded(query.trim());
+
+    return wanted === '' || [template.path, shortName(template.path), roleLabel(template.role)].some((text) => folded(text).includes(wanted));
+}
+
+/** The least time between two listings of the templates, in milliseconds: focus and tab changes come in bursts. */
+export const RELIST_GAP = 2000;
+
+/** How long to wait before listing the templates again, when they were last listed at `listedAt`. */
+export function relistDelay(listedAt: number, now: number, gap: number = RELIST_GAP): number {
+    return Math.max(0, Math.min(gap, listedAt + gap - now));
+}
+
+/** The template the editor was asked to open, as the server sent it: a name of the API's, or nothing. */
+export function readStartTemplate(sent: unknown): TemplateName | null {
+    if (typeof sent !== 'object' || sent === null) {
+        return null;
+    }
+    const { path, origin } = sent as { path?: unknown; origin?: unknown };
+
+    return typeof path === 'string' && path !== '' && (origin === 'site' || origin === 'package') ? { path, origin } : null;
+}

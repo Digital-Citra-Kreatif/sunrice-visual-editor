@@ -48,7 +48,7 @@ function environment() {
         removeEventListener(type, listener) { listeners[type]?.delete(listener); },
         setTimeout: () => 0, clearTimeout() {}, confirm: () => true,
     };
-    globalThis.document = { cookie: '' };
+    globalThis.document = { cookie: '', visibilityState: 'visible', addEventListener() {}, removeEventListener() {} };
     globalThis.Sunrice = { adminUrl: (path) => '/admin/' + (path ?? '') };
     const files = { 'a.blade.php': template('a.blade.php', 'original', 'a1'), 'b.blade.php': template('b.blade.php', 'other', 'b1') };
     const requests = [];
@@ -264,11 +264,119 @@ test('the Fields reference stays open as canvas selections, layer selections and
 test('custom asset tabs explain CSS impact, preview behavior and optional checks', async () => {
     for (const kind of ['css', 'js']) {
         environment();
+        if (kind === 'css') globalThis.fetch = async () => ({ ok: true, json: async () => ({ custom: { path: 'custom.css', displayPath: 'public/cms/custom.css', source: 'original', version: 'c1', exists: true, checked: true, checker: 'builtin' } }) });
         if (kind === 'js') globalThis.fetch = async () => ({ ok: true, json: async () => ({ custom: { path: 'custom.js', source: '', version: 'j1', injected: true, stack: 'head', checked: true } }) });
         const state = harness(CustomFilePanel, { kind, mayEdit: true, editorScript: null, onUnsaved() {}, onSaved() {} });
         state.render(); await flush(state);
-        assert.ok(matching(state.output, (node) => typeof node.props?.children === 'string' && node.props.children.includes(kind === 'css' ? 'Syntax checks are off' : 'configured syntax check')));
+        assert.ok(matching(state.output, (node) => typeof node.props?.children === 'string' && node.props.children.includes(kind === 'css' ? 'unclosed braces' : 'configured syntax check')));
         if (kind === 'css') assert.ok(matching(state.output, (node) => typeof node.props?.children === 'string' && node.props.children.includes('trusted designers')));
         else assert.ok(matching(state.output, (node) => typeof node.props?.children === 'string' && node.props.children.includes('skipped in editor previews')));
     }
+});
+
+const textOf = (node) => (node == null || typeof node === 'boolean' ? '' : typeof node === 'string' || typeof node === 'number' ? String(node) : Array.isArray(node) ? node.map(textOf).join('') : textOf(node.props?.children));
+const rows = (output) => {
+    const found = [];
+    const walk = (node) => {
+        if (!node || typeof node !== 'object') return;
+        if (node.props?.template?.path !== undefined && typeof node.props.onOpen === 'function') found.push(node.props.template.path);
+        for (const child of [node.props?.children].flat(Infinity)) walk(child);
+    };
+    walk(output);
+    return found;
+};
+
+test('the Templates tab finds templates by path, name and role, Unicode included, and says when none match', () => {
+    const info = (path, role) => ({ path, origin: 'site', role, opens: true, editable: true, view: 'cms.x', usedBy: [], copyTo: null });
+    const all = [info('blocks/hero.blade.php', 'block'), info('partials/card.blade.php', 'partial'), info('partials/menu.blade.php', 'partial'), info('blocks/caf\u00e9-card.blade.php', 'block'), info('layout.blade.php', 'layout')];
+    const files = [{ ...info('layout.blade.php', 'layout'), key: 'k1', version: 'v' }];
+    const state = harness(TemplatesPanel, { files, waiting: null, all, open: null, onOpen() {}, onPoint() {} });
+    state.render();
+    const input = () => matching(state.output, (node) => node.type === 'input' && node.props['aria-label'] === 'Find a template');
+    const type = (value) => { input().props.onChange({ target: { value } }); state.render(); };
+    assert.equal(input().props.type, 'search');
+    assert.equal(rows(state.output).length, 5);
+    assert.equal(matching(state.output, (node) => node.type === 'details').props.open, false);
+
+    type('hero');
+    assert.deepEqual(rows(state.output), ['blocks/hero.blade.php']);
+    // The other templates open by themselves while a search is typed, and Tab goes from the field to the first row found.
+    assert.equal(matching(state.output, (node) => node.type === 'details').props.open, true);
+    assert.equal(matching(state.output, (node) => node.type === 'summary').props.tabIndex, -1);
+
+    type('PARTIAL');
+    assert.deepEqual(rows(state.output).sort(), ['partials/card.blade.php', 'partials/menu.blade.php']);
+    // Typed decomposed (e + combining accent), found composed.
+    type('cafe\u0301');
+    assert.deepEqual(rows(state.output), ['blocks/caf\u00e9-card.blade.php']);
+    type('layout');
+    assert.deepEqual(rows(state.output), ['layout.blade.php']);
+
+    type('zzz');
+    assert.deepEqual(rows(state.output), []);
+    assert.match(textOf(state.output), /No templates match your search\./);
+    // The live region is the text alone: the button is beside it, not in it.
+    const status = matching(state.output, (node) => node.props?.role === 'status');
+    assert.equal(textOf(status), 'No templates match your search.');
+    assert.equal(matching(status, (node) => node.type === 'button'), null);
+    // Clear goes away with the empty state: the keyboard goes back to the field, not to the page.
+    let focused = 0;
+    input().props.ref.current = { focus() { focused++; } };
+    button(state.output, 'Clear').props.onClick();
+    state.render();
+    assert.equal(focused, 1);
+    assert.equal(input().props.value, '');
+    assert.equal(rows(state.output).length, 5);
+
+    type('hero');
+    let prevented = false;
+    input().props.onKeyDown({ key: 'Escape', preventDefault() { prevented = true; }, stopPropagation() {} });
+    state.render();
+    assert.equal(prevented, true);
+    assert.equal(input().props.value, '');
+    assert.equal(rows(state.output).length, 5);
+});
+
+test('custom CSS marks a syntax problem before saving, and asks before saving it', async () => {
+    environment();
+    const asked = [];
+    window.confirm = (text) => { asked.push(text); return false; };
+    const saves = [];
+    globalThis.fetch = async (url, options) => {
+        if (options?.method === 'PUT') { saves.push(url); return { ok: true, json: async () => ({ file: { version: 'c2' } }) }; }
+        return { ok: true, json: async () => ({ custom: { path: 'custom.css', displayPath: 'public/cms/custom.css', source: '.a { color: red; }', version: 'c1', exists: true, checker: 'builtin', checked: true } }) };
+    };
+    const state = harness(CustomFilePanel, { kind: 'css', mayEdit: true, editorScript: null, onUnsaved() {}, onSaved() {} });
+    state.render(); await flush(state);
+    assert.equal(matching(state.output, (node) => node.props?.className === 'sve-code__lint'), null);
+    find(state.output, PlainCode).props.onText('.a { color: red;\n.b { }');
+    state.render();
+    const lint = matching(state.output, (node) => node.props?.className === 'sve-code__lint');
+    assert.match(textOf(lint), /Line 1: “\{” is never closed/);
+    button(state.output, 'Save').props.onClick();
+    await flush(state);
+    assert.equal(asked.length, 1);
+    assert.match(asked[0], /Save anyway\?/);
+    assert.equal(saves.length, 0);
+});
+
+test('a refused save shows the checker output as laid out, and offers its line', async () => {
+    environment();
+    globalThis.fetch = async (url, options) => {
+        if (options?.method === 'PUT') {
+            return { ok: false, status: 422, json: async () => ({ reason: 'syntax', line: 2, message: 'JS check failed on line 2. Nothing was saved.\n[stdin]:2\nfunction( {{{\n^^^^^^^^\n\nSyntaxError: Function statements require a function name' }) };
+        }
+        return { ok: true, json: async () => ({ custom: { path: 'custom.js', displayPath: 'public/cms/custom.js', source: '', version: 'j1', exists: true, injected: true, stack: 'head', checker: 'node', checked: true } }) };
+    };
+    const state = harness(CustomFilePanel, { kind: 'js', mayEdit: true, editorScript: null, onUnsaved() {}, onSaved() {} });
+    state.render(); await flush(state);
+    find(state.output, PlainCode).props.onText('window.a=1;\nfunction( {}');
+    state.render();
+    button(state.output, 'Save').props.onClick();
+    await flush(state);
+    const box = alert(state.output);
+    assert.match(textOf(box), /Not saved\. JS check failed on line 2/);
+    const output = matching(box, (node) => node.type === 'pre');
+    assert.equal(output.props.className, 'sve-code__trouble-output');
+    assert.equal(output.props.children, '[stdin]:2\nfunction( {{{\n^^^^^^^^\n\nSyntaxError: Function statements require a function name');
 });

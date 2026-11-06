@@ -6,7 +6,7 @@
 // those modules, ours or a bundled library's, resolves to the panel's copy
 // on window.Sunrice.modules (the panel's runtime, version 3).
 import { build } from 'esbuild';
-import { copyFile, mkdir } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, rm } from 'node:fs/promises';
 
 // What the editor and its libraries import from each module the panel shares (SHARED_MODULES in @imajiner/admin-sdk/shared).
 const shared = {
@@ -76,9 +76,24 @@ await build({
 // The code editor (CodeMirror), fetched the first time code is shown: it is
 // larger than the rest of the editor together, and the admin does not carry
 // it on every page. No React in it.
+//
+// CodeMirror's CSS and JavaScript (code/languages.ts), which only the custom
+// CSS and JS tabs use, are split off into a chunk it imports when one of them
+// is first shown: dist/code-languages-<hash>.js. Split, not built apart, so
+// the chunk uses the code editor's CodeMirror and does not bring a second one:
+// what both use goes into dist/code-chunk-<hash>.js, which code-editor.js
+// imports. Their names change with their content, so a browser never keeps an
+// old one; those of the build before are deleted.
+for (const old of await readdir('dist')) {
+    if (/^code-(?:languages|chunk)-[A-Z0-9]+\.js$/.test(old)) {
+        await rm(`dist/${old}`);
+    }
+}
 await build({
-    entryPoints: ['resources/js/code/index.ts'],
-    outfile: 'dist/code-editor.js',
+    entryPoints: { 'code-editor': 'resources/js/code/index.ts' },
+    outdir: 'dist',
+    splitting: true,
+    chunkNames: 'code-[name]-[hash]',
     bundle: true,
     format: 'esm',
     target: 'es2022',

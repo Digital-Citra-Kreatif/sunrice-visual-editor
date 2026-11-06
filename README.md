@@ -127,7 +127,9 @@ content in the admin.
   live (Sunrice 0.2.0 or later).
 - The panel's command palette (Cmd/Ctrl+K), on every page of the admin,
   finds the site's pages by title: **Edit About in the visual editor**
-  opens the editor on that page.
+  opens the editor on that page; and its templates by path: **Open
+  template blocks/hero in the visual editor** opens it in the code. For
+  someone who may not open the editor, both find nothing.
 
 **A stylesheet and a script of the site's own.**
 
@@ -209,6 +211,7 @@ the visual editor** in the command palette (Cmd/Ctrl+K), or directly:
 | --- | --- |
 | `/admin/visual-editor` | the homepage |
 | `/admin/visual-editor?url=/about` | that page of the site |
+| `/admin/visual-editor?template=blocks/hero.blade.php&origin=site` | with that template open (`origin=package` for one of the CMS's views); one the editor does not list opens nothing and says *Template not found* |
 
 `/admin` stands for the panel's path. The `url` has to be a path on the
 site; anything else opens the homepage. A link like the second one can be put
@@ -421,7 +424,7 @@ resources/js, css/   the editor UI (the panel's React and Inertia, window.Sunric
                        Editor.tsx the screen, panels/ the tree and the tabs beside the page,
                        canvas/ what is drawn over it, lib/ the API and the frame
 resources/js/bridge/ the script in a page shown in the editor's frame, built into dist/bridge.js
-resources/js/code/   the code editor (CodeMirror), built into dist/code-editor.js and fetched when code is first shown
+resources/js/code/   the code editor (CodeMirror), built into dist/code-editor.js (+ its hashed chunks) and fetched when code is first shown
 spike/               the round-trip reports (templates, stylesheets) and their results
 tests/               Pest tests, Frontend/ unit tests and the Browser/ check; fixtures/ holds
                      site/ (the demo site's block templates), sunrice-starter and sunrice-package
