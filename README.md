@@ -9,7 +9,7 @@ writes the file back with nothing else disturbed.
 
 ## Install
 
-On a Laravel application that already runs Sunrice 0.5:
+On a Laravel application that already runs Sunrice 0.8:
 
 ```bash
 composer config repositories.sunrice-visual-editor '{"type":"vcs","url":"https://github.com/Digital-Citra-Kreatif/sunrice-visual-editor","no-api":true}'

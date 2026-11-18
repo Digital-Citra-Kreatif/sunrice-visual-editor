@@ -114,7 +114,9 @@ A template that compiles can still fail when the page is drawn: a variable
 that is not there on this page, a collection that does not exist. No check
 before saving can know that. After each change the editor draws the page
 again; if the server now answers with an error where it did not before, it
-says so and offers the undo.
+says so and offers the undo. The page coming back is also when the editor reads
+the template again, and the undo's button waits for that read (a moment) before
+it can be pressed.
 
 ## How the page knows its templates
 

@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 
 /** Something to tell the person: a change that was refused, or one that was made elsewhere than they are looking. */
-export type Notice = { kind: 'problem' | 'done'; text: string; at: number; action?: { label: string; run(): void } };
+/** `ready`, asked each time the notice is drawn: false while the action can't be done yet, and its button waits. */
+export type Notice = { kind: 'problem' | 'done'; text: string; at: number; action?: { label: string; run(): void; ready?(): boolean } };
 
 /** How long word of something done stays. A problem stays until it is dismissed or the next change goes through. */
 const DONE_FOR = 4000;
@@ -34,7 +35,7 @@ export function NoticeBar({ notice, onDismiss }: Props) {
         <div className={`sve-notice sve-notice--${notice.kind}`} role={notice.kind === 'problem' ? 'alert' : 'status'}>
             <span className="sve-notice__text">{notice.text}</span>
             {notice.action !== undefined && (
-                <button type="button" className="sve-button sve-notice__action" onClick={notice.action.run}>
+                <button type="button" className="sve-button sve-notice__action" onClick={notice.action.run} disabled={notice.action.ready?.() === false}>
                     {notice.action.label}
                 </button>
             )}

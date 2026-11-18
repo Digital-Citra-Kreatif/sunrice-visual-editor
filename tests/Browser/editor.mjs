@@ -946,6 +946,8 @@ await step('open no list of fields for an HTML comment typed in the code', async
     await frame.locator('.hero h1').click();
     await openIs('blocks/hero');
     await cursorLineHas('<h1>{{ $block->heading }}</h1>');
+    // The hero is read again as it opens: until it has come, its code is shown read-only, and what is typed goes nowhere.
+    await codeBar.getByText('Read-only').waitFor({ state: 'hidden' });
     await code.locator('.cm-line', { hasText: '<h1>{{ $block->heading }}</h1>' }).first().click();
     await page.keyboard.press('End');
     // "-->" ends in "->", which PHP code would follow with a field.

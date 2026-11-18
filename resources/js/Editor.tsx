@@ -271,6 +271,14 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
     const unpairedSaved = useRef<string | null>(null);
     /** What a shortcut does, as things are now: the keys are listened for once, and things change. */
     const shortcuts = useRef<(shortcut: Shortcut) => void>(() => {});
+    /** Whether an undo would go through now: not while the open template is being read again, or a change is on its way. */
+    const undoableNow = useRef(false);
+    /**
+     * Undo, offered where a saved change is said to have gone wrong. The page coming back is
+     * also when the open template may be read again (the page it drew is another version, or
+     * one without it), and an undo asked for meanwhile would do nothing: the button waits.
+     */
+    const undoAction: Notice['action'] = { label: 'Undo', run: () => shortcuts.current('undo'), ready: () => undoableNow.current };
     /** The page in the frame is being drawn again, not left: what is known about it holds until it is back. */
     const redrawing = useRef(false);
     /** While it is, and until the new page has measured what is asked of it, the boxes over the page stay as they were. */
@@ -319,9 +327,9 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
             const unpaired = unpairedSaved.current;
             unpairedSaved.current = null;
             if (before !== null && before < 400 && status >= 400) {
-                say('problem', `The page could not be drawn after that change: the server answered ${status}.`, { label: 'Undo', run: () => shortcuts.current('undo') });
+                say('problem', `The page could not be drawn after that change: the server answered ${status}.`, undoAction);
             } else if (unpaired !== null) {
-                say('problem', unpaired, { label: 'Undo', run: () => shortcuts.current('undo') });
+                say('problem', unpaired, undoAction);
             }
             setAddress(said.url);
             setProblem(null);
@@ -568,7 +576,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
                 if (statusBefore.current !== null) {
                     // It was a page of the editor's before the change, and is none now.
                     statusBefore.current = null;
-                    say('problem', 'The page did not come back after that change.', { label: 'Undo', run: () => shortcuts.current('undo') });
+                    say('problem', 'The page did not come back after that change.', undoAction);
                 }
             }
         }, READY_WITHIN);
@@ -1175,6 +1183,7 @@ export function Editor({ startPath, widths: sentWidths, can, codeEditor, devServ
 
     const history = template.state === 'ready' ? histories[historyKey(template.data)] : undefined;
     const undoable = template.state === 'ready' && fixed === null && !applying && canUndo(history, template.data.version);
+    undoableNow.current = undoable;
     const redoable = template.state === 'ready' && fixed === null && !applying && canRedo(history, template.data.version);
 
     shortcuts.current = (shortcut) => {

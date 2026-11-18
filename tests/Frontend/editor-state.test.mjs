@@ -16,11 +16,12 @@ await build({
         export { CustomFilePanel } from './resources/js/panels/CustomFilePanel.tsx';
         export { TemplatesPanel } from './resources/js/panels/TemplatesPanel.tsx';
         export { LayersPanel } from './resources/js/panels/LayersPanel.tsx';
-        export { FieldsPanel } from './resources/js/panels/FieldsPanel.tsx';`, resolveDir: root },
+        export { FieldsPanel } from './resources/js/panels/FieldsPanel.tsx';
+        export { NoticeBar } from './resources/js/canvas/Notice.tsx';`, resolveDir: root },
     outfile: join(directory, 'components.mjs'), bundle: true, format: 'esm', platform: 'node', jsx: 'automatic',
     alias: { react: join(root, 'tests/Frontend/support/hooks.mjs'), 'react/jsx-runtime': join(root, 'tests/Frontend/support/hooks.mjs'), '@inertiajs/react': join(root, 'tests/Frontend/support/inertia.mjs') },
 });
-const { harness, Editor, CodePanel, PlainCode, CustomFilePanel, TemplatesPanel, LayersPanel, FieldsPanel } = await import(pathToFileURL(join(directory, 'components.mjs')).href);
+const { harness, Editor, CodePanel, PlainCode, CustomFilePanel, TemplatesPanel, LayersPanel, FieldsPanel, NoticeBar } = await import(pathToFileURL(join(directory, 'components.mjs')).href);
 
 function find(node, type) {
     if (!node || typeof node !== 'object') return null;
@@ -379,4 +380,24 @@ test('a refused save shows the checker output as laid out, and offers its line',
     const output = matching(box, (node) => node.type === 'pre');
     assert.equal(output.props.className, 'sve-code__trouble-output');
     assert.equal(output.props.children, '[stdin]:2\nfunction( {{{\n^^^^^^^^\n\nSyntaxError: Function statements require a function name');
+});
+
+test('a notice\'s action waits while it cannot be done, and is asked again each time the notice is drawn', () => {
+    let ready = false;
+    let ran = 0;
+    const notice = { kind: 'problem', text: 'The page could not be drawn after that change: the server answered 500.', at: 0, action: { label: 'Undo', run: () => ran++, ready: () => ready } };
+    const bar = harness(NoticeBar, { notice, onDismiss() {} });
+    const button = () => [bar.output.props.children].flat(Infinity).find((child) => child?.props?.className?.includes('sve-notice__action'));
+    bar.render();
+    // The open template being read again after the page came back: an undo now would do nothing.
+    assert.equal(button().props.disabled, true);
+    ready = true;
+    bar.render();
+    assert.equal(button().props.disabled, false);
+    button().props.onClick();
+    assert.equal(ran, 1);
+    // An action that is always possible says nothing of it.
+    bar.props = { notice: { ...notice, action: { label: 'Copy', run() {} } }, onDismiss() {} };
+    bar.render();
+    assert.equal(button().props.disabled, false);
 });
