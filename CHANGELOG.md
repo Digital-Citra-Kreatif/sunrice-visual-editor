@@ -5,6 +5,7 @@ minor version may change behaviour; what changes is said here.
 
 ## Unreleased
 
+- Requires Sunrice 0.8 (`^0.8 || dev-main`): `^0.5` only allowed 0.5.x, so the editor couldn't be installed beside Sunrice 0.6 or later.
 - **Fields** tab laid out again: one heading for each place values come from (This
   template, Site-wide…) where every card repeated it; a global's or a menu's CMS links
   in its own card, not between it and the one above; the CMS links together in one

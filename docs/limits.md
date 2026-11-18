@@ -1,7 +1,7 @@
 # Limits
 
 What the editor does not do, and where it stops. For Sunrice
-0.5 (the panel, `sunrice/admin`, and the CMS, `sunrice/cms`).
+0.8 (the panel, `sunrice/admin`, and the CMS, `sunrice/cms`).
 
 ## Where it runs
 
@@ -147,7 +147,7 @@ other page that uses the template.
 
 ## Sunrice itself
 
-- Built against Sunrice 0.5 (`Digital-Citra-Kreatif/sunrice`, November
+- Built against Sunrice 0.8 (`Digital-Citra-Kreatif/sunrice`, November
   2026). The package uses the panel's and the CMS's `@api` classes, with
   one exception: where the site's templates are and which of them draws
   each page come from the CMS's `Sunrice\Cms\Support\Templates`, marked

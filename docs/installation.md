@@ -12,7 +12,7 @@ writes the files themselves.
   and belong in the project's git repository. Use it on a local copy of the
   site, or on a staging copy, then commit and deploy. It is off on
   production unless you turn it on.
-- PHP 8.4 or newer, and a site that already runs Sunrice 0.5:
+- PHP 8.4 or newer, and a site that already runs Sunrice 0.8:
   the panel and the CMS, installed
   with `php artisan sunrice:install` (Laravel 13). The entry pages' link
   to the editor uses the CMS's `Cms::entryLinksUsing()`.
