@@ -6,6 +6,11 @@ minor version may change behaviour; what changes is said here.
 ## Unreleased
 
 - Requires Sunrice 0.8 (`^0.8 || dev-main`): `^0.5` only allowed 0.5.x, so the editor couldn't be installed beside Sunrice 0.6 or later.
+- **Fixed:** the **Undo** offered when a saved change breaks the page (or leaves something
+  unpaired, or the page doesn't come back) could do nothing. It appears as the page comes
+  back, which is also when the open template is read again, and an undo asked for during
+  that read was dropped without a word: the page stayed broken. The button now waits,
+  greyed, until the read is done (a fraction of a second).
 - **Fields** tab laid out again: one heading for each place values come from (This
   template, Site-wide…) where every card repeated it; a global's or a menu's CMS links
   in its own card, not between it and the one above; the CMS links together in one
